@@ -1,5 +1,7 @@
 package org.planit.gtfs.handler;
 
+import java.util.logging.Logger;
+
 import org.planit.gtfs.model.GtfsTrip;
 import org.planit.gtfs.scheme.GtfsTripsScheme;
 
@@ -11,6 +13,9 @@ import org.planit.gtfs.scheme.GtfsTripsScheme;
  */
 public class GtfsFileHandlerTrips extends GtfsFileHandler<GtfsTrip> {
 
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(GtfsFileHandlerTrips.class.getCanonicalName());
+  
   /**
    * Constructor
    */
@@ -23,7 +28,7 @@ public class GtfsFileHandlerTrips extends GtfsFileHandler<GtfsTrip> {
    */
   @Override
   public void handle(GtfsTrip gtfsTrip) {
-    // do nothing let user override derived class method
+    LOGGER.info(gtfsTrip.getTripId());
   }
 
 }

@@ -8,7 +8,7 @@ package org.planit.gtfs.enums;
  */
 public enum GtfsFileType {
   
-  TRIPS("trips.text");
+  TRIPS("trips.txt");
 
   private final String value;
   

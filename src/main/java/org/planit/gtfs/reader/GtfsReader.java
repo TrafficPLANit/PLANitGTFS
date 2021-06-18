@@ -1,7 +1,6 @@
 package org.planit.gtfs.reader;
 
 import org.planit.gtfs.model.GtfsObject;
-import org.planit.utils.misc.UrlUtils;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -40,7 +39,7 @@ public class GtfsReader {
     
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);    
     this.gtfsLocation = validGtfsLocation ? gtfsLocation : null; 
-    if(validGtfsLocation){
+    if(!validGtfsLocation){
       LOGGER.warning(String.format("Provided GTFS location (%s)is neither a directory nor a zip file, unable to instantiate reader", gtfsLocation));
     }
   }
@@ -52,6 +51,10 @@ public class GtfsReader {
     if(gtfsLocation==null) {
       return;
     }
+    
+    /* TODO: use logical ordering of different file types when we add more types */
+    fileReaders.forEach( (type, reader) -> reader.read());
+    
   }
   
   /** Register a handler for a specific file type

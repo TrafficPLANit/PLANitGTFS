@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.EnumSet;
 import java.util.logging.Logger;
 
+import org.planit.gtfs.enums.GtfsKeyType;
+import org.planit.gtfs.enums.GtfsObjectType;
+import org.planit.gtfs.model.GtfsObjectFactory;
 import org.planit.gtfs.scheme.GtfsFileScheme;
 import org.planit.utils.misc.UrlUtils;
-import org.planit.utils.misc.ZipUtils;
+import org.planit.utils.zip.ZipUtils;
 
 /**
  * general utilities specific to this GTFS API
@@ -52,5 +56,15 @@ public class GtfsUtils {
     }
     
     return null;
+  }
+
+  /** Collect the supported keys via reflection where it is assumed the object type's class has a default constructor. If so the supported keys
+   * are collected via a temporary instance that is created to access the abstract method providing the type specific supported keys
+   * 
+   * @param objectType
+   * @return
+   */
+  public static EnumSet<GtfsKeyType> getSupportedKeys(GtfsObjectType objectType) {
+      return GtfsObjectFactory.create(objectType).getSupportedKeys();
   }
 }

@@ -24,6 +24,15 @@ public abstract class GtfsFileHandler<T extends GtfsObject> {
     this.fileScheme = fileScheme;
   }
   
+  /** Handle raw GTFS object, cast to T and then delegate to handle
+   * 
+   * @param gtfsObject to handle
+   */
+  @SuppressWarnings("unchecked")
+  public void handleRaw(GtfsObject gtfsObject) {
+    handle((T)gtfsObject);
+  }
+  
   /** Handle GTFS object of type T
    * 
    * @param gtfsObject to handler
