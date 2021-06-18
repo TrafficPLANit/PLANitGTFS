@@ -1,5 +1,7 @@
 package org.planit.gtfs.reader;
 
+import java.net.URL;
+
 import org.planit.gtfs.scheme.GtfsTripsScheme;
 
 /**
@@ -11,10 +13,12 @@ import org.planit.gtfs.scheme.GtfsTripsScheme;
 public class GtfsFileReaderTrips extends GtfsFileReaderBase {
 
   /**
-   * Default constructor
+   * Constructor
+   * 
+   * @param gtfsLocation to extract file to parse from
    */
-  public GtfsFileReaderTrips() {
-    super(new GtfsTripsScheme());
+  public GtfsFileReaderTrips(URL gtfsLocation) {
+    super(new GtfsTripsScheme(), gtfsLocation);
   }
 
 }

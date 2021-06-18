@@ -31,19 +31,21 @@
 
 	<dependencies>
 
-		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.planit</groupId>
 			<artifactId>planit-core</artifactId>
 		</dependency>
 		
-		<!-- version inherited from parent -->
+		<dependency>
+			<groupId>org.planit.utils</groupId>
+			<artifactId>planit-utils</artifactId>
+		</dependency>		
+		
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
 		</dependency>
 
-		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>

@@ -1,7 +1,7 @@
 package org.planit.gtfs.test;
 
 import org.junit.Test;
-import org.planit.gtfs.reader.GtfsFileHandlerTrips;
+import org.planit.gtfs.handler.GtfsFileHandlerTrips;
 import org.planit.gtfs.reader.GtfsReader;
 import org.planit.gtfs.reader.GtfsReaderFactory;
 

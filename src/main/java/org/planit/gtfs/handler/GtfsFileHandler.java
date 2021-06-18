@@ -1,4 +1,4 @@
-package org.planit.gtfs.reader;
+package org.planit.gtfs.handler;
 
 import org.planit.gtfs.model.GtfsObject;
 import org.planit.gtfs.scheme.GtfsFileScheme;
