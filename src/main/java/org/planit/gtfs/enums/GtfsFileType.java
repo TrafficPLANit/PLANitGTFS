@@ -10,10 +10,20 @@ public enum GtfsFileType {
     
   AGENCIES("agency.txt"),
   CALENDARS("calendar.txt"),
+  CALENDAR_DATES("calendar_dates.txt"),
+  FARE_ATTRIBUTES("fare_attributes.txt"),
+  FARE_RULES("fare_rules.txt"),
+  FEED_INFO("feed_info.txt"),
+  FREQUENCIES("frequencies.txt"),
+  LEVELS("levels.txt"),
+  PATHWAYS("pathways.txt"),
   ROUTES("routes.txt"),
   STOP_TIMES("stop_times.txt"),  
-  STOPS("stops.txt"),  
-  TRIPS("trips.txt");       
+  STOPS("stops.txt"), 
+  TRANSFERS("transfers.txt"),
+  TRANSLATIONS("translations.txt"),
+  TRIPS("trips.txt"), 
+  SHAPES("shapes.txt");       
 
   private final String value;
   

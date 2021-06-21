@@ -13,9 +13,19 @@ public enum GtfsObjectType {
 
   AGENCY(GtfsAgency.class),
   CALENDAR(GtfsCalendar.class),
-  ROUTE(GtfsRoute.class), 
+  CALENDAR_DATE(GtfsCalendarDate.class),
+  FARE_ATTRIBUTE(GtfsFareAttribute.class),
+  FARE_RULE(GtfsFareRule.class),
+  FEED_INFO(GtfsFeedInfo.class),
+  FREQUENCY(GtfsFrequency.class),
+  LEVEL(GtfsLevel.class),
+  PATHWAY(GtfsPathway.class),
+  ROUTE(GtfsRoute.class),
+  SHAPE(GtfsShape.class),
   STOP(GtfsStop.class),
-  STOP_TIME(GtfsStopTime.class),  
+  STOP_TIME(GtfsStopTime.class),
+  TRANSFER(GtfsTransfer.class),
+  TRANSLATION(GtfsTranslation.class),
   TRIP(GtfsTrip.class); 
 
   /** value representing the class that goes with the object type enum */

@@ -37,9 +37,29 @@ public class GtfsReaderFactory {
       case AGENCIES:
         return new GtfsFileReaderAgencies(gtfsLocation);
       case CALENDARS:
-        return new GtfsFileReaderCalendars(gtfsLocation);        
+        return new GtfsFileReaderCalendars(gtfsLocation);
+      case CALENDAR_DATES:
+        return new GtfsFileReaderCalendarDates(gtfsLocation);
+      case FARE_ATTRIBUTES:
+        return new GtfsFileReaderFareAttributes(gtfsLocation);
+      case FARE_RULES:
+        return new GtfsFileReaderFareRules(gtfsLocation);
+      case FEED_INFO:
+        return new GtfsFileReaderFeedInfo(gtfsLocation);        
+      case FREQUENCIES:
+        return new GtfsFileReaderFrequencies(gtfsLocation);
+      case LEVELS:
+        return new GtfsFileReaderLevels(gtfsLocation);        
+      case PATHWAYS:
+        return new GtfsFileReaderPathways(gtfsLocation);        
       case ROUTES:
-        return new GtfsFileReaderRoutes(gtfsLocation);        
+        return new GtfsFileReaderRoutes(gtfsLocation);
+      case SHAPES:
+        return new GtfsFileReaderShapes(gtfsLocation);
+      case TRANSFERS:
+        return new GtfsFileReaderTransfers(gtfsLocation);
+      case TRANSLATIONS:
+        return new GtfsFileReaderTranslations(gtfsLocation);        
       case TRIPS:
         return new GtfsFileReaderTrips(gtfsLocation);
       case STOP_TIMES:
