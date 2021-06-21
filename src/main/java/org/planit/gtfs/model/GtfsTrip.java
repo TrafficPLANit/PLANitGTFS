@@ -12,6 +12,7 @@ import org.planit.gtfs.enums.GtfsKeyType;
  */
 public class GtfsTrip extends GtfsObject {
   
+  /** Supported keys for a GTFS trip instance */
   public static final EnumSet<GtfsKeyType> SUPPORTED_KEYS =
       EnumSet.of(
           GtfsKeyType.ROUTE_ID,
@@ -33,6 +34,10 @@ public class GtfsTrip extends GtfsObject {
     return SUPPORTED_KEYS;
   }
   
+  /** Get the trip id
+   * 
+   * @return trip id
+   */
   public String getTripId(){
     return get(GtfsKeyType.TRIP_ID);
   }

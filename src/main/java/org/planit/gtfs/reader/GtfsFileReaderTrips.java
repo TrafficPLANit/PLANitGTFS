@@ -15,7 +15,7 @@ public class GtfsFileReaderTrips extends GtfsFileReaderBase {
   /**
    * Constructor
    * 
-   * @param gtfsLocation to extract file to parse from
+   * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
   public GtfsFileReaderTrips(URL gtfsLocation) {
     super(new GtfsTripsScheme(), gtfsLocation);

@@ -1,18 +1,24 @@
 package org.planit.gtfs.enums;
 
-import org.planit.gtfs.model.GtfsObject;
-import org.planit.gtfs.model.GtfsTrip;
+import org.planit.gtfs.model.*;
 
 /**
- * The available supported object types and their corresponding class
+ * The available supported object types and their corresponding class. the value represents the in memory class that is used to 
+ * represent this GTFS entity.
  * 
  * @author markr
  *
  */
 public enum GtfsObjectType {
 
-  TRIP(GtfsTrip.class);
+  AGENCY(GtfsAgency.class),
+  CALENDAR(GtfsCalendar.class),
+  ROUTE(GtfsRoute.class), 
+  STOP(GtfsStop.class),
+  STOP_TIME(GtfsStopTime.class),  
+  TRIP(GtfsTrip.class); 
 
+  /** value representing the class that goes with the object type enum */
   private final Class<? extends GtfsObject> value;
   
   /** Create a GTFS file type
@@ -31,3 +37,4 @@ public enum GtfsObjectType {
     return value;
   }
 }
+

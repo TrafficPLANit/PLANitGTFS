@@ -7,8 +7,13 @@ package org.planit.gtfs.enums;
  *
  */
 public enum GtfsFileType {
-  
-  TRIPS("trips.txt");
+    
+  AGENCIES("agency.txt"),
+  CALENDARS("calendar.txt"),
+  ROUTES("routes.txt"),
+  STOP_TIMES("stop_times.txt"),  
+  STOPS("stops.txt"),  
+  TRIPS("trips.txt");       
 
   private final String value;
   

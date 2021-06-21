@@ -16,7 +16,7 @@
 	<description>PlanIt GTFS code for accressing GTFS file data in memory</description>
 	<packaging>jar</packaging>
 
-	<name>planit-core</name>
+	<name>planit-gtfs</name>
 	<url>https://github.com/TrafficPLANit/planitgtfs</url>
 
 	<!-- license based on the one published on the website -->

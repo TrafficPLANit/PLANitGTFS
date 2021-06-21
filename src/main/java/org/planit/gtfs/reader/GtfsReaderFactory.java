@@ -6,7 +6,8 @@ import java.util.logging.Logger;
 import org.planit.gtfs.scheme.GtfsFileScheme;
 
 /**
- * top lvele class to get things started
+ * top level class to get things started. BAsed on location (dir or zip file) and scheme (type of GTFS file), create a single stand-alone 
+ * GTFS file reader/handler combination, or an umbrella GTFS reader that is capable of registering multiple file readers/handlers
  * 
  * @author markr
  *
@@ -33,8 +34,18 @@ public class GtfsReaderFactory {
    */
   public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, URL gtfsLocation) {
     switch (fileScheme.getFileType()) {
+      case AGENCIES:
+        return new GtfsFileReaderAgencies(gtfsLocation);
+      case CALENDARS:
+        return new GtfsFileReaderCalendars(gtfsLocation);        
+      case ROUTES:
+        return new GtfsFileReaderRoutes(gtfsLocation);        
       case TRIPS:
         return new GtfsFileReaderTrips(gtfsLocation);
+      case STOP_TIMES:
+        return new GtfsFileReaderStopTimes(gtfsLocation);        
+      case STOPS:
+        return new GtfsFileReaderStops(gtfsLocation);        
       default:
         LOGGER.warning(String.format("Unable to create GTFS file reader for given scheme %s", fileScheme.toString()));
         return null;

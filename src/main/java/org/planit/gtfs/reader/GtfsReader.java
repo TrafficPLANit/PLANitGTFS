@@ -12,7 +12,7 @@ import org.planit.gtfs.enums.GtfsFileType;
 import org.planit.gtfs.handler.GtfsFileHandler;
 
 /**
- * top level GTFS reader for one or more GTFS files
+ * Top level GTFS reader for one or more GTFS files
  * 
  * @author markr
  *
@@ -77,6 +77,7 @@ public class GtfsReader {
       fileReaders.put(fileType, GtfsReaderFactory.createFileReader(gtfsFileHandler.getFileScheme(), gtfsLocation));
     }
     
+    /* register */
     fileReaders.get(fileType).addHandler(gtfsFileHandler);
     
   }
