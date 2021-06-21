@@ -12,6 +12,7 @@ import org.planit.gtfs.model.*;
 public enum GtfsObjectType {
 
   AGENCY(GtfsAgency.class),
+  ATTRIBUTION(GtfsAttribution.class),
   CALENDAR(GtfsCalendar.class),
   CALENDAR_DATE(GtfsCalendarDate.class),
   FARE_ATTRIBUTE(GtfsFareAttribute.class),

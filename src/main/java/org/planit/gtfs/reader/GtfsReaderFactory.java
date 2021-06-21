@@ -36,6 +36,8 @@ public class GtfsReaderFactory {
     switch (fileScheme.getFileType()) {
       case AGENCIES:
         return new GtfsFileReaderAgencies(gtfsLocation);
+      case ATTRIBUTIONS:
+        return new GtfsFileReaderAttributions(gtfsLocation);        
       case CALENDARS:
         return new GtfsFileReaderCalendars(gtfsLocation);
       case CALENDAR_DATES:

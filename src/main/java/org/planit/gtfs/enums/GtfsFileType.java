@@ -9,6 +9,7 @@ package org.planit.gtfs.enums;
 public enum GtfsFileType {
     
   AGENCIES("agency.txt"),
+  ATTRIBUTIONS("attributions.txt"),
   CALENDARS("calendar.txt"),
   CALENDAR_DATES("calendar_dates.txt"),
   FARE_ATTRIBUTES("fare_attributes.txt"),

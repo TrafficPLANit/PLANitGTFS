@@ -31,7 +31,7 @@ public class GtfsLevel extends GtfsObject {
    * 
    * @return level id
    */
-  public String getAgencyId(){
+  public String getLevelId(){
     return get(GtfsKeyType.LEVEL_ID);
   }   
   

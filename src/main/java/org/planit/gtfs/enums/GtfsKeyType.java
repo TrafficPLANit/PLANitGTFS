@@ -20,7 +20,11 @@ public enum GtfsKeyType {
   AGENCY_PHONE("agency_phone"), 
   AGENCY_TIMEZONE("agency_timezone"),
   AGENCY_URL("agency_url"),
-  ARRIVAL_TIME("arrival_time"),   
+  ARRIVAL_TIME("arrival_time"),
+  ATTRIBTUION_EMAIL("attribution_email"),  
+  ATTRIBUTION_ID("attribution_id"), 
+  ATTRIBUTION_PHONE("attribution_phone"),
+  ATTRIBUTION_URL("attribution_url"),  
   BIKES_ALLOWED("bikes_allowed"),
   BLOCK_ID("block_id"),
   CONTAINS_ID("contains_id"),
@@ -45,7 +49,10 @@ public enum GtfsKeyType {
   FRIDAY("friday"),
   FROM_STOP_ID("from_stop_id"), 
   HEADWAY_SECS("headway_secs"),
+  IS_AUTHORITY("is_authority"),
   IS_BIDIRECTIONAL("is_bidirectional"),
+  IS_PRODUCER("is_producer"), 
+  IS_OPERATOR("is_operator"),   
   LANGUAGE("language"),
   LENGTH("length"),
   LEVEL_ID("level_id"),
@@ -57,6 +64,7 @@ public enum GtfsKeyType {
   MIN_WIDTH("min_width"),
   MONDAY("monday"),
   ORIGIN_ID("origin_id"),
+  ORGANIZATION_NAME("organization_name"),
   PARENT_STATION("parent_station"),  
   PATHWAY_ID("pathway_id"),  
   PATHWAY_MODE("pathway_mode"),
@@ -114,7 +122,8 @@ public enum GtfsKeyType {
   WEDNESDAY("wednesday"),
   WHEELCHAIR_ACCESSIBLE("wheelchair_accessible"),
   WHEELCHAIR_BOARDING("wheelchair_boarding"),  
-  ZONE_ID("zone_id");
+  ZONE_ID("zone_id");   
+   
     
   /** literal column name in GTFS file */
   private final String value;
