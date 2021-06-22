@@ -95,25 +95,30 @@ public class GtfsReader {
   /** Register a handler for a specific file type
    * 
    * @param gtfsFileHandler to register
+   * @return the file reader that goes with this handler, it is newly created if no reader existed for the file type, otherwise the existing reader is returned
    */
-  public void addFileHandler(GtfsFileHandler<? extends GtfsObject> gtfsFileHandler) {
+  public GtfsFileReaderBase addFileHandler(GtfsFileHandler<? extends GtfsObject> gtfsFileHandler) {
     if(gtfsFileHandler==null) {
       LOGGER.warning("Provided GFTSFileHandler is null, cannot be registered on GTFSReader");
-      return;
+      return null;
     }
     
     if(gtfsLocation==null) {
-      return;
+      return null;
     }
     
     /* create file reader if not already available */
     GtfsFileType fileType = gtfsFileHandler.getFileScheme().getFileType();
+    GtfsFileReaderBase fileReader = null;
     if(!fileReaders.containsKey(fileType)) {
-      fileReaders.put(fileType, GtfsReaderFactory.createFileReader(gtfsFileHandler.getFileScheme(), gtfsLocation));
+      fileReader = GtfsReaderFactory.createFileReader(gtfsFileHandler.getFileScheme(), gtfsLocation);
+      fileReaders.put(fileType, fileReader);
+    }else {
+      fileReader = fileReaders.get(fileType);
     }
     
     /* register */
-    fileReaders.get(fileType).addHandler(gtfsFileHandler);
-    
+    fileReader.addHandler(gtfsFileHandler);
+    return fileReader;
   }
 }

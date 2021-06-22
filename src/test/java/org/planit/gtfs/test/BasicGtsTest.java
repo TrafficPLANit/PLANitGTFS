@@ -2,9 +2,15 @@ package org.planit.gtfs.test;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.planit.gtfs.enums.GtfsKeyType;
 import org.planit.gtfs.handler.*;
+import org.planit.gtfs.model.GtfsAgency;
+import org.planit.gtfs.reader.GtfsFileReaderAgencies;
+import org.planit.gtfs.reader.GtfsFileReaderTrips;
 import org.planit.gtfs.reader.GtfsReader;
 import org.planit.gtfs.reader.GtfsReaderFactory;
+import org.planit.gtfs.scheme.GtfsFileScheme;
+import org.planit.gtfs.scheme.GtfsTripsScheme;
 import org.planit.utils.resource.ResourceUtils;
 
 public class BasicGtsTest {
@@ -17,8 +23,9 @@ public class BasicGtsTest {
     try {
       GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());     
       
-      /* register all possible handlers */
-      gtfsReader.addFileHandler(new GtfsFileHandlerAgency());
+      /* register all possible handlers where we note that reader is returned when handler is registered*/
+      @SuppressWarnings("unused")
+      GtfsFileReaderAgencies agencyFileReader = (GtfsFileReaderAgencies) gtfsReader.addFileHandler(new GtfsFileHandlerAgency());      
       gtfsReader.addFileHandler(new GtfsFileHandlerAttributions());
       gtfsReader.addFileHandler(new GtfsFileHandlerCalendarDates());
       gtfsReader.addFileHandler(new GtfsFileHandlerCalendars());
@@ -41,5 +48,21 @@ public class BasicGtsTest {
     } catch (Exception e) {
       Assert.fail();
     }    
+  }
+  
+  @Test
+  public void testExcludingColumns() {
+    
+    try {         
+      GtfsFileReaderTrips tripsFileReader  =(GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(new GtfsTripsScheme(), ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());
+      tripsFileReader.addHandler(new GtfsFileHandlerTrips());
+      tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);
+      tripsFileReader.read();
+      
+      //TODO test  if headsign is indeed not present -> create test handler
+    } catch (Exception e) {
+      Assert.fail();
+    }     
+    
   }
 }

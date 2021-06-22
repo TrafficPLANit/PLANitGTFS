@@ -44,8 +44,11 @@ public class GtfsFileReaderBase {
   /** registered handlers to use for each entry parsed */
   private final Set<GtfsFileHandler<? extends GtfsObject>> handlers;
   
+  /** user configurable settings */
+  private final GtfsFileReaderSettings settings;
+  
   /** conditions regarding the presence of this file */
-  private GtfsFileConditions filePresenceCondition;
+  private GtfsFileConditions filePresenceCondition; 
   
   /** Validate header map against supported keys for this file
    * 
@@ -102,14 +105,34 @@ public class GtfsFileReaderBase {
     }
   }
 
-  /** Constructor
+  /** Explicitly indicate the expectations regarding the presence of this file. When marked as optional no warnings will be logged
+   * when it is not present.
+   *  
+   * @param filePResenceConditions to use
+   */
+  protected void setPresenceCondition(GtfsFileConditions filePresenceCondition) {
+    this.filePresenceCondition = filePresenceCondition;
+  }
+  
+  /** Constructor using default gtfs reader settings
    * 
    * @param fileScheme the file scheme this file reader is based on
    * @param gtfsLocation to base file location to parse from on (dir or zip file)
    */
-  public GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation) {
+  protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation) {
+    this(fileScheme, gtfsLocation, new GtfsFileReaderSettings());
+  }  
+
+  /** Constructor
+   * 
+   * @param fileScheme the file scheme this file reader is based on
+   * @param gtfsLocation to base file location to parse from on (dir or zip file)
+   * @param settings to use
+   */
+  protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation, GtfsFileReaderSettings settings) {
     this.fileScheme = fileScheme;
-    this.filePresenceCondition = null;
+    this.settings = settings;
+    this.filePresenceCondition = null;    
     
     this.handlers = new HashSet<GtfsFileHandler<? extends GtfsObject>>();
     
@@ -168,12 +191,11 @@ public class GtfsFileReaderBase {
     return fileScheme;
   }
   
-  /** Explicitly indicate the expectations regarding the presence of this file. When marked as optional no warnings will be logged
-   * when it is not present.
-   *  
-   * @param filePResenceConditions to use
+  /** The settings of this GTFS file reader
+   * 
+   * @return settings
    */
-  public void setPresenceCondition(GtfsFileConditions filePresenceCondition) {
-    this.filePresenceCondition = filePresenceCondition;
+  public GtfsFileReaderSettings getSettings() {
+    return settings;
   }
 }

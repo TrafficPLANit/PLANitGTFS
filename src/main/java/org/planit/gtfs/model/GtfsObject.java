@@ -28,5 +28,9 @@ public abstract class GtfsObject {
     return keyValueMap.containsKey(key);
   }  
   
+  /** All supported keys for this GTFS object
+   * 
+   * @return supported keys
+   */
   public abstract EnumSet<GtfsKeyType> getSupportedKeys();
 }
