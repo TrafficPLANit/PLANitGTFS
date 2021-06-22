@@ -15,9 +15,7 @@ import org.planit.gtfs.enums.GtfsKeyType;
 import org.planit.gtfs.enums.GtfsObjectType;
 import org.planit.gtfs.model.GtfsObjectFactory;
 import org.planit.gtfs.scheme.GtfsFileScheme;
-import org.planit.utils.misc.FileUtils;
 import org.planit.utils.misc.UrlUtils;
-import org.planit.utils.zip.PlanitZipInputStream;
 import org.planit.utils.zip.ZipUtils;
 
 /**
@@ -78,7 +76,7 @@ public class GtfsUtils {
       if(UrlUtils.isLocalDirectory(gtfsLocation)) {
         URL gtfsFileUrl = UrlUtils.appendRelativePathToURL(gtfsLocation, fileScheme.getFileType().value());
         return createFileInputStream(new File(gtfsFileUrl.toURI()), filePresenceCondition);
-      }else if(UrlUtils.isLocalZipFile(gtfsLocation)) {
+      }else if(UrlUtils.isLocalZipFile(gtfsLocation)) {                
         return createZipEntryInputStream(gtfsLocation,  fileScheme.getFileType().value(), filePresenceCondition); 
       }
     } catch (URISyntaxException e) {
@@ -96,10 +94,10 @@ public class GtfsUtils {
    * @return created input stream, null if not available
    * @throws URISyntaxException when URL cannot be converted to URI to append internal file name
    */  
-  public static PlanitZipInputStream createZipEntryInputStream(URL gtfsLocation, String zipInternalFileName, GtfsFileConditions filePresenceCondition) throws URISyntaxException {
-    PlanitZipInputStream zis = null;
+  public static InputStream createZipEntryInputStream(URL gtfsLocation, String zipInternalFileName, GtfsFileConditions filePresenceCondition) throws URISyntaxException {                
+    InputStream zis = null;
     try {
-      zis = ZipUtils.getZipEntryInputStream(gtfsLocation, zipInternalFileName);
+      zis = ZipUtils.createZipEntryInputStream(gtfsLocation, zipInternalFileName);
     } catch (FileNotFoundException fnfe) {
       LOGGER.warning(String.format("Zip file %s not found",gtfsLocation.toString()));
       return null;

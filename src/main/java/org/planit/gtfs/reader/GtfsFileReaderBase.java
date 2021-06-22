@@ -124,9 +124,8 @@ public class GtfsFileReaderBase {
    * Perform the reading of the file
    */
   public void read() {
-    
+            
     try (InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition);){
-
       if(gtfsInputStream!=null) {
         Reader gtfsInputReader = new InputStreamReader(gtfsInputStream);
         CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());
