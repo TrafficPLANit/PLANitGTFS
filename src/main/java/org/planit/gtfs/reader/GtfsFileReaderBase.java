@@ -16,12 +16,13 @@ import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.planit.gtfs.GtfsUtils;
 import org.planit.gtfs.enums.GtfsKeyType;
 import org.planit.gtfs.handler.GtfsFileHandler;
 import org.planit.gtfs.model.GtfsObject;
 import org.planit.gtfs.model.GtfsObjectFactory;
 import org.planit.gtfs.scheme.GtfsFileScheme;
+import org.planit.gtfs.util.GtfsFileConditions;
+import org.planit.gtfs.util.GtfsUtils;
 
 /**
  * A GTFS file reader containing generic code for any GTFS file
@@ -42,6 +43,9 @@ public class GtfsFileReaderBase {
   
   /** registered handlers to use for each entry parsed */
   private final Set<GtfsFileHandler<? extends GtfsObject>> handlers;
+  
+  /** conditions regarding the presence of this file */
+  private GtfsFileConditions filePresenceCondition;
   
   /** Validate header map against supported keys for this file
    * 
@@ -105,6 +109,8 @@ public class GtfsFileReaderBase {
    */
   public GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation) {
     this.fileScheme = fileScheme;
+    this.filePresenceCondition = null;
+    
     this.handlers = new HashSet<GtfsFileHandler<? extends GtfsObject>>();
     
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);    
@@ -119,9 +125,10 @@ public class GtfsFileReaderBase {
    */
   public void read() {
     
-    try ( InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme);
-          Reader gtfsInputReader = new InputStreamReader(gtfsInputStream);){
+    try (InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition);){
 
+      if(gtfsInputStream!=null) {
+        Reader gtfsInputReader = new InputStreamReader(gtfsInputStream);
         CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());
         Map<String, Integer> headerMap = csvParser.getHeaderMap();
         if(!isValid(headerMap)) {
@@ -137,7 +144,7 @@ public class GtfsFileReaderBase {
         csvParser.close();
         gtfsInputReader.close();
         gtfsInputStream.close();
-    
+      }      
     }catch(Exception e) {
       LOGGER.severe(String.format("Error during parsing of GTFS file (%s - %s)",gtfsLocation.toString(), fileScheme.getFileType().value()));
     }
@@ -154,7 +161,20 @@ public class GtfsFileReaderBase {
     handlers.add(handler);
   }
 
+  /** The file scheme of this reader indicating what file it is operating on
+   * 
+   * @return file scheme
+   */
   public GtfsFileScheme getFileScheme() {
     return fileScheme;
+  }
+  
+  /** Explicitly indicate the expectations regarding the presence of this file. When marked as optional no warnings will be logged
+   * when it is not present.
+   *  
+   * @param filePResenceConditions to use
+   */
+  public void setPresenceCondition(GtfsFileConditions filePresenceCondition) {
+    this.filePresenceCondition = filePresenceCondition;
   }
 }

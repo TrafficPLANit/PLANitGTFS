@@ -32,6 +32,7 @@ public enum GtfsKeyType {
   CONTINUOUS_PICKUP("continuous_pickup"),
   CURRENCY_TYPE("currency_type"),
   DATE("date"),
+  DEFAULT_LANG("default_lang"),  
   DEPARTURE_TIME("departure_time"),
   DESTINATION_ID("destination_id"),
   DIRECTION_ID("direction_id"),
@@ -41,10 +42,15 @@ public enum GtfsKeyType {
   EXACT_TIMES("exact_times"), 
   EXCEPTION_TYPE("exception_type"),
   FARE_ID("fare_id"),
-  FIELD_NAME("field_name"), 
+  FIELD_NAME("field_name"),
+  FEED_CONTACT_EMAIL("feed_contact_email"), 
+  FEED_CONTACT_URL("feed_contact_url"),
+  FEED_END_DATE("feed_end_date"),   
   FEED_LANG("feed_lang"),
   FEED_PUBLISHER_NAME("feed_publisher_name"), 
   FEED_PUBLISHER_URL("feed_publisher_url"),
+  FEED_START_DATE("feed_start_date"),  
+  FEED_VERSION("feed_version"),  
   FIELD_VALUE("field_value"),  
   FRIDAY("friday"),
   FROM_STOP_ID("from_stop_id"), 
@@ -122,8 +128,7 @@ public enum GtfsKeyType {
   WEDNESDAY("wednesday"),
   WHEELCHAIR_ACCESSIBLE("wheelchair_accessible"),
   WHEELCHAIR_BOARDING("wheelchair_boarding"),  
-  ZONE_ID("zone_id");   
-   
+  ZONE_ID("zone_id");    
     
   /** literal column name in GTFS file */
   private final String value;

@@ -17,7 +17,13 @@ public class GtfsFeedInfo extends GtfsObject {
       EnumSet.of(
           GtfsKeyType.FEED_PUBLISHER_NAME,
           GtfsKeyType.FEED_PUBLISHER_URL,
-          GtfsKeyType.FEED_LANG);  
+          GtfsKeyType.FEED_LANG,
+          GtfsKeyType.DEFAULT_LANG,
+          GtfsKeyType.FEED_START_DATE,
+          GtfsKeyType.FEED_END_DATE,
+          GtfsKeyType.FEED_VERSION,
+          GtfsKeyType.FEED_CONTACT_EMAIL,
+          GtfsKeyType.FEED_CONTACT_URL);  
 
   /**
    * {@inheritDoc}

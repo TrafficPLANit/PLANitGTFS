@@ -1,18 +1,23 @@
 package org.planit.gtfs.reader;
 
 import org.planit.gtfs.model.GtfsObject;
+import org.planit.gtfs.util.GtfsFileConditions;
+import org.planit.gtfs.util.GtfsUtils;
 
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.planit.gtfs.GtfsUtils;
 import org.planit.gtfs.enums.GtfsFileType;
 import org.planit.gtfs.handler.GtfsFileHandler;
 
 /**
- * Top level GTFS reader for one or more GTFS files
+ * Top level GTFS reader for one or more GTFS files. The ordering in which the file are read (presuming a handler has been registered
+ * for them) is:
+ * <ul>
+ * <li>/<li>
+ * </ul>
  * 
  * @author markr
  *
@@ -27,6 +32,19 @@ public class GtfsReader {
   
   /** location (dir or zip) of GTFS file(s) */
   private final URL gtfsLocation;
+
+  /** Read the file of the given file type if a reader is available for it
+   * 
+   * @param gtfsFileType to reader
+   * @param gtfsFileCondition on the file type
+   */
+  private void read(GtfsFileType gtfsFileType, GtfsFileConditions gtfsFileCondition) {
+    if(fileReaders.containsKey(gtfsFileType)) {
+      GtfsFileReaderBase fileReader = fileReaders.get(gtfsFileType);
+      fileReader.setPresenceCondition(gtfsFileCondition);
+      fileReader.read();
+    }
+  }
 
   /**
    * Constructor
@@ -52,8 +70,25 @@ public class GtfsReader {
       return;
     }
     
-    /* TODO: use logical ordering of different file types when we add more types */
-    fileReaders.forEach( (type, reader) -> reader.read());
+    /* perform reading of files in a logical order, i.e. from less dependencies to more */
+    read(GtfsFileType.AGENCIES,       GtfsFileConditions.required() );
+    read(GtfsFileType.STOPS,          GtfsFileConditions.required() );
+    read(GtfsFileType.ROUTES,         GtfsFileConditions.required() );
+    read(GtfsFileType.TRIPS,          GtfsFileConditions.required() );
+    read(GtfsFileType.STOP_TIMES,     GtfsFileConditions.required() );
+    
+    read(GtfsFileType.CALENDARS,      GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDAR_DATES) ); // technically required if not all are specified in CALENDAR_DATES
+    read(GtfsFileType.CALENDAR_DATES, GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDARS)  );
+    read(GtfsFileType.FARE_ATTRIBUTES,GtfsFileConditions.optional() );
+    read(GtfsFileType.FARE_RULES,     GtfsFileConditions.optional());
+    read(GtfsFileType.SHAPES,         GtfsFileConditions.optional());
+    read(GtfsFileType.FREQUENCIES,    GtfsFileConditions.optional());
+    read(GtfsFileType.TRANSFERS,      GtfsFileConditions.optional());
+    read(GtfsFileType.PATHWAYS,       GtfsFileConditions.optional());
+    read(GtfsFileType.LEVELS,         GtfsFileConditions.optional());
+    read(GtfsFileType.FEED_INFO,      GtfsFileConditions.requiredinPresenceOf(GtfsFileType.TRANSLATIONS));
+    read(GtfsFileType.TRANSLATIONS,   GtfsFileConditions.optional());
+    read(GtfsFileType.ATTRIBUTIONS,   GtfsFileConditions.optional());
     
   }
   
