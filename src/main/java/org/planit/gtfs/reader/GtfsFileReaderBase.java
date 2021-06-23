@@ -79,6 +79,23 @@ public class GtfsFileReaderBase {
     return headerToKeyMap;
   }
 
+  /** Create a copy of passed in columns but without any columns that are marked for exclusion.
+   * 
+   * @param gtfsFileColumns to filter
+   * @return gtfsFileColumns without excluded columns
+   */
+  private Map<String, GtfsKeyType> filterExcludedColumns(final Map<String, GtfsKeyType> gtfsFileColumns) {
+    Map<String, GtfsKeyType> filteredColumns = new HashMap<String, GtfsKeyType>(gtfsFileColumns);
+    Iterator<GtfsKeyType> columnIter = filteredColumns.values().iterator();
+    while(columnIter.hasNext()) {
+      GtfsKeyType column = columnIter.next();
+      if(getSettings().isExcludedColumn(column)) {
+        columnIter.remove();
+      }      
+    }
+    return filteredColumns;
+  }
+
   /** Parse entries for given parser
    * 
    * @param csvParser to use
@@ -159,7 +176,7 @@ public class GtfsFileReaderBase {
           
         }else {
           
-          parseGtfsRecords(csvParser, mapHeadersToGtfsKeys(headerMap));
+          parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerMap)));
           
         }
     

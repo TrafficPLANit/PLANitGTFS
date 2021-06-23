@@ -1,22 +1,35 @@
 package org.planit.gtfs.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.planit.gtfs.enums.GtfsFileType;
 import org.planit.gtfs.enums.GtfsKeyType;
 import org.planit.gtfs.handler.*;
-import org.planit.gtfs.model.GtfsAgency;
 import org.planit.gtfs.reader.GtfsFileReaderAgencies;
 import org.planit.gtfs.reader.GtfsFileReaderTrips;
 import org.planit.gtfs.reader.GtfsReader;
 import org.planit.gtfs.reader.GtfsReaderFactory;
-import org.planit.gtfs.scheme.GtfsFileScheme;
-import org.planit.gtfs.scheme.GtfsTripsScheme;
+import org.planit.gtfs.scheme.GtfsFileSchemeFactory;
+import org.planit.gtfs.test.handler.GtfsFileHandlerTripsTest;
 import org.planit.utils.resource.ResourceUtils;
 
-public class BasicGtsTest {
+/**
+ * Unit tests for Gtfs's API basic functionality
+ * 
+ * @author markr
+ *
+ */
+public class BasicGtfsTest {
   
   public static final String GTFS_SEQ_DIR = "GTFS/SEQ/SEQ_GTFS.zip";
 
+  /**
+   * Test if umbrella reader with all file types activated runs properly
+   */
   @Test
   public void testDefaultGtfsReader() {
            
@@ -50,16 +63,26 @@ public class BasicGtsTest {
     }    
   }
   
+  /**
+   * Test number of trips is parsed correctly as well as excluding columns works
+   */
   @Test
-  public void testExcludingColumns() {
+  public void testExcludingTripsColumns() {
     
     try {         
-      GtfsFileReaderTrips tripsFileReader  =(GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(new GtfsTripsScheme(), ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());
-      tripsFileReader.addHandler(new GtfsFileHandlerTrips());
+      GtfsFileHandlerTripsTest tripsHandler = new GtfsFileHandlerTripsTest();
+      
+      GtfsFileReaderTrips tripsFileReader  =(GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
+          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());      
+      tripsFileReader.addHandler(tripsHandler);
+      
       tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);
       tripsFileReader.read();
       
-      //TODO test  if headsign is indeed not present -> create test handler
+      assertNotNull(tripsHandler.trips);
+      assertEquals(tripsHandler.trips.size(), 156225);
+      assertFalse(tripsHandler.trips.values().iterator().next().containsKey(GtfsKeyType.TRIP_HEADSIGN));
+      
     } catch (Exception e) {
       Assert.fail();
     }     

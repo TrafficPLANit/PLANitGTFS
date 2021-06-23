@@ -34,5 +34,14 @@ public class GtfsFileReaderSettings {
   public Set<GtfsKeyType> getExcludedColumns() {
     return Collections.unmodifiableSet(excludedColumns);
   }
+
+  /** Verify if a column is excluded
+   * 
+   * @param column to check based on the GTFS key type it corresponds to
+   * @return true when excluded, false otherwise
+   */
+  public boolean isExcludedColumn(GtfsKeyType column) {
+    return excludedColumns.contains(column);
+  }
   
 }
