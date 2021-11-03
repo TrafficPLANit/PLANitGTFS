@@ -6,12 +6,12 @@
 	<!-- parent pom. Make sure it is installed (discoverable), otherwise maven 
 		will fail. to install, in PLANitAll project, run mvn install on the pom.xml -->
 	<parent>
-    <groupId>org.planit.parentpom</groupId>
+    <groupId>org.goplanit.parentpom</groupId>
     <artifactId>planit-parentpom</artifactId>
 		<version>0.2.1a1</version>
 	</parent>
 
-	<groupId>org.planit.gtfs</groupId>
+	<groupId>org.goplanit.gtfs</groupId>
 	<artifactId>planit-gtfs</artifactId>
 	<description>PlanIt GTFS code for accressing GTFS file data in memory</description>
 	<packaging>jar</packaging>
@@ -32,12 +32,12 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>org.planit</groupId>
+			<groupId>org.goplanit</groupId>
 			<artifactId>planit-core</artifactId>
 		</dependency>
 		
 		<dependency>
-			<groupId>org.planit.utils</groupId>
+			<groupId>org.goplanit.utils</groupId>
 			<artifactId>planit-utils</artifactId>
 		</dependency>		
 		
