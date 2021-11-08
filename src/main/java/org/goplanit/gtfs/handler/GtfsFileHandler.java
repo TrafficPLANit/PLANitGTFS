@@ -6,7 +6,7 @@ import org.goplanit.gtfs.scheme.GtfsFileScheme;
 /**
  * A file handler base class to handle callbacks for a particular GTFS file type
  * 
- * <T> GTFS objct type this handler supports
+ * @param <T> GTFS objct type this handler supports
  *  
  * @author markr
  *

@@ -48,7 +48,7 @@ public class GtfsReader {
   /**
    * Constructor
    * 
-   * @param url of the location of the GTFS files, this should either be a directory containing uncompressed *.txt files or alternatively
+   * @param gtfsLocation url of the location of the GTFS files, this should either be a directory containing uncompressed *.txt files or alternatively
    * a *.zip file containing the *.txt files
    */
   protected GtfsReader(final URL gtfsLocation) {

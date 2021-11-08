@@ -161,8 +161,8 @@ public enum GtfsKeyType {
 
   /** Construct enum from given value
    * 
-   * @param value
-   * @return GtfsKeyType
+   * @param value to construct enum from
+   * @return GtfsKeyType produced
    */
   public static Optional<GtfsKeyType> fromValue(String value) {
     return Arrays.stream(values()).filter( key -> key.value.equals(value)).findFirst();

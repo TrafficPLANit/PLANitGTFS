@@ -88,7 +88,7 @@ public class GtfsUtils {
 
   /** Create a zip based input stream for given zip internal file location and issue warnings dependent on the  presence conditions imposed if it is not present
    * 
-   * @param gtfsFileLocation zip file to create input stream for
+   * @param gtfsLocation zip file to create input stream for
    * @param zipInternalFileName file internal to zip file to create stream for
    * @param filePresenceCondition for this file
    * @return created input stream, null if not available
@@ -132,8 +132,8 @@ public class GtfsUtils {
   /** Collect the supported keys via reflection where it is assumed the object type's class has a default constructor. If so the supported keys
    * are collected via a temporary instance that is created to access the abstract method providing the type specific supported keys
    * 
-   * @param objectType
-   * @return
+   * @param objectType to use
+   * @return supported keys
    */
   public static EnumSet<GtfsKeyType> getSupportedKeys(GtfsObjectType objectType) {
       return GtfsObjectFactory.create(objectType).getSupportedKeys();

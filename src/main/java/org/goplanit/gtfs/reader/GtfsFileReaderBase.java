@@ -125,7 +125,7 @@ public class GtfsFileReaderBase {
   /** Explicitly indicate the expectations regarding the presence of this file. When marked as optional no warnings will be logged
    * when it is not present.
    *  
-   * @param filePResenceConditions to use
+   * @param filePresenceCondition to use
    */
   protected void setPresenceCondition(GtfsFileConditions filePresenceCondition) {
     this.filePresenceCondition = filePresenceCondition;
