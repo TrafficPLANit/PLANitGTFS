@@ -13,8 +13,7 @@ import org.goplanit.utils.resource.ResourceUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for Gtfs's API basic functionality
@@ -33,11 +32,11 @@ public class BasicGtfsTest {
   public void testDefaultGtfsReader() {
            
     try {
-      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());     
+      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());
       
       /* register all possible handlers where we note that reader is returned when handler is registered*/
       @SuppressWarnings("unused")
-      GtfsFileReaderAgencies agencyFileReader = (GtfsFileReaderAgencies) gtfsReader.addFileHandler(new GtfsFileHandlerAgency());      
+      GtfsFileReaderAgencies agencyFileReader = (GtfsFileReaderAgencies) gtfsReader.addFileHandler(new GtfsFileHandlerAgency());
       gtfsReader.addFileHandler(new GtfsFileHandlerAttributions());
       gtfsReader.addFileHandler(new GtfsFileHandlerCalendarDates());
       gtfsReader.addFileHandler(new GtfsFileHandlerCalendars());
@@ -72,7 +71,7 @@ public class BasicGtfsTest {
       GtfsFileHandlerTripsTest tripsHandler = new GtfsFileHandlerTripsTest();
       
       GtfsFileReaderTrips tripsFileReader  =(GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
-          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());      
+          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());
       tripsFileReader.addHandler(tripsHandler);
       
       tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);
