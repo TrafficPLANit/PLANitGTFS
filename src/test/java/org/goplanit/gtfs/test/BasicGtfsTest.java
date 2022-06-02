@@ -1,9 +1,5 @@
 package org.goplanit.gtfs.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.handler.*;
@@ -16,6 +12,9 @@ import org.goplanit.gtfs.test.handler.GtfsFileHandlerTripsTest;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Unit tests for Gtfs's API basic functionality
