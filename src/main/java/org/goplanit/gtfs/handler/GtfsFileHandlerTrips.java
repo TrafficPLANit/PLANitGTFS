@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsTrip;
+import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.scheme.GtfsTripsScheme;
 
 /**

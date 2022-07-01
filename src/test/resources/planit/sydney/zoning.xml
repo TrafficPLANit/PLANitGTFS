@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<macroscopiczoning xmlns:gml="http://www.opengis.net/gml" xmlns:ns3="http://www.w3.org/1999/xlink" xmlns:ns4="http://www.w3.org/2001/SMIL20/" xmlns:ns5="http://www.w3.org/2001/SMIL20/Language" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" srsname="EPSG:3112" xsi:noNamespaceSchemaLocation="https://trafficplanit.github.io/PLANitManual/xsd/macroscopiczoninginput.xsd">
+    <id>0</id>
+    <intermodal>
+        <transferzones>
+            <zone id="1085097097" externalid="1085097097" type="platform">
+                <name>Stand A, Circular Quay, Alfred Street</name>
+            </zone>
+            <zone id="1085097099" externalid="1085097099" type="platform">
+                <name>Circular Quay</name>
+            </zone>
+            <zone id="1263263402" externalid="1263263402" type="platform">
+                <name>Stand A</name>
+            </zone>
+            <zone id="1263263448" externalid="1263263448" type="platform"/>
+            <zone id="1263263479" externalid="1263263479" type="platform">
+                <name>Stand A</name>
+            </zone>
+            <zone id="1263263493" externalid="1263263493" type="platform">
+                <name>D</name>
+            </zone>
+            <zone id="1263263506" externalid="1263263506" type="platform">
+                <name>E</name>
+            </zone>
+            <zone id="1263263520" externalid="1263263520" type="platform">
+                <name>F</name>
+            </zone>
+            <zone id="1263263539" externalid="1263263539" type="platform">
+                <name>G</name>
+            </zone>
+            <zone id="1354677119" externalid="1354677119" type="platform"/>
+            <zone id="1354677120" externalid="1354677120" type="platform">
+                <name>Stand M, Wynyard</name>
+            </zone>
+            <zone id="1354677121" externalid="1354677121" type="platform"/>
+            <zone id="2686079229" externalid="2686079229" type="platform"/>
+            <zone id="2784763255" externalid="2784763255" type="platform">
+                <name>Barrack St</name>
+            </zone>
+            <zone id="2784763256" externalid="2784763256" type="platform">
+                <name>Stand Q, Wynyard</name>
+            </zone>
+            <zone id="3174323910" externalid="3174323910" type="platform">
+                <name>Lang Park</name>
+            </zone>
+            <zone id="3814697123" externalid="3814697123" type="platform">
+                <name>Stand C, Martin Place, Elizabeth Street</name>
+            </zone>
+            <zone id="3814704459" externalid="3814704459" type="platform">
+                <name>Museum of Sydney</name>
+            </zone>
+            <zone id="3814704461" externalid="3814704461" type="platform">
+                <name>Stand C, Phillip Street</name>
+            </zone>
+            <zone id="3814715779" externalid="3814715779" type="platform">
+                <name>Stand E, Martin Place, Elizabeth Street</name>
+            </zone>
+            <zone id="3814715780" externalid="3814715780" type="platform">
+                <name>Museum of Sydney</name>
+            </zone>
+            <zone id="3820122295" externalid="3820122295" type="platform">
+                <name>Kent Street before Napoleon Street</name>
+            </zone>
+            <zone id="3820122296" externalid="3820122296" type="platform">
+                <name>Market St</name>
+            </zone>
+            <zone id="4010650292" externalid="4010650292" type="platform">
+                <name>Stand B, Martin Place</name>
+            </zone>
+            <zone id="4010650293" externalid="4010650293" type="platform">
+                <name>Royal Botanic Gardens</name>
+            </zone>
+            <zone id="4341871592" externalid="4341871592" type="platform">
+                <name>Stand H, Wynyard Station</name>
+            </zone>
+            <zone id="4731525721" externalid="4731525721" type="platform">
+                <name>Stand R, Wynyard</name>
+            </zone>
+            <zone id="4736120228" externalid="4736120228" type="platform">
+                <name>Erskine Street Terminus (288, 290, 292)</name>
+            </zone>
+            <zone id="4737145122" externalid="4737145122" type="platform">
+                <name>Stand U, Wynyard</name>
+            </zone>
+            <zone id="4737170024" externalid="4737170024" type="platform">
+                <name>Stand T, Wynyard</name>
+            </zone>
+            <zone id="4737196921" externalid="4737196921" type="platform">
+                <name>Stand S, Wynyard Station</name>
+            </zone>
+            <zone id="4737206823" externalid="4737206823" type="platform">
+                <name>King St (613X, 614X, 615X, 616X)</name>
+            </zone>
+            <zone id="4743071525" externalid="4743071525" type="platform">
+                <name>King Street Wharf Terminus (252, 261)</name>
+            </zone>
+            <zone id="4743071526" externalid="4743071526" type="platform">
+                <name>Barangaroo Reserve</name>
+            </zone>
+            <zone id="4743071527" externalid="4743071527" type="platform">
+                <name>Barangaroo Reserve</name>
+            </zone>
+            <zone id="4743099622" externalid="4743099622" type="platform">
+                <name>King Street Wharf, Erskine St (252, 261)</name>
+            </zone>
+            <zone id="4743099623" externalid="4743099623" type="platform">
+                <name>Barangaroo South</name>
+            </zone>
+            <zone id="4743099624" externalid="4743099624" type="platform">
+                <name>Roslyn Packer Theatre</name>
+            </zone>
+            <zone id="4743099625" externalid="4743099625" type="platform">
+                <name>High Lane</name>
+            </zone>
+            <zone id="4743123721" externalid="4743123721" type="platform">
+                <name>Roslyn Packer Theatre</name>
+            </zone>
+            <zone id="4743123722" externalid="4743123722" type="platform">
+                <name>Observatory Hill (311)</name>
+            </zone>
+            <zone id="4743126721" externalid="4743126721" type="platform">
+                <name>Millers Point Terminus (311)</name>
+            </zone>
+            <zone id="4748558524" externalid="4748558524" type="platform">
+                <name>Walsh Bay Terminus (324, 325)</name>
+            </zone>
+            <zone id="4809848324" externalid="4809848324" type="platform">
+                <name>Art Gallery of NSW</name>
+            </zone>
+            <zone id="4809854923" externalid="4809854923" type="platform">
+                <name>Art Gallery of NSW</name>
+            </zone>
+            <zone id="4928568457" externalid="4928568457" type="platform">
+                <name>Stand F, Martin Place, Elizabeth Street</name>
+            </zone>
+            <zone id="5441345821" externalid="5441345821" type="platform">
+                <name>Stand G, Martin Place, Castlereagh St</name>
+            </zone>
+            <zone id="142553711" externalid="142553711" type="platform">
+                <name>Wynyard</name>
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1578708.31109875,-3922489.44151896 1578718.68759508,-3922489.65708611 1578717.42362814,-3922545.02712518 1578717.0880225,-3922562.36699818 1578716.78774257,-3922577.56214754 1578716.76858391,-3922589.09827928 1578716.38210864,-3922605.86313191 1578715.20073928,-3922660.56528329 1578704.82589854,-3922660.33879279 1578705.68565419,-3922606.08240012 1578706.12674033,-3922589.25824565 1578706.13677067,-3922577.72085733 1578706.518438,-3922562.0023074 1578706.95331842,-3922545.0882117 1578708.31109875,-3922489.44151896</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="142577579" externalid="142577579" type="platform">
+                <name>Wynyard</name>
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1578724.96642524,-3922490.0766233 1578735.34292271,-3922490.29220557 1578734.10648848,-3922550.78943464 1578733.85343382,-3922567.32762537 1578733.66458324,-3922575.57699863 1578733.03050554,-3922605.94042131 1578733.08507181,-3922619.36901104 1578731.85582542,-3922661.20039242 1578721.48098357,-3922660.97388681 1578722.64034311,-3922619.17743112 1578722.63277877,-3922605.67735369 1578723.64067211,-3922575.36543531 1578723.51498217,-3922567.10614079 1578723.73029207,-3922550.77436948 1578724.96642524,-3922490.0766233</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="142670311" externalid="142670311" type="platform">
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1579210.47876451,-3923105.07444563 1579220.45223388,-3923107.9415073 1579201.09238711,-3923174.72982898 1579172.8593348,-3923272.12780954 1579162.88751524,-3923269.24985417 1579210.47876451,-3923105.07444563</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="142670313" externalid="142670313" type="platform">
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1579228.63649667,-3923110.03849695 1579238.60995925,-3923112.9055745 1579191.01679922,-3923277.0918091 1579181.05410401,-3923274.21509445 1579209.59191735,-3923176.22425945 1579228.63649667,-3923110.03849695</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="635613434" externalid="635613434" type="platform">
+                <name>Martin Place</name>
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1579226.48044079,-3922858.39100127 1579205.86863213,-3922853.56773454 1579113.3129216,-3922831.91299854 1579088.75094149,-3922827.36978298 1579062.98456071,-3922825.76812327 1579048.22329542,-3922828.04430927</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="701216855" externalid="701216855" type="platform">
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1578820.9014721,-3922701.12429941 1578829.16188417,-3922664.6388067 1578835.48796653,-3922636.73026459 1578837.14611061,-3922637.10352222 1578838.60516341,-3922637.43821063 1578824.01103935,-3922701.82005517 1578822.23587668,-3922701.41953687 1578820.9014721,-3922701.12429941</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="701216856" externalid="701216856" type="platform">
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1578829.69672893,-3922703.10465547 1578844.27264906,-3922638.72030489 1578845.92167469,-3922639.09230747 1578847.35337296,-3922639.423228 1578841.03336745,-3922667.35488113 1578832.78805943,-3922703.79790098 1578831.26518922,-3922703.45441891 1578829.69672893,-3922703.10465547</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="702219814" externalid="702219814" type="platform">
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1578904.23832995,-3922359.48255378 1578890.14963214,-3922424.84693382 1578890.43079109,-3922424.89681143 1578889.54529977,-3922428.89578485 1578891.59103947,-3922429.35586432 1578893.54559683,-3922429.80338047 1578908.23555737,-3922360.34517664 1578906.39500751,-3922359.94678192 1578904.23832995,-3922359.48255378</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="702219822" externalid="702219822" type="platform">
+                <name>Circular Quay</name>
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1579205.11344172,-3922156.00100176 1579205.00609157,-3922156.44285569 1579211.16794996,-3922157.98256652 1579210.86096178,-3922159.19882648 1579210.49046719,-3922160.67364073 1579132.86811982,-3922141.12219216 1579133.21291746,-3922139.76635106 1579133.54558424,-3922138.43111381 1579139.69833831,-3922139.96952954 1579139.80267347,-3922139.54953542 1579205.11344172,-3922156.00100176</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="702219824" externalid="702219824" type="platform">
+                <name>Circular Quay</name>
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1579141.31014012,-3922133.39762027 1579141.42510001,-3922132.9679526 1579135.29057907,-3922131.43204916 1579135.73360591,-3922129.63309739 1579136.13580253,-3922127.99558523 1579142.28705601,-3922129.54493239 1579142.39289747,-3922129.1140082 1579207.73258726,-3922145.5583275 1579207.61310599,-3922146.02078504 1579213.73698994,-3922147.5664008 1579213.3816387,-3922148.99875057 1579212.89166239,-3922150.93602196 1579212.87651875,-3922150.97848601 1579206.74502449,-3922149.42068387 1579206.6376743,-3922149.86253773 1579141.31014012,-3922133.39762027</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="142670310" externalid="142670310" type="platform">
+                <name>Circular Quay</name>
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1579308.52532865,-3922161.15315893 1579149.68368724,-3922120.57367149 1579150.84082035,-3922116.22234617 1579209.76664659,-3922131.27046566 1579213.87812993,-3922132.31599535 1579248.94508956,-3922141.28076645 1579252.39995875,-3922142.16899354 1579309.68252239,-3922156.80184809 1579308.52532865,-3922161.15315893</gml:coordinates>
+                </gml:LineString>
+            </zone>
+            <zone id="142670312" externalid="142670312" type="platform">
+                <name>Circular Quay</name>
+                <gml:LineString>
+                    <gml:coordinates decimal="." cs="," ts=" ">1579154.61883243,-3922102.89876914 1579250.43265391,-3922127.38537866 1579254.99252846,-3922128.54840642 1579295.01454085,-3922138.77536106 1579313.45009492,-3922143.48799209 1579312.39011,-3922147.80814781 1579254.88405891,-3922133.11107402 1579250.88961112,-3922132.0927963 1579216.19045496,-3922123.22326224 1579212.12456066,-3922122.18401491 1579153.55890784,-3922107.218938 1579154.61883243,-3922102.89876914</gml:coordinates>
+                </gml:LineString>
+            </zone>
+        </transferzones>
+        <transferzoneaccess>
+            <connectoid tzrefs="142670310" lsref="184" id="0" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142670310" lsref="1808" id="1" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142670312" lsref="334" id="2" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142670312" lsref="1810" id="3" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142553711" lsref="1385" id="4" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142553711" lsref="1812" id="5" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142553711" lsref="1621" id="6" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142553711" lsref="1814" id="7" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142577579" lsref="332" id="8" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142577579" lsref="1816" id="9" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142577579" lsref="880" id="10" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142577579" lsref="1818" id="11" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142670311" lsref="764" id="12" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142670311" lsref="1820" id="13" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142670313" lsref="690" id="14" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="142670313" lsref="1822" id="15" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="635613434" lsref="310" id="16" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="635613434" lsref="1824" id="17" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="635613434" lsref="1391" id="18" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="635613434" lsref="1826" id="19" modes="train">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219824" lsref="1102" id="20" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219824" lsref="1828" id="21" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219822" lsref="1108" id="22" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219822" lsref="1830" id="23" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219824" lsref="1110" id="24" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219824" lsref="1832" id="25" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="701216855" lsref="1637" id="26" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="701216855" lsref="1834" id="27" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="701216856" lsref="1777" id="28" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="701216856" lsref="1836" id="29" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219814" lsref="1166" id="30" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219814" lsref="1838" id="31" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219814" lsref="1741" id="32" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="702219814" lsref="1840" id="33" modes="light_rail">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1085097097" lsref="402" id="34" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1085097099" lsref="386" id="35" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1263263402" lsref="302" id="36" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1263263402" lsref="507" id="37" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1263263448" lsref="302" id="38" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1263263479" lsref="302" id="39" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1263263493" lsref="302" id="40" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1263263506,1263263520" lsref="302" id="41" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1263263539" lsref="302" id="42" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1354677119" lsref="640" id="43" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1354677120" lsref="762" id="44" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="1354677121" lsref="762" id="45" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="2686079229" lsref="1623" id="46" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="2784763255" lsref="1357" id="47" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="2784763256" lsref="916" id="48" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3174323910" lsref="244" id="49" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3814697123" lsref="1255" id="50" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3814704459" lsref="1339" id="51" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3814704461" lsref="654" id="52" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3814715779" lsref="854" id="53" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3814715780" lsref="1872" id="54" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3820122295" lsref="296" id="55" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="3820122296" lsref="932" id="56" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4010650292" lsref="1246" id="57" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4010650293" lsref="1575" id="58" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4341871592" lsref="920" id="59" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4731525721" lsref="1439" id="60" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4736120228" lsref="1384" id="61" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4737145122" lsref="544" id="62" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4737170024" lsref="1409" id="63" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4737196921" lsref="1016" id="64" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4737206823" lsref="1353" id="65" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743071525" lsref="1543" id="66" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743071526" lsref="362" id="67" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743071527" lsref="1276" id="68" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743099622" lsref="290" id="69" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743099623" lsref="1898" id="70" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743099624" lsref="384" id="71" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743099625" lsref="1902" id="72" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743123721" lsref="382" id="73" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743123722" lsref="490" id="74" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743123722" lsref="556" id="75" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4743126721" lsref="1431" id="76" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4748558524" lsref="1903" id="77" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4809848324" lsref="1910" id="78" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4809854923" lsref="1909" id="79" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="4928568457" lsref="420" id="80" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+            <connectoid tzrefs="5441345821" lsref="1256" id="81" modes="bus">
+                <length>0.0</length>
+            </connectoid>
+        </transferzoneaccess>
+        <transferzonegroups>
+            <transfergroup id="0" externalid="4513987" tzrefs="1085097097,1085097099,142670310,142670312">
+                <name>Circular Quay</name>
+            </transfergroup>
+            <transfergroup id="1" externalid="9697193" tzrefs="142553711,142577579">
+                <name>Wynyard</name>
+            </transfergroup>
+            <transfergroup id="2" externalid="9724271" tzrefs="142670311,142670313">
+                <name>St James</name>
+            </transfergroup>
+            <transfergroup id="3" externalid="9769474" tzrefs="635613434">
+                <name>Martin Place</name>
+            </transfergroup>
+            <transfergroup id="4" externalid="10230844" tzrefs="702219822,702219824">
+                <name>Circular Quay</name>
+            </transfergroup>
+            <transfergroup id="7" externalid="10230852" tzrefs="701216855,701216856">
+                <name>Wynyard</name>
+            </transfergroup>
+            <transfergroup id="8" externalid="10230853" tzrefs="702219814">
+                <name>Bridge Street</name>
+            </transfergroup>
+        </transferzonegroups>
+    </intermodal>
+</macroscopiczoning>

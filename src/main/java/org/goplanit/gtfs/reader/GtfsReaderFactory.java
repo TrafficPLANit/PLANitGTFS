@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 
 /**
- * top level class to get things started. BAsed on location (dir or zip file) and scheme (type of GTFS file), create a single stand-alone 
+ * top level class to get things started. Based on location (dir or zip file) and scheme (type of GTFS file), create a single stand-alone
  * GTFS file reader/handler combination, or an umbrella GTFS reader that is capable of registering multiple file readers/handlers
  * 
  * @author markr

@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsStop;
+import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.scheme.GtfsStopsScheme;
 
 /**

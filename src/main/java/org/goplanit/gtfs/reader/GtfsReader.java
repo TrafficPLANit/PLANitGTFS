@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.handler.GtfsFileHandler;
-import org.goplanit.gtfs.model.GtfsObject;
+import org.goplanit.gtfs.entity.GtfsObject;
 import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.gtfs.util.GtfsUtils;
 

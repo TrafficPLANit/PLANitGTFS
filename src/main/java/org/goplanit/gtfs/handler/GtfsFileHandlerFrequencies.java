@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsFrequency;
+import org.goplanit.gtfs.entity.GtfsFrequency;
 import org.goplanit.gtfs.scheme.GtfsFrequenciesScheme;
 
 /**

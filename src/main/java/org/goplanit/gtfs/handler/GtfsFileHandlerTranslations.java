@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsTranslation;
+import org.goplanit.gtfs.entity.GtfsTranslation;
 import org.goplanit.gtfs.scheme.GtfsTranslationsScheme;
 
 /**

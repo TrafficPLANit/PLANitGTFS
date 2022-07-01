@@ -1,4 +1,4 @@
-package org.goplanit.gtfs.model;
+package org.goplanit.gtfs.entity;
 
 import java.util.logging.Logger;
 

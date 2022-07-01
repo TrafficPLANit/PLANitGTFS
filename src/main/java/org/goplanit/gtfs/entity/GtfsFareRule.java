@@ -1,25 +1,25 @@
-package org.goplanit.gtfs.model;
+package org.goplanit.gtfs.entity;
 
 import java.util.EnumSet;
 
 import org.goplanit.gtfs.enums.GtfsKeyType;
 
 /**
- * In memory representation of a GTFS entry in fare_attributes.txt
+ * In memory representation of a GTFS entry in fare_rules.txt
  * 
  * @author markr
  *
  */
-public class GtfsFareAttribute extends GtfsObject {
+public class GtfsFareRule extends GtfsObject {
   
-  /** Supported keys for a GTFS fare attribute instance */
+  /** Supported keys for a GTFS fare rule instance */
   public static final EnumSet<GtfsKeyType> SUPPORTED_KEYS =
       EnumSet.of(
-          GtfsKeyType.AGENCY_ID,
-          GtfsKeyType.CURRENCY_TYPE,
           GtfsKeyType.FARE_ID,
-          GtfsKeyType.PAYMENT_METHOD,
-          GtfsKeyType.PRICE,          
+          GtfsKeyType.ROUTE_ID,
+          GtfsKeyType.ORIGIN_ID,
+          GtfsKeyType.DESTINATION_ID,
+          GtfsKeyType.CONTAINS_ID,          
           GtfsKeyType.TRANSFERS,          
           GtfsKeyType.TRANSFER_DURATION);  
 

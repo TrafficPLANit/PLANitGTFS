@@ -35,6 +35,11 @@
 			<groupId>org.goplanit</groupId>
 			<artifactId>planit-core</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.goplanit.io</groupId>
+			<artifactId>planit-io</artifactId>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.goplanit.utils</groupId>

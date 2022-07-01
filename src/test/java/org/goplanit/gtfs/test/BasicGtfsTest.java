@@ -1,5 +1,7 @@
 package org.goplanit.gtfs.test;
 
+import org.goplanit.gtfs.converter.zoning.GtfsPublicTransportReaderSettings;
+import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.handler.*;
@@ -9,9 +11,14 @@ import org.goplanit.gtfs.reader.GtfsReader;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.gtfs.test.handler.GtfsFileHandlerTripsTest;
+import org.goplanit.io.converter.intermodal.PlanitIntermodalReader;
+import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderFactory;
+import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderSettings;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
@@ -22,8 +29,14 @@ import static org.junit.Assert.*;
  *
  */
 public class BasicGtfsTest {
+
+  private static final Logger LOGGER = Logger.getLogger(BasicGtfsTest.class.getCanonicalName());
   
-  public static final String GTFS_SEQ_DIR = "GTFS/SEQ/SEQ_GTFS.zip";
+  public static final String GTFS_SEQ_ALL = "GTFS/SEQ/SEQ_GTFS.zip";
+
+  public static final String GTFS_NSW_STOPS = "GTFS/NSW/stops_greater_sydney_gtfs.zip";
+
+  public static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = ResourceUtils.getResourceUrl("planit/sydney").getPath();
 
   /**
    * Test if umbrella reader with all file types activated runs properly
@@ -32,7 +45,7 @@ public class BasicGtfsTest {
   public void testDefaultGtfsReader() {
            
     try {
-      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());
+      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(ResourceUtils.getResourceUrl(GTFS_SEQ_ALL));
       
       /* register all possible handlers where we note that reader is returned when handler is registered*/
       @SuppressWarnings("unused")
@@ -57,6 +70,7 @@ public class BasicGtfsTest {
       /* should be able to parse all data (without doing anything) */
       gtfsReader.read();
     } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
       Assert.fail();
     }    
   }
@@ -71,7 +85,7 @@ public class BasicGtfsTest {
       GtfsFileHandlerTripsTest tripsHandler = new GtfsFileHandlerTripsTest();
       
       GtfsFileReaderTrips tripsFileReader  =(GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
-          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());
+          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), ResourceUtils.getResourceUri(GTFS_SEQ_ALL).toURL());
       tripsFileReader.addHandler(tripsHandler);
       
       tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);
@@ -82,8 +96,32 @@ public class BasicGtfsTest {
       assertFalse(tripsHandler.trips.values().iterator().next().containsKey(GtfsKeyType.TRIP_HEADSIGN));
       
     } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
       Assert.fail();
-    }     
-    
+    }
+  }
+
+  /**
+   * Test that attempts to supplement a PLANit network parsed from disk into memory with GTFS information through a PLANit GTFS converter/reader
+   */
+  @Test
+  public void testWithPlanitZoningReader() {
+
+    try {
+
+      /* parse PLANit intermodal network from disk to memory */
+      PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR));
+      var planitIntermodalNetworkTuple = planitReader.read();
+
+      /* augment zoning with GTFS */
+      final var gtfsReader = GtfsZoningReaderFactory.create(
+          new GtfsPublicTransportReaderSettings(GTFS_NSW_STOPS,planitIntermodalNetworkTuple.first()),
+          planitIntermodalNetworkTuple.second());
+      gtfsReader.read();
+
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      Assert.fail();
+    }
   }
 }

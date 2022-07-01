@@ -1,11 +1,12 @@
-package org.goplanit.gtfs.model;
+package org.goplanit.gtfs.entity;
 
 import java.util.EnumSet;
 
 import org.goplanit.gtfs.enums.GtfsKeyType;
+import org.goplanit.gtfs.enums.StopLocationType;
 
 /**
- * In memory representation of a GTFS entry in stops.txt
+ * In memory representation of a GTFS entry in stops.txt.
  * 
  * @author markr
  *
@@ -44,6 +45,34 @@ public class GtfsStop extends GtfsObject {
    */
   public String getStopId(){
     return get(GtfsKeyType.STOP_ID);
-  }  
+  }
+
+  public String getStopName(){ return get(GtfsKeyType.STOP_NAME); }
+
+  /**
+   * Collect as StopLocationType enum directly
+   * @return extracted stop location type if valid, null otherwise
+   */
+  public StopLocationType getLocationType(){
+    return StopLocationType.of(getLocationTypeRaw());
+  }
+
+  /**
+   * Collect raw location type data
+   * @return location type value
+   */
+  public String getLocationTypeRaw(){ return get(GtfsKeyType.LOCATION_TYPE); }
+
+  /**
+   * Latitude of the stop location if present
+   * @return latitude
+   */
+  public String getStopLatitude(){ return get(GtfsKeyType.STOP_LAT); }
+
+  /**
+   * Longitude of the stop location if present
+   * @return latitude
+   */
+  public String getStopLongitude(){ return get(GtfsKeyType.STOP_LON); }
 
 }

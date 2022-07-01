@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsRoute;
+import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.scheme.GtfsRoutesScheme;
 
 /**

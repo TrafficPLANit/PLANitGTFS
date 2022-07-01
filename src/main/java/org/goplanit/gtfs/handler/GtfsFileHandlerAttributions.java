@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsAttribution;
+import org.goplanit.gtfs.entity.GtfsAttribution;
 import org.goplanit.gtfs.scheme.GtfsAttributionsScheme;
 
 /**

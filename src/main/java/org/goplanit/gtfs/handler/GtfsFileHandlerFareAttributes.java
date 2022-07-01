@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsFareAttribute;
+import org.goplanit.gtfs.entity.GtfsFareAttribute;
 import org.goplanit.gtfs.scheme.GtfsFareAttributesScheme;
 
 /**

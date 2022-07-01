@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsShape;
+import org.goplanit.gtfs.entity.GtfsShape;
 import org.goplanit.gtfs.scheme.GtfsShapesScheme;
 
 /**

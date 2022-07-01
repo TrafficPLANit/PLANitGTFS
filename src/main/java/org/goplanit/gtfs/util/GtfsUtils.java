@@ -13,13 +13,13 @@ import java.util.logging.Logger;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.enums.GtfsObjectType;
-import org.goplanit.gtfs.model.GtfsObjectFactory;
+import org.goplanit.gtfs.entity.GtfsObjectFactory;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.zip.ZipUtils;
 
 /**
- * general utilities specific to this GTFS API
+ * General utilities specific to this GTFS API
  * 
  * @author markr
  *
@@ -31,7 +31,7 @@ public class GtfsUtils {
 
   /** process a situation where a GTFS file is not found , i.e., the logging of it, on a GTFS file based on filePResence condition provided
    * 
-   * @param e file not found exception to process
+   * @param fileLocation file not found exception to process
    * @param filePresenceCondition to base logging on
    */
   private static void processGtfsFileNotFound(String fileLocation, GtfsFileConditions filePresenceCondition) {

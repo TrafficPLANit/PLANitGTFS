@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.enums;
 
-import org.goplanit.gtfs.model.*;
+import org.goplanit.gtfs.entity.*;
 
 /**
  * The available supported object types and their corresponding class. the value represents the in memory class that is used to 
