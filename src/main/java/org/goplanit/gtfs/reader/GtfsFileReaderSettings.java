@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.reader;
 
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,8 +17,8 @@ import org.goplanit.gtfs.enums.GtfsKeyType;
 public class GtfsFileReaderSettings {
 
   /** track explicitly excluded columns from parsing */
-  private final Set<GtfsKeyType> excludedColumns = new HashSet<GtfsKeyType>();
-  
+  private final Set<GtfsKeyType> excludedColumns = new HashSet<>();
+
   
   /** Exclude one or more columns from in memory object to for example reduce the memory foot print
    * 

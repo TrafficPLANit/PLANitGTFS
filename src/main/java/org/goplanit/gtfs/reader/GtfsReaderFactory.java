@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.logging.Logger;
 
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
+import org.goplanit.utils.misc.UrlUtils;
 
 /**
  * top level class to get things started. Based on location (dir or zip file) and scheme (type of GTFS file), create a single stand-alone
@@ -24,6 +25,18 @@ public class GtfsReaderFactory {
    */
   public static GtfsReader createDefaultReader(URL gtfsLocation) {
     return new GtfsReader(gtfsLocation);
+  }
+
+  /**
+   * Identical to {@link #createFileReader(GtfsFileScheme, URL)} only allowing for string based gtfs location reflecting
+   * a path to gtfs file
+   *
+   * @param fileScheme to apply
+   * @param gtfsLocation to use
+   * @return created file reader based on scheme
+   */
+  public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, String gtfsLocation) {
+    return createFileReader(fileScheme, UrlUtils.createFromPath(gtfsLocation));
   }
 
   /** Factory method to create a GTFS file specific reader

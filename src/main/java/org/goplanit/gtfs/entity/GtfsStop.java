@@ -2,8 +2,11 @@ package org.goplanit.gtfs.entity;
 
 import java.util.EnumSet;
 
+import org.geotools.geometry.jts.JTS;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.enums.StopLocationType;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
 
 /**
  * In memory representation of a GTFS entry in stops.txt.
@@ -74,5 +77,25 @@ public class GtfsStop extends GtfsObject {
    * @return latitude
    */
   public String getStopLongitude(){ return get(GtfsKeyType.STOP_LON); }
+
+  /**
+   * Collect long (x), lat (y) as JTS coordinate
+   *
+   * @return coordinate
+   */
+  public Coordinate getLocationAsCoord(){
+    return new Coordinate(Double.valueOf(getStopLongitude()), Double.valueOf(getStopLatitude()));
+  }
+
+  /**
+   * String of all key value pairs of this GTFS entity
+   * @return
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("STOP: ");
+    super.appendKeyValues(sb);
+    return sb.toString();
+  }
 
 }

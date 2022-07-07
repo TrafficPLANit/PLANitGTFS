@@ -1,5 +1,7 @@
 package org.goplanit.gtfs.enums;
 
+import org.goplanit.utils.misc.StringUtils;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -7,7 +9,7 @@ import java.util.logging.Logger;
 /**
  * Defines the different sop location types:
  * <li>
- *   <ul>STOP_PLATFORM (0): A location where passengers board or disembark from a transit vehicle. Is called a platform when defined within a parent_station.</ul>
+ *   <ul>STOP_PLATFORM (0 or null or ""): A location where passengers board or disembark from a transit vehicle. Is called a platform when defined within a parent_station.</ul>
  *   <ul>STATION (1): A physical structure or area that contains one or more platform</ul>
  *   <ul>ENTRANCE_EXIT (2): A location where passengers can enter or exit a station from the street. If an entrance/exit belongs to multiple stations, it can be linked by pathways to both, but the data provider must pick one of them as parent.</ul>
  *   <ul>GENERIC_NODE (3): A location within a station, not matching any other location_type, which can be used to link together pathways define in pathways.txt.</ul>
@@ -56,14 +58,19 @@ public enum StopLocationType {
   }
 
   /**
-   * Collect the stop location type belonging to the given value. It is assumed the value can be parsed as a short. If not this is logged
-   * and null is returned.
+   * Collect the stop location type belonging to the given value. It is assumed any non-null, non-empty value can be parsed as a short. If not this is logged
+   * and null is returned. In case of a blank or null input the location type defaults to STOP_PLATFORM
    *
    * @param value to extract enum for
    * @return the stop location type found, null when not present
    */
   public static StopLocationType of(String value){
     try{
+
+      if(StringUtils.isNullOrBlank(value)){
+        return STOP_PLATFORM;
+      }
+
       return of(Short.valueOf(value));
     }catch (Exception e){
       LOGGER.warning(String.format("Unable to parse %s as short, cannot extract GTFS Stop Location Type",value));

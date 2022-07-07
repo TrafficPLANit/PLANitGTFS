@@ -34,6 +34,16 @@ public class GtfsShape extends GtfsObject {
    */
   public String getShapeId(){
     return get(GtfsKeyType.SHAPE_ID);
-  }  
+  }
 
+  /**
+   * String of all key value pairs of this GTFS entity
+   * @return created string
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("SHAPE: ");
+    super.appendKeyValues(sb);
+    return sb.toString();
+  }
 }

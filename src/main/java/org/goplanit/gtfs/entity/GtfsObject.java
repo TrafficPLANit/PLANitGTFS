@@ -14,7 +14,21 @@ import org.goplanit.gtfs.enums.GtfsKeyType;
 public abstract class GtfsObject {
 
   /** track key value pairs */
-  EnumMap<GtfsKeyType, String> keyValueMap = new EnumMap<GtfsKeyType, String>(GtfsKeyType.class);
+  EnumMap<GtfsKeyType, String> keyValueMap = new EnumMap<>(GtfsKeyType.class);
+
+  /**
+   * Append values to provided string builder
+   * @param sb to append to
+   */
+  protected void appendKeyValues(StringBuilder sb) {
+    keyValueMap.forEach( (k,v) -> {
+      sb.append(k.value());
+      sb.append("-");
+      sb.append(v==null ? "n/a" : v);
+      sb.append(", ");
+    });
+    sb.deleteCharAt(sb.length()-1);
+  }
   
   public String get(GtfsKeyType key) {
     return keyValueMap.get(key);
@@ -33,4 +47,6 @@ public abstract class GtfsObject {
    * @return supported keys
    */
   public abstract EnumSet<GtfsKeyType> getSupportedKeys();
+
+
 }

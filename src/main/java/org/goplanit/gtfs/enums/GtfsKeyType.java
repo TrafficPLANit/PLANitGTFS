@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.enums;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;

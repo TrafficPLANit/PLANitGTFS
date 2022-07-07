@@ -5,136 +5,375 @@
         <transferzones>
             <zone id="1085097097" externalid="1085097097" type="platform">
                 <name>Stand A, Circular Quay, Alfred Street</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579310.4068696566 -3922179.255176121</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="1085097099" externalid="1085097099" type="platform">
                 <name>Circular Quay</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579335.93503908 -3922174.8434009254</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="1263263402" externalid="1263263402" type="platform">
                 <name>Stand A</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578781.3372360915 -3922505.8511905703</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
-            <zone id="1263263448" externalid="1263263448" type="platform"/>
+            <zone id="1263263448" externalid="1263263448" type="platform">
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578776.2639861817 -3922530.6020841035</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
             <zone id="1263263479" externalid="1263263479" type="platform">
                 <name>Stand A</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578771.791676013 -3922552.2726494833</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="1263263493" externalid="1263263493" type="platform">
                 <name>D</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578765.1854780857 -3922578.37165702</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="1263263506" externalid="1263263506" type="platform">
                 <name>E</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578753.0434131885 -3922632.309894948</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="1263263520" externalid="1263263520" type="platform">
                 <name>F</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578747.3976407442 -3922654.8101007896</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="1263263539" externalid="1263263539" type="platform">
                 <name>G</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578741.3491309453 -3922679.694016743</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
-            <zone id="1354677119" externalid="1354677119" type="platform"/>
+            <zone id="1354677119" externalid="1354677119" type="platform">
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578726.488770838 -3922628.8072445765</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
             <zone id="1354677120" externalid="1354677120" type="platform">
                 <name>Stand M, Wynyard</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578729.8975791028 -3922556.858825871</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
-            <zone id="1354677121" externalid="1354677121" type="platform"/>
-            <zone id="2686079229" externalid="2686079229" type="platform"/>
+            <zone id="1354677121" externalid="1354677121" type="platform">
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578730.9219082291 -3922522.6509738807</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="2686079229" externalid="2686079229" type="platform">
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578715.463386204 -3922853.9545947094</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
             <zone id="2784763255" externalid="2784763255" type="platform">
                 <name>Barrack St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578625.495019897 -3922768.6733370917</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="2784763256" externalid="2784763256" type="platform">
                 <name>Stand Q, Wynyard</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578630.5554001287 -3922432.095457648</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3174323910" externalid="3174323910" type="platform">
                 <name>Lang Park</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578728.1156927433 -3922343.870622181</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3814697123" externalid="3814697123" type="platform">
                 <name>Stand C, Martin Place, Elizabeth Street</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579132.6631172046 -3922781.6412038812</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3814704459" externalid="3814704459" type="platform">
                 <name>Museum of Sydney</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579276.457547906 -3922474.2611820153</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3814704461" externalid="3814704461" type="platform">
                 <name>Stand C, Phillip Street</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579316.4538725074 -3922316.0586849954</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3814715779" externalid="3814715779" type="platform">
                 <name>Stand E, Martin Place, Elizabeth Street</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579108.6072978214 -3922974.197545036</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3814715780" externalid="3814715780" type="platform">
                 <name>Museum of Sydney</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579304.4633640212 -3922426.5193950483</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3820122295" externalid="3820122295" type="platform">
                 <name>Kent Street before Napoleon Street</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578579.003904324 -3922492.889475269</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="3820122296" externalid="3820122296" type="platform">
                 <name>Market St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578556.1055064788 -3923048.7877538875</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4010650292" externalid="4010650292" type="platform">
                 <name>Stand B, Martin Place</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579317.9752104527 -3922746.111689546</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4010650293" externalid="4010650293" type="platform">
                 <name>Royal Botanic Gardens</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579372.325186358 -3922538.039991834</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4341871592" externalid="4341871592" type="platform">
                 <name>Stand H, Wynyard Station</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578726.7155452438 -3922653.7315280368</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4731525721" externalid="4731525721" type="platform">
                 <name>Stand R, Wynyard</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578643.1659912765 -3922493.653725738</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4736120228" externalid="4736120228" type="platform">
                 <name>Erskine Street Terminus (288, 290, 292)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578489.2837482 -3922609.605707156</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4737145122" externalid="4737145122" type="platform">
                 <name>Stand U, Wynyard</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578795.4726718504 -3922408.6501652747</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4737170024" externalid="4737170024" type="platform">
                 <name>Stand T, Wynyard</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578630.2759243709 -3922687.3018190204</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4737196921" externalid="4737196921" type="platform">
                 <name>Stand S, Wynyard Station</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578634.1848688694 -3922567.073038364</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4737206823" externalid="4737206823" type="platform">
                 <name>King St (613X, 614X, 615X, 616X)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578622.2735806452 -3922924.304437663</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743071525" externalid="4743071525" type="platform">
                 <name>King Street Wharf Terminus (252, 261)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578343.6323732254 -3922848.6191874486</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743071526" externalid="4743071526" type="platform">
                 <name>Barangaroo Reserve</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578534.7765613622 -3921767.057684227</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743071527" externalid="4743071527" type="platform">
                 <name>Barangaroo Reserve</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578534.6033180696 -3921722.9178443966</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743099622" externalid="4743099622" type="platform">
                 <name>King Street Wharf, Erskine St (252, 261)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578375.6315341538 -3922627.7089201766</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743099623" externalid="4743099623" type="platform">
                 <name>Barangaroo South</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578507.3461365271 -3922297.5858800705</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743099624" externalid="4743099624" type="platform">
                 <name>Roslyn Packer Theatre</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578709.5683880842 -3921590.5147356275</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743099625" externalid="4743099625" type="platform">
                 <name>High Lane</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578600.8971255524 -3921714.307618274</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743123721" externalid="4743123721" type="platform">
                 <name>Roslyn Packer Theatre</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578739.5609119004 -3921568.5401032865</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743123722" externalid="4743123722" type="platform">
                 <name>Observatory Hill (311)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578674.673028227 -3921737.991709249</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4743126721" externalid="4743126721" type="platform">
                 <name>Millers Point Terminus (311)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578764.977326367 -3921719.8707211954</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4748558524" externalid="4748558524" type="platform">
                 <name>Walsh Bay Terminus (324, 325)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578963.2367244386 -3921479.5941475523</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4809848324" externalid="4809848324" type="platform">
                 <name>Art Gallery of NSW</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579679.670025066 -3922991.3180365837</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4809854923" externalid="4809854923" type="platform">
                 <name>Art Gallery of NSW</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579703.9429447541 -3922948.0852388064</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="4928568457" externalid="4928568457" type="platform">
                 <name>Stand F, Martin Place, Elizabeth Street</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579154.3052392192 -3922777.573468568</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="5441345821" externalid="5441345821" type="platform">
                 <name>Stand G, Martin Place, Castlereagh St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579052.8030275851 -3922891.4932425935</gml:pos>
+                    </gml:Point>
+                </centroid>
             </zone>
             <zone id="142553711" externalid="142553711" type="platform">
                 <name>Wynyard</name>
@@ -289,7 +528,7 @@
             <connectoid tzrefs="701216855" lsref="1834" id="27" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="701216856" lsref="1777" id="28" modes="light_rail">
+            <connectoid tzrefs="701216856" lsref="1689" id="28" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
             <connectoid tzrefs="701216856" lsref="1836" id="29" modes="light_rail">
@@ -301,7 +540,7 @@
             <connectoid tzrefs="702219814" lsref="1838" id="31" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="702219814" lsref="1741" id="32" modes="light_rail">
+            <connectoid tzrefs="702219814" lsref="1797" id="32" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
             <connectoid tzrefs="702219814" lsref="1840" id="33" modes="light_rail">

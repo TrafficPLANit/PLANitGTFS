@@ -42,6 +42,16 @@ public class GtfsPathway extends GtfsObject {
    */
   public String getPathwayId(){
     return get(GtfsKeyType.PATHWAY_ID);
-  }  
+  }
 
+  /**
+   * String of all key value pairs of this GTFS entity
+   * @return created string
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("PATHWAY: ");
+    super.appendKeyValues(sb);
+    return sb.toString();
+  }
 }

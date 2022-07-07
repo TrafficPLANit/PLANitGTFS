@@ -33,6 +33,16 @@ public class GtfsLevel extends GtfsObject {
    */
   public String getLevelId(){
     return get(GtfsKeyType.LEVEL_ID);
-  }   
-  
+  }
+
+  /**
+   * String of all key value pairs of this GTFS entity
+   * @return created string
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("LEVEL: ");
+    super.appendKeyValues(sb);
+    return sb.toString();
+  }
 }

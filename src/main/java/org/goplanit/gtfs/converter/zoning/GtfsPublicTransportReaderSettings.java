@@ -29,6 +29,14 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
   /** Country name to use to initialise OSM defaults for */
   private final String countryName;
 
+  // Optional configuration settings
+
+  /** search radius used when mapping GTFS stops to PLANit transfer zones */
+  private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
+
+  /** default search radius for mapping GTFS stops to PLANit transfer zones */
+  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 20;
+
   /** Constructor with user defined source locale 
    * @param countryName to base source locale on
    */
@@ -115,5 +123,22 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
     return this.inputSource;
   }
 
+
+  /**
+   * Search radius in meters to map a GTFS stop location to an existing PLANit transfer zone
+   *
+   * @return searchRadiusMeters being applied
+   */
+  public double getGtfsStopToTransferZoneSearchRadiusMeters(){
+    return this.gtfsStop2TransferZoneSearchRadiusMeters;
+  }
+
+  /**
+   * Search radius in meters to map a GTFS stop location to an existing PLANit transfer zone
+   * @param searchRadiusMeters to apply
+   */
+  public void setGtfsStopToTransferZoneSearchRadiusMeters(double searchRadiusMeters){
+    this.gtfsStop2TransferZoneSearchRadiusMeters = searchRadiusMeters;
+  }
 
 }

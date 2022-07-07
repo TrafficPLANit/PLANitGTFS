@@ -14,10 +14,12 @@ import org.goplanit.gtfs.test.handler.GtfsFileHandlerTripsTest;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReader;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderFactory;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderSettings;
+import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -31,12 +33,12 @@ import static org.junit.Assert.*;
 public class BasicGtfsTest {
 
   private static final Logger LOGGER = Logger.getLogger(BasicGtfsTest.class.getCanonicalName());
-  
-  public static final String GTFS_SEQ_ALL = "GTFS/SEQ/SEQ_GTFS.zip";
 
-  public static final String GTFS_NSW_STOPS = "GTFS/NSW/stops_greater_sydney_gtfs.zip";
+  public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQ_GTFS.zip").toString();
 
-  public static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = ResourceUtils.getResourceUrl("planit/sydney").getPath();
+  public static final String GTFS_NSW_STOPS = Path.of("GTFS","NSW","stops_greater_sydney_gtfs.zip").toString();
+
+  public static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
 
   /**
    * Test if umbrella reader with all file types activated runs properly
@@ -108,19 +110,22 @@ public class BasicGtfsTest {
   public void testWithPlanitZoningReader() {
 
     try {
+      String INPUT_PATH = Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
+      String GTFS_STOPS_FILE = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_STOPS)).toAbsolutePath().toString();
 
       /* parse PLANit intermodal network from disk to memory */
-      PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR));
+      PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(
+              new PlanitIntermodalReaderSettings(INPUT_PATH));
       var planitIntermodalNetworkTuple = planitReader.read();
 
       /* augment zoning with GTFS */
       final var gtfsReader = GtfsZoningReaderFactory.create(
-          new GtfsPublicTransportReaderSettings(GTFS_NSW_STOPS,planitIntermodalNetworkTuple.first()),
+          new GtfsPublicTransportReaderSettings(GTFS_STOPS_FILE, CountryNames.AUSTRALIA, planitIntermodalNetworkTuple.first()),
           planitIntermodalNetworkTuple.second());
       gtfsReader.read();
 
     } catch (Exception e) {
-      LOGGER.severe(e.getMessage());
+      e.printStackTrace();
       Assert.fail();
     }
   }

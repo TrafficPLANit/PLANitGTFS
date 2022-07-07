@@ -41,5 +41,15 @@ public class GtfsTrip extends GtfsObject {
   public String getTripId(){
     return get(GtfsKeyType.TRIP_ID);
   }
-  
+
+  /**
+   * String of all key value pairs of this GTFS entity
+   * @return created string
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("TRIP: ");
+    super.appendKeyValues(sb);
+    return sb.toString();
+  }
 }

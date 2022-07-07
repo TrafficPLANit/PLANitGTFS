@@ -27,5 +27,15 @@ public class GtfsTransfer extends GtfsObject {
   public EnumSet<GtfsKeyType> getSupportedKeys() {
     return SUPPORTED_KEYS;
   }
-  
+
+  /**
+   * String of all key value pairs of this GTFS entity
+   * @return created string
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("TRANSFER: ");
+    super.appendKeyValues(sb);
+    return sb.toString();
+  }
 }

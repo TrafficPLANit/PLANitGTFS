@@ -16,6 +16,7 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
+import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
 
@@ -77,16 +78,16 @@ public class GtfsZoningReader implements ZoningReader {
     var stopsHandler = new GtfsPlanitFileHandlerStops(this.zoning, getSettings(), profiler);
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each stop found */
-    GtfsFileReaderTrips tripsFileReader = (GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
-        GtfsFileSchemeFactory.create(GtfsFileType.STOPS), ResourceUtils.getResourceUrl(getSettings().getInputSource()));
-    tripsFileReader.addHandler(stopsHandler);
+    GtfsFileReaderStops stopsFileReader = (GtfsFileReaderStops) GtfsReaderFactory.createFileReader(
+        GtfsFileSchemeFactory.create(GtfsFileType.STOPS), getSettings().getInputSource());
+    stopsFileReader.addHandler(stopsHandler);
 
     /* configuration of reader */
     //TODO: choose what to include/exclude
-    //tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);
+    //stopsFileReader.getSettings().excludeColumns(GtfsKeyType.<something>);
 
     /* execute */
-    tripsFileReader.read();
+    stopsFileReader.read();
   }
 
 

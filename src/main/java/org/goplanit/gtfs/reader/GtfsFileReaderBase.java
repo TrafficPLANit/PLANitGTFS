@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ import org.goplanit.gtfs.entity.GtfsObjectFactory;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.gtfs.util.GtfsUtils;
+import org.goplanit.utils.misc.StringUtils;
 
 /**
  * A GTFS file reader containing generic code for any GTFS file
@@ -57,11 +59,12 @@ public class GtfsFileReaderBase {
    */
   private boolean isValid(Map<String, Integer> headerMap) {
     EnumSet<GtfsKeyType> supportedKeys = GtfsUtils.getSupportedKeys(fileScheme.getObjectType());
-    for(String header : headerMap.keySet()) {
-      if(!GtfsKeyType.valueIn(supportedKeys, header.trim().toLowerCase())) {
+    for(String headerEntry : headerMap.keySet()) {
+      if(!GtfsKeyType.valueIn(supportedKeys, StringUtils.removeBOM(headerEntry.trim().toLowerCase()))) {
         return false;
       }
     }
+
     return true;
   }  
 
@@ -167,7 +170,7 @@ public class GtfsFileReaderBase {
             
     try (InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition);){
       if(gtfsInputStream!=null) {
-        Reader gtfsInputReader = new InputStreamReader(gtfsInputStream);
+        Reader gtfsInputReader = new InputStreamReader(gtfsInputStream, Charset.defaultCharset());
         CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());
         Map<String, Integer> headerMap = csvParser.getHeaderMap();
         if(!isValid(headerMap)) {

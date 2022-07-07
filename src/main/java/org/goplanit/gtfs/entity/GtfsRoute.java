@@ -43,5 +43,15 @@ public class GtfsRoute extends GtfsObject {
   public String getRouteId(){
     return get(GtfsKeyType.ROUTE_ID);
   }
-  
+
+  /**
+   * String of all key value pairs of this GTFS entity
+   * @return created string
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("ROUTE: ");
+    super.appendKeyValues(sb);
+    return sb.toString();
+  }
 }
