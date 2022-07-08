@@ -141,4 +141,11 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
     this.gtfsStop2TransferZoneSearchRadiusMeters = searchRadiusMeters;
   }
 
+  /**
+   * Log settings used
+   */
+  public void log() {
+    LOGGER.info(String.format("GTFS input file: %s",getInputSource()));
+    LOGGER.info(String.format("GTFS stop-to-transferzone search radius (m): %.1f",getGtfsStopToTransferZoneSearchRadiusMeters()));
+  }
 }

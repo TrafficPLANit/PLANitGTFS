@@ -9,6 +9,16 @@ Provides a lightweight GTFS API to access GTFS file in a memory model form.
 
 ## Development
 
+Repository is LFS enabled for *.zip files, mainly for testing purposes.
+
+### LFS
+
+When dealing with LFS, and getting issues still after installing it and adding (new) file types. This might be due to not having migrated properly. Consider running (replace *pbf with the file type added). This should retroactively fix the repos to support LFS for the given type and should avoid this error when comitting afterwards.
+
+'''
+git lfs migrate import --include="*.zip"
+'''
+
 ### Maven build 
 
 PLANit GTFS has the following PLANit specific dependencies (See pom.xml):

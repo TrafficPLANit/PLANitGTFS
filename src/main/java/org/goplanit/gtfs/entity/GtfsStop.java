@@ -5,6 +5,9 @@ import java.util.EnumSet;
 import org.geotools.geometry.jts.JTS;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.enums.StopLocationType;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.misc.StringUtils;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
 
@@ -52,6 +55,17 @@ public class GtfsStop extends GtfsObject {
 
   public String getStopName(){ return get(GtfsKeyType.STOP_NAME); }
 
+  /** Check for populated platform code
+  * @return true when present false otherwise
+  */
+  public boolean hasPlatformCode(){ return !StringUtils.isNullOrBlank(getPlatformCode()); }
+
+  /**
+   * Collect platform code
+   * @return platform code
+   */
+  public String getPlatformCode(){ return get(GtfsKeyType.PLATFORM_CODE); }
+
   /**
    * Collect as StopLocationType enum directly
    * @return extracted stop location type if valid, null otherwise
@@ -85,6 +99,19 @@ public class GtfsStop extends GtfsObject {
    */
   public Coordinate getLocationAsCoord(){
     return new Coordinate(Double.valueOf(getStopLongitude()), Double.valueOf(getStopLatitude()));
+  }
+
+  /**
+   * Collect long (x), lat (y) as JTS Point
+   *
+   * @return point
+   */
+  public Point getLocationAsPoint(){
+    try {
+      return PlanitJtsUtils.createPoint(getLocationAsCoord());
+    }catch(Exception e){
+      throw new PlanItRunTimeException("Unable to transform geometry of GTFS stop %s to PLANit network CRS", getStopId());
+    }
   }
 
   /**

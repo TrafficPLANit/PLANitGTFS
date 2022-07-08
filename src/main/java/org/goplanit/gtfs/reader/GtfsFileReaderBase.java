@@ -24,6 +24,7 @@ import org.goplanit.gtfs.entity.GtfsObjectFactory;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.gtfs.util.GtfsUtils;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
 
 /**
@@ -60,7 +61,7 @@ public class GtfsFileReaderBase {
   private boolean isValid(Map<String, Integer> headerMap) {
     EnumSet<GtfsKeyType> supportedKeys = GtfsUtils.getSupportedKeys(fileScheme.getObjectType());
     for(String headerEntry : headerMap.keySet()) {
-      if(!GtfsKeyType.valueIn(supportedKeys, StringUtils.removeBOM(headerEntry.trim().toLowerCase()))) {
+      if(!GtfsKeyType.valueIn(supportedKeys,headerEntry.trim().toLowerCase())) {
         return false;
       }
     }
@@ -75,9 +76,10 @@ public class GtfsFileReaderBase {
    * @return created mapping
    */
   private Map<String, GtfsKeyType> mapHeadersToGtfsKeys(Map<String, Integer> headerMap) {
-    Map<String, GtfsKeyType> headerToKeyMap = new HashMap<String, GtfsKeyType>();
-    for(String header : headerMap.keySet()) {
-      GtfsKeyType.fromValue(header.trim().toLowerCase()).ifPresent( key -> headerToKeyMap.put(header, key));
+    Map<String, GtfsKeyType> headerToKeyMap = new HashMap<>();
+    for(String headerEntry : headerMap.keySet()) {
+      String comparableHeaderEntry = StringUtils.removeBOM(headerEntry.trim()).toLowerCase();
+      GtfsKeyType.fromValue(comparableHeaderEntry).ifPresent( key -> headerToKeyMap.put(headerEntry, key));
     }
     return headerToKeyMap;
   }
@@ -172,15 +174,17 @@ public class GtfsFileReaderBase {
       if(gtfsInputStream!=null) {
         Reader gtfsInputReader = new InputStreamReader(gtfsInputStream, Charset.defaultCharset());
         CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());
-        Map<String, Integer> headerMap = csvParser.getHeaderMap();
+
+        var headerWithBom = csvParser.getHeaderMap();
+        Map<String, Integer> headerMap = new HashMap<>();
+        headerWithBom.forEach( (k,v) -> headerMap.put(StringUtils.removeBOM(k),v));
+
         if(!isValid(headerMap)) {
-          
-          LOGGER.warning(String.format("Invalid header for %s - %s, ignore file", gtfsLocation.toString(), fileScheme.getFileType().value()));
-          
+          LOGGER.warning(String.format("Invalid header for %s - %s, ignore file", gtfsLocation, fileScheme.getFileType().value()));
         }else {
-          
-          parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerMap)));
-          
+
+          // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
+          parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerWithBom)));
         }
     
         csvParser.close();
@@ -189,6 +193,7 @@ public class GtfsFileReaderBase {
       }      
     }catch(Exception e) {
       LOGGER.severe(String.format("Error during parsing of GTFS file (%s - %s)",gtfsLocation.toString(), fileScheme.getFileType().value()));
+      throw new PlanItRunTimeException(e.getMessage(), e);
     }
   }
   

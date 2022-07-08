@@ -46,7 +46,7 @@ public class GtfsZoningReader implements ZoningReader {
    * Log some information about this reader's configuration
    */
   private void logInfo() {
-    LOGGER.info(String.format("GTFS input file: %s",getSettings().getInputSource()));
+    getSettings().log();
   }
 
   /**

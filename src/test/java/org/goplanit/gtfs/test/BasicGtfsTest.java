@@ -14,12 +14,14 @@ import org.goplanit.gtfs.test.handler.GtfsFileHandlerTripsTest;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReader;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderFactory;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderSettings;
+import org.goplanit.logging.Logging;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.resource.ResourceUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 
 import java.nio.file.Path;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -32,13 +34,26 @@ import static org.junit.Assert.*;
  */
 public class BasicGtfsTest {
 
-  private static final Logger LOGGER = Logger.getLogger(BasicGtfsTest.class.getCanonicalName());
+  private static Logger LOGGER;
 
   public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQ_GTFS.zip").toString();
 
   public static final String GTFS_NSW_STOPS = Path.of("GTFS","NSW","stops_greater_sydney_gtfs.zip").toString();
 
   public static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
+
+  @BeforeClass
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(BasicGtfsTest.class);
+    }
+  }
+
+  @AfterClass
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+    IdGenerator.reset();
+  }
 
   /**
    * Test if umbrella reader with all file types activated runs properly
@@ -122,6 +137,7 @@ public class BasicGtfsTest {
       final var gtfsReader = GtfsZoningReaderFactory.create(
           new GtfsPublicTransportReaderSettings(GTFS_STOPS_FILE, CountryNames.AUSTRALIA, planitIntermodalNetworkTuple.first()),
           planitIntermodalNetworkTuple.second());
+      //gtfsReader.getSettings().setGtfsStopToTransferZoneSearchRadiusMeters(50);
       gtfsReader.read();
 
     } catch (Exception e) {
