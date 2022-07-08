@@ -68,8 +68,22 @@ public class GtfsZoningReader implements ZoningReader {
 
   }
 
+  private void processStopTimes(GtfsZoningHandlerProfiler profiler) {
+    /* 2) process to link routes to trips to stops (so we can assign supported modes to stops and do proper mapping
+    * to transfer zones (see process Stops implementation for further comments)  */
+  }
+
+  private void processTrips(GtfsZoningHandlerProfiler profiler) {
+    /* 2) process to link routes to trips  */
+  }
+
+  private void processRoutes(GtfsZoningHandlerProfiler profiler) {
+    /* 1) process to obtain routes and their modes */
+  }
+
   /**
    * Process the GTFS stops
+   * TODO: not done yet, because mapping is inadequate due to lack of mode information
    *
    * @param profiler to use
    */
@@ -83,8 +97,10 @@ public class GtfsZoningReader implements ZoningReader {
     stopsFileReader.addHandler(stopsHandler);
 
     /* configuration of reader */
-    //TODO: choose what to include/exclude
-    //stopsFileReader.getSettings().excludeColumns(GtfsKeyType.<something>);
+    stopsFileReader.getSettings().excludeColumns(GtfsKeyType.STOP_CODE);
+    stopsFileReader.getSettings().excludeColumns(GtfsKeyType.STOP_URL);
+    stopsFileReader.getSettings().excludeColumns(GtfsKeyType.STOP_TIMEZONE);
+    stopsFileReader.getSettings().excludeColumns(GtfsKeyType.WHEELCHAIR_BOARDING);
 
     /* execute */
     stopsFileReader.read();
@@ -99,6 +115,15 @@ public class GtfsZoningReader implements ZoningReader {
   private void doMainProcessing(GtfsZoningHandlerProfiler profiler) {
     LOGGER.info("Processing: Identifying GTFS entities, supplementing PLANit zoning memory model...");
 
+    /* meta-data for routes including its mode */
+    processRoutes(profiler);
+    /* meta-data for grouping of instances for a route via its service id */
+    processTrips(profiler);
+    /* matching routes and trips to stops at actual times */
+    processStopTimes(profiler);
+    /* now we can process stops since only now the supported modes are available making it easier to match to existing PLANit
+       entities already available
+     */
     processStops(profiler);
 
     LOGGER.info("Processing: Done");

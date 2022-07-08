@@ -21,7 +21,6 @@ import org.goplanit.utils.resource.ResourceUtils;
 import org.junit.*;
 
 import java.nio.file.Path;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -38,7 +37,7 @@ public class BasicGtfsTest {
 
   public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQ_GTFS.zip").toString();
 
-  public static final String GTFS_NSW_STOPS = Path.of("GTFS","NSW","stops_greater_sydney_gtfs.zip").toString();
+  public static final String GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greater_sydney_gtfs_static_no_shapes.zip").toString();
 
   public static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
 
@@ -126,7 +125,7 @@ public class BasicGtfsTest {
 
     try {
       String INPUT_PATH = Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
-      String GTFS_STOPS_FILE = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_STOPS)).toAbsolutePath().toString();
+      String GTFS_STOPS_FILE = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
       /* parse PLANit intermodal network from disk to memory */
       PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(
