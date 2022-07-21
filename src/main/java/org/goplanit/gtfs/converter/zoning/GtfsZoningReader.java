@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.converter.zoning.ZoningReader;
+import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerRoutes;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
 import org.goplanit.gtfs.entity.GtfsObject;
@@ -8,6 +9,7 @@ import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.handler.GtfsFileHandler;
 import org.goplanit.gtfs.handler.GtfsFileHandlerTrips;
+import org.goplanit.gtfs.reader.GtfsFileReaderRoutes;
 import org.goplanit.gtfs.reader.GtfsFileReaderStops;
 import org.goplanit.gtfs.reader.GtfsFileReaderTrips;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
@@ -77,17 +79,34 @@ public class GtfsZoningReader implements ZoningReader {
     /* 2) process to link routes to trips  */
   }
 
+  /**
+   * Process GTFS routes. Capture modes of routes to use later on to identify supported mdoes for GTFS stops
+   * which in turn are used to map to PLANit entities
+   *
+   * @param profiler to use
+   */
   private void processRoutes(GtfsZoningHandlerProfiler profiler) {
-    /* 1) process to obtain routes and their modes */
+    LOGGER.info("Processing: mapping GTFS Routes...");
+
+    //TODO: continue here --> should not be part of zoning reader because it is part of service network and routed
+    //                        services...
+    var routesHandler = new GtfsPlanitFileHandlerRoutes(null, getSettings(), profiler);
+
+    /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
+    GtfsFileReaderRoutes routesFileReader = (GtfsFileReaderRoutes) GtfsReaderFactory.createFileReader(
+            GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputSource());
+    routesFileReader.addHandler(routesHandler);
   }
 
   /**
    * Process the GTFS stops
-   * TODO: not done yet, because mapping is inadequate due to lack of mode information
+   * TODO: not done yet, because mapping to Planit entities is inadequate due to lack of mode information
+   * TODO: ...to narrow down matches
    *
    * @param profiler to use
    */
   private void processStops(GtfsZoningHandlerProfiler profiler) {
+    LOGGER.info("Processing: mapping GTFS Stops...");
     /* PLANit specific handler */
     var stopsHandler = new GtfsPlanitFileHandlerStops(this.zoning, getSettings(), profiler);
 
