@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.test;
 
-import org.goplanit.gtfs.converter.zoning.GtfsPublicTransportReaderSettings;
+import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
@@ -36,10 +36,6 @@ public class BasicGtfsTest {
   private static Logger LOGGER;
 
   public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQ_GTFS.zip").toString();
-
-  public static final String GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greater_sydney_gtfs_static_no_shapes.zip").toString();
-
-  public static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
 
   @BeforeClass
   public static void setUp() throws Exception {
@@ -117,31 +113,4 @@ public class BasicGtfsTest {
     }
   }
 
-  /**
-   * Test that attempts to supplement a PLANit network parsed from disk into memory with GTFS information through a PLANit GTFS converter/reader
-   */
-  @Test
-  public void testWithPlanitZoningReader() {
-
-    try {
-      String INPUT_PATH = Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
-      String GTFS_STOPS_FILE = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
-
-      /* parse PLANit intermodal network from disk to memory */
-      PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(
-              new PlanitIntermodalReaderSettings(INPUT_PATH));
-      var planitIntermodalNetworkTuple = planitReader.read();
-
-      /* augment zoning with GTFS */
-      final var gtfsReader = GtfsZoningReaderFactory.create(
-          new GtfsPublicTransportReaderSettings(GTFS_STOPS_FILE, CountryNames.AUSTRALIA, planitIntermodalNetworkTuple.first()),
-          planitIntermodalNetworkTuple.second());
-      //gtfsReader.getSettings().setGtfsStopToTransferZoneSearchRadiusMeters(50);
-      gtfsReader.read();
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      Assert.fail();
-    }
-  }
 }

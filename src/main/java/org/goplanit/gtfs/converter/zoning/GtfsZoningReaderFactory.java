@@ -4,9 +4,6 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.zoning.Zoning;
 
-import java.net.URL;
-import java.nio.file.Paths;
-
 /**
  * Factory for creating PLANitGTFS zoning (public transport infrastructure) Readers. For now GTFS zoning reader require the presence of a PLANit network with or without transfer zones based on other data sources
  * the GTFS data will be fuxed if present, and supplements the existing data if not yet present.
@@ -21,7 +18,7 @@ public class GtfsZoningReaderFactory {
    * @param settings to use (including the reference network)
    * @return created GTFS reader
    */
-  public static GtfsZoningReader create(GtfsPublicTransportReaderSettings settings) {
+  public static GtfsZoningReader create(GtfsZoningReaderSettings settings) {
     PlanItRunTimeException.throwIfNull(settings, "No settings instance provided to GTFS zoning reader factory method");
     PlanItRunTimeException.throwIfNull(settings.getReferenceNetwork(),"Unable to initialise GTFS zoning reader, network not available to base zoning instance from");
     return create(settings, new Zoning(settings.getReferenceNetwork().getIdGroupingToken(),settings.getReferenceNetwork().getNetworkGroupingTokenId()));    
@@ -33,7 +30,7 @@ public class GtfsZoningReaderFactory {
    * @param zoningToPopulate to populate (further)
    * @return created GTFS reader
    */
-  public static GtfsZoningReader create(GtfsPublicTransportReaderSettings settings, Zoning zoningToPopulate) {
+  public static GtfsZoningReader create(GtfsZoningReaderSettings settings, Zoning zoningToPopulate) {
     PlanItRunTimeException.throwIfNull(settings, "No settings instance provided to GTFS zoning reader factory method");
     PlanItRunTimeException.throwIfNull(zoningToPopulate, "No zoning instance provided to GTFS zoning reader factory method");
     return new GtfsZoningReader(settings, zoningToPopulate);

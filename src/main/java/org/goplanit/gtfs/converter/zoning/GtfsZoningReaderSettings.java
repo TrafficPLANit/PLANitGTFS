@@ -1,9 +1,8 @@
 package org.goplanit.gtfs.converter.zoning;
 
-import org.goplanit.converter.ConverterReaderSettings;
+import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.network.MacroscopicNetwork;
 
-import java.net.URL;
 import java.util.logging.Logger;
 
 /**
@@ -14,20 +13,11 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class GtfsPublicTransportReaderSettings implements ConverterReaderSettings {
+public class GtfsZoningReaderSettings extends GtfsConverterReaderSettings {
   
   /** logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(GtfsPublicTransportReaderSettings.class.getCanonicalName());
-
-  /** the reference network to use during parsing of the pt zones */
-  private MacroscopicNetwork referenceNetwork = null;
-
-  /** Input source to use */
-  private String inputSource;
-
-  /** Country name to use to initialise OSM defaults for */
-  private final String countryName;
+  private static final Logger LOGGER = Logger.getLogger(GtfsZoningReaderSettings.class.getCanonicalName());
 
   // Optional configuration settings
 
@@ -40,7 +30,7 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
   /** Constructor with user defined source locale 
    * @param countryName to base source locale on
    */
-  public GtfsPublicTransportReaderSettings(String countryName) {
+  public GtfsZoningReaderSettings(String countryName) {
     this(null, countryName,null);
   }
   
@@ -49,7 +39,7 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
    * @param inputSource to extract GTFS information from
    * @param countryName to base source locale on
    */
-  public GtfsPublicTransportReaderSettings(String inputSource, String countryName) {
+  public GtfsZoningReaderSettings(String inputSource, String countryName) {
     this(inputSource, countryName, null);
   }  
   
@@ -57,7 +47,7 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
    * @param countryName to base source locale on
    * @param referenceNetwork to use
    */
-  public GtfsPublicTransportReaderSettings(String countryName, MacroscopicNetwork referenceNetwork) {
+  public GtfsZoningReaderSettings(String countryName, MacroscopicNetwork referenceNetwork) {
     this(null, countryName, referenceNetwork);
   }  
   
@@ -67,62 +57,9 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
    * @param countryName to base source locale on
    * @param referenceNetwork to use
    */
-  public GtfsPublicTransportReaderSettings(String inputSource, String countryName, MacroscopicNetwork referenceNetwork) {
-    this.inputSource = inputSource;
-    this.countryName = countryName;
-    this.referenceNetwork = referenceNetwork;
+  public GtfsZoningReaderSettings(String inputSource, String countryName, MacroscopicNetwork referenceNetwork) {
+    super(inputSource, countryName, referenceNetwork);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void reset() {
-    //TODO
-  }
-  
-  // TRANSFERRED FROM NETWORK READER
-  
-  /** Set the reference network to use
-   * @param referenceNetwork to use
-   */
-  public void setReferenceNetwork(MacroscopicNetwork referenceNetwork) {
-    this.referenceNetwork = referenceNetwork;
-  }  
-  
-  /** Get the reference network to use
-   * 
-   * @return referenceNetwork
-   */
-  public MacroscopicNetwork getReferenceNetwork() {
-    return this.referenceNetwork;
-  }
-
-  /** The country name used to initialise GTFS defaults for
-   *
-   * @return country name
-   */
-  public final String getCountryName() {
-    return this.countryName;
-  }
-
-  /**
-   * Set the input source to use
-   *
-   * @param inputSource to use
-   */
-  public final void setInputSource(String inputSource){
-    this.inputSource = inputSource;
-  }
-
-  /**
-   * Collect the input source to use
-   * @return input source
-   */
-  public final String getInputSource(){
-    return this.inputSource;
-  }
-
 
   /**
    * Search radius in meters to map a GTFS stop location to an existing PLANit transfer zone
@@ -145,7 +82,7 @@ public class GtfsPublicTransportReaderSettings implements ConverterReaderSetting
    * Log settings used
    */
   public void log() {
-    LOGGER.info(String.format("GTFS input file: %s",getInputSource()));
+    super.log();
     LOGGER.info(String.format("GTFS stop-to-transferzone search radius (m): %.1f",getGtfsStopToTransferZoneSearchRadiusMeters()));
   }
 }

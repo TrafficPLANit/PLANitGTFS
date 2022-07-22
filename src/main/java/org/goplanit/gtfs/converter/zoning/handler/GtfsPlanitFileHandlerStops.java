@@ -1,9 +1,8 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
-import org.goplanit.gtfs.converter.zoning.GtfsPublicTransportReaderSettings;
+import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.GtfsObjectType;
-import org.goplanit.gtfs.handler.GtfsFileHandler;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
@@ -52,7 +51,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private final Zoning zoning;
 
   /** settings containing configuration */
-  private final GtfsPublicTransportReaderSettings settings;
+  private final GtfsZoningReaderSettings settings;
 
   /**
    * Initialise this handler
@@ -104,7 +103,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param settings to apply where needed
    * @param profiler to use
    */
-  public GtfsPlanitFileHandlerStops(final Zoning zoningToPopulate, final GtfsPublicTransportReaderSettings settings, final GtfsZoningHandlerProfiler profiler) {
+  public GtfsPlanitFileHandlerStops(final Zoning zoningToPopulate, final GtfsZoningReaderSettings settings, final GtfsZoningHandlerProfiler profiler) {
     super();
     this.profiler = profiler;
     this.zoning = zoningToPopulate;

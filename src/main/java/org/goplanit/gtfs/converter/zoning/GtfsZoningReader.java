@@ -4,25 +4,17 @@ import org.goplanit.converter.zoning.ZoningReader;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerRoutes;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
-import org.goplanit.gtfs.entity.GtfsObject;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
-import org.goplanit.gtfs.handler.GtfsFileHandler;
-import org.goplanit.gtfs.handler.GtfsFileHandlerTrips;
 import org.goplanit.gtfs.reader.GtfsFileReaderRoutes;
 import org.goplanit.gtfs.reader.GtfsFileReaderStops;
-import org.goplanit.gtfs.reader.GtfsFileReaderTrips;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
-import org.goplanit.utils.misc.UrlUtils;
-import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
 
-import java.net.URL;
 import java.util.logging.Logger;
 
 /**
@@ -39,7 +31,7 @@ public class GtfsZoningReader implements ZoningReader {
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningReader.class.getCanonicalName());
 
   /** the settings the user can configure for parsing transfer zones */
-  private final GtfsPublicTransportReaderSettings gtfsSettings;
+  private final GtfsZoningReaderSettings gtfsSettings;
 
   /** zoning to populate */
   private Zoning zoning;
@@ -94,7 +86,7 @@ public class GtfsZoningReader implements ZoningReader {
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
     GtfsFileReaderRoutes routesFileReader = (GtfsFileReaderRoutes) GtfsReaderFactory.createFileReader(
-            GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputSource());
+            GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputDirectory());
     routesFileReader.addHandler(routesHandler);
   }
 
@@ -112,7 +104,7 @@ public class GtfsZoningReader implements ZoningReader {
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each stop found */
     GtfsFileReaderStops stopsFileReader = (GtfsFileReaderStops) GtfsReaderFactory.createFileReader(
-        GtfsFileSchemeFactory.create(GtfsFileType.STOPS), getSettings().getInputSource());
+        GtfsFileSchemeFactory.create(GtfsFileType.STOPS), getSettings().getInputDirectory());
     stopsFileReader.addHandler(stopsHandler);
 
     /* configuration of reader */
@@ -154,7 +146,7 @@ public class GtfsZoningReader implements ZoningReader {
    * @param settings to use
    * @param zoningToPopulate zoning to populate
    */
-  protected GtfsZoningReader(GtfsPublicTransportReaderSettings settings, Zoning zoningToPopulate){
+  protected GtfsZoningReader(GtfsZoningReaderSettings settings, Zoning zoningToPopulate){
     this.gtfsSettings = settings;
     this.zoning = zoningToPopulate;
   }
@@ -168,7 +160,7 @@ public class GtfsZoningReader implements ZoningReader {
    * @param referenceNetwork to use
    */
   protected GtfsZoningReader(String inputSource, String countryName, Zoning zoningToPopulate, MacroscopicNetwork referenceNetwork){
-    this.gtfsSettings = new GtfsPublicTransportReaderSettings(inputSource, countryName, referenceNetwork);
+    this.gtfsSettings = new GtfsZoningReaderSettings(inputSource, countryName, referenceNetwork);
     this.zoning = zoningToPopulate;
   }
 
@@ -180,7 +172,7 @@ public class GtfsZoningReader implements ZoningReader {
   @Override
   public Zoning read(){
     PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()), "Country not set for GTFS zoning reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(getSettings().getInputSource(), "Input source not set for GTFS zoning reader, unable to proceed");
+    PlanItRunTimeException.throwIfNull(getSettings().getInputDirectory(), "Input source not set for GTFS zoning reader, unable to proceed");
     PlanItRunTimeException.throwIfNull(getSettings().getReferenceNetwork(),"Reference network not available when parsing GTFS zoning, unable to proceed");
 
     /* prepare for parsing */
@@ -214,7 +206,7 @@ public class GtfsZoningReader implements ZoningReader {
    * 
    * @return the settings
    */
-  public GtfsPublicTransportReaderSettings getSettings() {
+  public GtfsZoningReaderSettings getSettings() {
     return gtfsSettings;
   }
 
