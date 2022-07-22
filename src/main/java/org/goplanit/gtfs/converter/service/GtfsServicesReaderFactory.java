@@ -14,25 +14,15 @@ import org.goplanit.utils.id.IdGroupingToken;
  */
 public class GtfsServicesReaderFactory {
 
-  /** Create a GtfsRoutedServicesReader based on custom id token
-   * 
-   * @param idToken to use for routed services id generation
-   * @param parentNetwork the parent network the services are assumed to be built upon
-   * @return created routed service reader
-   */
-  public static GtfsServicesReader create(final IdGroupingToken idToken, MacroscopicNetwork parentNetwork) {
-    return new GtfsServicesReader(idToken, new GtfsServicesReaderSettings(parentNetwork));
-  }
-  
   /** Create a GtfsRoutedServicesReader sourced from given input directory
    * 
    * @param inputDirectory to use (directory only, find first compatible file)
+   * @param countryName to use
    * @param parentNetwork the network the routed services are assumed to be built upon  
    * @return created routed service reader
    */
-  public static GtfsServicesReader create(final String inputDirectory, MacroscopicNetwork parentNetwork) {
-    GtfsServicesReader serviceNetworkReader = create(IdGroupingToken.collectGlobalToken(), parentNetwork);
-    serviceNetworkReader.getSettings().setInputDirectory(inputDirectory);
+  public static GtfsServicesReader create(final String inputDirectory, final String countryName, MacroscopicNetwork parentNetwork) {
+    GtfsServicesReader serviceNetworkReader = create(new GtfsServicesReaderSettings(inputDirectory, countryName, parentNetwork));
     return serviceNetworkReader;
   }  
   
@@ -42,6 +32,6 @@ public class GtfsServicesReaderFactory {
    * @return created routed service reader
    */
   public static GtfsServicesReader create(final GtfsServicesReaderSettings settings) {
-    return new GtfsServicesReader(IdGroupingToken.collectGlobalToken(), settings);
+    return new GtfsServicesReader(settings.getReferenceNetwork().getIdGroupingToken(), settings);
   }   
 }

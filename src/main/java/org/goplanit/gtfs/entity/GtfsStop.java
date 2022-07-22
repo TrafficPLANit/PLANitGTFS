@@ -2,7 +2,6 @@ package org.goplanit.gtfs.entity;
 
 import java.util.EnumSet;
 
-import org.geotools.geometry.jts.JTS;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.enums.StopLocationType;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -71,7 +70,7 @@ public class GtfsStop extends GtfsObject {
    * @return extracted stop location type if valid, null otherwise
    */
   public StopLocationType getLocationType(){
-    return StopLocationType.of(getLocationTypeRaw());
+    return StopLocationType.parseFrom(getLocationTypeRaw());
   }
 
   /**
@@ -116,7 +115,7 @@ public class GtfsStop extends GtfsObject {
 
   /**
    * String of all key value pairs of this GTFS entity
-   * @return
+   * @return string
    */
   @Override
   public String toString(){

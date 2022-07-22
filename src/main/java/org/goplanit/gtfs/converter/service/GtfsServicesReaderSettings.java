@@ -19,17 +19,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
    * @param countryName to base source locale on
    * @param parentNetwork to use
    */
-  public GtfsServicesReaderSettings(String inputSource, String countryName,final MacroscopicNetwork parentNetwork) {
+  public GtfsServicesReaderSettings(String inputSource, String countryName, final MacroscopicNetwork parentNetwork) {
     super(inputSource, countryName, parentNetwork);
-  }
-
-  /**
-   * Constructor where input source and locale are to be provided by user later
-   *
-   * @param parentNetwork to use
-   */
-  public GtfsServicesReaderSettings(final MacroscopicNetwork parentNetwork) {
-    this(null, null, parentNetwork);
   }
 
 }

@@ -60,13 +60,15 @@ public class GtfsFileReaderBase {
    */
   private boolean isValid(Map<String, Integer> headerMap) {
     EnumSet<GtfsKeyType> supportedKeys = GtfsUtils.getSupportedKeys(fileScheme.getObjectType());
+    boolean unsupportedColumns = false;
     for(String headerEntry : headerMap.keySet()) {
       if(!GtfsKeyType.valueIn(supportedKeys,headerEntry.trim().toLowerCase())) {
-        return false;
+        LOGGER.warning(String.format("Encountered unknown GTFS column header (%s), column will be ignored",headerEntry));
+        unsupportedColumns = true;
       }
     }
 
-    return true;
+    return !unsupportedColumns;
   }  
 
   /** Map the headers in the file to the correct GTFS keys. Since the headers might have spaces or non-lowercase characters we preserve the 
@@ -90,7 +92,7 @@ public class GtfsFileReaderBase {
    * @return gtfsFileColumns without excluded columns
    */
   private Map<String, GtfsKeyType> filterExcludedColumns(final Map<String, GtfsKeyType> gtfsFileColumns) {
-    Map<String, GtfsKeyType> filteredColumns = new HashMap<String, GtfsKeyType>(gtfsFileColumns);
+    Map<String, GtfsKeyType> filteredColumns = new HashMap<>(gtfsFileColumns);
     Iterator<GtfsKeyType> columnIter = filteredColumns.values().iterator();
     while(columnIter.hasNext()) {
       GtfsKeyType column = columnIter.next();
@@ -180,12 +182,11 @@ public class GtfsFileReaderBase {
         headerWithBom.forEach( (k,v) -> headerMap.put(StringUtils.removeBOM(k),v));
 
         if(!isValid(headerMap)) {
-          LOGGER.warning(String.format("Invalid header for %s - %s, ignore file", gtfsLocation, fileScheme.getFileType().value()));
-        }else {
-
-          // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
-          parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerWithBom)));
+          LOGGER.warning(String.format("Header for %s - %s contains ignored columns, ", gtfsLocation, fileScheme.getFileType().value()));
         }
+
+        // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
+        parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerWithBom)));
     
         csvParser.close();
         gtfsInputReader.close();

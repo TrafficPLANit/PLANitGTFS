@@ -3,6 +3,7 @@ package org.goplanit.gtfs.entity;
 import java.util.EnumSet;
 
 import org.goplanit.gtfs.enums.GtfsKeyType;
+import org.goplanit.gtfs.enums.RouteType;
 
 /**
  * In memory representation of a GTFS entry in routes.txt
@@ -43,6 +44,10 @@ public class GtfsRoute extends GtfsObject {
   public String getRouteId(){
     return get(GtfsKeyType.ROUTE_ID);
   }
+
+  public String getRouteTypeRaw(){ return get(GtfsKeyType.ROUTE_TYPE);}
+
+  public RouteType getRouteType(){ return RouteType.parseFrom(getRouteTypeRaw());}
 
   /**
    * String of all key value pairs of this GTFS entity

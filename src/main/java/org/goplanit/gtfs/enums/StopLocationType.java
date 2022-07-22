@@ -1,24 +1,24 @@
 package org.goplanit.gtfs.enums;
 
+import org.goplanit.utils.enums.EnumOf;
+import org.goplanit.utils.enums.EnumValue;
 import org.goplanit.utils.misc.StringUtils;
 
-import java.util.Arrays;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * Defines the different sop location types:
- * <li>
- *   <ul>STOP_PLATFORM (0 or null or ""): A location where passengers board or disembark from a transit vehicle. Is called a platform when defined within a parent_station.</ul>
- *   <ul>STATION (1): A physical structure or area that contains one or more platform</ul>
- *   <ul>ENTRANCE_EXIT (2): A location where passengers can enter or exit a station from the street. If an entrance/exit belongs to multiple stations, it can be linked by pathways to both, but the data provider must pick one of them as parent.</ul>
- *   <ul>GENERIC_NODE (3): A location within a station, not matching any other location_type, which can be used to link together pathways define in pathways.txt.</ul>
- *   <ul>BOARDING_AREA (4):  A specific location on a platform, where passengers can board and/or alight vehicles </ul>
- * </li>
+ * Defines the different stop location types:
+ * <ul>
+ *   <li>STOP_PLATFORM (0 or null or ""): A location where passengers board or disembark from a transit vehicle. Is called a platform when defined within a parent_station.</li>
+ *   <li>STATION (1): A physical structure or area that contains one or more platform</li>
+ *   <li>ENTRANCE_EXIT (2): A location where passengers can enter or exit a station from the street. If an entrance/exit belongs to multiple stations, it can be linked by pathways to both, but the data provider must pick one of them as parent.</li>
+ *   <li>GENERIC_NODE (3): A location within a station, not matching any other location_type, which can be used to link together pathways define in pathways.txt.</li>
+ *   <li>BOARDING_AREA (4):  A specific location on a platform, where passengers can board and/or alight vehicles </li>
+ * </ul>
  *
  * @author markr
  */
-public enum StopLocationType {
+public enum StopLocationType implements EnumOf<StopLocationType, Short>, EnumValue<Short> {
   STOP_PLATFORM ((short) 0),
   STATION ((short)1),
   ENTRANCE_EXIT ((short)2),
@@ -31,6 +31,14 @@ public enum StopLocationType {
   private final short value;
 
   /**
+   * Bootstrap to have access to default interface methods
+   * @return instance of enum
+   */
+  private static StopLocationType dummyInstance(){
+    return StopLocationType.values()[0];
+  }
+
+  /**
    * Constructor
    * @param value numeric value of the type
    */
@@ -38,23 +46,19 @@ public enum StopLocationType {
     this.value = value;
   }
 
-  public short getValue(){
+  @Override
+  public Short getValue(){
     return value;
   }
 
   /**
-   * Collect the stop location type belonging to the given value
-   * @param value to extract enum for
-   * @return the stop location type found, null when not present
+   * Extract the enum based on its internal value (if matched)
+   *
+   * @param value to base enum on
+   * @return found match
    */
-  public static StopLocationType of(short value){
-    var values = StopLocationType.values();
-    for(int index = 0 ; index < values.length; ++index){
-      if( values[index].value == value){
-        return values[index];
-      }
-    }
-    return null;
+  public static StopLocationType of(Short value){
+    return dummyInstance().createFromValues(StopLocationType::values,value);
   }
 
   /**
@@ -64,7 +68,7 @@ public enum StopLocationType {
    * @param value to extract enum for
    * @return the stop location type found, null when not present
    */
-  public static StopLocationType of(String value){
+  public static StopLocationType parseFrom(String value){
     try{
 
       if(StringUtils.isNullOrBlank(value)){
@@ -73,7 +77,7 @@ public enum StopLocationType {
 
       return of(Short.valueOf(value));
     }catch (Exception e){
-      LOGGER.warning(String.format("Unable to parse %s as short, cannot extract GTFS Stop Location Type",value));
+      LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS Stop Location Type",value));
     }
     return null;
   }

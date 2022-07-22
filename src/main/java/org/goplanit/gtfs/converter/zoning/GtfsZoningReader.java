@@ -1,12 +1,10 @@
 package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.converter.zoning.ZoningReader;
-import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerRoutes;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
-import org.goplanit.gtfs.reader.GtfsFileReaderRoutes;
 import org.goplanit.gtfs.reader.GtfsFileReaderStops;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
@@ -39,7 +37,7 @@ public class GtfsZoningReader implements ZoningReader {
   /**
    * Log some information about this reader's configuration
    */
-  private void logInfo() {
+  private void logSettings() {
     getSettings().log();
   }
 
@@ -60,34 +58,6 @@ public class GtfsZoningReader implements ZoningReader {
      * since it makes little sense to try and parse pt infrastructure outside of the network's geographically parsed area */
     //validateZoningBoundingPolygon();
 
-  }
-
-  private void processStopTimes(GtfsZoningHandlerProfiler profiler) {
-    /* 2) process to link routes to trips to stops (so we can assign supported modes to stops and do proper mapping
-    * to transfer zones (see process Stops implementation for further comments)  */
-  }
-
-  private void processTrips(GtfsZoningHandlerProfiler profiler) {
-    /* 2) process to link routes to trips  */
-  }
-
-  /**
-   * Process GTFS routes. Capture modes of routes to use later on to identify supported mdoes for GTFS stops
-   * which in turn are used to map to PLANit entities
-   *
-   * @param profiler to use
-   */
-  private void processRoutes(GtfsZoningHandlerProfiler profiler) {
-    LOGGER.info("Processing: mapping GTFS Routes...");
-
-    //TODO: continue here --> should not be part of zoning reader because it is part of service network and routed
-    //                        services...
-    var routesHandler = new GtfsPlanitFileHandlerRoutes(null, getSettings(), profiler);
-
-    /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
-    GtfsFileReaderRoutes routesFileReader = (GtfsFileReaderRoutes) GtfsReaderFactory.createFileReader(
-            GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputDirectory());
-    routesFileReader.addHandler(routesHandler);
   }
 
   /**
@@ -124,20 +94,9 @@ public class GtfsZoningReader implements ZoningReader {
      * @param profiler to use
      */
   private void doMainProcessing(GtfsZoningHandlerProfiler profiler) {
-    LOGGER.info("Processing: Identifying GTFS entities, supplementing PLANit zoning memory model...");
-
-    /* meta-data for routes including its mode */
-    processRoutes(profiler);
-    /* meta-data for grouping of instances for a route via its service id */
-    processTrips(profiler);
-    /* matching routes and trips to stops at actual times */
-    processStopTimes(profiler);
-    /* now we can process stops since only now the supported modes are available making it easier to match to existing PLANit
-       entities already available
-     */
+    LOGGER.info("Processing: Identifying GTFS Stops, supplementing PLANit transfer zones memory model...");
     processStops(profiler);
-
-    LOGGER.info("Processing: Done");
+    LOGGER.info("Processing: GTFS stops Done");
   }
 
   /**
@@ -179,7 +138,7 @@ public class GtfsZoningReader implements ZoningReader {
     initialiseBeforeParsing();
     
     GtfsZoningHandlerProfiler handlerProfiler = new GtfsZoningHandlerProfiler();
-    logInfo();
+    logSettings();
 
     /* main processing  */
     doMainProcessing(handlerProfiler);

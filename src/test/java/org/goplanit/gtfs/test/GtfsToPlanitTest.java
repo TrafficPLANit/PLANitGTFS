@@ -106,13 +106,8 @@ public class GtfsToPlanitTest {
     try {
       String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
-      GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(GTFS_FILES_DIR, macroscopicNetwork);
+      GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(GTFS_FILES_DIR, CountryNames.AUSTRALIA, macroscopicNetwork);
       Pair<ServiceNetwork,RoutedServices> servicesPair = servicesReader.read();
-
-      /* populate service network with GTFS routed services */
-      final var gtfsReader = GtfsServicesReaderFactory.create(GTFS_FILES_DIR, macroscopicNetwork);
-      //gtfsReader.getSettings().setGtfsStopToTransferZoneSearchRadiusMeters(50);
-      var resultPair = gtfsReader.read();
 
       //todo add assertions
 
