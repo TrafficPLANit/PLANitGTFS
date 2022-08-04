@@ -117,5 +117,6 @@ public class GtfsConverterReaderSettings implements ConverterReaderSettings {
    */
   public void log() {
     LOGGER.info(String.format("GTFS input source: %s", getInputDirectory()));
+    LOGGER.info(String.format("Country: %s", getCountryName()));
   }
 }

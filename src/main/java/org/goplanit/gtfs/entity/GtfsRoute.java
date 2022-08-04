@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.enums.RouteType;
+import org.goplanit.utils.misc.StringUtils;
 
 /**
  * In memory representation of a GTFS entry in routes.txt
@@ -49,6 +50,12 @@ public class GtfsRoute extends GtfsObject {
 
   public RouteType getRouteType(){ return RouteType.parseFrom(getRouteTypeRaw());}
 
+  public String getShortName(){ return get(GtfsKeyType.ROUTE_SHORT_NAME);}
+
+  public String getLongName(){ return get(GtfsKeyType.ROUTE_LONG_NAME);}
+
+  public String getRouteDescription() {  return get(GtfsKeyType.ROUTE_DESC); }
+
   /**
    * String of all key value pairs of this GTFS entity
    * @return created string
@@ -59,4 +66,26 @@ public class GtfsRoute extends GtfsObject {
     super.appendKeyValues(sb);
     return sb.toString();
   }
+
+  public boolean hasShortName(){
+    return !StringUtils.isNullOrBlank(getShortName());
+  }
+
+  public boolean hasLongName(){
+    return !StringUtils.isNullOrBlank(getLongName());
+  }
+
+  public boolean hasRouteDescription() {
+    return !StringUtils.isNullOrBlank(getRouteDescription());
+  }
+
+  /**
+   * Verify if either long or short name is available
+   * @return true when valid, false otherwise
+   */
+  public boolean hasValidName() {
+    return hasShortName() || hasLongName();
+  }
+
+
 }

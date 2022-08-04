@@ -5,6 +5,7 @@ import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
+import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReader;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderFactory;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderSettings;
@@ -106,7 +107,8 @@ public class GtfsToPlanitTest {
     try {
       String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
-      GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(GTFS_FILES_DIR, CountryNames.AUSTRALIA, macroscopicNetwork);
+      GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, macroscopicNetwork, RouteTypeChoice.EXTENDED);
       Pair<ServiceNetwork,RoutedServices> servicesPair = servicesReader.read();
 
       //todo add assertions

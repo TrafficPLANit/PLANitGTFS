@@ -45,18 +45,13 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     var serviceNetwork = new ServiceNetwork(idToken, settings.getReferenceNetwork());
     var routedServices = new RoutedServices(idToken, serviceNetwork);
 
-    /* create a new service network layer for each physical layer that is present */
-    getSettings().getReferenceNetwork().getTransportLayers().forEach(parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
-    /* create a routed services for each service layer that we created */
-    serviceNetwork.getTransportLayers().forEach(parentLayer -> routedServices.getLayers().getFactory().registerNew(parentLayer));
-
     return Pair.of(serviceNetwork, routedServices);
   }
 
   /**
-   * Log the settings information used
+   * Log the settings and other information used
    */
-  private void logSettings() {
+  private void logInfo() {
     getSettings().log();
   }
 
@@ -143,7 +138,7 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     var toBePopulated = initialiseBeforeParsing();
 
     GtfsServicesProfiler handlerProfiler = new GtfsServicesProfiler();
-    logSettings();
+    logInfo();
 
     /* main processing  */
     doMainProcessing(handlerProfiler, toBePopulated);
