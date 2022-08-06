@@ -5,6 +5,8 @@ import org.goplanit.utils.enums.EnumValue;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -192,6 +194,25 @@ public enum RouteType implements EnumOf<RouteType,Short>, EnumValue<Short> {
       LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS Stop Location Type",value));
     }
     return null;
+  }
+
+  /**
+   * Collect all route types in the given value range
+   *
+   * @param minValue to consider (inclusive)
+   * @param maxValue to consider (inclusive)
+   * @return found entries, empty set if none found
+   */
+  public static Set<RouteType> getInValueRange(short minValue, short maxValue){
+    Set<RouteType> found = new HashSet<>();
+    for (short i = minValue; i <= maxValue; i++) {
+      RouteType currValue = of(i);
+      if(currValue == null){
+        continue;
+      }
+      found.add(currValue);
+    }
+    return found;
   }
 
 }

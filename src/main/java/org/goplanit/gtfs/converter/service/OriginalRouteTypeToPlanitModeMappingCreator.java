@@ -27,7 +27,7 @@ import org.goplanit.utils.mode.PredefinedModeType;
  * </ul>
  *
  */
-public class OriginalRouteTypeToPlanitModeMappingCreator {
+public class OriginalRouteTypeToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
 
   /**
    * Perform and populate mapping in provided settings
@@ -37,12 +37,7 @@ public class OriginalRouteTypeToPlanitModeMappingCreator {
    */
   public static void execute(GtfsServicesReaderSettings settings, Modes planitModes) {
     /* initialise road modes on planit side that we are about to map */
-    {
-      planitModes.getFactory().registerNew(PredefinedModeType.LIGHTRAIL);
-      planitModes.getFactory().registerNew(PredefinedModeType.SUBWAY);
-      planitModes.getFactory().registerNew(PredefinedModeType.TRAIN);
-      planitModes.getFactory().registerNew(PredefinedModeType.BUS);
-    }
+    registerPlanitModes(planitModes);
 
     /* add default mapping for default route types */
     {

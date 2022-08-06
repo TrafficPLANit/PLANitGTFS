@@ -1,8 +1,11 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.gtfs.enums.RouteType;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
+
+import java.util.*;
 
 /**
  * Each eligible GTFS extended Route type is mapped to a PLANit mode through this dedicated mapping class so that the memory model's modes
@@ -26,7 +29,7 @@ import org.goplanit.utils.mode.PredefinedModeType;
  * </ul>
  *
  */
-public class ExtendedRouteTypeToPlanitModeMappingCreator {
+public class ExtendedRouteTypeToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
 
   /**
    * Perform and populate mapping in provided settings
@@ -36,32 +39,35 @@ public class ExtendedRouteTypeToPlanitModeMappingCreator {
    */
   public static void execute(GtfsServicesReaderSettings settings, Modes planitModes) {
     /* initialise road modes on planit side that we are about to map */
-    {
-      //TODO continue here
-//      planitModes.getFactory().registerNew(PredefinedModeType.LIGHTRAIL);
-//      planitModes.getFactory().registerNew(PredefinedModeType.SUBWAY);
-//      planitModes.getFactory().registerNew(PredefinedModeType.TRAIN);
-//      planitModes.getFactory().registerNew(PredefinedModeType.BUS);
-    }
+    registerPlanitModes(planitModes);
 
     /* add default mapping for default route types */
+    Map<PredefinedModeType, Set<RouteType>> modeMappings = new HashMap<>();
     {
-      //TODO continue here
-//      settings.setDefaultGtfs2PlanitModeMapping(RouteType.TRAM_LIGHTRAIL, planitModes.get(PredefinedModeType.LIGHTRAIL));
-//      settings.setDefaultGtfs2PlanitModeMapping(RouteType.SUBWAY_METRO, planitModes.get(PredefinedModeType.SUBWAY));
-//      settings.setDefaultGtfs2PlanitModeMapping(RouteType.RAIL, planitModes.get(PredefinedModeType.TRAIN));
-//      settings.setDefaultGtfs2PlanitModeMapping(RouteType.BUS, planitModes.get(PredefinedModeType.BUS));
-//      settings.setDefaultGtfs2PlanitModeMapping(RouteType.TROLLEY_BUS, planitModes.get(PredefinedModeType.BUS));
+      /* train types */
+      var trainTypes = RouteType.getInValueRange((short)100,(short)117);
+      trainTypes.add(RouteType.of((short)400));
+      trainTypes.addAll(RouteType.getInValueRange((short)403,(short)404));
+      trainTypes.add(RouteType.of((short)1503));
+      modeMappings.put(PredefinedModeType.TRAIN, trainTypes);
+
+      /* bus types */
+      var busTypes = RouteType.getInValueRange((short)200,(short)209);
+      busTypes.addAll(RouteType.getInValueRange((short)700,(short)716));
+      busTypes.add(RouteType.of((short)800));
+      modeMappings.put(PredefinedModeType.BUS, busTypes);
+
+      /* subway/metro types */
+      modeMappings.put(PredefinedModeType.SUBWAY, RouteType.getInValueRange((short)401,(short)402));
+
+      /* lightrail/tram types */
+      modeMappings.put(PredefinedModeType.TRAM, RouteType.getInValueRange((short)900,(short)906));
     }
+    modeMappings.forEach( (planitModeType, routeTypes) ->
+            routeTypes.forEach( routeType -> settings.setDefaultGtfs2PlanitModeMapping(routeType, planitModes.get(planitModeType))));
 
     /* activate all mapped defaults initially*/
-    {
-      //TODO continue here
-//      settings.activateGtfsRouteTypeMode(RouteType.TRAM_LIGHTRAIL);
-//      settings.activateGtfsRouteTypeMode(RouteType.SUBWAY_METRO);
-//      settings.activateGtfsRouteTypeMode(RouteType.RAIL);
-//      settings.activateGtfsRouteTypeMode(RouteType.BUS);
-//      settings.activateGtfsRouteTypeMode(RouteType.TROLLEY_BUS);
-    }
+    modeMappings.forEach( (planitModeType, routeTypes) ->
+            routeTypes.forEach( routeType -> settings.activateGtfsRouteTypeMode(routeType)));
   }
 }
