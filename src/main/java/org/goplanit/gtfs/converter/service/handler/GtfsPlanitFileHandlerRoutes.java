@@ -5,9 +5,7 @@ import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerRoutes;
-import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedService;
-import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.mode.Mode;
 
@@ -27,51 +25,27 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
   /** profiler to use */
   private final GtfsRoutesHandlerProfiler profiler;
 
-  /** service network to populate */
-  private final ServiceNetwork serviceNetwork;
-
-  /** routed services to populate */
-  private final RoutedServices routedServices;
-
   /** settings containing configuration */
   private final GtfsServicesReaderSettings settings;
 
   /** track internal data used to efficiently handle the parsing */
-  private final GtfsFileHandlerRoutesData data;
-
-  /**
-   * Initialise this handler
-   */
-  private void initialise(){
-    PlanItRunTimeException.throwIf(routedServices.getParentNetwork() != serviceNetwork, "Routed services its service network does not match the service network provided");
-    PlanItRunTimeException.throwIf(!serviceNetwork.getTransportLayers().isEmpty() && serviceNetwork.getTransportLayers().isEachLayerEmpty(), "Service network is expected to have been initialise with empty layers before populating with GTFS routes");
-    PlanItRunTimeException.throwIf(!routedServices.getLayers().isEmpty() && routedServices.getLayers().isEachLayerEmpty(), "Routed services layers are expected to have been initialised empty when populating with GTFS routes");
-
-    /* create a new service network layer for each physical layer that is present */
-    settings.getReferenceNetwork().getTransportLayers().forEach(parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
-
-    /* create a routed services for each service layer that we created */
-    serviceNetwork.getTransportLayers().forEach(parentLayer -> routedServices.getLayers().getFactory().registerNew(parentLayer));
-  }
+  private final GtfsFileHandlerData data;
 
   /**
    * Constructor
    *
-   * @param serviceNetworkToPopulate the PLANit service network to populate
-   * @param routedServices           the PLANit routed services to populate
+   * @param gtfsFileHandlerData      the PLANit data to track parsed entities on the PLANit routed services (by mode) layer
    * @param settings                 to apply where needed
    * @param profiler                 to use
    */
-  public GtfsPlanitFileHandlerRoutes(final ServiceNetwork serviceNetworkToPopulate, RoutedServices routedServices, final GtfsServicesReaderSettings settings, final GtfsRoutesHandlerProfiler profiler) {
+  public GtfsPlanitFileHandlerRoutes(final GtfsFileHandlerData gtfsFileHandlerData, final GtfsServicesReaderSettings settings, final GtfsRoutesHandlerProfiler profiler) {
     super();
-    this.serviceNetwork = serviceNetworkToPopulate;
-    this.routedServices = routedServices;
     this.settings = settings;
     this.profiler = profiler;
+    this.data = gtfsFileHandlerData;
 
-    initialise();
-    /* after initialise() because routed services must have appropriate layers available to initialise data */
-    this.data = new GtfsFileHandlerRoutesData(routedServices);
+    PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS routes");
+    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable toparse GTFS routes");
   }
 
   /**
@@ -112,8 +86,8 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
       planitRoutedService.setServiceDescription(gtfsRoute.getRouteDescription());
     }
 
-    /* index by GTFS route_id */
-    data.register(gtfsRoute.getRouteId(), planitRoutedService);
+    /* indexed by GTFS route_id */
+    data.indexByExternalId(planitRoutedService);
     profiler.incrementRouteCount();
   }
 

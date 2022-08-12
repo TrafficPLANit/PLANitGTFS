@@ -81,9 +81,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
     switch (getRouteTypeChoice()){
       case EXTENDED:
         //TODO: implement the below execute to continue
-        ExtendedRouteTypeToPlanitModeMappingCreator.execute(this, planitModes);
+        RouteTypeExtendedToPlanitModeMappingCreator.execute(this, planitModes);
       case ORIGINAL:
-        OriginalRouteTypeToPlanitModeMappingCreator.execute(this, planitModes);
+        RouteTypeOriginalToPlanitModeMappingCreator.execute(this, planitModes);
         break;
       default:
         throw new PlanItRunTimeException("Unsupported GTFS route type choice encountered");

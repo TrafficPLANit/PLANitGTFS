@@ -1,7 +1,6 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
 
@@ -24,12 +23,12 @@ import java.util.*;
  *   <li>1100 	- Air Service types to N/A</li>
  *   <li>1300,1400 	- Aerial/funicular Service types to N/A</li>
  *   <li>1500-1507 	- Taxi Service types to N/A</li>
- *   <li>1700 	- Misc Service typesto N/A </li>
+ *   <li>1700 	- Misc Service types to N/A </li>
  *   <li>1702 	- Horse-drawn carriage Service types to N/A</li>
  * </ul>
  *
  */
-public class ExtendedRouteTypeToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
+public class RouteTypeExtendedToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
 
   /**
    * Perform and populate mapping in provided settings
@@ -38,7 +37,8 @@ public class ExtendedRouteTypeToPlanitModeMappingCreator extends RouteTypeToPlan
    * @param planitModes to use
    */
   public static void execute(GtfsServicesReaderSettings settings, Modes planitModes) {
-    /* initialise road modes on planit side that we are about to map */
+
+    /* initialise road modes on planit side that we are about to map (train, lightrail, bus, subway)*/
     registerPlanitModes(planitModes);
 
     /* add default mapping for default route types */
@@ -61,13 +61,13 @@ public class ExtendedRouteTypeToPlanitModeMappingCreator extends RouteTypeToPlan
       modeMappings.put(PredefinedModeType.SUBWAY, RouteType.getInValueRange((short)401,(short)402));
 
       /* lightrail/tram types */
-      modeMappings.put(PredefinedModeType.TRAM, RouteType.getInValueRange((short)900,(short)906));
+      modeMappings.put(PredefinedModeType.LIGHTRAIL, RouteType.getInValueRange((short)900,(short)906));
     }
     modeMappings.forEach( (planitModeType, routeTypes) ->
             routeTypes.forEach( routeType -> settings.setDefaultGtfs2PlanitModeMapping(routeType, planitModes.get(planitModeType))));
 
     /* activate all mapped defaults initially*/
-    modeMappings.forEach( (planitModeType, routeTypes) ->
-            routeTypes.forEach( routeType -> settings.activateGtfsRouteTypeMode(routeType)));
+    modeMappings.forEach( (planitModeType, gtfsRouteTypes) ->
+            gtfsRouteTypes.forEach( gtfsRouteType -> settings.activateGtfsRouteTypeMode(gtfsRouteType)));
   }
 }

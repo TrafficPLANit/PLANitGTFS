@@ -5,10 +5,10 @@ import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
 
 /**
- * Base class with helper methods to convert route types to PLANit modes
+ * Base class with helper methods to convert route types to PLANit modes. to be derived from for actual usage
  *
  */
-class RouteTypeToPlanitModeMappingCreator {
+abstract class RouteTypeToPlanitModeMappingCreator {
 
   /** Make sure the correct modes are available for mapping
    *

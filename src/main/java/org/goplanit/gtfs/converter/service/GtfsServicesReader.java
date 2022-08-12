@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.MultiConverterReader;
+import org.goplanit.gtfs.converter.service.handler.GtfsFileHandlerData;
 import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerRoutes;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.reader.GtfsFileReaderRoutes;
@@ -39,13 +40,26 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
   /**
    * Initialise the to be populated PLANit entities
    *
-   * @return service network and route services to be populated
+   * @return service network and route services to be populated initialised on the fileHandlerData instance
    */
-  private Pair<ServiceNetwork, RoutedServices> initialiseBeforeParsing() {
+  private GtfsFileHandlerData initialiseBeforeParsing() {
     var serviceNetwork = new ServiceNetwork(idToken, settings.getReferenceNetwork());
     var routedServices = new RoutedServices(idToken, serviceNetwork);
 
-    return Pair.of(serviceNetwork, routedServices);
+    PlanItRunTimeException.throwIf(routedServices.getParentNetwork() != serviceNetwork, "Routed services its service network does not match the service network provided");
+    PlanItRunTimeException.throwIf(!serviceNetwork.getTransportLayers().isEmpty() && serviceNetwork.getTransportLayers().isEachLayerEmpty(), "Service network is expected to have been initialise with empty layers before populating with GTFS routes");
+    PlanItRunTimeException.throwIf(!routedServices.getLayers().isEmpty() && routedServices.getLayers().isEachLayerEmpty(), "Routed services layers are expected to have been initialised empty when populating with GTFS routes");
+
+    /* create a new service network layer for each physical layer that is present */
+    settings.getReferenceNetwork().getTransportLayers().forEach(parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
+
+    /* create a routed services for each service layer that we created */
+    serviceNetwork.getTransportLayers().forEach(parentLayer -> routedServices.getLayers().getFactory().registerNew(parentLayer));
+
+    /** provide access to the service network and routed services via the file handler data tracking used throughout the parsing process */
+    var fileHandlerData = new GtfsFileHandlerData(serviceNetwork, routedServices);
+
+    return fileHandlerData;
   }
 
   /**
@@ -68,14 +82,14 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    * Process GTFS routes. Capture modes of routes to use later on to identify supported mdoes for GTFS stops
    * which in turn are used to map to PLANit entities
    *
-   * @param toBePopulated
+   * @param fileHandlerData to track and populate parsed GTFS data
    * @param profiler      to use
    */
-  private void processRoutes(Pair<ServiceNetwork, RoutedServices> toBePopulated, GtfsServicesProfiler profiler) {
+  private void processRoutes(GtfsFileHandlerData fileHandlerData, GtfsServicesProfiler profiler) {
     LOGGER.info("Processing: parsing GTFS Routes...");
 
     /** handler that will process individual routes upon ingesting */
-    var routesHandler = new GtfsPlanitFileHandlerRoutes(toBePopulated.first(),toBePopulated.second(), getSettings(), profiler.getGtfsRoutesProfiler());
+    var routesHandler = new GtfsPlanitFileHandlerRoutes(fileHandlerData, getSettings(), profiler.getGtfsRoutesProfiler());
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
     GtfsFileReaderRoutes routesFileReader = (GtfsFileReaderRoutes) GtfsReaderFactory.createFileReader(
@@ -90,14 +104,14 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    * Execute the actual parsing
    *
    * @param handlerProfiler to use for tracking stats
-   * @param toBePopulated service network and routes services to populate
+   * @param fileHandlerData containing service network and routes services to populate as well as means to track individually parsed GTFS entities
    */
-  protected void doMainProcessing(GtfsServicesProfiler handlerProfiler, Pair<ServiceNetwork, RoutedServices> toBePopulated) {
+  protected void doMainProcessing(GtfsServicesProfiler handlerProfiler, GtfsFileHandlerData fileHandlerData) {
 
     LOGGER.info("Processing: Identifying GTFS services, populating PLANit memory model...");
 
     /* meta-data for routes including its mode */
-    processRoutes(toBePopulated, handlerProfiler);
+    processRoutes(fileHandlerData, handlerProfiler);
     /* meta-data for grouping of instances for a route via its service id */
     processTrips(handlerProfiler);
     /* matching routes and trips to stops at actual times */
@@ -135,19 +149,19 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     PlanItRunTimeException.throwIfNull(getSettings().getReferenceNetwork(),"Reference network not available when parsing GTFS services, unable to proceed");
 
     /* prepare for parsing */
-    var toBePopulated = initialiseBeforeParsing();
+    var fileHandlerData = initialiseBeforeParsing();
 
     GtfsServicesProfiler handlerProfiler = new GtfsServicesProfiler();
     logInfo();
 
     /* main processing  */
-    doMainProcessing(handlerProfiler, toBePopulated);
+    doMainProcessing(handlerProfiler, fileHandlerData);
 
     /* log stats */
     handlerProfiler.logProcessingStats();
 
     /* return parsed GTFS services in PLANit memory model form*/
-    return toBePopulated;
+    return Pair.of(fileHandlerData.getServiceNetwork(), fileHandlerData.getRoutedServices());
   }
 
   /**

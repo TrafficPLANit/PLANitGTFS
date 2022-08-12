@@ -27,7 +27,7 @@ import org.goplanit.utils.mode.PredefinedModeType;
  * </ul>
  *
  */
-public class OriginalRouteTypeToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
+public class RouteTypeOriginalToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
 
   /**
    * Perform and populate mapping in provided settings
