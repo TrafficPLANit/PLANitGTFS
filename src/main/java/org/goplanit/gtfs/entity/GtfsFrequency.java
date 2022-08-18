@@ -30,6 +30,12 @@ public class GtfsFrequency extends GtfsObject {
   }
 
   /**
+   * Reference to trip that applies the given frequency definition
+   * @return trip id
+   */
+  public String getTripId(){ return get(GtfsKeyType.TRIP_ID);}
+
+  /**
    * String of all key value pairs of this GTFS entity
    * @return created string
    */

@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.converter.service.handler;
 
-import org.goplanit.gtfs.converter.service.GtfsRoutesHandlerProfiler;
+import org.goplanit.gtfs.converter.service.GtfsHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.enums.RouteType;
@@ -22,26 +22,16 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsPlanitFileHandlerRoutes.class.getCanonicalName());
 
-  /** profiler to use */
-  private final GtfsRoutesHandlerProfiler profiler;
-
-  /** settings containing configuration */
-  private final GtfsServicesReaderSettings settings;
-
   /** track internal data used to efficiently handle the parsing */
   private final GtfsFileHandlerData data;
 
   /**
    * Constructor
    *
-   * @param gtfsFileHandlerData      the PLANit data to track parsed entities on the PLANit routed services (by mode) layer
-   * @param settings                 to apply where needed
-   * @param profiler                 to use
+   * @param gtfsFileHandlerData      containing all data to track and resources needed to perform the processing
    */
-  public GtfsPlanitFileHandlerRoutes(final GtfsFileHandlerData gtfsFileHandlerData, final GtfsServicesReaderSettings settings, final GtfsRoutesHandlerProfiler profiler) {
+  public GtfsPlanitFileHandlerRoutes(final GtfsFileHandlerData gtfsFileHandlerData) {
     super();
-    this.settings = settings;
-    this.profiler = profiler;
     this.data = gtfsFileHandlerData;
 
     PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS routes");
@@ -54,7 +44,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
   @Override
   public void handle(GtfsRoute gtfsRoute) {
     RouteType routeType = gtfsRoute.getRouteType();
-    Mode planitMode = settings.getPlanitModeIfActivated(routeType);
+    Mode planitMode = data.getSettings().getPlanitModeIfActivated(routeType);
     if(planitMode == null){
       return;
     }
@@ -88,7 +78,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
 
     /* indexed by GTFS route_id */
     data.indexByExternalId(planitRoutedService);
-    profiler.incrementRouteCount();
+    data.getProfiler().incrementRouteCount();
   }
 
 }

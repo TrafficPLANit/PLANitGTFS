@@ -43,6 +43,14 @@ public class GtfsTrip extends GtfsObject {
   }
 
   /**
+   * Get the route id for this trip
+   * @return route id
+   */
+  public String getRouteId() {
+    return get(GtfsKeyType.ROUTE_ID);
+  }
+
+  /**
    * String of all key value pairs of this GTFS entity
    * @return created string
    */
@@ -52,4 +60,6 @@ public class GtfsTrip extends GtfsObject {
     super.appendKeyValues(sb);
     return sb.toString();
   }
+
+
 }

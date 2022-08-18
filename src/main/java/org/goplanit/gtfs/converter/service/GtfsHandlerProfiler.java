@@ -1,27 +1,22 @@
 package org.goplanit.gtfs.converter.service;
 
-import org.goplanit.gtfs.enums.GtfsObjectType;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.zoning.Zoning;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 /**
- * Track statistics on GTFS Routes handler
+ * Track statistics across GTFS handlers
  * 
  * @author markr
  *
  */
-public class GtfsRoutesHandlerProfiler {
+public class GtfsHandlerProfiler {
 
   /**
    * The logger for this class
    */
-  private static final Logger LOGGER = Logger.getLogger(GtfsRoutesHandlerProfiler.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(GtfsHandlerProfiler.class.getCanonicalName());
 
   /** track how many GTFS objects were processed, e.g., incorporated, as it should not count discarded entries */
   private LongAdder gtfsRoutesCounter;
@@ -34,7 +29,7 @@ public class GtfsRoutesHandlerProfiler {
   /**
    * Default constructor
    */
-  public GtfsRoutesHandlerProfiler() {
+  public GtfsHandlerProfiler() {
     initialise();
   }
 
@@ -42,9 +37,8 @@ public class GtfsRoutesHandlerProfiler {
   /**
    * log counters regarding main processing phase
    *
-   * @param zoning for which information  was tracked
    */
-  public void logProcessingStats(Zoning zoning) {
+  public void logProcessingStats() {
     LOGGER.info(String.format("[STATS] converted %d GTFS routes in PLANit routes",gtfsRoutesCounter.longValue()));
   }
 
