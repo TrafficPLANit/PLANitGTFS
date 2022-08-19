@@ -17,7 +17,7 @@ public class GtfsFileReaderTranslations extends GtfsFileReaderBase {
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
-  public GtfsFileReaderTranslations(URL gtfsLocation) {
+  protected GtfsFileReaderTranslations(URL gtfsLocation) {
     super(new GtfsTranslationsScheme(), gtfsLocation);
   }
 

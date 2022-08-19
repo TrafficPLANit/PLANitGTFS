@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.gtfs.enums.GtfsColumnType;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.handler.GtfsFileHandler;
 import org.goplanit.gtfs.entity.GtfsObject;
@@ -28,6 +29,9 @@ public class GtfsReader {
   
   /** registered file readers based on handlers that are added */
   private final Map<GtfsFileType, GtfsFileReaderBase> fileReaders;
+
+  /** base column configuration to apply across all readers */
+  private final GtfsColumnType gtfsColumnConfiguration;
   
   /** location (dir or zip) of GTFS file(s) */
   private final URL gtfsLocation;
@@ -50,9 +54,11 @@ public class GtfsReader {
    * 
    * @param gtfsLocation url of the location of the GTFS files, this should either be a directory containing uncompressed *.txt files or alternatively
    * a *.zip file containing the *.txt files
+   * @param gtfsColumnConfiguration initial column configuration for all created readers/handlers
    */
-  protected GtfsReader(final URL gtfsLocation) {
-    this.fileReaders = new HashMap<GtfsFileType, GtfsFileReaderBase>();
+  protected GtfsReader(final URL gtfsLocation, GtfsColumnType gtfsColumnConfiguration) {
+    this.fileReaders = new HashMap<>();
+    this.gtfsColumnConfiguration = gtfsColumnConfiguration;
     
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);    
     this.gtfsLocation = validGtfsLocation ? gtfsLocation : null; 
@@ -90,7 +96,7 @@ public class GtfsReader {
     read(GtfsFileType.ATTRIBUTIONS,   GtfsFileConditions.optional());
     
   }
-  
+
   /** Register a handler for a specific file type
    * 
    * @param gtfsFileHandler to register
@@ -110,7 +116,7 @@ public class GtfsReader {
     GtfsFileType fileType = gtfsFileHandler.getFileScheme().getFileType();
     GtfsFileReaderBase fileReader = null;
     if(!fileReaders.containsKey(fileType)) {
-      fileReader = GtfsReaderFactory.createFileReader(gtfsFileHandler.getFileScheme(), gtfsLocation);
+      fileReader = GtfsReaderFactory.createFileReader(gtfsFileHandler.getFileScheme(), gtfsLocation, gtfsColumnConfiguration);
       fileReaders.put(fileType, fileReader);
     }else {
       fileReader = fileReaders.get(fileType);

@@ -10,12 +10,15 @@ import java.net.URL;
 import java.util.EnumSet;
 import java.util.logging.Logger;
 
+import org.goplanit.gtfs.entity.GtfsStopTime;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.entity.GtfsObjectFactory;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
+import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.misc.UrlUtils;
+import org.goplanit.utils.time.ExtendedLocalTime;
 import org.goplanit.utils.zip.ZipUtils;
 
 /**
@@ -137,5 +140,18 @@ public class GtfsUtils {
    */
   public static EnumSet<GtfsKeyType> getSupportedKeys(GtfsObjectType objectType) {
       return GtfsObjectFactory.create(objectType).getSupportedKeys();
+  }
+
+  /**
+   * PArse a GTFS time HH:MM:SS that is allowed to extend beyond the 24h cycle as an ExtendeLocalTime object
+   *
+   * @param gtfsTime to parse
+   * @return extended local time found
+   */
+  public static ExtendedLocalTime parseGtfsTime(String gtfsTime) {
+    if(StringUtils.isNullOrBlank(gtfsTime)){
+      LOGGER.severe(String.format("GTFS time null or blank, ignored"));
+    }
+    return ExtendedLocalTime.of(gtfsTime);
   }
 }

@@ -3,8 +3,12 @@ package org.goplanit.gtfs.converter.service;
 import org.goplanit.converter.MultiConverterReader;
 import org.goplanit.gtfs.converter.service.handler.GtfsFileHandlerData;
 import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerRoutes;
+import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerStopTimes;
+import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerTrips;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.reader.GtfsFileReaderRoutes;
+import org.goplanit.gtfs.reader.GtfsFileReaderStopTimes;
+import org.goplanit.gtfs.reader.GtfsFileReaderTrips;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.network.ServiceNetwork;
@@ -71,12 +75,39 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
   }
 
   private void processStopTimes(GtfsFileHandlerData fileHandlerData) {
-    /* 2) process to link routes to trips to stops (so we can assign supported modes to stops and do proper mapping
-     * to transfer zones (see process Stops implementation for further comments)  */
+    LOGGER.info("Processing: parsing GTFS trip stop times...");
+
+    /** handler that will process individual trip stop times upon ingesting */
+    var tripStopTimeHandler = new GtfsPlanitFileHandlerStopTimes(fileHandlerData);
+
+    /* GTFS file reader that parses the raw GTFS data and applies the handler to each trip stop time found */
+    GtfsFileReaderStopTimes stopTimeFileReader = (GtfsFileReaderStopTimes) GtfsReaderFactory.createFileReader(
+        GtfsFileSchemeFactory.create(GtfsFileType.STOP_TIMES), getSettings().getInputDirectory());
+    stopTimeFileReader.addHandler(tripStopTimeHandler);
+
+    /** execute */
+    stopTimeFileReader.read();
   }
 
   private void processTrips(GtfsFileHandlerData fileHandlerData) {
-    /* 2) process to link routes to trips  */
+    LOGGER.info("Processing: parsing GTFS trips...");
+
+    /** handler that will process individual trips upon ingesting */
+    var tripsHandler = new GtfsPlanitFileHandlerTrips(fileHandlerData);
+
+    /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
+    GtfsFileReaderTrips tripsFileReader = (GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
+        GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), getSettings().getInputDirectory());
+    tripsFileReader.addHandler(tripsHandler);
+
+    /* optional optimisation/processing */
+    //TODO: option to consolidate PLANit trips by having multiple departure times per trip (instead of one)
+    // if schedule for each departure is the same. currently single departure + schedule per trip
+
+    //TODO: option to convert schedules to frequency based approach
+
+    /** execute */
+    tripsFileReader.read();
   }
 
   /**

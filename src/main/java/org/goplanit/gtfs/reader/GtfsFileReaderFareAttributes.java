@@ -17,7 +17,7 @@ public class GtfsFileReaderFareAttributes extends GtfsFileReaderBase {
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
-  public GtfsFileReaderFareAttributes(URL gtfsLocation) {
+  protected GtfsFileReaderFareAttributes(URL gtfsLocation) {
     super(new GtfsFareAttributesScheme(), gtfsLocation);
   }
 

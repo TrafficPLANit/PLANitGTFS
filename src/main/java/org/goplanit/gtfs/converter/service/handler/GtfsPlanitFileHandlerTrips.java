@@ -50,29 +50,11 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
       return;
     }
 
-    var tripsForService = planitRoutedService.getTripInfo();
+    // in PLANit we distinguish between scheduled and frequency based trips in their concrete instance. Therefore, we postpone
+    // parsing the GTFS entity here until we have identified which of the two this trip relates to (the PLANit trip will be
+    // created while parsing stop_times (schedule based trip) and/or frequencies (frequency based trip)
 
-    //TODO: to be able to create a trip we must know if it is frequency or schedule based. To do so we must
-    //      extract this from the frequencies or stop_times table. Hence, first parse those before continuing
-    //      then add these as prerequisite in the javadoc + test for this in the constructor on being available
-
-    boolean scheduleOrFrequencyData = false;
-    var gtfsTripDepartures = data.getRoutedTripDeparturesByGtfsTripId(gtfsTrip.getTripId());
-    if(gtfsTripDepartures == null){
-      /* schedule based information */
-      scheduleOrFrequencyData = true;
-    }
-
-    //TODO: maybe instead convert to PLANit frequency entry?
-    var gtfsTripFrequency = data.getFrequencyByGtfsTripId(gtfsTrip.getTripId());
-    if(gtfsTripFrequency != null){
-      /* frequency based information */
-      scheduleOrFrequencyData = true;
-    }
-
-    if(!scheduleOrFrequencyData){
-      LOGGER.severe(String.format("GTFS trip %s could not be mapped to either schedule or frequency, ignored", gtfsTrip.getTripId()));
-    }
+    data.indexByGtfsTripId(gtfsTrip);
   }
 
 }

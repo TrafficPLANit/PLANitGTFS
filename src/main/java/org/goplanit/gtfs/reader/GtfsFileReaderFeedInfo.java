@@ -17,7 +17,7 @@ public class GtfsFileReaderFeedInfo extends GtfsFileReaderBase {
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
-  public GtfsFileReaderFeedInfo(URL gtfsLocation) {
+  protected GtfsFileReaderFeedInfo(URL gtfsLocation) {
     super(new GtfsFeedInfoScheme(), gtfsLocation);
   }
 

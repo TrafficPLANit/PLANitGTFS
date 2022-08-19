@@ -46,4 +46,19 @@ public class GtfsStopTime extends GtfsObject {
     super.appendKeyValues(sb);
     return sb.toString();
   }
+
+  public String getTripId() {
+    return get( GtfsKeyType.TRIP_ID);
+  }
+
+  public String getStopId() {
+    return get( GtfsKeyType.STOP_ID);
+  }
+
+  public String getArrivalTime() { return get(GtfsKeyType.ARRIVAL_TIME); }
+
+  public String getDepartureTime() { return get(GtfsKeyType.DEPARTURE_TIME); }
+
+  public String getStopSequence() { return get(GtfsKeyType.STOP_SEQUENCE); }
+
 }

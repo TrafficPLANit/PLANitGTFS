@@ -58,6 +58,10 @@ public abstract class GtfsFileHandler<T extends GtfsObject> {
   public final GtfsFileScheme getFileScheme() {
     return fileScheme;
   }
-  
-  
+
+
+  /**
+   * Reset the handler
+   */
+  public void reset(){}
 }

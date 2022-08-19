@@ -17,7 +17,7 @@ public class GtfsFileReaderLevels extends GtfsFileReaderBase {
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
-  public GtfsFileReaderLevels(URL gtfsLocation) {
+  protected GtfsFileReaderLevels(URL gtfsLocation) {
     super(new GtfsLevelsScheme(), gtfsLocation);
   }
 

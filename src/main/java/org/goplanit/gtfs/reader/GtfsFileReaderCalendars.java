@@ -17,7 +17,7 @@ public class GtfsFileReaderCalendars extends GtfsFileReaderBase {
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
-  public GtfsFileReaderCalendars(URL gtfsLocation) {
+  protected GtfsFileReaderCalendars(URL gtfsLocation) {
     super(new GtfsCalendarsScheme(), gtfsLocation);
   }
 

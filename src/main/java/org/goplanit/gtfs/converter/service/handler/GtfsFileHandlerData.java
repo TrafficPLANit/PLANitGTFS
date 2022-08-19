@@ -2,17 +2,13 @@ package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.converter.service.GtfsHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
-import org.goplanit.gtfs.entity.GtfsFrequency;
+import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.service.routed.RoutedService;
-import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.service.routed.RoutedServicesLayer;
-import org.goplanit.service.routed.RoutedTripDeparture;
+import org.goplanit.service.routed.*;
 import org.goplanit.utils.misc.CustomIndexTracker;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,9 +28,6 @@ public class GtfsFileHandlerData {
 
   /** track all data mappings using a single 1:1 mapping*/
   CustomIndexTracker customIndexTracker;
-
-  /** track the converted GTFS stop times (to PLANit RoutedTripDepartures) per trip */
-  Map<String, List<RoutedTripDeparture>> gtfsTripIdToRoutedTripDepartures;
 
   /** index routed services by mode */
   Map<Mode, RoutedServicesLayer> routedServiceLayerByMode;
@@ -62,10 +55,12 @@ public class GtfsFileHandlerData {
 
     /* track routed service entries by external id (GTFS ROUTE_ID) */
     customIndexTracker.initialiseEntityContainer(RoutedService.class, (routedService) -> routedService.getExternalId());
-    /* track GTFS trip frequency entries by trip id (GTFS TRIP_ID) */
-    customIndexTracker.initialiseEntityContainer(GtfsFrequency.class, (gtfsFrequency) -> gtfsFrequency.getTripId());
-    /* track GTFS trip stop times by trip id (GTFS TRIP_ID) */
-    gtfsTripIdToRoutedTripDepartures = new HashMap<>();
+    /* track GTFS trip entries by trip id (GTFS TRIP_ID) */
+    customIndexTracker.initialiseEntityContainer(GtfsTrip.class, (gtfsTrip) -> gtfsTrip.getTripId());
+    /* track PLANit scheduled trip entries by its external id (GTFS TRIP_ID) */
+    customIndexTracker.initialiseEntityContainer(RoutedTripSchedule.class, (planitScheduledTrip) -> planitScheduledTrip.getExternalId());
+    /* track PLANit service nodes by external id (GTFS STOP_ID) */
+    customIndexTracker.initialiseEntityContainer(ServiceNode.class, (sn) -> sn.getExternalId());
   }
 
   /**
@@ -91,7 +86,7 @@ public class GtfsFileHandlerData {
 
   /**
    * Index the routed service by its external id (GTFS_ROUTE_ID)
-   * @param planitRoutedService
+   * @param planitRoutedService to register
    */
   public void indexByExternalId(RoutedService planitRoutedService) {
     customIndexTracker.register(RoutedService.class, planitRoutedService);
@@ -108,24 +103,59 @@ public class GtfsFileHandlerData {
   }
 
   /**
-   * Collect GTFS frequency by trip id
-   *
-   * @param gtfsTripId to collect by
-   * @return found frequency entry, or null if not present
+   * Index the service node by its external id (GTFS_STOP_ID)
+   * @param planitServiceNode to register
    */
-  public GtfsFrequency getFrequencyByGtfsTripId(String gtfsTripId) {
-    return customIndexTracker.get(GtfsFrequency.class, gtfsTripId);
+  public void indexByExternalId(ServiceNode planitServiceNode) {
+    customIndexTracker.register(ServiceNode.class, planitServiceNode);
   }
 
   /**
-   * Collect the PLANit departures associated with a given GTFS trip id (if any)
+   * Collect routed service by external id index
    *
-   * @param gtfsTripId to collect for
-   * @return found departures, null if none found
+   * @param externalId to collect by
+   * @return found routed service
    */
-  public List<RoutedTripDeparture> getRoutedTripDeparturesByGtfsTripId(String gtfsTripId) {
-    return this.gtfsTripIdToRoutedTripDepartures.get(gtfsTripId);
+  public ServiceNode getServiceNodeByExternalId(String externalId) {
+    return customIndexTracker.get(ServiceNode.class, externalId);
   }
+
+  /**
+   * Index the GTFS trip by its trip id (GTFS_TRIP_ID)
+   * @param gtfsTrip to register
+   */
+  public void indexByGtfsTripId(GtfsTrip gtfsTrip) {
+    customIndexTracker.register(GtfsTrip.class, gtfsTrip);
+  }
+
+  /**
+   * Collect GTFS trip by GTFS trip id
+   *
+   * @param gtfsTripId to collect by
+   * @return found GTFS trip entity
+   */
+  public GtfsTrip getGtfsTripByGtfsTripId(String gtfsTripId) {
+    return customIndexTracker.get(GtfsTrip.class, gtfsTripId);
+  }
+
+  /**
+   * Index the PLANit schedule based trip by its external id (GTFS_TRIP_ID)
+   * @param planitScheduleBasedTrip to register
+   */
+  public void indexByExternalId(RoutedTripSchedule planitScheduleBasedTrip) {
+    customIndexTracker.register(RoutedTripSchedule.class, planitScheduleBasedTrip);
+  }
+
+  /**
+   * Collect Planit scheduled trip by its external id
+   *
+   * @param externalId to collect PLANit trip for
+   * @return found schedule based PLANit trip (null if not present)
+   */
+  public RoutedTripSchedule getPlanitScheduleBasedTripByExternalId(String externalId) {
+    return customIndexTracker.get(RoutedTripSchedule.class, externalId);
+  }
+
 
   /** Access to the service network
    * @return the service network being populated
@@ -158,4 +188,6 @@ public class GtfsFileHandlerData {
   public GtfsServicesReaderSettings getSettings() {
     return this.settings;
   }
+
+
 }

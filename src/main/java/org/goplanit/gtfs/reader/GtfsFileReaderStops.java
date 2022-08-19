@@ -17,7 +17,7 @@ public class GtfsFileReaderStops extends GtfsFileReaderBase {
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
-  public GtfsFileReaderStops(URL gtfsLocation) {
+  protected GtfsFileReaderStops(URL gtfsLocation) {
     super(new GtfsStopsScheme(), gtfsLocation);
   }
 

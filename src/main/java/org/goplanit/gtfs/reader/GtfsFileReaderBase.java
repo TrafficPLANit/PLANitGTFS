@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.goplanit.gtfs.enums.GtfsColumnType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.handler.GtfsFileHandler;
 import org.goplanit.gtfs.entity.GtfsObject;
@@ -33,7 +34,7 @@ import org.goplanit.utils.misc.StringUtils;
  * @author markr
  *
  */
-public class GtfsFileReaderBase {
+public abstract class GtfsFileReaderBase {
   
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsFileReaderBase.class.getCanonicalName());
@@ -145,7 +146,28 @@ public class GtfsFileReaderBase {
    */
   protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation) {
     this(fileScheme, gtfsLocation, new GtfsFileReaderSettings());
-  }  
+  }
+
+  /**
+   * Let concrete implementation determine the initially excluded columns (if any) based on the provided column type configuration passed in.
+   * Note that we log a severe when the chosen column type is not matched, i.e., concrete classes should only call this implementation once
+   * they have exhausted their specific column type configurations and not call this beforehand.
+   *
+   * @param columnType configuration to apply for initial column exclusions (if any)
+   */
+  protected void initialiseColumnConfiguration(GtfsColumnType columnType){
+    // let concrete classes override this for types that can't be configured in this base class implementation
+    switch (columnType){
+      case NO_COLUMNS:
+        getSettings().excludeColumns(GtfsUtils.getSupportedKeys(getFileScheme().getObjectType()).iterator());
+        return;
+      case ALL_COLUMNS:
+        // nothing to exclude
+        return;
+      default:
+        LOGGER.severe(String.format("Chosen GTFS column configuration (%s) not supported by base reader implementation",columnType));
+    }
+  }
 
   /** Constructor
    * 
@@ -158,7 +180,7 @@ public class GtfsFileReaderBase {
     this.settings = settings;
     this.filePresenceCondition = null;    
     
-    this.handlers = new HashSet<GtfsFileHandler<? extends GtfsObject>>();
+    this.handlers = new HashSet<>();
     
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);    
     this.gtfsLocation = validGtfsLocation ? gtfsLocation : null; 
@@ -223,5 +245,12 @@ public class GtfsFileReaderBase {
    */
   public GtfsFileReaderSettings getSettings() {
     return settings;
+  }
+
+  /**
+   * Reset this reader and its registered handlers
+   */
+  public void reset(){
+    handlers.forEach( h -> h.reset());
   }
 }

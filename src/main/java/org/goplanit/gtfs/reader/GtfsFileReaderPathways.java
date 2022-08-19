@@ -17,7 +17,7 @@ public class GtfsFileReaderPathways extends GtfsFileReaderBase {
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
    */
-  public GtfsFileReaderPathways(URL gtfsLocation) {
+  protected GtfsFileReaderPathways(URL gtfsLocation) {
     super(new GtfsPathwaysScheme(), gtfsLocation);
   }
 
