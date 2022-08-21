@@ -1,7 +1,10 @@
 package org.goplanit.gtfs.converter.service;
 
+import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.zoning.Zoning;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
@@ -18,8 +21,8 @@ public class GtfsHandlerProfiler {
    */
   private static final Logger LOGGER = Logger.getLogger(GtfsHandlerProfiler.class.getCanonicalName());
 
-  /** track how many GTFS routes were processed */
-  private LongAdder gtfsRoutesCounter;
+  /** track how many GTFS routes were processed by route type*/
+  private Map<RouteType,LongAdder> gtfsRoutesCounter;
 
   /** track how many GTFS schedule based trips were processed */
   private LongAdder gtfsScheduleBasedTripCounter;
@@ -32,7 +35,10 @@ public class GtfsHandlerProfiler {
 
   /** Initialise the profiler */
   private void initialise(){
-    gtfsRoutesCounter = new LongAdder();
+    gtfsRoutesCounter = new HashMap<>();
+    gtfsTripStopTimeCounter = new LongAdder();
+    gtfsScheduleBasedTripCounter = new LongAdder();
+    gtfsFrequencyCounter = new LongAdder();
   }
 
   /**
@@ -48,7 +54,7 @@ public class GtfsHandlerProfiler {
    *
    */
   public void logProcessingStats() {
-    LOGGER.info(String.format("[STATS] processed %d GTFS routes",gtfsRoutesCounter.longValue()));
+    gtfsRoutesCounter.forEach( (k,v) -> LOGGER.info(String.format("[STATS] processed %d GTFS routes - %s ",v.longValue(), k)));
     LOGGER.info(String.format("[STATS] processed %d GTFS trips (scheduled)",gtfsScheduleBasedTripCounter.longValue()));
     LOGGER.info(String.format("[STATS] processed %d GTFS trip stop times",gtfsTripStopTimeCounter.longValue()));
     LOGGER.info(String.format("[STATS] processed %d GTFS trip frequency entries",gtfsFrequencyCounter.longValue()));
@@ -58,7 +64,7 @@ public class GtfsHandlerProfiler {
    * reset the profiler
    */
   public void reset() {
-    gtfsRoutesCounter.reset();
+    gtfsRoutesCounter.clear();
     gtfsScheduleBasedTripCounter.reset();
     gtfsTripStopTimeCounter.reset();
     gtfsFrequencyCounter.reset();
@@ -66,9 +72,16 @@ public class GtfsHandlerProfiler {
 
   /**
    * Increment count for a processed GTFS route
+   *
+   * @param gtfsRouteType of the route
    */
-  public void incrementRouteCount() {
-    gtfsRoutesCounter.increment();
+  public void incrementRouteCount(RouteType gtfsRouteType) {
+    var routeTypeAdder = gtfsRoutesCounter.get(gtfsRouteType);
+    if(routeTypeAdder == null){
+      routeTypeAdder = new LongAdder();
+      gtfsRoutesCounter.put(gtfsRouteType, routeTypeAdder);
+    }
+    routeTypeAdder.increment();
   }
 
   /**

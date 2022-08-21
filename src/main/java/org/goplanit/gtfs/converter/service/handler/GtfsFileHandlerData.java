@@ -2,13 +2,16 @@ package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.converter.service.GtfsHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
+import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.entity.GtfsTrip;
+import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.*;
 import org.goplanit.utils.misc.CustomIndexTracker;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -28,6 +31,13 @@ public class GtfsFileHandlerData {
 
   /** track all data mappings using a single 1:1 mapping*/
   CustomIndexTracker customIndexTracker;
+
+  /** track which routes have been discarded by mode, to ensure we do not log warnings for correctly ignored GTFS routes */
+  Map<String, RouteType> modeDiscardedRoutes;
+
+  /** track which trips have been discarded by route (which in turn have been discarded for example because their mode is not supported),
+   *  to ensure we do not log warnings for correctly ignored GTFS trips */
+  Map<String, String> routeDiscardedTrips;
 
   /** index routed services by mode */
   Map<Mode, RoutedServicesLayer> routedServiceLayerByMode;
@@ -61,6 +71,9 @@ public class GtfsFileHandlerData {
     customIndexTracker.initialiseEntityContainer(RoutedTripSchedule.class, (planitScheduledTrip) -> planitScheduledTrip.getExternalId());
     /* track PLANit service nodes by external id (GTFS STOP_ID) */
     customIndexTracker.initialiseEntityContainer(ServiceNode.class, (sn) -> sn.getExternalId());
+
+    modeDiscardedRoutes = new HashMap<>();
+    routeDiscardedTrips = new HashMap<>();
   }
 
   /**
@@ -100,6 +113,44 @@ public class GtfsFileHandlerData {
    */
   public RoutedService getRoutedServiceByExternalId(String externalId) {
     return customIndexTracker.get(RoutedService.class, externalId);
+  }
+
+  /**
+   * Register GTFS route as discarded based on its route type (mode), which is a valid reason to
+   * ignore it from further processing.
+   *
+   * @param gtfsRoute to mark as discarded
+   */
+  public void registeredDiscardByUnsupportedRoute(GtfsRoute gtfsRoute){
+    this.modeDiscardedRoutes.put(gtfsRoute.getRouteId(), gtfsRoute.getRouteType());
+  }
+
+  /** Verify if GTFS route has been discarded based on its mode (route type) not being supported in this run
+   *
+   * @param gtfsRouteId to verify
+   * @return true when discarded, false otherwise
+   */
+  public boolean isGtfsRouteDiscarded(String gtfsRouteId){
+    return this.modeDiscardedRoutes.containsKey(gtfsRouteId);
+  }
+
+  /**
+   * Register GTFS trip as discarded based on its route, see {@link #registeredDiscardByUnsupportedRoute(GtfsRoute)}, which is a valid reason to
+   * ignore it from further processing.
+   *
+   * @param gtfsTrip to mark as discarded
+   */
+  public void registeredDiscardByUnsupportedRoute(GtfsTrip gtfsTrip){
+    this.routeDiscardedTrips.put(gtfsTrip.getTripId(), gtfsTrip.getRouteId());
+  }
+
+  /** Verify if GTFS trip has been discarded based on its route being discarded in this run
+   *
+   * @param gtfsTripId to verify
+   * @return true when discarded, false otherwise
+   */
+  public boolean isGtfsTripDiscarded(String gtfsTripId){
+    return this.routeDiscardedTrips.containsKey(gtfsTripId);
   }
 
   /**

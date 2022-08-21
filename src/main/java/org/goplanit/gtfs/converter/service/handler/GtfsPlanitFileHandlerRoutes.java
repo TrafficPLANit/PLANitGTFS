@@ -1,7 +1,5 @@
 package org.goplanit.gtfs.converter.service.handler;
 
-import org.goplanit.gtfs.converter.service.GtfsHandlerProfiler;
-import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerRoutes;
@@ -46,6 +44,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     RouteType routeType = gtfsRoute.getRouteType();
     Mode planitMode = data.getSettings().getPlanitModeIfActivated(routeType);
     if(planitMode == null){
+      data.registeredDiscardByUnsupportedRoute(gtfsRoute);
       return;
     }
 
@@ -78,7 +77,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
 
     /* indexed by GTFS route_id */
     data.indexByExternalId(planitRoutedService);
-    data.getProfiler().incrementRouteCount();
+    data.getProfiler().incrementRouteCount(gtfsRoute.getRouteType());
   }
 
 }

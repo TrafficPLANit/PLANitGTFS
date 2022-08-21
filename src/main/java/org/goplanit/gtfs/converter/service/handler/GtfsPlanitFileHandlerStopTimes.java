@@ -83,12 +83,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    * @param departureTime departure time
    */
   private void registerDeparture(RoutedTripSchedule planitTrip, GtfsStopTime gtfsStopTime, ExtendedLocalTime departureTime) {
-    if(departureTime.exceedsSingleDay()){
-      LOGGER.severe(String.format("Departure time of trip should never be beyond midnight (%s), in that case it should be early in the morning (trip %s), ignore stop time entry",gtfsStopTime.getTripId(), departureTime));
-      return;
-    }
-
-    var departure = planitTrip.getDepartures().getFactory().registerNew(departureTime.asLocalTimeBeforeMidnight());
+    var departure = planitTrip.getDepartures().getFactory().registerNew(departureTime);
 
     /* XML id */
     departure.setXmlId(departure.getId());
@@ -109,6 +104,14 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     var currServiceNode = data.getServiceNodeByExternalId(gtfsStopTime.getStopId());
     if(currServiceNode == null){
       currServiceNode = layer.getServiceNodes().getFactory().registerNew(null);
+
+      /* XML id -> PLANit id */
+      currServiceNode.setXmlId(currServiceNode.getId());
+      /* external id -> GTFS stop id */
+      currServiceNode.setExternalId(gtfsStopTime.getStopId());
+
+      /* index by external id for later lookups */
+      data.indexByExternalId(currServiceNode);
     }
     return currServiceNode;
   }
@@ -169,7 +172,9 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     /* PREP */
     GtfsTrip gtfsTrip = data.getGtfsTripByGtfsTripId(gtfsStopTime.getTripId());
     if(gtfsTrip == null){
-      LOGGER.severe(String.format("Unable to find GTFS trip %s for current GTFS stop time (stop id: %s), GTFS stop time ignored", gtfsStopTime.getTripId(), gtfsStopTime.getStopId()));
+      if(!data.isGtfsTripDiscarded(gtfsStopTime.getTripId())) {
+        LOGGER.severe(String.format("Unable to find GTFS trip %s for current GTFS stop time (stop id: %s), GTFS stop time ignored", gtfsStopTime.getTripId(), gtfsStopTime.getStopId()));
+      }
       return;
     }
 

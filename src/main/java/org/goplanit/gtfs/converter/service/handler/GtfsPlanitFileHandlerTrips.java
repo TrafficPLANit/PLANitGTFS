@@ -46,6 +46,10 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
 
     var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
     if(planitRoutedService == null){
+      if(data.isGtfsRouteDiscarded(gtfsTrip.getRouteId())){
+        data.registeredDiscardByUnsupportedRoute(gtfsTrip);
+        return;
+      }
       LOGGER.severe(String.format("Unable to find GTFS route %s in PLANit memory model corresponding to GTFS trip %s, GTFS trip ignored", gtfsTrip.getRouteId(), gtfsTrip.getTripId()));
       return;
     }
@@ -53,7 +57,6 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
     // in PLANit we distinguish between scheduled and frequency based trips in their concrete instance. Therefore, we postpone
     // parsing the GTFS entity here until we have identified which of the two this trip relates to (the PLANit trip will be
     // created while parsing stop_times (schedule based trip) and/or frequencies (frequency based trip)
-
     data.indexByGtfsTripId(gtfsTrip);
   }
 
