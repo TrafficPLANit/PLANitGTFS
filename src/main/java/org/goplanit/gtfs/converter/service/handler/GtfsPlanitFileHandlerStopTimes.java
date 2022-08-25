@@ -100,7 +100,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    * @param gtfsStopTime to extract information for service node for
    * @return created or found service node
    */
-  private ServiceNode registerServiceNode(ServiceNetworkLayer layer, GtfsStopTime gtfsStopTime) {
+  private ServiceNode collectOrRegisterServiceNode(ServiceNetworkLayer layer, GtfsStopTime gtfsStopTime) {
     var currServiceNode = data.getServiceNodeByExternalId(gtfsStopTime.getStopId());
     if(currServiceNode == null){
       currServiceNode = layer.getServiceNodes().getFactory().registerNew(null);
@@ -118,7 +118,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
   /**
    * Based on the current stop time and state (previous stop) construct a new, or find and existing, service leg segment on the service
-   * network that is to be used to route the trip over
+   * network that is to be used to route the trip over. Create service node for end point of leg segment if need be based on GTFS_STOP_ID
    *
    * @param layer to use
    * @param gtfsStopTime to use
@@ -127,7 +127,8 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   private ServiceLegSegment collectOrRegisterNetworkServiceSegment(ServiceNetworkLayer layer, GtfsStopTime gtfsStopTime) {
     /* service nodes */
     var prevServiceNode = data.getServiceNodeByExternalId(prevSameTripStopTime.getStopId());
-    var currServiceNode = registerServiceNode(layer, gtfsStopTime);
+    /* service node registered by GTFS_STOP_ID */
+    var currServiceNode = collectOrRegisterServiceNode(layer, gtfsStopTime);
 
     /* service segment */
     var serviceNetworkSegment = prevServiceNode.getLegSegment(currServiceNode);
@@ -193,10 +194,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     /* SCHEDULED TRIP */
     RoutedTripSchedule planitTrip = collectScheduledTrip(gtfsTrip, planitRoutedService);
 
-    /* STOP ID */
-    //TODO --> continue here next time, possibly we can now match to the network if when parsing stops we simply store the GTFS stop because at this point
-    //         we would have access to the mode!
-
     /* STOP_TIME - Arrival time/departure time */
     ExtendedLocalTime arrivalTime = GtfsUtils.parseGtfsTime(gtfsStopTime.getArrivalTime());
     ExtendedLocalTime departureTime = GtfsUtils.parseGtfsTime(gtfsStopTime.getDepartureTime());
@@ -204,7 +201,8 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     /* STOP_TIME - INITIAL DEPARTURE */
     if(planitTrip.getDepartures().isEmpty()){
       registerDeparture(planitTrip, gtfsStopTime, departureTime);
-      registerServiceNode(layer, gtfsStopTime);
+      /* service node registered by GTFS_STOP_ID */
+      collectOrRegisterServiceNode(layer, gtfsStopTime);
     }
 
     /* STOP_TIME - INTERMEDIATE STOP */
@@ -214,7 +212,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
         return;
       }
 
-      /* TIMING BETWEEN STOP and PREV STOP + SERVICE NETWORK UPDATE IF NEEDED */
+      /* TIMING BETWEEN STOP and PREV STOP + SERVICE NETWORK UPDATE IF NEEDED (service node by GTFS_STOP_ID) */
       var serviceNetworkSegment = collectOrRegisterNetworkServiceSegment(layer, gtfsStopTime);
       var duration = arrivalTime.minus(GtfsUtils.parseGtfsTime(prevSameTripStopTime.getDepartureTime()));
       var dwellTime = departureTime.minus(arrivalTime);

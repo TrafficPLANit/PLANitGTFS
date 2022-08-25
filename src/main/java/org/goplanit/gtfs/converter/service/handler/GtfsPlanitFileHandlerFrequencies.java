@@ -1,9 +1,7 @@
 package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.entity.GtfsFrequency;
-import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.handler.GtfsFileHandlerFrequencies;
-import org.goplanit.gtfs.handler.GtfsFileHandlerTrips;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
 import java.util.logging.Logger;
@@ -45,7 +43,7 @@ public class GtfsPlanitFileHandlerFrequencies extends GtfsFileHandlerFrequencies
    */
   @Override
   public void handle(GtfsFrequency gtfsFrequency) {
-    PlanItRunTimeException.throwIf(true, " GTFS frequency handler not yet implemented");
+    PlanItRunTimeException.throwIf(true, "GTFS frequency handler not yet implemented");
   }
 
 }

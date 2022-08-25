@@ -70,10 +70,24 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
   /**
    * Log the settings and other information used
    */
-  private void logInfo() {
+  private void logSettings() {
     getSettings().log();
   }
 
+  /**
+   * Process GTFS frequencies of routes/trips fr usage in PLANit
+   *
+   * @param fileHandlerData to use
+   */
+  private void processFrequencies(GtfsFileHandlerData fileHandlerData) {
+    //todo: not yet implemented
+  }
+
+  /**
+   * Process GTFS stop times of routes/trips fr usage in PLANit
+   *
+   * @param fileHandlerData to use
+   */
   private void processStopTimes(GtfsFileHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS trip stop times...");
 
@@ -89,6 +103,11 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     stopTimeFileReader.read();
   }
 
+  /**
+   * Process GTFS trips for usage in PLANit
+   *
+   * @param fileHandlerData to use
+   */
   private void processTrips(GtfsFileHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS trips...");
 
@@ -99,12 +118,6 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     GtfsFileReaderTrips tripsFileReader = (GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
         GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), getSettings().getInputDirectory());
     tripsFileReader.addHandler(tripsHandler);
-
-    /* optional optimisation/processing */
-    //TODO: option to consolidate PLANit trips by having multiple departure times per trip (instead of one)
-    // if schedule for each departure is the same. currently single departure + schedule per trip
-
-    //TODO: option to convert schedules to frequency based approach
 
     /** execute */
     tripsFileReader.read();
@@ -132,6 +145,16 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
   }
 
   /**
+   * Log some stats on the now available PLANit entities in memory
+   */
+  private void logPlanitStats(GtfsFileHandlerData fileHandlerData) {
+
+    fileHandlerData.getServiceNetwork().logInfo();
+    fileHandlerData.getRoutedServices().logInfo();
+
+  }
+
+  /**
    * Execute the actual parsing
    *
    * @param fileHandlerData containing all data to track and resources needed to perform the processing
@@ -146,6 +169,16 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     processTrips(fileHandlerData);
     /* matching routes and trips to stops at actual times */
     processStopTimes(fileHandlerData);
+    /* matching routes and trips to stops based on frequency information */
+    processFrequencies(fileHandlerData);
+
+    /* optional optimisation/processing */
+    //TODO: option to consolidate PLANit trips by having multiple departure times per trip (instead of one)
+    // if schedule for each departure is the same. currently single departure + schedule per trip
+
+    //TODO: option to convert schedules to frequency based approach
+
+    //todo clean up indices that we no longer need to save memory for gtfs transfer zone converion next
 
     LOGGER.info("Processing: GTFS services Done");
   }
@@ -181,13 +214,14 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     /* prepare for parsing */
     var fileHandlerData = initialiseBeforeParsing();
 
-    logInfo();
+    logSettings();
 
     /* main processing  */
     doMainProcessing(fileHandlerData);
 
     /* log stats */
     fileHandlerData.getProfiler().logProcessingStats();
+    logPlanitStats(fileHandlerData);
 
     /* return parsed GTFS services in PLANit memory model form*/
     return Pair.of(fileHandlerData.getServiceNetwork(), fileHandlerData.getRoutedServices());

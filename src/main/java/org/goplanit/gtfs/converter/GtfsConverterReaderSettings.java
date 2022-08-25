@@ -6,7 +6,8 @@ import org.goplanit.network.MacroscopicNetwork;
 import java.util.logging.Logger;
 
 /**
- * Capture all common user configurable settings regarding GTFS converter readers for raw (static) GTFS feeds
+ * Capture all common user configurable settings regarding GTFS converter readers for raw (static) GTFS feeds. To be
+ * used as base class not as actual settings class to be exposed.
  * 
  * @author markr
  *

@@ -20,8 +20,13 @@ import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.mode.PredefinedMode;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
+import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -29,6 +34,12 @@ import org.junit.Test;
 
 import java.nio.file.Path;
 import java.util.logging.Logger;
+
+import static org.goplanit.utils.mode.PredefinedModeType.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for Gtfs's API basic functionality
@@ -111,7 +122,23 @@ public class GtfsToPlanitTest {
           GTFS_FILES_DIR, CountryNames.AUSTRALIA, macroscopicNetwork, RouteTypeChoice.EXTENDED);
       Pair<ServiceNetwork,RoutedServices> servicesPair = servicesReader.read();
 
-      //todo add assertions
+      var serviceNetwork = servicesPair.first();
+      var routedServices = servicesPair.second();
+      assertThat(serviceNetwork.getTransportLayers().size(),equalTo(1));
+
+      /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
+       * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(58478));
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(93608));
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(93608));
+      assert(serviceNetwork.getTransportLayers().getFirst().getSupportedModes().containsAll(servicesReader.getSettings().getAcivatedPlanitModes()));
+
+      assertThat(routedServices.getLayers().size(),equalTo(1));
+      Modes modes = macroscopicNetwork.getModes();
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),equalTo(8150));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(5));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(42));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(1));
 
     } catch (Exception e) {
       e.printStackTrace();

@@ -11,6 +11,7 @@ import org.goplanit.utils.mode.Modes;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Configurable settings for the Gtfs to PLANit routed services reader
@@ -248,5 +249,13 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
         LOGGER.info(String.format("[DEACTIVATED] %s", entry));
       }
     }
+  }
+
+  /**
+   * Currently activated mapped PLANit modes
+   * @return activated, i.e., mapped PLANit modes
+   */
+  public Set<Mode> getAcivatedPlanitModes() {
+    return activatedGtfsModes.stream().map(gtfsMode -> defaultGtfsMode2PlanitModeMap.get(gtfsMode)).collect(Collectors.toSet());
   }
 }
