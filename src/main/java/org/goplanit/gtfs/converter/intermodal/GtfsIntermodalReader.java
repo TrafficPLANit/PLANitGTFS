@@ -146,7 +146,8 @@ public class GtfsIntermodalReader implements IntermodalReader {
     Pair<ServiceNetwork,RoutedServices> servicesResult = servicesReader.read();
 
     /* ZONING (PT stops as transfer zones) */
-    final var zoningReader = GtfsZoningReaderFactory.create(getSettings().getZoningSettings(), servicesResult.first(), servicesResult.second());
+    final var zoningReader = GtfsZoningReaderFactory.create(
+        getSettings().getZoningSettings(), getSettings().getReferenceZoning(), servicesResult.first(), servicesResult.second());
     zoningReader.read();
 
     /* combined result */

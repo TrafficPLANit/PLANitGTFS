@@ -3,17 +3,10 @@ package org.goplanit.gtfs.test;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
-import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
-import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
-import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReader;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderFactory;
 import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderSettings;
-import org.goplanit.io.converter.service.PlanitRoutedServicesReader;
-import org.goplanit.io.converter.service.PlanitRoutedServicesReaderFactory;
-import org.goplanit.io.converter.service.PlanitServiceNetworkReader;
-import org.goplanit.io.converter.service.PlanitServiceNetworkReaderFactory;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
@@ -22,13 +15,9 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
-import org.goplanit.utils.mode.PredefinedMode;
-import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
-import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -39,9 +28,7 @@ import java.util.logging.Logger;
 
 import static org.goplanit.utils.mode.PredefinedModeType.*;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for Gtfs's API basic functionality
@@ -83,32 +70,6 @@ public class GtfsToPlanitTest {
   public static void tearDown() {
     Logging.closeLogger(LOGGER);
     IdGenerator.reset();
-  }
-
-  /**
-   * Test that attempts to supplement a PLANit network parsed from disk into memory with GTFS information through a PLANit GTFS converter/reader
-   */
-  @Test
-  public void testWithPlanitZoningReader() {
-
-    //TODO: needs work as we cannot do it this way anymore --> need to think about hwo to refactor
-    //      this and then setup test after we have some experience parsing various other files other than
-    //      just stops (we need other files to identify what modes a GTFS stop supports in order to match stops
-    //      to PLANit transfer zones using geographic closeness
-
-    try {
-      String GTFS_STOPS_FILE = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
-
-      /* augment zoning with GTFS */
-      final var gtfsReader = GtfsZoningReaderFactory.create(
-          new GtfsZoningReaderSettings(GTFS_STOPS_FILE, CountryNames.AUSTRALIA, macroscopicNetwork), zoning);
-      //gtfsReader.getSettings().setGtfsStopToTransferZoneSearchRadiusMeters(50);
-      gtfsReader.read();
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      Assert.fail();
-    }
   }
 
   /**
