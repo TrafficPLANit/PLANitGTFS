@@ -1,7 +1,6 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.zoning.Zoning;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,17 +8,17 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 /**
- * Track statistics across GTFS handlers
+ * Track statistics across GTFS services related handlers
  * 
  * @author markr
  *
  */
-public class GtfsHandlerProfiler {
+public class GtfsServicesHandlerProfiler {
 
   /**
    * The logger for this class
    */
-  private static final Logger LOGGER = Logger.getLogger(GtfsHandlerProfiler.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(GtfsServicesHandlerProfiler.class.getCanonicalName());
 
   /** track how many GTFS routes were processed by route type*/
   private Map<RouteType,LongAdder> gtfsRoutesCounter;
@@ -44,7 +43,7 @@ public class GtfsHandlerProfiler {
   /**
    * Default constructor
    */
-  public GtfsHandlerProfiler() {
+  public GtfsServicesHandlerProfiler() {
     initialise();
   }
 

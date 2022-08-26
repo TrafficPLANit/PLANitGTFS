@@ -1,21 +1,17 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
-import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
-import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneType;
-import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.index.quadtree.Quadtree;
-import org.opengis.referencing.operation.MathTransform;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.logging.Logger;
 
 /**
@@ -29,41 +25,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsPlanitFileHandlerStops.class.getCanonicalName());
 
-  /** profiler to use */
-  private final GtfsZoningHandlerProfiler profiler;
-
-  /** Track all registered/mapped transfer zones by their GTFS stop id */
-  private Map<String, TransferZone> transferZonesByGtfsStopId;
-
-  /** track all already mapped transfer zones to be able to identify duplicate matches if needed */
-  private Set<TransferZone> mappedTransferZones;
-
-  /** track existing transfer zones present geo spatially to be able to fuse with GTFS data when appropriate */
-  private Quadtree existingTransferZones;
-
-  /** geo tools with CRS based configuration to apply */
-  private PlanitJtsCrsUtils geoTools;
-
-  /** apply this transformation to all coordinates so they are consistent with the underlying PLANit entities */
-  private MathTransform crsTransform;
-
-  /** zoning to populate */
-  private final Zoning zoning;
-
-  /** settings containing configuration */
-  private final GtfsZoningReaderSettings settings;
-
-  /**
-   * Initialise this handler
-   */
-  private void initialise(){
-    this.transferZonesByGtfsStopId = new HashMap<>();
-    this.mappedTransferZones = new HashSet<>();
-
-    this.existingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
-    this.geoTools = new PlanitJtsCrsUtils(settings.getReferenceNetwork().getCoordinateReferenceSystem());
-    this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
-  }
+  /** data tracking during parsing */
+  private final GtfsZoningHandlerData data;
 
   /**
    * Find nearby zones based on a given search radius
@@ -72,43 +35,19 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @return found transfer zones around this location (in network CRS)
    */
   private Collection<TransferZone> findNearbyTransferZones(Point location, double pointSearchRadiusMeters) {
-    var searchEnvelope = geoTools.createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
-    searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, this.crsTransform);
-    return GeoContainerUtils.queryZoneQuadtree(this.existingTransferZones, searchEnvelope);
-  }
-
-  /**
-   * Check if transfer zone already has a mapped GTFS stop
-   * @param transferZone to check
-   * @return true when already mapped by GTFS stop, false otherwise
-   */
-  private boolean hasMappedGtfsStop(TransferZone transferZone) {
-    return mappedTransferZones.contains(transferZone);
-  }
-
-  /**
-   * Register transfer as mapped to a GTFS stop and index it by its GtfsStopId as well
-   * @param transferZone to check
-   * @return true when already mapped by GTFS stop, false otherwise
-   */
-  private void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
-    transferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
-    mappedTransferZones.add(transferZone);
+    var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
+    searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
+    return GeoContainerUtils.queryZoneQuadtree(data.getGeoIndexedTransferZones(), searchEnvelope);
   }
 
   /**
    * Constructor
    *
-   * @param zoningToPopulate the PLANit zoning instance to populate (further)
-   * @param settings to apply where needed
-   * @param profiler to use
+   * @param data all handler related data is provided, tracked via this instance
    */
-  public GtfsPlanitFileHandlerStops(final Zoning zoningToPopulate, final GtfsZoningReaderSettings settings, final GtfsZoningHandlerProfiler profiler) {
+  public GtfsPlanitFileHandlerStops(GtfsZoningHandlerData data) {
     super();
-    this.profiler = profiler;
-    this.zoning = zoningToPopulate;
-    this.settings = settings;
-    initialise();
+    this.data = data;
   }
 
   /**
@@ -148,6 +87,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     /* find closest existing transfer zone. Note we construct envelope of transfer zone and then take its midpoint as this is
     * more representative than taking the closest node within a geometry to the gtfs stop */
+    final var geoTools = data.getGeoTools();
     final var gtfsLocation = gtfsStop.getLocationAsPoint();
     final var allowCentroidGeometry = true;
     TransferZone closest = nearbyTransferZones.stream().min(
@@ -155,7 +95,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
                     gtfsLocation, tz.getGeometry(allowCentroidGeometry).getEnvelope().getCentroid()))).orElseThrow(
                       () -> new PlanItRunTimeException("Unable to locate closest transfer zone"));
 
-    if(hasMappedGtfsStop(closest)){
+    if(data.hasMappedGtfsStop(closest)){
       LOGGER.warning(String.format("PLANit transfer zone (%s) already mapped to GTFS stop, consider mapping explicitly, creating new Transfer zone instead for STOP_ID %s",closest.getXmlId(), gtfsStop.getStopId()));
       processNewStopPlatform(gtfsStop);
       return;
@@ -167,17 +107,17 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     }
 
     /* update tracking data */
-    registerMappedGtfsStop(gtfsStop, closest);
+    data.registerMappedGtfsStop(gtfsStop, closest);
 
     /* profile */
-    profiler.incrementAugmentedTransferZones();
+    data.getProfiler().incrementAugmentedTransferZones();
   }
 
 
   private void handleStopPlatform(GtfsStop gtfsStop) {
-    profiler.incrementCount(GtfsObjectType.STOP);
+    data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
-    Collection<TransferZone> nearbyTransferZones = findNearbyTransferZones(gtfsStop.getLocationAsPoint(), settings.getGtfsStopToTransferZoneSearchRadiusMeters());
+    Collection<TransferZone> nearbyTransferZones = findNearbyTransferZones(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters());
     if(nearbyTransferZones.isEmpty()){
        processNewStopPlatform(gtfsStop);
        return;

@@ -21,16 +21,16 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
   private static final Logger LOGGER = Logger.getLogger(GtfsPlanitFileHandlerTrips.class.getCanonicalName());
 
   /** track internal data used to efficiently handle the parsing */
-  private final GtfsFileHandlerData data;
+  private final GtfsServicesHandlerData data;
 
   /**
    * Constructor
    *
-   * @param gtfsFileHandlerData      containing all data to track and resources needed to perform the processing
+   * @param gtfsServicesHandlerData      containing all data to track and resources needed to perform the processing
    */
-  public GtfsPlanitFileHandlerTrips(final GtfsFileHandlerData gtfsFileHandlerData) {
+  public GtfsPlanitFileHandlerTrips(final GtfsServicesHandlerData gtfsServicesHandlerData) {
     super();
-    this.data = gtfsFileHandlerData;
+    this.data = gtfsServicesHandlerData;
 
     PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS trips");
     PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable toparse GTFS trips");

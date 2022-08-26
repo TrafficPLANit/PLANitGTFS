@@ -37,7 +37,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   private static final Logger LOGGER = Logger.getLogger(GtfsPlanitFileHandlerStopTimes.class.getCanonicalName());
 
   /** track internal data used to efficiently handle the parsing */
-  private final GtfsFileHandlerData data;
+  private final GtfsServicesHandlerData data;
 
   /** track previous entry's related GTFS trip - as for now we assume they will only be provided in consecutive order within the file,
    * If for a given GTFS file this is violated, we will need to have a more sophisticated way: either first parse all entries and then process in order
@@ -150,11 +150,11 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   /**
    * Constructor
    *
-   * @param gtfsFileHandlerData      containing all data to track and resources needed to perform the processing
+   * @param gtfsServicesHandlerData      containing all data to track and resources needed to perform the processing
    */
-  public GtfsPlanitFileHandlerStopTimes(final GtfsFileHandlerData gtfsFileHandlerData) {
+  public GtfsPlanitFileHandlerStopTimes(final GtfsServicesHandlerData gtfsServicesHandlerData) {
     super();
-    this.data = gtfsFileHandlerData;
+    this.data = gtfsServicesHandlerData;
 
     PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS stop times");
     PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS stop times");

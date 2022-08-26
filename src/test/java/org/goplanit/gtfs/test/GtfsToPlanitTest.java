@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.test;
 
+import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
@@ -20,6 +21,7 @@ import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedMode;
@@ -139,6 +141,30 @@ public class GtfsToPlanitTest {
       assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(5));
       assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(42));
       assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(1));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.fail();
+    }
+  }
+
+  /**
+   * Test that attempts to extract PLANit routed services, service network and zoning  from GTFS data
+   */
+  @Test
+  public void testGtfsIntermodalReader() {
+
+    try {
+      String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
+
+      var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, macroscopicNetwork, zoning, RouteTypeChoice.EXTENDED);
+      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork,RoutedServices> result = gtfsIntermodalReader.readWithServices();
+
+      var serviceNetwork = result.third();
+      var routedServices = result.fourth();
+
+      // todo: add assertions
 
     } catch (Exception e) {
       e.printStackTrace();

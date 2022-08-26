@@ -2,6 +2,7 @@ package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.converter.zoning.ZoningReader;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
+import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
@@ -9,6 +10,8 @@ import org.goplanit.gtfs.reader.GtfsFileReaderStops;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.ServiceNetwork;
+import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.zoning.Zoning;
@@ -32,7 +35,13 @@ public class GtfsZoningReader implements ZoningReader {
   private final GtfsZoningReaderSettings gtfsSettings;
 
   /** zoning to populate */
-  private Zoning zoning;
+  private final Zoning zoning;
+
+  /** Service network to use to improve matching of GTFS stops (optional)*/
+  private final ServiceNetwork serviceNetwork;
+
+  /** routed services to use to improve matching of GTFS stops (optional) */
+  private final RoutedServices routedServices;
 
   /**
    * Log some information about this reader's configuration
@@ -44,10 +53,9 @@ public class GtfsZoningReader implements ZoningReader {
   /**
    * perform final preparation before conducting parsing of OSM pt entities
    */
-  private void initialiseBeforeParsing() {
+  private GtfsZoningHandlerData initialiseBeforeParsing() {
 
-    //TODO: if data needs to be tracked do it via a data class someting like the below
-    //this.zoningReaderData = new GtfsZoningReaderData(getSettings().getCountryName());
+    var zoningHandlerData = new GtfsZoningHandlerData(getSettings(),zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
 
     //todo: spatially index all existing transfer zones
     //zoningReaderData.getPlanitData().initialiseSpatiallyIndexedLinks(getSettings().getReferenceNetwork());
@@ -58,6 +66,7 @@ public class GtfsZoningReader implements ZoningReader {
      * since it makes little sense to try and parse pt infrastructure outside of the network's geographically parsed area */
     //validateZoningBoundingPolygon();
 
+    return zoningHandlerData;
   }
 
   /**
@@ -65,12 +74,12 @@ public class GtfsZoningReader implements ZoningReader {
    * TODO: not done yet, because mapping to Planit entities is inadequate due to lack of mode information
    * TODO: ...to narrow down matches
    *
-   * @param profiler to use
+   * @param gtfsZoningHandlerData to use
    */
-  private void processStops(GtfsZoningHandlerProfiler profiler) {
+  private void processStops(GtfsZoningHandlerData gtfsZoningHandlerData) {
     LOGGER.info("Processing: mapping GTFS Stops...");
     /* PLANit specific handler */
-    var stopsHandler = new GtfsPlanitFileHandlerStops(this.zoning, getSettings(), profiler);
+    var stopsHandler = new GtfsPlanitFileHandlerStops(gtfsZoningHandlerData);
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each stop found */
     GtfsFileReaderStops stopsFileReader = (GtfsFileReaderStops) GtfsReaderFactory.createFileReader(
@@ -91,11 +100,11 @@ public class GtfsZoningReader implements ZoningReader {
     /**
      * Conduct main processing step of zoning reader given the information available from pre-processing
      *
-     * @param profiler to use
+     * @param zoningHandlerData to use
      */
-  private void doMainProcessing(GtfsZoningHandlerProfiler profiler) {
+  private void doMainProcessing(GtfsZoningHandlerData zoningHandlerData) {
     LOGGER.info("Processing: Identifying GTFS Stops, supplementing PLANit transfer zones memory model...");
-    processStops(profiler);
+    processStops(zoningHandlerData);
     LOGGER.info("Processing: GTFS stops Done");
   }
 
@@ -106,12 +115,11 @@ public class GtfsZoningReader implements ZoningReader {
    * @param zoningToPopulate zoning to populate
    */
   protected GtfsZoningReader(GtfsZoningReaderSettings settings, Zoning zoningToPopulate){
-    this.gtfsSettings = settings;
-    this.zoning = zoningToPopulate;
+    this(settings,zoningToPopulate, null, null);
   }
 
   /**
-   * Constructor. Requires user to set networkToZoning data manually afterwards
+   * Constructor.
    *
    * @param inputSource to parse from
    * @param countryName this zoning is used for
@@ -119,14 +127,29 @@ public class GtfsZoningReader implements ZoningReader {
    * @param referenceNetwork to use
    */
   protected GtfsZoningReader(String inputSource, String countryName, Zoning zoningToPopulate, MacroscopicNetwork referenceNetwork){
-    this.gtfsSettings = new GtfsZoningReaderSettings(inputSource, countryName, referenceNetwork);
-    this.zoning = zoningToPopulate;
+    this(new GtfsZoningReaderSettings(inputSource, countryName, referenceNetwork),zoningToPopulate);
   }
 
   /**
-   * Parse a local *.osm or *.osm.pbf file and convert it into a PLANit Zoning instance given the configuration options that have been set
+   * Constructor.
+   *
+   * @param settings to use
+   * @param zoningToPopulate zoning to populate
+   * @param serviceNetwork the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param routedServices the compatible PLANit routed services that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   */
+  protected GtfsZoningReader(GtfsZoningReaderSettings settings, Zoning zoningToPopulate, ServiceNetwork serviceNetwork, RoutedServices routedServices){
+    this.gtfsSettings = settings;
+    this.zoning = zoningToPopulate;
+    this.serviceNetwork = serviceNetwork;
+    this.routedServices = routedServices;
+  }
+
+  /**
+   * Parse a GTFS files and convert it into a PLANit Zoning instance, or supplement the transfer zones of an already existing instance
+   * given the configuration options that have been set
    * 
-   * @return macroscopic zoning that has been parsed
+   * @return macroscopic zoning that has been parsed or supplemented
    */
   @Override
   public Zoning read(){
@@ -135,16 +158,15 @@ public class GtfsZoningReader implements ZoningReader {
     PlanItRunTimeException.throwIfNull(getSettings().getReferenceNetwork(),"Reference network not available when parsing GTFS zoning, unable to proceed");
 
     /* prepare for parsing */
-    initialiseBeforeParsing();
-    
-    GtfsZoningHandlerProfiler handlerProfiler = new GtfsZoningHandlerProfiler();
+    var zoningHandlerData = initialiseBeforeParsing();
+
     logSettings();
 
     /* main processing  */
-    doMainProcessing(handlerProfiler);
+    doMainProcessing(zoningHandlerData);
 
     /* log stats */
-    handlerProfiler.logProcessingStats(zoning);
+    zoningHandlerData.getProfiler().logProcessingStats(zoning);
 
     /* return parsed/augmented zoning */
     return this.zoning;    

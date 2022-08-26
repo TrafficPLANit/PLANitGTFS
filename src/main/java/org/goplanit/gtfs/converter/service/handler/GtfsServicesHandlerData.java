@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.converter.service.handler;
 
-import org.goplanit.gtfs.converter.service.GtfsHandlerProfiler;
+import org.goplanit.gtfs.converter.service.GtfsServicesHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.entity.GtfsTrip;
@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Track data used during handling/parsing of GTFS routes
  */
-public class GtfsFileHandlerData {
+public class GtfsServicesHandlerData {
 
   // EXOGENOUS DATA TRACKING/SETTINGS
 
@@ -25,7 +25,7 @@ public class GtfsFileHandlerData {
   private final GtfsServicesReaderSettings settings;
 
   /** profiler stats to update across applying of various handlers that use this data instance */
-  private final GtfsHandlerProfiler handlerProfiler;
+  private final GtfsServicesHandlerProfiler handlerProfiler;
 
   // LOCAL DATA TRACKING
 
@@ -84,7 +84,7 @@ public class GtfsFileHandlerData {
    * @param routedServices to use
    * @param handlerProfiler to use
    */
-  public GtfsFileHandlerData(final GtfsServicesReaderSettings settings, final ServiceNetwork serviceNetwork, final RoutedServices routedServices, final GtfsHandlerProfiler handlerProfiler){
+  public GtfsServicesHandlerData(final GtfsServicesReaderSettings settings, final ServiceNetwork serviceNetwork, final RoutedServices routedServices, final GtfsServicesHandlerProfiler handlerProfiler){
     this.serviceNetwork = serviceNetwork;
     this.routedServices = routedServices;
     this.settings = settings;
@@ -227,7 +227,7 @@ public class GtfsFileHandlerData {
    *
    * @return profiler
    */
-  public GtfsHandlerProfiler getProfiler() {
+  public GtfsServicesHandlerProfiler getProfiler() {
     return handlerProfiler;
   }
 

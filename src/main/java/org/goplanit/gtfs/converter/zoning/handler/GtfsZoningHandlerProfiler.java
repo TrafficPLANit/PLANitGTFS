@@ -2,6 +2,7 @@ package org.goplanit.gtfs.converter.zoning.handler;
 
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.zoning.Zoning;
 
@@ -60,9 +61,7 @@ public class GtfsZoningHandlerProfiler {
     });
 
     /* GTFS -> transfer zones */
-    LOGGER.info(String.format("[STATS] created %d PLANit new transfer zones from GTFS stops",this.transferZoneCounterPair.first().longValue()));
-    LOGGER.info(String.format("[STATS] augmented %d PLANit transfer zones with GTFS stops",this.transferZoneCounterPair.second().longValue()));
-    LOGGER.info(String.format("[STATS] total %d PLANit transfer zones",zoning.getTransferZones().size()));
+    zoning.logInfo(LoggingUtils.zoningPrefix(zoning.getId()).concat("[STATS]"));
   }
 
   /**

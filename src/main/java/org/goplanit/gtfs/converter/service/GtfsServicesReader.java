@@ -1,7 +1,7 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.MultiConverterReader;
-import org.goplanit.gtfs.converter.service.handler.GtfsFileHandlerData;
+import org.goplanit.gtfs.converter.service.handler.GtfsServicesHandlerData;
 import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerRoutes;
 import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerStopTimes;
 import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerTrips;
@@ -15,6 +15,7 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.*;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.StringUtils;
 
@@ -46,7 +47,7 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    *
    * @return file handler data to track required data across the various GTFS PLANit file handlers
    */
-  private GtfsFileHandlerData initialiseBeforeParsing() {
+  private GtfsServicesHandlerData initialiseBeforeParsing() {
     var serviceNetwork = new ServiceNetwork(idToken, settings.getReferenceNetwork());
     var routedServices = new RoutedServices(idToken, serviceNetwork);
 
@@ -61,10 +62,10 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
     serviceNetwork.getTransportLayers().forEach(parentLayer -> routedServices.getLayers().getFactory().registerNew(parentLayer));
 
     /* profiler to use */
-    GtfsHandlerProfiler handlerProfiler = new GtfsHandlerProfiler();
+    GtfsServicesHandlerProfiler handlerProfiler = new GtfsServicesHandlerProfiler();
 
     /** provide access to the service network and routed services via the file handler data tracking used throughout the parsing process */
-    return new GtfsFileHandlerData(getSettings(), serviceNetwork, routedServices, handlerProfiler);
+    return new GtfsServicesHandlerData(getSettings(), serviceNetwork, routedServices, handlerProfiler);
   }
 
   /**
@@ -79,7 +80,7 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    *
    * @param fileHandlerData to use
    */
-  private void processFrequencies(GtfsFileHandlerData fileHandlerData) {
+  private void processFrequencies(GtfsServicesHandlerData fileHandlerData) {
     //todo: not yet implemented
   }
 
@@ -88,7 +89,7 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    *
    * @param fileHandlerData to use
    */
-  private void processStopTimes(GtfsFileHandlerData fileHandlerData) {
+  private void processStopTimes(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS trip stop times...");
 
     /** handler that will process individual trip stop times upon ingesting */
@@ -108,7 +109,7 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    *
    * @param fileHandlerData to use
    */
-  private void processTrips(GtfsFileHandlerData fileHandlerData) {
+  private void processTrips(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS trips...");
 
     /** handler that will process individual trips upon ingesting */
@@ -129,7 +130,7 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    *
    * @param fileHandlerData containing all data to track and resources needed to perform the processing
    */
-  private void processRoutes(GtfsFileHandlerData fileHandlerData) {
+  private void processRoutes(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS Routes...");
 
     /** handler that will process individual routes upon ingesting */
@@ -147,10 +148,10 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
   /**
    * Log some stats on the now available PLANit entities in memory
    */
-  private void logPlanitStats(GtfsFileHandlerData fileHandlerData) {
+  private void logPlanitStats(GtfsServicesHandlerData fileHandlerData) {
 
-    fileHandlerData.getServiceNetwork().logInfo();
-    fileHandlerData.getRoutedServices().logInfo();
+    fileHandlerData.getServiceNetwork().logInfo(LoggingUtils.serviceNetworkPrefix(fileHandlerData.getServiceNetwork().getId()));
+    fileHandlerData.getRoutedServices().logInfo(LoggingUtils.routedServicesPrefix(fileHandlerData.getRoutedServices().getId()));
 
   }
 
@@ -159,7 +160,7 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
    *
    * @param fileHandlerData containing all data to track and resources needed to perform the processing
    */
-  protected void doMainProcessing(GtfsFileHandlerData fileHandlerData) {
+  protected void doMainProcessing(GtfsServicesHandlerData fileHandlerData) {
 
     LOGGER.info("Processing: Identifying GTFS services, populating PLANit memory model...");
 
