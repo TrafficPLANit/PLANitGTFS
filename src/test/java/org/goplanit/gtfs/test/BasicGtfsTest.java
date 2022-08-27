@@ -20,6 +20,7 @@ import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.junit.*;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
@@ -35,7 +36,7 @@ public class BasicGtfsTest {
 
   private static Logger LOGGER;
 
-  public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQ_GTFS.zip").toString();
+  public static final Path GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQGTFS.zip");
 
   @BeforeClass
   public static void setUp() throws Exception {
@@ -57,7 +58,7 @@ public class BasicGtfsTest {
   public void testDefaultGtfsReader() {
            
     try {
-      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(ResourceUtils.getResourceUrl(GTFS_SEQ_ALL));
+      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(GTFS_SEQ_ALL.toUri().toURL());
       
       /* register all possible handlers where we note that reader is returned when handler is registered*/
       @SuppressWarnings("unused")
@@ -97,7 +98,7 @@ public class BasicGtfsTest {
       GtfsFileHandlerTripsTest tripsHandler = new GtfsFileHandlerTripsTest();
       
       GtfsFileReaderTrips tripsFileReader  =(GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
-          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), ResourceUtils.getResourceUri(GTFS_SEQ_ALL).toURL());
+          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), GTFS_SEQ_ALL.toUri().toURL());
       tripsFileReader.addHandler(tripsHandler);
       
       tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);

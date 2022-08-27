@@ -40,9 +40,9 @@ public class GtfsToPlanitTest {
 
   private static Logger LOGGER;
 
-  public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQ_GTFS.zip").toString();
+  public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQGTFS.zip").toString();
 
-  public static final String GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greater_sydney_gtfs_static_no_shapes.zip").toString();
+  public static final String GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greatersydneygtfsstaticnoshapes.zip").toString();
 
   public static MacroscopicNetwork macroscopicNetwork;
 

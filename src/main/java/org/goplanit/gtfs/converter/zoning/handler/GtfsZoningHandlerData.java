@@ -7,6 +7,7 @@ import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.misc.CustomIndexTracker;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.index.quadtree.Quadtree;
@@ -69,6 +70,7 @@ public class GtfsZoningHandlerData {
     this.existingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
     this.geoTools = new PlanitJtsCrsUtils(getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
     this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
+
   }
 
   /**
