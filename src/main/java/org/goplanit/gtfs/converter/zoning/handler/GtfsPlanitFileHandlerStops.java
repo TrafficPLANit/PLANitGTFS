@@ -6,12 +6,17 @@ import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneType;
+import org.goplanit.utils.zoning.Zone;
 import org.locationtech.jts.geom.Point;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -69,17 +74,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     PlanItRunTimeException.throwIfNull(gtfsStop,"GTFS stop null, this is not allowed");
     PlanItRunTimeException.throwIfNullOrEmpty(nearbyTransferZones,"No nearby transfer zones provided, this is not allowed");
 
-
-    //TODO: GTFS-stops implicit mode support cannot be obtained from the GtfsStop itself, it is obtained from the
-    //      routes passing by. However, it is needed in order to properly match the the stops to transfer zones because
-    //      transfer zones may reside on top of one another (Wynyard) and we lack information on platform references to do this
-    //      by name alone. Proposal: First do a pass where we collect the
-    //
-    //      To obtain the modes for transfer zone we need to look at the connectoids. Currently these are
-    //      not accessible from the transfer zones themselves. Proposal: create transport network that should create the
-    //      mapping from zoning to network, or alternatively do some pre-processing as connectoids od have references to the
-    //      transfer zones.
-
     if(gtfsStop.hasPlatformCode()){
       /* remove all transfer zones that are not platform like, e.g. bus poles */
       nearbyTransferZones.removeIf( tz -> tz.getTransferZoneType()==TransferZoneType.POLE);
@@ -114,10 +108,30 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
 
+  /**
+   * Process GTFS stop which is a platform and convert it to a PLANit transfer zone given it has a valid and mapped PLANit mode
+   *
+   * @param gtfsStop to handle
+   */
   private void handleStopPlatform(GtfsStop gtfsStop) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
+    /* mapped PLANit mode available */
+    Mode mode = data.getGtfsStopMode(gtfsStop.getStopId());
+    if(mode == null){
+      return;
+    }
+
+    /* spatially select possible existing transfer zone matches */
     Collection<TransferZone> nearbyTransferZones = findNearbyTransferZones(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters());
+    /* only retain transfer zones supporting the stop's mode */
+
+    //todo -> implement this on directed connectoids implementation -> then move this to data to avoid redoing it continuously
+    //        then use it to identify the connectoids for the zones and only retain those with at least one connectoids supporting the mode
+    Map<Zone, Set<DirectedConnectoid>> indexByTransferZone = data.getZoning().getTransferConnectoids().createIndexByAccessZone();
+
+    nearbyTransferZones.removeIf( tz -> !data.getZoning().getTransferConnectoids().getFirst().getExplicitlyAllowedModes(tz).contains(mode));
+
     if(nearbyTransferZones.isEmpty()){
        processNewStopPlatform(gtfsStop);
        return;

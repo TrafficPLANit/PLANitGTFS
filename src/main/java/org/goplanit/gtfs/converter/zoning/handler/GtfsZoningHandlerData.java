@@ -3,11 +3,17 @@ package org.goplanit.gtfs.converter.zoning.handler;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.service.routed.RoutedServiceTripInfo;
 import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.service.routed.RoutedTripsFrequency;
+import org.goplanit.service.routed.RoutedTripsSchedule;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.misc.CustomIndexTracker;
+import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.index.quadtree.Quadtree;
@@ -17,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Track data used during handling/parsing of GTFS Stops which end up being converted into PLANit transfer zones
@@ -38,9 +46,21 @@ public class GtfsZoningHandlerData {
   /** profiler stats to update across applying of various zoning handlers that use this data instance */
   private final GtfsZoningHandlerProfiler handlerProfiler;
 
+  // PRE-EXISTING DATA TRACKING
+
+  /** track pre-existing service nodes by their external id, which is assumed to align with the GTFS STOP ID populated during
+   * parsing of the service network and routed services */
+  private HashMap<String, ServiceNode> serviceNodeByExternalId;
+
+  /** track the mapping of routed services their trips and stops (by GTFS STOP ID obtained from service node external ids) to a
+   * PLANit mode so we can quickly lookup what mode a stop supports to improve the matching process */
+  private HashMap<String,Mode> modeByGtfsStopId;
+
   // LOCAL DATA TRACKING
 
-  /** Track all registered/mapped transfer zones by their GTFS stop id */
+  /** Track all registered/mapped transfer zones by their GTFS stop id. Note that in GTFS their is no distinction between
+   * where pt vehicles stop and where people transfer generally, so both service nodes and transfer zone will have a GTFS_STOP_ID
+   * as (part of) their external id */
   private Map<String, TransferZone> transferZonesByGtfsStopId;
 
   /** track all already mapped transfer zones to be able to identify duplicate matches if needed */
@@ -61,17 +81,71 @@ public class GtfsZoningHandlerData {
   final Zoning zoning;
 
   /**
+   * Initialise the local trackers that have no pre-existing information
+   */
+  private void initialiseEmptyTrackers() {
+    this.transferZonesByGtfsStopId = new HashMap<>();
+    this.mappedTransferZonesToGtfsStop = new HashSet<>();
+  }
+
+  /**
+   * Initialise GIS based members and indices
+   */
+  private void initialiseGeoData() {
+    this.geoTools = new PlanitJtsCrsUtils(getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
+    this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
+    this.existingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
+  }
+
+  /**
+   * Initialise indices from the Gtfs based service network and routed services that were populated in the GTFSServicesReader
+   * to be used during parsing of transfer zones, i.e., GTFS stops here as well.
+   */
+  private void initialiseGtfsServicesIndices() {
+    /* to be initialised indices */
+    this.serviceNodeByExternalId = new HashMap<>();
+    this.modeByGtfsStopId = new HashMap<>();
+
+    /* function pair to collect from service's trip info its frequency based trips or schedule based trips */
+    Pair<Function<RoutedServiceTripInfo, RoutedTripsFrequency>, Function<RoutedServiceTripInfo, RoutedTripsSchedule>> functionPair
+            = Pair.of((RoutedServiceTripInfo ti) -> ti.getFrequencyBasedTrips(), (RoutedServiceTripInfo ti) -> ti.getScheduleBasedTrips());
+
+    /* function to extract service nodes from service leg segments and place them in map by external id +
+    * index the stop for the mode it supports */
+    BiConsumer<ServiceLegSegment, Mode> indexLegSegmentServiceNodes = (sl, mode) -> {
+      // todo -> mapping of serviceNodeByExternalId not yet used, consider removing if this remains
+      serviceNodeByExternalId.put(sl.getUpstreamServiceNode().getExternalId(),sl.getUpstreamServiceNode());
+      serviceNodeByExternalId.put(sl.getDownstreamServiceNode().getExternalId(),sl.getDownstreamServiceNode());
+      /* GTFS STOP ID --> mode mapping (based on external id) */
+      modeByGtfsStopId.put(sl.getUpstreamServiceNode().getExternalId(), mode);
+      modeByGtfsStopId.put(sl.getDownstreamServiceNode().getExternalId(), mode);
+    };
+
+    /* for all layers of routed services' their scheduled and frequency based trips, extract their service nodes' external ids, i.e.,
+     * their GTFS stop id's gather during the parsing of the GTFS network. */
+    for(var layer :routedServices.getLayers()){
+      for(var mode : layer.getSupportedModes()){
+        for( var service : layer.getServicesByMode(mode)){
+          /* frequency based extraction of leg segment's service nodes to index */
+          functionPair.first().apply(service.getTripInfo()).forEach(
+                  tf -> tf.forEach( serviceLegSegment -> indexLegSegmentServiceNodes.accept(serviceLegSegment, mode)));
+          /* schedule based extraction of relative leg timing's leg segment's service nodes to index */
+          functionPair.second().apply(service.getTripInfo()).forEach(
+                  sf -> sf.forEach( relLegTiming -> indexLegSegmentServiceNodes.accept(relLegTiming.getParentLegSegment(), mode)));
+        }
+      }
+    }
+  }
+
+  /**
    * Initialise the tracking of data
    */
   private void initialise(){
-    this.transferZonesByGtfsStopId = new HashMap<>();
-    this.mappedTransferZonesToGtfsStop = new HashSet<>();
-
-    this.existingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
-    this.geoTools = new PlanitJtsCrsUtils(getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
-    this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
-
+    initialiseEmptyTrackers();
+    initialiseGeoData();
+    initialiseGtfsServicesIndices();
   }
+
 
   /**
    * Constructor
@@ -175,5 +249,15 @@ public class GtfsZoningHandlerData {
    */
   public Quadtree getGeoIndexedTransferZones() {
     return this.existingTransferZones;
+  }
+
+  /**
+   * Mode that goes with the given GTFS STOP ID (if any)
+   *
+   * @param gtfsStopId to collect for
+   * @return found PLANit mode
+   */
+  public Mode getGtfsStopMode(String gtfsStopId) {
+    return this.modeByGtfsStopId.get(gtfsStopId);
   }
 }
