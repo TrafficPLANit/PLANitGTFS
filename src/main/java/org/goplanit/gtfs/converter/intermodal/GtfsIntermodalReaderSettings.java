@@ -9,7 +9,10 @@ import org.goplanit.io.converter.zoning.PlanitZoningReaderSettings;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.id.ManagedIdEntityFactory;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.zoning.Zoning;
+
+import java.util.function.Function;
 
 /**
  * Settings of GtfsIntermodalReader
@@ -37,7 +40,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    */
   public GtfsIntermodalReaderSettings(String inputSource, String countryName, final MacroscopicNetwork parentNetwork, Zoning zoningtoPopulate, RouteTypeChoice routeTypeChoice) {
     this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, parentNetwork, routeTypeChoice);
-    this.zoningSettings = new GtfsZoningReaderSettings(inputSource, countryName, parentNetwork);
+    this.zoningSettings = new GtfsZoningReaderSettings(inputSource, countryName, parentNetwork, servicesReaderSettings);
     this.zoningtoPopulate = zoningtoPopulate;
   }
 

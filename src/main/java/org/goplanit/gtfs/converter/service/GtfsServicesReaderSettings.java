@@ -8,8 +8,10 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -27,11 +29,45 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
   /** Indicates what route types are applied, e.g. the default or the extended */
   private final RouteTypeChoice routeTypeChoice;
 
+  /* configure how to obtain GTFS_STOP_IDs from PLANit service nodes */
+  private static final Function<ServiceNode, String> GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION = sn -> sn.getExternalId();
+
   /** Default mapping (specific to this (services) network) from each supported GTFS mode to an available PLANit mode. Not each mapping is necessarily activated.*/
   private  final Map<RouteType, Mode> defaultGtfsMode2PlanitModeMap= new HashMap<>();
 
   /** Activated GTFS modes. Not all possible mappings might be activated for parsing. */
   private  final Set<RouteType> activatedGtfsModes = new HashSet<>();
+
+
+  /**
+   * Provides access to how GTFS STOP IDS can be extracted from service nodes when service nodes are created using these settings
+   *
+   * @return function that maps service node to its GTFS_STOP_ID
+   */
+  public static Function<ServiceNode, String> getServiceNodeToGtfsStopIdMapping(){
+    return GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION;
+  }
+
+  /**
+   * Conduct general initialisation for any instance of this class
+   *
+   * @param planitModes to populate based on (default) mapping
+   */
+  protected void initialise(Modes planitModes) {
+    switch (routeTypeChoice){
+      case EXTENDED:
+        RouteTypeExtendedToPlanitModeMappingCreator.execute(this, planitModes);
+      case ORIGINAL:
+        RouteTypeOriginalToPlanitModeMappingCreator.execute(this, planitModes);
+        break;
+      default:
+        throw new PlanItRunTimeException("Unsupported GTFS route type choice encountered");
+    }
+
+    /* ensure external id is set based on GTFS mode */
+    getAcivatedGtfsModes().forEach( (gtfsMode) -> addToModeExternalId(getPlanitModeIfActivated(gtfsMode), gtfsMode));
+  }
+
 
   /** add GTFS type Id to PLANit mode external id (in case multiple GTFS modes are mapped to the same PLANit mode)
    * @param planitMode to update external id for
@@ -72,51 +108,6 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
       }
     }
   }
-
-  /**
-   * Conduct general initialisation for any instance of this class
-   *
-   * @param planitModes to populate based on (default) mapping
-   */
-  protected void initialise(Modes planitModes) {
-    switch (getRouteTypeChoice()){
-      case EXTENDED:
-        //TODO: implement the below execute to continue
-        RouteTypeExtendedToPlanitModeMappingCreator.execute(this, planitModes);
-      case ORIGINAL:
-        RouteTypeOriginalToPlanitModeMappingCreator.execute(this, planitModes);
-        break;
-      default:
-        throw new PlanItRunTimeException("Unsupported GTFS route type choice encountered");
-    }
-
-    /* ensure external id is set based on GTFS mode */
-    getAcivatedGtfsModes().forEach( (gtfsMode) -> addToModeExternalId(getPlanitModeIfActivated(gtfsMode), gtfsMode));
-  }
-
-
-  /** Constructor with user defined source locale
-   *
-   * @param inputSource to use
-   * @param countryName to base source locale on
-   * @param routeTypeChoice to apply
-   * @param parentNetwork to use
-   */
-  public GtfsServicesReaderSettings(String inputSource, String countryName, final MacroscopicNetwork parentNetwork, RouteTypeChoice routeTypeChoice) {
-    super(inputSource, countryName, parentNetwork);
-    this.routeTypeChoice = routeTypeChoice;
-    initialise(parentNetwork.getModes());
-  }
-
-  /**
-   * The route type choice used for identifying the GTFS route modes and mapping them to PLANit modes
-   * @return chosen route type choice
-   */
-  public RouteTypeChoice getRouteTypeChoice(){
-    return this.routeTypeChoice;
-  }
-
-  /* modes */
 
   /** Set mapping from GTFS mode to PLANit mode
    * @param gtfsRouteType to map from
@@ -160,6 +151,22 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
     activateGtfsRouteTypeMode(gtfsMode);
     addToModeExternalId(planitMode,gtfsMode);
   }
+
+
+  /** Constructor with user defined source locale
+   *
+   * @param inputSource to use
+   * @param countryName to base source locale on
+   * @param routeTypeChoice to apply
+   * @param parentNetwork to use
+   */
+  public GtfsServicesReaderSettings(String inputSource, String countryName, final MacroscopicNetwork parentNetwork, RouteTypeChoice routeTypeChoice) {
+    super(inputSource, countryName, parentNetwork);
+    this.routeTypeChoice = routeTypeChoice;
+    initialise(parentNetwork.getModes());
+  }
+
+  /* modes */
 
   /** Deactivate an OSM mode. This means that the osmMode will not be added to the PLANit network
    * You can only remove a mode when it is already added.
@@ -234,6 +241,22 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
   }
 
   /**
+   * Currently activated mapped PLANit modes
+   * @return activated, i.e., mapped PLANit modes
+   */
+  public Set<Mode> getAcivatedPlanitModes() {
+    return activatedGtfsModes.stream().map(gtfsMode -> defaultGtfsMode2PlanitModeMap.get(gtfsMode)).collect(Collectors.toSet());
+  }
+
+  /**
+   * The route type choice used for identifying the GTFS route modes and mapping them to PLANit modes
+   * @return chosen route type choice
+   */
+  public RouteTypeChoice getRouteTypeChoice(){
+    return this.routeTypeChoice;
+  }
+
+  /**
    * Log settings used
    */
   public void log() {
@@ -251,11 +274,4 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings impl
     }
   }
 
-  /**
-   * Currently activated mapped PLANit modes
-   * @return activated, i.e., mapped PLANit modes
-   */
-  public Set<Mode> getAcivatedPlanitModes() {
-    return activatedGtfsModes.stream().map(gtfsMode -> defaultGtfsMode2PlanitModeMap.get(gtfsMode)).collect(Collectors.toSet());
-  }
 }

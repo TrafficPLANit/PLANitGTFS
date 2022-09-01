@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.service;
 
+import org.goplanit.converter.ConverterReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
@@ -27,7 +28,7 @@ import org.goplanit.utils.mode.PredefinedModeType;
  * </ul>
  *
  */
-public class RouteTypeOriginalToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
+public class RouteTypeOriginalToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator {
 
   /**
    * Perform and populate mapping in provided settings

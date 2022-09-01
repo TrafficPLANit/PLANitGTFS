@@ -121,18 +121,6 @@ public class GtfsZoningReader implements ZoningReader {
   /**
    * Constructor.
    *
-   * @param inputSource to parse from
-   * @param countryName this zoning is used for
-   * @param zoningToPopulate zoning to populate
-   * @param referenceNetwork to use
-   */
-  protected GtfsZoningReader(String inputSource, String countryName, Zoning zoningToPopulate, MacroscopicNetwork referenceNetwork){
-    this(new GtfsZoningReaderSettings(inputSource, countryName, referenceNetwork),zoningToPopulate);
-  }
-
-  /**
-   * Constructor.
-   *
    * @param settings to use
    * @param zoningToPopulate zoning to populate
    * @param serviceNetwork the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use

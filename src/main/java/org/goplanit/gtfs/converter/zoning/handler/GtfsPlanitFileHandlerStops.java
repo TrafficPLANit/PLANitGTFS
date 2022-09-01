@@ -6,6 +6,7 @@ import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneType;
 import org.locationtech.jts.geom.Point;
@@ -63,23 +64,18 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * Process a GTFS stop that could be matched to nearby existing transfer zone(s). It will trigger the
    * augmenting the most suitable existing transfer zone with the GTFS stop information
    *
-   * @param gtfsStop to create new TransferZone for
+   * @param gtfsStop      to create new TransferZone for
    */
   private void processExistingStopPlatform(final GtfsStop gtfsStop, final Collection<TransferZone> nearbyTransferZones) {
     PlanItRunTimeException.throwIfNull(gtfsStop,"GTFS stop null, this is not allowed");
     PlanItRunTimeException.throwIfNullOrEmpty(nearbyTransferZones,"No nearby transfer zones provided, this is not allowed");
 
+    final Mode gtfsStopMode = data.getSupportedPtMode(gtfsStop);
 
-    //TODO: GTFS-stops implicit mode support cannot be obtained from the GtfsStop itself, it is obtained from the
-    //      routes passing by. However, it is needed in order to properly match the the stops to transfer zones because
-    //      transfer zones may reside on top of one another (Wynyard) and we lack information on platform references to do this
-    //      by name alone. Proposal: First do a pass where we collect the
-    //
-    //      To obtain the modes for transfer zone we need to look at the connectoids. Currently these are
-    //      not accessible from the transfer zones themselves. Proposal: create transport network that should create the
-    //      mapping from zoning to network, or alternatively do some pre-processing as connectoids od have references to the
-    //      transfer zones.
+    /* remove nearby zones that are not mode compatible */
+    nearbyTransferZones.removeIf( tz -> !data.getSupportedPtModes(tz).contains(data.getSupportedPtMode(gtfsStop)));
 
+    /* platform codes should only be present when platform is part of a station */
     if(gtfsStop.hasPlatformCode()){
       /* remove all transfer zones that are not platform like, e.g. bus poles */
       nearbyTransferZones.removeIf( tz -> tz.getTransferZoneType()==TransferZoneType.POLE);
@@ -96,7 +92,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
                       () -> new PlanItRunTimeException("Unable to locate closest transfer zone"));
 
     if(data.hasMappedGtfsStop(closest)){
-      LOGGER.warning(String.format("PLANit transfer zone (%s) already mapped to GTFS stop, consider mapping explicitly, creating new Transfer zone instead for STOP_ID %s",closest.getXmlId(), gtfsStop.getStopId()));
+      var splitExternalId = closest.getSplitExternalId();
+      LOGGER.warning(String.format("PLANit transfer zone (%s) already mapped to GTFS stop (%s), consider mapping explicitly, creating new Transfer zone instead for STOP_ID %s",closest.getXmlId(), splitExternalId[splitExternalId.length-1],gtfsStop.getStopId()));
       processNewStopPlatform(gtfsStop);
       return;
     }
@@ -109,6 +106,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     /* update tracking data */
     data.registerMappedGtfsStop(gtfsStop, closest);
 
+    //todo -> now either use the existing mapping to the physical network to update the reference on the service node of the stop
+    //        or alternatively if there is no mapping yet create the mapping (isolate the OSM code that does this, make it generic and reuse it)
+
     /* profile */
     data.getProfiler().incrementAugmentedTransferZones();
   }
@@ -118,6 +118,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
     Collection<TransferZone> nearbyTransferZones = findNearbyTransferZones(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters());
+
     if(nearbyTransferZones.isEmpty()){
        processNewStopPlatform(gtfsStop);
        return;

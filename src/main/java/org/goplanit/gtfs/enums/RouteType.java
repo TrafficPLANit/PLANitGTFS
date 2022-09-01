@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  *   <li>MONO_RAIL (12)     - Monorail. Railway in which the track consists of a single rail or a beam.</li>
  * </ul>
  *
- * Further, it also contains the extended route types as well. This allwos us to just use a single enum and given that the numbering does not overlap this is possible.
+ * Further, it also contains the extended route types as well. This allows to just use a single enum and given that the numbering does not overlap this is possible.
  * The extended Route types are:
  *
  * <ul>

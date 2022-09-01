@@ -1,10 +1,11 @@
 package org.goplanit.gtfs.converter.zoning;
 
-import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.zoning.Zoning;
+
+import java.util.function.Function;
 
 /**
  * Factory for creating PLANitGTFS zoning (public transport infrastructure) Readers. GTFS zoning data, e.g. stops converted to PLANit transfer zone, require the
@@ -25,13 +26,17 @@ public class GtfsZoningReaderFactory {
    * This mode is obtained from the GTFS services parsed earlier and available in the Service network and Routed Services, while the OSM stops are part of
    * the Zoning. In that case this factory method is the best choice to fuse the two together.
    *
-   * @param settings to use, containing the physical reference network and reference to source file and other configuration settings
-   * @param zoningToPopulate the zoning to populate further beyond the already partially populated transfer zones
-   * @param serviceNetwork the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
-   * @param routedServices the compatible PLANit routed services that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param settings                 to use, containing the physical reference network and reference to source file and other configuration settings
+   * @param zoningToPopulate         the zoning to populate further beyond the already partially populated transfer zones
+   * @param serviceNetwork           the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param routedServices           the compatible PLANit routed services that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
    * @return zoning reader to use for parsing
    */
-  public static GtfsZoningReader create(GtfsZoningReaderSettings settings, Zoning zoningToPopulate, ServiceNetwork serviceNetwork, RoutedServices routedServices) {
+  public static GtfsZoningReader create(
+      GtfsZoningReaderSettings settings,
+      Zoning zoningToPopulate,
+      ServiceNetwork serviceNetwork,
+      RoutedServices routedServices) {
     return new GtfsZoningReader(settings, zoningToPopulate, serviceNetwork, routedServices);
   }
 }

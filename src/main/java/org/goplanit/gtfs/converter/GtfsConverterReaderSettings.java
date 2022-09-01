@@ -1,9 +1,16 @@
 package org.goplanit.gtfs.converter;
 
 import org.goplanit.converter.ConverterReaderSettings;
+import org.goplanit.gtfs.enums.RouteType;
+import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.Modes;
 
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Capture all common user configurable settings regarding GTFS converter readers for raw (static) GTFS feeds. To be
@@ -31,7 +38,7 @@ public class GtfsConverterReaderSettings implements ConverterReaderSettings {
    * @param countryName to base source locale on
    */
   public GtfsConverterReaderSettings(String countryName) {
-    this(null, countryName,null);
+    this(null, countryName);
   }
 
   /** Constructor with user defined source locale

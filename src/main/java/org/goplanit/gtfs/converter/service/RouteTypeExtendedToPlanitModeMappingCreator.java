@@ -4,7 +4,9 @@ import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Each eligible GTFS extended Route type is mapped to a PLANit mode through this dedicated mapping class so that the memory model's modes
@@ -28,7 +30,7 @@ import java.util.*;
  * </ul>
  *
  */
-public class RouteTypeExtendedToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator{
+public class RouteTypeExtendedToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator {
 
   /**
    * Perform and populate mapping in provided settings

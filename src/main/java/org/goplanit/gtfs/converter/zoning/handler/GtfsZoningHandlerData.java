@@ -4,19 +4,20 @@ import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.misc.CustomIndexTracker;
+import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.index.quadtree.Quadtree;
 import org.opengis.referencing.operation.MathTransform;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Track data used during handling/parsing of GTFS Stops which end up being converted into PLANit transfer zones
@@ -28,7 +29,6 @@ public class GtfsZoningHandlerData {
   /** settings to make available */
   private final GtfsZoningReaderSettings settings;
 
-
   /** service network to utilise */
   final ServiceNetwork serviceNetwork;
 
@@ -38,13 +38,18 @@ public class GtfsZoningHandlerData {
   /** profiler stats to update across applying of various zoning handlers that use this data instance */
   private final GtfsZoningHandlerProfiler handlerProfiler;
 
+  /** All pre-existing service nodes and the modes this node supports by means of the routed services that visit id by their GTFS stop id.
+   * Note that service nodes might reside in a layer supporting many modes, while the service node itself only covers a few routed services with a subset
+   * of modes, therefore we identify those separately for better matching results when mapping service nodes/stops to GTFS STOPS here*/
+  private Map<String, Pair<ServiceNode, Mode>> serviceNodeAndModeByGtfsStopId;
+
   // LOCAL DATA TRACKING
 
   /** Track all registered/mapped transfer zones by their GTFS stop id */
   private Map<String, TransferZone> transferZonesByGtfsStopId;
 
-  /** track all already mapped transfer zones to be able to identify duplicate matches if needed */
-  private Set<TransferZone> mappedTransferZonesToGtfsStop;
+  /** track all supported pt service modes for (partly pre-existing) PLANit transfer zones that have and are to be created */
+  private Map<TransferZone,Set<Mode>> transferZonePtServiceModes;
 
   /** track existing transfer zones present geo spatially to be able to fuse with GTFS data when appropriate */
   private Quadtree existingTransferZones;
@@ -60,16 +65,65 @@ public class GtfsZoningHandlerData {
   /** Zoning to populate (further) */
   final Zoning zoning;
 
+  /** Update registered modes on transfer zone
+   *
+   * @param transferZone to update for
+   * @param allowedModes to add
+   */
+  private void registerModesOnTransferZone(TransferZone transferZone, Set<Mode> allowedModes) {
+    transferZonePtServiceModes.putIfAbsent(transferZone, new HashSet<>());
+    var supportedModes = transferZonePtServiceModes.get(transferZone);
+    supportedModes.addAll(allowedModes);
+  }
+
   /**
    * Initialise the tracking of data
    */
   private void initialise(){
     this.transferZonesByGtfsStopId = new HashMap<>();
-    this.mappedTransferZonesToGtfsStop = new HashSet<>();
+    this.serviceNodeAndModeByGtfsStopId = new HashMap<>();
 
     this.existingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
     this.geoTools = new PlanitJtsCrsUtils(getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
     this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
+
+    /* index: MODE -> (pre-existing) SERVICE NODE */
+    for(var routedServiceLayer : getRoutedServices().getLayers()){
+      for(var routedModeServices : routedServiceLayer) {
+        for(var routedService : routedModeServices){
+          var usedServiceNodes = routedService.getTripInfo().getScheduleBasedTrips().getUsedServiceNodes();
+          usedServiceNodes.addAll(routedService.getTripInfo().getFrequencyBasedTrips().getUsedServiceNodes());
+          /* mode specific service nodes */
+          for(var serviceNode :  usedServiceNodes) {
+            var gtfsStopId = getSettings().getServiceNodeToGtfsStopIdFunction().apply(serviceNode);
+            var entry = this.serviceNodeAndModeByGtfsStopId.get(gtfsStopId);
+            PlanItRunTimeException.throwIf(entry!=null && !entry.second().equals(routedService.getMode()),"GTFS STOP %s supports multiple modes, this is not yet supported", gtfsStopId);
+            if(entry == null) {
+              this.serviceNodeAndModeByGtfsStopId.put(gtfsStopId, Pair.of(serviceNode, routedService.getMode()));
+            }
+          }
+        }
+      }
+    }
+
+    /* index: MODE <-> (pre-existing) TRANSFER ZONE */
+    if(!getZoning().getTransferConnectoids().isEmpty()){
+      /* derive mode support for each transfer zone based on its connectoid (segments) modes. Used to improve matching of GTFS stops to existing
+      * stops in the provided network/zoning */
+      var connectoidsByAccessZone = getZoning().getTransferConnectoids().createIndexByAccessZone();
+      for(var entry :connectoidsByAccessZone.entrySet()){
+        if(entry.getKey() instanceof TransferZone){
+          var transferZone = (TransferZone) entry;
+          for(var dirConnectoid : entry.getValue()){
+            var allowedModes = ((MacroscopicLinkSegment) dirConnectoid.getAccessLinkSegment()).getAllowedModes();
+            /* remove all non service modes */
+            allowedModes.retainAll(getSettings().getAcivatedPlanitModes());
+            /* register on transfer zone */
+            registerModesOnTransferZone(transferZone,((MacroscopicLinkSegment) dirConnectoid.getAccessLinkSegment()).getAllowedModes());
+          }
+        }
+      }
+    }
 
   }
 
@@ -92,13 +146,26 @@ public class GtfsZoningHandlerData {
   }
 
   /**
-   * Register transfer as mapped to a GTFS stop and index it by its GtfsStopId as well
-   * @param transferZone to check
+   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops mode as supported
+   * on the PLANit transfer zone (if not already present)
+   *
+   * @param gtfsStop to register on PLANit transfer zone
+   * @param transferZone to register one
    * @return true when already mapped by GTFS stop, false otherwise
    */
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
-    transferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
-    mappedTransferZonesToGtfsStop.add(transferZone);
+    var old = transferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
+    PlanItRunTimeException.throwIf(old != null && !old.equals(transferZone), "Multiple transfer zones found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
+  }
+
+  /**
+   * Get the transfer zone that the GTFS stop was already mapped to (if any)
+   *
+   * @param gtfsStop to use
+   * @return PLANit transfer zone it is mapped to, null if no mapping exists yet
+   */
+  public TransferZone getTransferZone(GtfsStop gtfsStop){
+    return transferZonesByGtfsStopId.get(gtfsStop);
   }
 
   /**
@@ -107,7 +174,23 @@ public class GtfsZoningHandlerData {
    * @return true when already mapped by GTFS stop, false otherwise
    */
   public boolean hasMappedGtfsStop(TransferZone transferZone) {
-    return mappedTransferZonesToGtfsStop.contains(transferZone);
+    return transferZonesByGtfsStopId.containsValue(transferZone);
+  }
+
+
+  public Mode getSupportedPtMode(GtfsStop gtfsStop){
+    var resultPair = this.serviceNodeAndModeByGtfsStopId.get(gtfsStop);
+    return resultPair!=null ? resultPair.second() : null;
+  }
+
+  /**
+   * The pt services modes supported on the given transfer zone
+   *
+   * @param planitTransferZone to get supported pt service modes for
+   * @return found PLANit modes
+   */
+  public Set<Mode> getSupportedPtModes(TransferZone planitTransferZone){
+    return transferZonePtServiceModes.get(planitTransferZone);
   }
 
   /**
