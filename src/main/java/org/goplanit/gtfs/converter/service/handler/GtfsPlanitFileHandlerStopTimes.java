@@ -138,11 +138,17 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       var oppositeDirLegSegment = currServiceNode.getLegSegment(prevServiceNode);
       if(oppositeDirLegSegment == null){
         parentLeg = layer.getLegs().getFactory().registerNew(prevServiceNode, currServiceNode, true);
+        parentLeg.setXmlId(parentLeg.getId());
+        /* external id: vertAExtId_vertBExtId */
+        parentLeg.setExternalId(parentLeg.getVertexA().getExternalId()+"_"+parentLeg.getVertexB().getExternalId());
       }else{
         parentLeg = oppositeDirLegSegment.getParent();
         dirPrevCur = false;
       }
       serviceNetworkSegment = layer.getLegSegments().getFactory().registerNew(parentLeg, dirPrevCur, true);
+      serviceNetworkSegment.setXmlId(serviceNetworkSegment.getId());
+      /* external id: vertUpstrExtId_vertDownstrExtId */
+      serviceNetworkSegment.setExternalId(serviceNetworkSegment.getUpstreamServiceNode().getExternalId()+"_"+serviceNetworkSegment.getDownstreamServiceNode().getExternalId());
     }
     return serviceNetworkSegment;
   }
@@ -169,7 +175,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    */
   @Override
   public void handle(GtfsStopTime gtfsStopTime) {
-
+    
     /* PREP */
     GtfsTrip gtfsTrip = data.getGtfsTripByGtfsTripId(gtfsStopTime.getTripId());
     if(gtfsTrip == null){

@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.zoning;
 
+import org.goplanit.converter.ConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class GtfsZoningReaderSettings extends GtfsConverterReaderSettings {
+public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   
   /** logger to use */
   @SuppressWarnings("unused")
@@ -41,42 +42,11 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettings {
   /** re-use settings from services reader */
   private final GtfsServicesReaderSettings servicesReaderSettings;
 
-  /** Constructor with user defined source locale
-   * @param countryName to base source locale on
+  /** Constructor leveraging the services reader settings as base information
+   *
    * @param servicesReaderSettings to obtain mode mapping information from
    */
-  public GtfsZoningReaderSettings(String countryName, final GtfsServicesReaderSettings servicesReaderSettings) {
-    this(null, countryName,null, servicesReaderSettings);
-  }
-  
-  /** Constructor with user defined source locale 
-   * 
-   * @param inputSource to extract GTFS information from
-   * @param countryName to base source locale on
-   * @param servicesReaderSettings to apply
-   */
-  public GtfsZoningReaderSettings(String inputSource, String countryName, final GtfsServicesReaderSettings servicesReaderSettings) {
-    this(inputSource, countryName, null, servicesReaderSettings);
-  }  
-  
-  /** Constructor with user defined source locale 
-   * @param countryName to base source locale on
-   * @param referenceNetwork to use
-   * @param servicesReaderSettings to apply
-   */
-  public GtfsZoningReaderSettings(String countryName, MacroscopicNetwork referenceNetwork, final GtfsServicesReaderSettings servicesReaderSettings) {
-    this(null, countryName, referenceNetwork, servicesReaderSettings);
-  }  
-  
-  /** Constructor with user defined source locale
-   * 
-   * @param inputSource to use
-   * @param countryName to base source locale on
-   * @param referenceNetwork to use
-   * @param servicesReaderSettings to apply
-   */
-  public GtfsZoningReaderSettings(String inputSource, String countryName, MacroscopicNetwork referenceNetwork, final GtfsServicesReaderSettings servicesReaderSettings) {
-    super(inputSource, countryName, referenceNetwork);
+  public GtfsZoningReaderSettings(GtfsServicesReaderSettings servicesReaderSettings) {
     this.servicesReaderSettings = servicesReaderSettings;
   }
 
@@ -141,10 +111,41 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettings {
   }
 
   /**
-   * Log settings used
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetwork getReferenceNetwork() {
+    return servicesReaderSettings.getReferenceNetwork();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getCountryName() {
+    return servicesReaderSettings.getCountryName();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getInputDirectory() {
+    return servicesReaderSettings.getInputDirectory();
+  }
+
+  /**
+   * {@inheritDoc}
    */
   public void log() {
-    super.log();
     LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f",getGtfsStopToTransferZoneSearchRadiusMeters()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    setGtfsStopToTransferZoneSearchRadiusMeters(DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS);
   }
 }

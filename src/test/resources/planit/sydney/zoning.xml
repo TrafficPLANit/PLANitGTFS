@@ -5,6 +5,7 @@
         <transferzones>
             <zone id="1085097097" externalid="1085097097" type="platform">
                 <name>Stand A, Circular Quay, Alfred Street</name>
+                <platforms>2000147</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1579310.4068696566 -3922179.255176121</gml:pos>
@@ -13,6 +14,7 @@
             </zone>
             <zone id="1085097099" externalid="1085097099" type="platform">
                 <name>Circular Quay</name>
+                <platforms>E</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1579335.93503908 -3922174.8434009254</gml:pos>
@@ -21,6 +23,7 @@
             </zone>
             <zone id="1263263402" externalid="1263263402" type="platform">
                 <name>Stand A</name>
+                <platforms>A</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578781.3372360915 -3922505.8511905703</gml:pos>
@@ -28,6 +31,7 @@
                 </centroid>
             </zone>
             <zone id="1263263448" externalid="1263263448" type="platform">
+                <platforms>B</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578776.2639861817 -3922530.6020841035</gml:pos>
@@ -36,6 +40,7 @@
             </zone>
             <zone id="1263263479" externalid="1263263479" type="platform">
                 <name>Stand A</name>
+                <platforms>C</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578771.791676013 -3922552.2726494833</gml:pos>
@@ -44,6 +49,7 @@
             </zone>
             <zone id="1263263493" externalid="1263263493" type="platform">
                 <name>D</name>
+                <platforms>A</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578765.1854780857 -3922578.37165702</gml:pos>
@@ -52,6 +58,7 @@
             </zone>
             <zone id="1263263506" externalid="1263263506" type="platform">
                 <name>E</name>
+                <platforms>B</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578753.0434131885 -3922632.309894948</gml:pos>
@@ -60,6 +67,7 @@
             </zone>
             <zone id="1263263520" externalid="1263263520" type="platform">
                 <name>F</name>
+                <platforms>C</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578747.3976407442 -3922654.8101007896</gml:pos>
@@ -68,6 +76,7 @@
             </zone>
             <zone id="1263263539" externalid="1263263539" type="platform">
                 <name>G</name>
+                <platforms>D</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578741.3491309453 -3922679.694016743</gml:pos>
@@ -75,6 +84,7 @@
                 </centroid>
             </zone>
             <zone id="1354677119" externalid="1354677119" type="platform">
+                <platforms>K</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578726.488770838 -3922628.8072445765</gml:pos>
@@ -83,6 +93,7 @@
             </zone>
             <zone id="1354677120" externalid="1354677120" type="platform">
                 <name>Stand M, Wynyard</name>
+                <platforms>M</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578729.8975791028 -3922556.858825871</gml:pos>
@@ -105,6 +116,7 @@
             </zone>
             <zone id="2784763255" externalid="2784763255" type="platform">
                 <name>Barrack St</name>
+                <platforms>2000189</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1578625.495019897 -3922768.6733370917</gml:pos>
@@ -129,6 +141,7 @@
             </zone>
             <zone id="3814697123" externalid="3814697123" type="platform">
                 <name>Stand C, Martin Place, Elizabeth Street</name>
+                <platforms>Sydney,Buses,Network</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1579132.6631172046 -3922781.6412038812</gml:pos>
@@ -369,6 +382,7 @@
             </zone>
             <zone id="5441345821" externalid="5441345821" type="platform">
                 <name>Stand G, Martin Place, Castlereagh St</name>
+                <platforms>2000183</platforms>
                 <centroid>
                     <gml:Point>
                         <gml:pos>1579052.8030275851 -3922891.4932425935</gml:pos>
@@ -377,28 +391,33 @@
             </zone>
             <zone id="142553711" externalid="142553711" type="platform">
                 <name>Wynyard</name>
+                <platforms>3,4</platforms>
                 <gml:LineString>
                     <gml:coordinates decimal="." cs="," ts=" ">1578708.31109875,-3922489.44151896 1578718.68759508,-3922489.65708611 1578717.42362814,-3922545.02712518 1578717.0880225,-3922562.36699818 1578716.78774257,-3922577.56214754 1578716.76858391,-3922589.09827928 1578716.38210864,-3922605.86313191 1578715.20073928,-3922660.56528329 1578704.82589854,-3922660.33879279 1578705.68565419,-3922606.08240012 1578706.12674033,-3922589.25824565 1578706.13677067,-3922577.72085733 1578706.518438,-3922562.0023074 1578706.95331842,-3922545.0882117 1578708.31109875,-3922489.44151896</gml:coordinates>
                 </gml:LineString>
             </zone>
             <zone id="142577579" externalid="142577579" type="platform">
                 <name>Wynyard</name>
+                <platforms>5,6</platforms>
                 <gml:LineString>
                     <gml:coordinates decimal="." cs="," ts=" ">1578724.96642524,-3922490.0766233 1578735.34292271,-3922490.29220557 1578734.10648848,-3922550.78943464 1578733.85343382,-3922567.32762537 1578733.66458324,-3922575.57699863 1578733.03050554,-3922605.94042131 1578733.08507181,-3922619.36901104 1578731.85582542,-3922661.20039242 1578721.48098357,-3922660.97388681 1578722.64034311,-3922619.17743112 1578722.63277877,-3922605.67735369 1578723.64067211,-3922575.36543531 1578723.51498217,-3922567.10614079 1578723.73029207,-3922550.77436948 1578724.96642524,-3922490.0766233</gml:coordinates>
                 </gml:LineString>
             </zone>
             <zone id="142670311" externalid="142670311" type="platform">
+                <platforms>1</platforms>
                 <gml:LineString>
                     <gml:coordinates decimal="." cs="," ts=" ">1579210.47876451,-3923105.07444563 1579220.45223388,-3923107.9415073 1579201.09238711,-3923174.72982898 1579172.8593348,-3923272.12780954 1579162.88751524,-3923269.24985417 1579210.47876451,-3923105.07444563</gml:coordinates>
                 </gml:LineString>
             </zone>
             <zone id="142670313" externalid="142670313" type="platform">
+                <platforms>2</platforms>
                 <gml:LineString>
                     <gml:coordinates decimal="." cs="," ts=" ">1579228.63649667,-3923110.03849695 1579238.60995925,-3923112.9055745 1579191.01679922,-3923277.0918091 1579181.05410401,-3923274.21509445 1579209.59191735,-3923176.22425945 1579228.63649667,-3923110.03849695</gml:coordinates>
                 </gml:LineString>
             </zone>
             <zone id="635613434" externalid="635613434" type="platform">
                 <name>Martin Place</name>
+                <platforms>1,2</platforms>
                 <gml:LineString>
                     <gml:coordinates decimal="." cs="," ts=" ">1579226.48044079,-3922858.39100127 1579205.86863213,-3922853.56773454 1579113.3129216,-3922831.91299854 1579088.75094149,-3922827.36978298 1579062.98456071,-3922825.76812327 1579048.22329542,-3922828.04430927</gml:coordinates>
                 </gml:LineString>
@@ -432,12 +451,14 @@
             </zone>
             <zone id="142670310" externalid="142670310" type="platform">
                 <name>Circular Quay</name>
+                <platforms>1</platforms>
                 <gml:LineString>
                     <gml:coordinates decimal="." cs="," ts=" ">1579308.52532865,-3922161.15315893 1579149.68368724,-3922120.57367149 1579150.84082035,-3922116.22234617 1579209.76664659,-3922131.27046566 1579213.87812993,-3922132.31599535 1579248.94508956,-3922141.28076645 1579252.39995875,-3922142.16899354 1579309.68252239,-3922156.80184809 1579308.52532865,-3922161.15315893</gml:coordinates>
                 </gml:LineString>
             </zone>
             <zone id="142670312" externalid="142670312" type="platform">
                 <name>Circular Quay</name>
+                <platforms>2</platforms>
                 <gml:LineString>
                     <gml:coordinates decimal="." cs="," ts=" ">1579154.61883243,-3922102.89876914 1579250.43265391,-3922127.38537866 1579254.99252846,-3922128.54840642 1579295.01454085,-3922138.77536106 1579313.45009492,-3922143.48799209 1579312.39011,-3922147.80814781 1579254.88405891,-3922133.11107402 1579250.88961112,-3922132.0927963 1579216.19045496,-3922123.22326224 1579212.12456066,-3922122.18401491 1579153.55890784,-3922107.218938 1579154.61883243,-3922102.89876914</gml:coordinates>
                 </gml:LineString>
@@ -528,7 +549,7 @@
             <connectoid tzrefs="701216855" lsref="1834" id="27" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="701216856" lsref="1689" id="28" modes="light_rail">
+            <connectoid tzrefs="701216856" lsref="1733" id="28" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
             <connectoid tzrefs="701216856" lsref="1836" id="29" modes="light_rail">
@@ -540,7 +561,7 @@
             <connectoid tzrefs="702219814" lsref="1838" id="31" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="702219814" lsref="1797" id="32" modes="light_rail">
+            <connectoid tzrefs="702219814" lsref="1775" id="32" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
             <connectoid tzrefs="702219814" lsref="1840" id="33" modes="light_rail">

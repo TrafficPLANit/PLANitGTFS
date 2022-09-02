@@ -35,42 +35,6 @@ public class GtfsIntermodalReader implements IntermodalReader {
   /** id token to use */
   private IdGroupingToken idToken;
 
-  /** Make sure settings are consistent for those properties that are assumed to be
-   *
-   * @return true when valid, false otherwise
-   */
-  private boolean isSettingsValid() {
-    var serviceSettings = getSettings().getServiceSettings();
-    var zoningSettings = getSettings().getZoningSettings();
-
-    /* both source countries must be the same */
-    if( !serviceSettings.getCountryName().equals(zoningSettings.getCountryName())){
-      LOGGER.severe(String.format(
-          "GTFS intermodal reader requires both the services and zoning (pt) to utilise the same source country upon parsing, found %s and %s respctively instead",serviceSettings.getCountryName(), zoningSettings.getCountryName()));
-      return false;
-    }
-
-    /* both input files must be the same */
-    if(!serviceSettings.getInputDirectory().equals(zoningSettings.getInputDirectory())) {
-      LOGGER.warning(
-          String.format("GTFS intermodal reader requires both the network and zoning (pt) to utilise the same osm input directory upon parsing, found %s and %s respctively instead",serviceSettings.getInputDirectory(), zoningSettings.getInputDirectory()));
-      if(serviceSettings.getInputDirectory()!=null) {
-        LOGGER.warning(
-            String.format("SALVAGED: set zoning input directory to services input directory instead: %s" ,serviceSettings.getInputDirectory()));
-        zoningSettings.setInputDirectory(serviceSettings.getInputDirectory());
-      }else if(zoningSettings.getInputDirectory()!=null) {
-        LOGGER.warning(
-            String.format("SALVAGED: set services input directory to zoning input directory instead: %s" ,zoningSettings.getInputDirectory()));
-        serviceSettings.setInputDirectory(zoningSettings.getInputDirectory());
-      }else {
-        return false;
-      }
-    }
-
-    return true;
-
-  }
-
   /** Constructor where settings are directly provided such that input information can be extracted from it
    *
    * @param idToken to use for the routed services and service network ids
@@ -124,11 +88,6 @@ public class GtfsIntermodalReader implements IntermodalReader {
    */
   @Override
   public Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> readWithServices() {
-
-    /* only proceed when configuration is valid */
-    if(!isSettingsValid()) {
-      return null;
-    }
 
     /* SERVICES */
     GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(getSettings().getServiceSettings());

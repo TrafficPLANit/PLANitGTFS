@@ -2,6 +2,7 @@ package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.ConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
+import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsImpl;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class GtfsServicesReaderSettings extends GtfsConverterReaderSettings implements ConverterReaderSettings {
+public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl implements ConverterReaderSettings {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReaderSettings.class.getCanonicalName());

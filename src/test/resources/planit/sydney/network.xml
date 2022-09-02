@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <macroscopicnetwork xmlns:gml="http://www.opengis.net/gml" xmlns:ns3="http://www.w3.org/1999/xlink" xmlns:ns4="http://www.w3.org/2001/SMIL20/" xmlns:ns5="http://www.w3.org/2001/SMIL20/Language" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://trafficplanit.github.io/PLANitManual/xsd/macroscopicnetworkinput.xsd">
-    <id>0</id>
+    <id>1</id>
     <configuration>
         <modes>
             <mode id="pedestrian" externalid="foot" predefined="true">
@@ -4303,149 +4303,149 @@
                         <gml:pos>1578978.7944501464 -3922305.524083931</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="720" externalid="6581009118">
-                    <gml:Point>
-                        <gml:pos>1578854.2646481376 -3922589.330817955</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="721" externalid="6766449275">
-                    <gml:Point>
-                        <gml:pos>1578759.5298198934 -3923065.9659003853</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="722" externalid="3910190193">
-                    <gml:Point>
-                        <gml:pos>1578905.7713478243 -3922347.007860512</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="723" externalid="26526075">
-                    <gml:Point>
-                        <gml:pos>1578411.4749957977 -3922635.341534637</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="724" externalid="7125467217">
-                    <gml:Point>
-                        <gml:pos>1578851.208088967 -3922588.519846417</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="725" externalid="1633391015">
+                <node id="720" externalid="1633391015">
                     <gml:Point>
                         <gml:pos>1578625.8276225873 -3921716.327407958</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="726" externalid="6337512673">
+                <node id="721" externalid="6581009136">
                     <gml:Point>
-                        <gml:pos>1578456.0009371943 -3922475.733660923</gml:pos>
+                        <gml:pos>1579021.2336862101 -3922101.9823131436</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="727" externalid="1832328313">
-                    <gml:Point>
-                        <gml:pos>1579571.0465807372 -3922015.790992266</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="728" externalid="6694044644">
-                    <gml:Point>
-                        <gml:pos>1578824.4727010191 -3922717.755103836</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="729" externalid="6611427578">
-                    <gml:Point>
-                        <gml:pos>1578870.54668678 -3922504.8774844944</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="730" externalid="1810714493">
-                    <gml:Point>
-                        <gml:pos>1578784.7665929068 -3922891.837924197</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="731" externalid="7125467216">
+                <node id="722" externalid="7125467216">
                     <gml:Point>
                         <gml:pos>1578852.6276635234 -3922588.871371778</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="732" externalid="3665939185">
-                    <gml:Point>
-                        <gml:pos>1578354.3611655477 -3922386.988015257</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="733" externalid="6766449272">
-                    <gml:Point>
-                        <gml:pos>1578767.5855622697 -3923006.2850383352</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="734" externalid="26526386">
-                    <gml:Point>
-                        <gml:pos>1579063.8429322361 -3922816.8424345017</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="735" externalid="4661346585">
-                    <gml:Point>
-                        <gml:pos>1578350.847669165 -3922472.598767118</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="736" externalid="6594385329">
-                    <gml:Point>
-                        <gml:pos>1578948.7918541331 -3922194.6012378894</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="737" externalid="6694044647">
-                    <gml:Point>
-                        <gml:pos>1578817.8699981284 -3922739.3772416525</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="738" externalid="15405041">
-                    <gml:Point>
-                        <gml:pos>1579185.9358095627 -3922847.3233250864</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="739" externalid="15449300">
-                    <gml:Point>
-                        <gml:pos>1578566.6358040955 -3922869.5039532185</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="740" externalid="7125451288">
-                    <gml:Point>
-                        <gml:pos>1578816.0087643166 -3922754.3016978023</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="741" externalid="6581009131">
-                    <gml:Point>
-                        <gml:pos>1579017.7580509835 -3922110.213092001</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="742" externalid="6611427579">
+                <node id="723" externalid="6611427579">
                     <gml:Point>
                         <gml:pos>1579065.0466489054 -3922113.1540431795</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="743" externalid="1986168632">
+                <node id="724" externalid="15405041">
+                    <gml:Point>
+                        <gml:pos>1579185.9358095627 -3922847.3233250864</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="725" externalid="6581009131">
+                    <gml:Point>
+                        <gml:pos>1579017.7580509835 -3922110.213092001</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="726" externalid="6766449275">
+                    <gml:Point>
+                        <gml:pos>1578759.5298198934 -3923065.9659003853</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="727" externalid="3910190193">
+                    <gml:Point>
+                        <gml:pos>1578905.7713478243 -3922347.007860512</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="728" externalid="7125467217">
+                    <gml:Point>
+                        <gml:pos>1578851.208088967 -3922588.519846417</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="729" externalid="6594385329">
+                    <gml:Point>
+                        <gml:pos>1578948.7918541331 -3922194.6012378894</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="730" externalid="6694044644">
+                    <gml:Point>
+                        <gml:pos>1578824.4727010191 -3922717.755103836</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="731" externalid="6581009118">
+                    <gml:Point>
+                        <gml:pos>1578854.2646481376 -3922589.330817955</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="732" externalid="6766449272">
+                    <gml:Point>
+                        <gml:pos>1578767.5855622697 -3923006.2850383352</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="733" externalid="4661346585">
+                    <gml:Point>
+                        <gml:pos>1578350.847669165 -3922472.598767118</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="734" externalid="1986168632">
                     <gml:Point>
                         <gml:pos>1578841.0029274551 -3922142.794726569</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="744" externalid="6690016766">
-                    <gml:Point>
-                        <gml:pos>1578888.2678372164 -3922451.5188284433</gml:pos>
-                    </gml:Point>
-                </node>
-                <node id="745" externalid="6594385361">
+                <node id="735" externalid="6594385361">
                     <gml:Point>
                         <gml:pos>1578781.315117245 -3922891.0616483465</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="746" externalid="6766449274">
+                <node id="736" externalid="15449300">
+                    <gml:Point>
+                        <gml:pos>1578566.6358040955 -3922869.5039532185</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="737" externalid="6337512673">
+                    <gml:Point>
+                        <gml:pos>1578456.0009371943 -3922475.733660923</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="738" externalid="6766449274">
                     <gml:Point>
                         <gml:pos>1578762.1739041014 -3923046.3710364243</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="747" externalid="6690016765">
+                <node id="739" externalid="26526075">
+                    <gml:Point>
+                        <gml:pos>1578411.4749957977 -3922635.341534637</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="740" externalid="6694044647">
+                    <gml:Point>
+                        <gml:pos>1578817.8699981284 -3922739.3772416525</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="741" externalid="1810714493">
+                    <gml:Point>
+                        <gml:pos>1578784.7665929068 -3922891.837924197</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="742" externalid="6690016765">
                     <gml:Point>
                         <gml:pos>1578883.0273899424 -3922450.373531461</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="748" externalid="6581009136">
+                <node id="743" externalid="26526386">
                     <gml:Point>
-                        <gml:pos>1579021.2336862101 -3922101.9823131436</gml:pos>
+                        <gml:pos>1579063.8429322361 -3922816.8424345017</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="744" externalid="6611427578">
+                    <gml:Point>
+                        <gml:pos>1578870.54668678 -3922504.8774844944</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="745" externalid="7125451288">
+                    <gml:Point>
+                        <gml:pos>1578816.0087643166 -3922754.3016978023</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="746" externalid="6690016766">
+                    <gml:Point>
+                        <gml:pos>1578888.2678372164 -3922451.5188284433</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="747" externalid="1832328313">
+                    <gml:Point>
+                        <gml:pos>1579571.0465807372 -3922015.790992266</gml:pos>
+                    </gml:Point>
+                </node>
+                <node id="748" externalid="3665939185">
+                    <gml:Point>
+                        <gml:pos>1578354.3611655477 -3922386.988015257</gml:pos>
                     </gml:Point>
                 </node>
                 <node id="749" externalid="2847430211">
@@ -4920,7 +4920,7 @@
                         <maxspeed>80.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="14" externalid="3188360" nodearef="25" nodebref="740">
+                <link id="14" externalid="3188360" nodearef="25" nodebref="745">
                     <name>Martin Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578814.56796248,-3922753.96952459 1578816.00876432,-3922754.3016978</gml:coordinates>
@@ -5018,7 +5018,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="21" externalid="3190200" nodearef="39" nodebref="739">
+                <link id="21" externalid="3190200" nodearef="39" nodebref="736">
                     <name>King Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578477.99866622,-3922859.13110445 1578566.6358041,-3922869.50395322</gml:coordinates>
@@ -5813,7 +5813,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="78" externalid="34695430" nodearef="135" nodebref="745">
+                <link id="78" externalid="34695430" nodearef="135" nodebref="735">
                     <name>King Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578699.53755463,-3922875.2724664 1578714.08901155,-3922876.74268387 1578773.04131095,-3922889.20884239 1578781.31511725,-3922891.06164835</gml:coordinates>
@@ -7437,7 +7437,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="196" externalid="151443295" nodearef="297" nodebref="727">
+                <link id="196" externalid="151443295" nodearef="297" nodebref="747">
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579489.53533341,-3922093.81369733 1579499.09263488,-3922087.1006972 1579503.28850135,-3922082.41087298 1579525.22184665,-3922054.87206347 1579544.21051081,-3922035.08024852 1579564.32554902,-3922019.45331794 1579571.04658074,-3922015.79099227</gml:coordinates>
                     </gml:LineString>
@@ -7794,7 +7794,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="222" externalid="162845216" nodearef="341" nodebref="728">
+                <link id="222" externalid="162845216" nodearef="341" nodebref="730">
                     <name>Angel Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578822.88901872,-3922717.38096796 1578824.47270102,-3922717.75510384</gml:coordinates>
@@ -8461,7 +8461,7 @@
                         <maxspeed>70.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="270" externalid="187986817" nodearef="137" nodebref="743">
+                <link id="270" externalid="187986817" nodearef="137" nodebref="734">
                     <name>Gloucester Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578760.33961637,-3922291.8640775 1578765.58112855,-3922247.27790151 1578816.28997092,-3922177.03531759 1578841.00292746,-3922142.79472657</gml:coordinates>
@@ -9219,7 +9219,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="325" externalid="252133053" nodearef="448" nodebref="738">
+                <link id="325" externalid="252133053" nodearef="448" nodebref="724">
                     <name>Martin Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579127.22825187,-3922832.47186112 1579185.93580956,-3922847.32332509</gml:coordinates>
@@ -9233,7 +9233,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="326" externalid="252133054" nodearef="26" nodebref="734">
+                <link id="326" externalid="252133054" nodearef="26" nodebref="743">
                     <name>Martin Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578940.0470513,-3922785.70500893 1579013.19850814,-3922804.4281477 1579046.36045405,-3922812.84053712 1579063.84293224,-3922816.8424345</gml:coordinates>
@@ -9289,7 +9289,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="330" externalid="252445022" nodearef="65" nodebref="743">
+                <link id="330" externalid="252445022" nodearef="65" nodebref="734">
                     <name>Essex Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578888.72257249,-3922165.1962724 1578841.00292746,-3922142.79472657</gml:coordinates>
@@ -9454,7 +9454,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="342" externalid="279958930" nodearef="468" nodebref="744">
+                <link id="342" externalid="279958930" nodearef="468" nodebref="746">
                     <name>Bond Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578891.61890003,-3922452.08079977 1578888.26783722,-3922451.51882844</gml:coordinates>
@@ -9929,7 +9929,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="377" externalid="324785023" nodearef="136" nodebref="730">
+                <link id="377" externalid="324785023" nodearef="136" nodebref="741">
                     <name>King Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578783.23906624,-3922891.39356196 1578784.76659291,-3922891.8379242</gml:coordinates>
@@ -10136,7 +10136,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="392" externalid="362252538" nodearef="509" nodebref="732">
+                <link id="392" externalid="362252538" nodearef="509" nodebref="748">
                     <name>Mercantile Walk</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578313.26065429,-3922374.20994584 1578354.36116555,-3922386.98801526</gml:coordinates>
@@ -10988,7 +10988,7 @@
                         <maxspeed>60.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="455" externalid="471983681" nodearef="567" nodebref="735">
+                <link id="455" externalid="471983681" nodearef="567" nodebref="733">
                     <name>Exchange Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578308.80195967,-3922471.40736985 1578350.84766917,-3922472.59876712</gml:coordinates>
@@ -11829,7 +11829,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="517" externalid="676771872" nodearef="568" nodebref="726">
+                <link id="517" externalid="676771872" nodearef="568" nodebref="737">
                     <name>Exchange Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578426.58728819,-3922474.16572059 1578456.00093719,-3922475.73366092</gml:coordinates>
@@ -11843,7 +11843,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="518" externalid="676771873" nodearef="636" nodebref="726">
+                <link id="518" externalid="676771873" nodearef="636" nodebref="737">
                     <name>Scotch Row</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578454.55214636,-3922451.04216987 1578453.68179792,-3922472.94162023 1578456.13734852,-3922473.05711418 1578456.00093719,-3922475.73366092</gml:coordinates>
@@ -12177,7 +12177,7 @@
                         <maxspeed>70.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="543" externalid="700774593" nodearef="658" nodebref="720">
+                <link id="543" externalid="700774593" nodearef="658" nodebref="731">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578864.55878155,-3922544.69431005 1578861.95763775,-3922555.95265331 1578854.26464814,-3922589.33081796</gml:coordinates>
@@ -12191,7 +12191,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="544" externalid="700774594" nodearef="660" nodebref="745">
+                <link id="544" externalid="700774594" nodearef="660" nodebref="735">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578708.16623273,-3923415.8275543 1578715.20740477,-3923388.86357075 1578716.41091995,-3923384.03956653 1578717.57947168,-3923379.19960748 1578718.67357796,-3923374.36052969 1578719.51512041,-3923370.47793589 1578720.32621726,-3923366.54659554 1578721.44796353,-3923360.69776922 1578722.12689782,-3923356.781634 1578722.73940411,-3923353.21276249 1578724.1396472,-3923343.9940823 1578724.7419792,-3923339.55504614 1578725.47863453,-3923333.12967853 1578726.01958667,-3923328.19211454 1578726.52699933,-3923323.16082596 1578734.69925821,-3923243.07977956 1578736.68265352,-3923224.90857432 1578745.03302028,-3923155.13256509 1578747.99145249,-3923130.42410516 1578749.45334799,-3923118.19557995 1578750.42733559,-3923110.78938981 1578755.86003193,-3923069.26944166 1578759.02067523,-3923045.92543923 1578762.79719616,-3923018.04406758 1578766.08845058,-3922993.41495028 1578768.55029671,-3922975.14269456 1578774.50275685,-3922931.26641772 1578775.77733526,-3922922.42033242 1578777.3667995,-3922912.63749947 1578779.06099644,-3922902.76885783 1578779.4263512,-3922900.85892773 1578780.3623693,-3922895.95356629 1578781.31511725,-3922891.06164835</gml:coordinates>
@@ -12233,7 +12233,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="547" externalid="702219812" nodearef="662" nodebref="737">
+                <link id="547" externalid="702219812" nodearef="662" nodebref="740">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578819.41516238,-3922725.66781867 1578818.52305654,-3922730.4566956 1578818.23345798,-3922733.43515289 1578818.04716914,-3922736.40556903 1578817.86999813,-3922739.37724165</gml:coordinates>
@@ -12247,7 +12247,7 @@
                         <maxspeed>70.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="548" externalid="702219815" nodearef="66" nodebref="736">
+                <link id="548" externalid="702219815" nodearef="66" nodebref="729">
                     <name>Essex Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578946.66628011,-3922193.5064413 1578948.79185413,-3922194.60123789</gml:coordinates>
@@ -12261,7 +12261,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="549" externalid="702219816" nodearef="452" nodebref="748">
+                <link id="549" externalid="702219816" nodearef="452" nodebref="721">
                     <name>George Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579025.94212483,-3922089.18787825 1579021.23368621,-3922101.98231314</gml:coordinates>
@@ -12303,7 +12303,7 @@
                         <maxspeed>70.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="552" externalid="702219819" nodearef="657" nodebref="742">
+                <link id="552" externalid="702219819" nodearef="657" nodebref="723">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579084.20435513,-3922114.37945534 1579077.12801289,-3922113.07021007 1579074.07959339,-3922112.80607032 1579071.15907705,-3922112.76003534 1579068.14762063,-3922112.90194886 1579065.04664891,-3922113.15404318</gml:coordinates>
@@ -12317,7 +12317,7 @@
                         <maxspeed>70.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="553" externalid="702219820" nodearef="669" nodebref="742">
+                <link id="553" externalid="702219820" nodearef="669" nodebref="723">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579047.59614862,-3922105.13600405 1579053.79358374,-3922107.15944927 1579056.54223715,-3922108.3178457 1579059.18773771,-3922109.61795689 1579061.80010242,-3922111.15853276 1579065.04664891,-3922113.15404318</gml:coordinates>
@@ -12372,7 +12372,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="557" externalid="702219826" nodearef="674" nodebref="733">
+                <link id="557" externalid="702219826" nodearef="674" nodebref="732">
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578777.81385895,-3923007.43815084 1578775.88398709,-3923007.21679842 1578767.58556227,-3923006.28503834</gml:coordinates>
                     </gml:LineString>
@@ -12385,7 +12385,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="558" externalid="702219827" nodearef="676" nodebref="746">
+                <link id="558" externalid="702219827" nodearef="676" nodebref="738">
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578776.61362082,-3923048.58334436 1578770.25388228,-3923047.60683603 1578762.1739041,-3923046.37103642</gml:coordinates>
                     </gml:LineString>
@@ -12495,7 +12495,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="566" externalid="702243205" nodearef="198" nodebref="722">
+                <link id="566" externalid="702243205" nodearef="198" nodebref="727">
                     <name>Grosvenor Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578899.38381909,-3922337.32890901 1578901.40782986,-3922341.11618648 1578903.40985194,-3922344.32127097 1578905.77134782,-3922347.00786051</gml:coordinates>
@@ -13109,7 +13109,7 @@
                         <maxspeed>60.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="611" externalid="762585943" nodearef="25" nodebref="737">
+                <link id="611" externalid="762585943" nodearef="25" nodebref="740">
                     <name>George Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578814.56796248,-3922753.96952459 1578817.86999813,-3922739.37724165</gml:coordinates>
@@ -13123,7 +13123,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="612" externalid="762588828" nodearef="702" nodebref="720">
+                <link id="612" externalid="762588828" nodearef="702" nodebref="731">
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578860.05545645,-3922590.79697569 1578854.26464814,-3922589.33081796</gml:coordinates>
                     </gml:LineString>
@@ -14473,7 +14473,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="715" externalid="4354653" nodearef="322" nodebref="734">
+                <link id="715" externalid="4354653" nodearef="322" nodebref="743">
                     <name>Castlereagh Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579075.90708557,-3922763.81787885 1579067.37799623,-3922802.44935252 1579063.84293224,-3922816.8424345</gml:coordinates>
@@ -14571,7 +14571,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="722" externalid="762585943" nodearef="341" nodebref="731">
+                <link id="722" externalid="762585943" nodearef="341" nodebref="722">
                     <name>George Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578822.88901872,-3922717.38096796 1578852.62766352,-3922588.87137178</gml:coordinates>
@@ -14823,7 +14823,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="740" externalid="4354612" nodearef="411" nodebref="723">
+                <link id="740" externalid="4354612" nodearef="411" nodebref="739">
                     <name>Shelley Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578406.71666558,-3922749.0713566 1578411.4749958,-3922635.34153464</gml:coordinates>
@@ -14962,7 +14962,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="750" externalid="150425274" nodearef="457" nodebref="725">
+                <link id="750" externalid="150425274" nodearef="457" nodebref="720">
                     <name>Kent Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578623.50849325,-3921758.05234879 1578625.70410821,-3921730.37716852 1578625.82762259,-3921716.32740796</gml:coordinates>
@@ -15143,7 +15143,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="763" externalid="222399613" nodearef="495" nodebref="727">
+                <link id="763" externalid="222399613" nodearef="495" nodebref="747">
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579551.15048027,-3922120.36089641 1579556.15854234,-3922093.12880345 1579564.69362589,-3922045.49958382 1579571.04658074,-3922015.79099227</gml:coordinates>
                     </gml:LineString>
@@ -15239,7 +15239,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="770" externalid="362252544" nodearef="513" nodebref="732">
+                <link id="770" externalid="362252544" nodearef="513" nodebref="748">
                     <name>Barangaroo Avenue</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578357.99306136,-3922297.81852617 1578354.36116555,-3922386.98801526</gml:coordinates>
@@ -15571,7 +15571,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="794" externalid="3188362" nodearef="582" nodebref="738">
+                <link id="794" externalid="3188362" nodearef="582" nodebref="724">
                     <name>Phillip Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579210.31683143,-3922749.62918887 1579189.50639118,-3922833.28042616 1579185.93580956,-3922847.32332509</gml:coordinates>
@@ -16044,7 +16044,7 @@
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="828" externalid="700774593" nodearef="663" nodebref="740">
+                <link id="828" externalid="700774593" nodearef="663" nodebref="745">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578816.25514631,-3922753.2552726 1578816.00876432,-3922754.3016978</gml:coordinates>
@@ -16058,7 +16058,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="829" externalid="720896379" nodearef="668" nodebref="741">
+                <link id="829" externalid="720896379" nodearef="668" nodebref="725">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1579045.76287209,-3922111.96697966 1579035.25549371,-3922109.39419962 1579032.25677586,-3922108.76937477 1579029.38294949,-3922108.38451459 1579026.4380902,-3922108.31286121 1579023.40856138,-3922108.58594879 1579020.49036967,-3922109.19737269 1579017.75805098,-3922110.213092</gml:coordinates>
@@ -16114,7 +16114,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="833" externalid="245021282" nodearef="677" nodebref="721">
+                <link id="833" externalid="245021282" nodearef="677" nodebref="726">
                     <name>George Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578760.71807921,-3923046.14817349 1578758.58001325,-3923059.57551567 1578759.52981989,-3923065.96590039</gml:coordinates>
@@ -16254,7 +16254,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="843" externalid="129820129" nodearef="695" nodebref="729">
+                <link id="843" externalid="129820129" nodearef="695" nodebref="744">
                     <name>Margaret Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578867.06472713,-3922504.11927658 1578870.54668678,-3922504.87748449</gml:coordinates>
@@ -16379,300 +16379,302 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="852" externalid="762588828" nodearef="720" nodebref="731">
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578854.26464814,-3922589.33081796 1578852.62766352,-3922588.87137178</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1687" dir="a_b" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1688" dir="b_a" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="853" externalid="700774593" nodearef="720" nodebref="824">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578854.26464814,-3922589.33081796 1578842.24853979,-3922641.00311609 1578833.95072029,-3922676.74833454</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1689" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1690" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="854" externalid="245021282" nodearef="721" nodebref="438">
-                    <name>George Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578759.52981989,-3923065.96590039 1578760.55313711,-3923072.83420795 1578755.95049095,-3923111.02690048 1578755.02526328,-3923118.55118829</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1691" dir="a_b" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1692" dir="b_a" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="855" externalid="700774593" nodearef="721" nodebref="659">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578759.52981989,-3923065.96590039 1578758.96062519,-3923070.16444191 1578753.63183294,-3923110.93018859 1578752.65340676,-3923118.43600864 1578751.23501956,-3923130.21387266 1578743.82847462,-3923191.52137896 1578739.84320042,-3923225.16583499 1578737.43538422,-3923247.90082225 1578729.85762012,-3923322.11609923 1578729.23131062,-3923328.07773531 1578728.59588332,-3923334.03811586 1578727.72327653,-3923341.11303164 1578727.21281152,-3923344.88530769 1578726.49561311,-3923349.82086568 1578725.69476999,-3923354.68920936 1578725.02194001,-3923358.6284614 1578724.50891246,-3923361.54275957 1578723.7813777,-3923365.47447482 1578723.00215026,-3923369.37679201 1578722.17733557,-3923373.2728284 1578721.31605117,-3923377.16384022 1578720.20370876,-3923382.00040553 1578719.01993301,-3923386.81599107 1578717.28092418,-3923393.57105535 1578699.88038207,-3923459.98423758</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1693" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1694" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="856" externalid="702243205" nodearef="722" nodebref="693">
-                    <name>Grosvenor Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578905.77134782,-3922347.00786051 1578911.89313162,-3922351.87209773</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1695" dir="a_b" typeref="27">
-                        <numberoflanes>2</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1696" dir="b_a" typeref="27">
-                        <numberoflanes>2</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="857" externalid="700774594" nodearef="722" nodebref="736">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578905.77134782,-3922347.00786051 1578912.42515948,-3922314.90118759 1578923.5683582,-3922256.28154976 1578924.60621285,-3922251.37915212 1578925.70036607,-3922246.54020097 1578926.81259214,-3922241.57008759 1578928.40116513,-3922235.97506904 1578929.93450766,-3922231.18549655 1578931.99732008,-3922225.7226501 1578933.91823666,-3922221.01989496 1578936.40652153,-3922215.57112396 1578939.09407079,-3922210.29460075 1578942.07190454,-3922205.06921398 1578945.23536666,-3922200.04760954 1578948.79185413,-3922194.60123789</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1697" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1698" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="858" externalid="129087878" nodearef="723" nodebref="228">
-                    <name>Erskine Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578411.4749958,-3922635.34153464 1578485.68523066,-3922640.65224149</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1699" dir="a_b" typeref="4">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>50.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1700" dir="b_a" typeref="4">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>50.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="859" externalid="4354612" nodearef="723" nodebref="9">
-                    <name>Shelley Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578411.4749958,-3922635.34153464 1578416.3599907,-3922543.89383612 1578417.28689491,-3922511.46582228</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1701" dir="a_b" typeref="11">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1702" dir="b_a" typeref="11">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="860" externalid="762588828" nodearef="724" nodebref="711">
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578851.20808897,-3922588.51984642 1578843.87615678,-3922586.70769705</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1703" dir="a_b" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1704" dir="b_a" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="861" externalid="700774594" nodearef="724" nodebref="729">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578851.20808897,-3922588.51984642 1578851.41214034,-3922587.64579778 1578858.87530318,-3922555.19381883 1578861.47334993,-3922543.89049737 1578870.54668678,-3922504.87748449</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1705" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1706" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="862" externalid="152771366" nodearef="725" nodebref="339">
+                <link id="852" externalid="152771366" nodearef="720" nodebref="339">
                     <name>Argyle Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578625.82762259,-3921716.32740796 1578638.51974175,-3921719.50142431 1578658.39830232,-3921724.33369511 1578666.72694532,-3921726.80640521</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1707" dir="a_b" typeref="11">
+                    <linksegment id="1687" dir="a_b" typeref="11">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1708" dir="b_a" typeref="11">
+                    <linksegment id="1688" dir="b_a" typeref="11">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="863" externalid="150425274" nodearef="725" nodebref="376">
+                <link id="853" externalid="150425274" nodearef="720" nodebref="376">
                     <name>Kent Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578625.82762259,-3921716.32740796 1578626.61694687,-3921706.07818571</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1709" dir="a_b" typeref="11">
+                    <linksegment id="1689" dir="a_b" typeref="11">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1710" dir="b_a" typeref="11">
+                    <linksegment id="1690" dir="b_a" typeref="11">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="864" externalid="676771872" nodearef="726" nodebref="635">
-                    <name>Exchange Place</name>
+                <link id="854" externalid="702219816" nodearef="721" nodebref="725">
+                    <name>George Street</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578456.00093719,-3922475.73366092 1578455.7553605,-3922478.59565005</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579021.23368621,-3922101.98231314 1579017.75805098,-3922110.213092</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1711" dir="a_b" typeref="21">
+                    <linksegment id="1691" dir="a_b" typeref="4">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1712" dir="b_a" typeref="21">
+                    <linksegment id="1692" dir="b_a" typeref="23">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="865" externalid="676771873" nodearef="726" nodebref="635">
-                    <name>Scotch Row</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578456.00093719,-3922475.73366092 1578455.7553605,-3922478.59565005</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1713" dir="a_b" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1714" dir="b_a" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="866" externalid="151443295" nodearef="727" nodebref="298">
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579571.04658074,-3922015.79099227 1579577.2101938,-3922012.33027896</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1715" dir="a_b" typeref="17">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1716" dir="b_a" typeref="17">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="867" externalid="222399613" nodearef="727" nodebref="428">
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579571.04658074,-3922015.79099227 1579577.96598747,-3921975.50167583 1579581.1494712,-3921964.00082703 1579585.10834737,-3921954.15500844 1579588.13956897,-3921947.5337833 1579592.43581878,-3921941.57699361 1579596.4436764,-3921937.17314993 1579605.80625749,-3921928.84070373 1579619.58172419,-3921919.36792843 1579636.30761372,-3921909.4554021 1579643.38141663,-3921905.9308478 1579649.65412059,-3921903.43191824</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1717" dir="a_b" typeref="36">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1718" dir="b_a" typeref="36">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="868" externalid="700774593" nodearef="728" nodebref="663">
+                <link id="855" externalid="700774594" nodearef="721" nodebref="656">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578824.47270102,-3922717.75510384 1578816.25514631,-3922753.2552726</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579021.23368621,-3922101.98231314 1579024.22332138,-3922101.39187153 1579027.18751652,-3922101.12091913 1579030.12627138,-3922101.1694559</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1719" dir="a_b" typeref="6">
+                    <linksegment id="1693" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1694" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="856" externalid="762588828" nodearef="722" nodebref="728">
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578852.62766352,-3922588.87137178 1578851.20808897,-3922588.51984642</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1697" dir="a_b" typeref="15">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1720" dir="b_a" typeref="6">
+                    <linksegment id="1698" dir="b_a" typeref="15">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="869" externalid="162845216" nodearef="728" nodebref="608">
+                <link id="857" externalid="762585943" nodearef="722" nodebref="237">
+                    <name>George Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578852.62766352,-3922588.87137178 1578860.34197854,-3922555.54069645 1578863.05404434,-3922544.28649867</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1695" dir="a_b" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1696" dir="b_a" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="858" externalid="702219819" nodearef="723" nodebref="668">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579065.04664891,-3922113.15404318 1579062.26164855,-3922113.33830107 1579059.0936725,-3922113.46978664 1579056.23547993,-3922113.44348116 1579053.17199937,-3922113.28864883 1579045.76287209,-3922111.96697966</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1699" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1700" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="859" externalid="702219820" nodearef="723" nodebref="666">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579065.04664891,-3922113.15404318 1579067.63190129,-3922114.89136377 1579070.20628376,-3922116.43784581 1579072.95216585,-3922117.8186195 1579075.60360588,-3922119.00817625 1579082.50942128,-3922121.28518085</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1701" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1702" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="860" externalid="252133053" nodearef="724" nodebref="449">
+                    <name>Martin Place</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579185.93580956,-3922847.32332509 1579192.5774408,-3922848.88465677 1579215.88847158,-3922854.34721408</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1703" dir="a_b" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1704" dir="b_a" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="861" externalid="3188362" nodearef="724" nodebref="28">
+                    <name>Phillip Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579185.93580956,-3922847.32332509 1579182.61624589,-3922860.35385814 1579182.33185216,-3922861.40618053 1579151.10732429,-3922991.97224214 1579148.35560024,-3922996.97264354 1579144.55452932,-3922998.59842265 1579140.56927407,-3922998.66178179</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1705" dir="a_b" typeref="1">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1706" dir="b_a" typeref="1">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="862" externalid="702219816" nodearef="725" nodebref="563">
+                    <name>George Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579017.75805098,-3922110.213092 1579012.36189199,-3922119.77193241</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1707" dir="a_b" typeref="4">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1708" dir="b_a" typeref="23">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="863" externalid="720896379" nodearef="725" nodebref="694">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579017.75805098,-3922110.213092 1579015.10653848,-3922111.45156323 1579012.51324068,-3922113.07673923 1579010.1755882,-3922115.00444728 1579008.01729366,-3922116.97914549 1579006.02655375,-3922119.28878817 1579004.18313421,-3922121.5407668 1578961.63988911,-3922181.66974359 1578951.56532696,-3922196.18626669</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1709" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1710" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="864" externalid="245021282" nodearef="726" nodebref="438">
+                    <name>George Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578759.52981989,-3923065.96590039 1578760.55313711,-3923072.83420795 1578755.95049095,-3923111.02690048 1578755.02526328,-3923118.55118829</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1711" dir="a_b" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1712" dir="b_a" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="865" externalid="700774593" nodearef="726" nodebref="659">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578759.52981989,-3923065.96590039 1578758.96062519,-3923070.16444191 1578753.63183294,-3923110.93018859 1578752.65340676,-3923118.43600864 1578751.23501956,-3923130.21387266 1578743.82847462,-3923191.52137896 1578739.84320042,-3923225.16583499 1578737.43538422,-3923247.90082225 1578729.85762012,-3923322.11609923 1578729.23131062,-3923328.07773531 1578728.59588332,-3923334.03811586 1578727.72327653,-3923341.11303164 1578727.21281152,-3923344.88530769 1578726.49561311,-3923349.82086568 1578725.69476999,-3923354.68920936 1578725.02194001,-3923358.6284614 1578724.50891246,-3923361.54275957 1578723.7813777,-3923365.47447482 1578723.00215026,-3923369.37679201 1578722.17733557,-3923373.2728284 1578721.31605117,-3923377.16384022 1578720.20370876,-3923382.00040553 1578719.01993301,-3923386.81599107 1578717.28092418,-3923393.57105535 1578699.88038207,-3923459.98423758</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1713" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1714" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="866" externalid="702243205" nodearef="727" nodebref="693">
+                    <name>Grosvenor Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578905.77134782,-3922347.00786051 1578911.89313162,-3922351.87209773</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1715" dir="a_b" typeref="27">
+                        <numberoflanes>2</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1716" dir="b_a" typeref="27">
+                        <numberoflanes>2</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="867" externalid="700774594" nodearef="727" nodebref="729">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578905.77134782,-3922347.00786051 1578912.42515948,-3922314.90118759 1578923.5683582,-3922256.28154976 1578924.60621285,-3922251.37915212 1578925.70036607,-3922246.54020097 1578926.81259214,-3922241.57008759 1578928.40116513,-3922235.97506904 1578929.93450766,-3922231.18549655 1578931.99732008,-3922225.7226501 1578933.91823666,-3922221.01989496 1578936.40652153,-3922215.57112396 1578939.09407079,-3922210.29460075 1578942.07190454,-3922205.06921398 1578945.23536666,-3922200.04760954 1578948.79185413,-3922194.60123789</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1717" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1718" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="868" externalid="762588828" nodearef="728" nodebref="711">
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578851.20808897,-3922588.51984642 1578843.87615678,-3922586.70769705</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1719" dir="a_b" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1720" dir="b_a" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="869" externalid="700774594" nodearef="728" nodebref="744">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578851.20808897,-3922588.51984642 1578851.41214034,-3922587.64579778 1578858.87530318,-3922555.19381883 1578861.47334993,-3922543.89049737 1578870.54668678,-3922504.87748449</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1721" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1722" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="870" externalid="700774594" nodearef="729" nodebref="721">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578948.79185413,-3922194.60123789 1578959.33222063,-3922179.53632052 1579005.13474298,-3922114.43237055 1579006.88229661,-3922112.06694317 1579008.81531441,-3922109.7716226 1579010.90802901,-3922107.59854698 1579013.23815217,-3922105.72549034 1579015.73273604,-3922104.14240108 1579018.39336849,-3922102.90518668 1579021.23368621,-3922101.98231314</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1723" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1724" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>30.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="871" externalid="702219815" nodearef="729" nodebref="694">
+                    <name>Essex Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578948.79185413,-3922194.60123789 1578951.56532696,-3922196.18626669</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1725" dir="a_b" typeref="11">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>50.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1726" dir="b_a" typeref="11">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>50.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="872" externalid="162845216" nodearef="730" nodebref="608">
                     <name>Angel Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578824.47270102,-3922717.75510384 1578827.83597949,-3922718.43012943 1578831.51688135,-3922719.16005752 1578865.41424016,-3922728.57537114</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1721" dir="a_b" typeref="14">
+                    <linksegment id="1727" dir="a_b" typeref="14">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>10.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1722" dir="b_a" typeref="14">
+                    <linksegment id="1728" dir="b_a" typeref="14">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>10.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="870" externalid="129820129" nodearef="729" nodebref="238">
-                    <name>Margaret Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578870.54668678,-3922504.87748449 1578872.88728801,-3922505.42274162</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1723" dir="a_b" typeref="11">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1724" dir="b_a" typeref="11">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="871" externalid="700774594" nodearef="729" nodebref="747">
+                <link id="873" externalid="700774593" nodearef="730" nodebref="663">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578870.54668678,-3922504.87748449 1578872.52505344,-3922496.25096831 1578883.02738994,-3922450.37353146</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1725" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1726" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="872" externalid="324785023" nodearef="730" nodebref="42">
-                    <name>King Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578784.76659291,-3922891.8379242 1578794.48802157,-3922894.64757416 1578842.1071265,-3922908.38160981 1578861.12180482,-3922914.27616088 1578896.37270371,-3922925.25927235 1578905.67308192,-3922927.95531585</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1727" dir="a_b" typeref="10">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1728" dir="b_a" typeref="24">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="873" externalid="700774593" nodearef="730" nodebref="733">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578784.76659291,-3922891.8379242 1578782.59057086,-3922901.56221093 1578782.34126062,-3922902.69733934 1578780.45062483,-3922913.45222257 1578778.89921697,-3922923.29598853 1578777.5881648,-3922932.13704846 1578768.44985428,-3922999.87730227 1578767.58556227,-3923006.28503834</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578824.47270102,-3922717.75510384 1578816.25514631,-3922753.2552726</gml:coordinates>
                     </gml:LineString>
                     <linksegment id="1729" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
@@ -16683,505 +16685,503 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="874" externalid="762585943" nodearef="731" nodebref="237">
-                    <name>George Street</name>
+                <link id="874" externalid="762588828" nodearef="731" nodebref="722">
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578852.62766352,-3922588.87137178 1578860.34197854,-3922555.54069645 1578863.05404434,-3922544.28649867</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578854.26464814,-3922589.33081796 1578852.62766352,-3922588.87137178</gml:coordinates>
                     </gml:LineString>
                     <linksegment id="1731" dir="a_b" typeref="15">
                         <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
+                        <maxspeed>20.0</maxspeed>
                     </linksegment>
                     <linksegment id="1732" dir="b_a" typeref="15">
                         <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
+                        <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="875" externalid="762588828" nodearef="731" nodebref="724">
+                <link id="875" externalid="700774593" nodearef="731" nodebref="824">
+                    <name>CBD and South East Light Rail</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578852.62766352,-3922588.87137178 1578851.20808897,-3922588.51984642</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578854.26464814,-3922589.33081796 1578842.24853979,-3922641.00311609 1578833.95072029,-3922676.74833454</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1733" dir="a_b" typeref="15">
+                    <linksegment id="1733" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1734" dir="b_a" typeref="15">
+                    <linksegment id="1734" dir="b_a" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="876" externalid="362252538" nodearef="732" nodebref="510">
-                    <name>Mercantile Walk</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578354.36116555,-3922386.98801526 1578401.6340178,-3922402.50985445 1578456.54844837,-3922420.76631533</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1737" dir="a_b" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1738" dir="b_a" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="877" externalid="362252544" nodearef="732" nodebref="735">
-                    <name>Barangaroo Avenue</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578354.36116555,-3922386.98801526 1578350.84766917,-3922472.59876712</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1735" dir="a_b" typeref="1">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>50.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1736" dir="b_a" typeref="1">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>50.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="878" externalid="702219826" nodearef="733" nodebref="675">
+                <link id="876" externalid="702219826" nodearef="732" nodebref="675">
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578767.58556227,-3923006.28503834 1578765.91249364,-3923006.08793268</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1741" dir="a_b" typeref="14">
+                    <linksegment id="1737" dir="a_b" typeref="14">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1742" dir="b_a" typeref="22">
+                    <linksegment id="1738" dir="b_a" typeref="22">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="879" externalid="700774593" nodearef="733" nodebref="746">
+                <link id="877" externalid="700774593" nodearef="732" nodebref="738">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578767.58556227,-3923006.28503834 1578762.1739041,-3923046.37103642</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1739" dir="a_b" typeref="6">
+                    <linksegment id="1735" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1740" dir="b_a" typeref="6">
+                    <linksegment id="1736" dir="b_a" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="880" externalid="252133054" nodearef="734" nodebref="448">
-                    <name>Martin Place</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579063.84293224,-3922816.8424345 1579127.22825187,-3922832.47186112</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1743" dir="a_b" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1744" dir="b_a" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="881" externalid="4354653" nodearef="734" nodebref="80">
-                    <name>Castlereagh Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579063.84293224,-3922816.8424345 1579060.33934241,-3922830.87230766</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1745" dir="a_b" typeref="28">
-                        <numberoflanes>3</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1746" dir="b_a" typeref="26">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="882" externalid="471983681" nodearef="735" nodebref="568">
+                <link id="878" externalid="471983681" nodearef="733" nodebref="568">
                     <name>Exchange Place</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578350.84766917,-3922472.59876712 1578408.46070463,-3922474.36420107 1578426.58728819,-3922474.16572059</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1747" dir="a_b" typeref="21">
+                    <linksegment id="1741" dir="a_b" typeref="21">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1748" dir="b_a" typeref="21">
+                    <linksegment id="1742" dir="b_a" typeref="21">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="883" externalid="362252544" nodearef="735" nodebref="516">
+                <link id="879" externalid="362252544" nodearef="733" nodebref="516">
                     <name>Barangaroo Avenue</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578350.84766917,-3922472.59876712 1578349.55858638,-3922513.99843462</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1749" dir="a_b" typeref="1">
+                    <linksegment id="1739" dir="a_b" typeref="1">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1750" dir="b_a" typeref="1">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>50.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="884" externalid="702219815" nodearef="736" nodebref="694">
-                    <name>Essex Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578948.79185413,-3922194.60123789 1578951.56532696,-3922196.18626669</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1751" dir="a_b" typeref="11">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>50.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1752" dir="b_a" typeref="11">
+                    <linksegment id="1740" dir="b_a" typeref="1">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="885" externalid="700774594" nodearef="736" nodebref="748">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578948.79185413,-3922194.60123789 1578959.33222063,-3922179.53632052 1579005.13474298,-3922114.43237055 1579006.88229661,-3922112.06694317 1579008.81531441,-3922109.7716226 1579010.90802901,-3922107.59854698 1579013.23815217,-3922105.72549034 1579015.73273604,-3922104.14240108 1579018.39336849,-3922102.90518668 1579021.23368621,-3922101.98231314</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1753" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1754" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>30.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="886" externalid="702219812" nodearef="737" nodebref="663">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578817.86999813,-3922739.37724165 1578817.66547305,-3922742.34514552 1578817.48528972,-3922745.33867919 1578817.1895847,-3922748.29402032 1578816.69939028,-3922751.24483989 1578816.25514631,-3922753.2552726</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1755" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1756" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="887" externalid="762585943" nodearef="737" nodebref="341">
-                    <name>George Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578817.86999813,-3922739.37724165 1578822.88901872,-3922717.38096796</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1757" dir="a_b" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1758" dir="b_a" typeref="15">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="888" externalid="252133053" nodearef="738" nodebref="449">
-                    <name>Martin Place</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579185.93580956,-3922847.32332509 1579192.5774408,-3922848.88465677 1579215.88847158,-3922854.34721408</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1759" dir="a_b" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1760" dir="b_a" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="889" externalid="3188362" nodearef="738" nodebref="28">
-                    <name>Phillip Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579185.93580956,-3922847.32332509 1579182.61624589,-3922860.35385814 1579182.33185216,-3922861.40618053 1579151.10732429,-3922991.97224214 1579148.35560024,-3922996.97264354 1579144.55452932,-3922998.59842265 1579140.56927407,-3922998.66178179</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1761" dir="a_b" typeref="1">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1762" dir="b_a" typeref="1">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="890" externalid="3190200" nodearef="739" nodebref="40">
-                    <name>King Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578566.6358041,-3922869.50395322 1578572.45225913,-3922869.70380394</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1765" dir="a_b" typeref="10">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1766" dir="b_a" typeref="24">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="891" externalid="524946780" nodearef="739" nodebref="230">
-                    <name>Kent Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578566.6358041,-3922869.50395322 1578567.1859462,-3922863.48733049</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1763" dir="a_b" typeref="4">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1764" dir="b_a" typeref="23">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="892" externalid="3188360" nodearef="740" nodebref="26">
-                    <name>Martin Place</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578816.00876432,-3922754.3016978 1578820.69747578,-3922755.40437904 1578822.74926259,-3922755.88756435 1578859.75056345,-3922765.22935073 1578938.00890832,-3922785.19026794 1578940.0470513,-3922785.70500893</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1769" dir="a_b" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1770" dir="b_a" typeref="21">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="893" externalid="700774593" nodearef="740" nodebref="730">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578816.00876432,-3922754.3016978 1578802.35777434,-3922813.32268397 1578789.52579021,-3922868.62516013 1578788.43016604,-3922873.47511388 1578786.93512042,-3922880.95426634 1578784.76659291,-3922891.8379242</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1767" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1768" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="894" externalid="702219816" nodearef="741" nodebref="563">
-                    <name>George Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579017.75805098,-3922110.213092 1579012.36189199,-3922119.77193241</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1771" dir="a_b" typeref="4">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1772" dir="b_a" typeref="23">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>20.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="895" externalid="720896379" nodearef="741" nodebref="694">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579017.75805098,-3922110.213092 1579015.10653848,-3922111.45156323 1579012.51324068,-3922113.07673923 1579010.1755882,-3922115.00444728 1579008.01729366,-3922116.97914549 1579006.02655375,-3922119.28878817 1579004.18313421,-3922121.5407668 1578961.63988911,-3922181.66974359 1578951.56532696,-3922196.18626669</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1773" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1774" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="896" externalid="702219819" nodearef="742" nodebref="668">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579065.04664891,-3922113.15404318 1579062.26164855,-3922113.33830107 1579059.0936725,-3922113.46978664 1579056.23547993,-3922113.44348116 1579053.17199937,-3922113.28864883 1579045.76287209,-3922111.96697966</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1775" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1776" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="897" externalid="702219820" nodearef="742" nodebref="666">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579065.04664891,-3922113.15404318 1579067.63190129,-3922114.89136377 1579070.20628376,-3922116.43784581 1579072.95216585,-3922117.8186195 1579075.60360588,-3922119.00817625 1579082.50942128,-3922121.28518085</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1777" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1778" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="898" externalid="187986817" nodearef="743" nodebref="401">
+                <link id="880" externalid="187986817" nodearef="734" nodebref="401">
                     <name>Gloucester Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578841.00292746,-3922142.79472657 1578869.89549641,-3922105.59941412</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1781" dir="a_b" typeref="1">
+                    <linksegment id="1745" dir="a_b" typeref="1">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1782" dir="b_a" typeref="1">
+                    <linksegment id="1746" dir="b_a" typeref="1">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="899" externalid="252445022" nodearef="743" nodebref="206">
+                <link id="881" externalid="252445022" nodearef="734" nodebref="206">
                     <name>Essex Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578841.00292746,-3922142.79472657 1578795.17419372,-3922116.17656883</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1779" dir="a_b" typeref="11">
+                    <linksegment id="1743" dir="a_b" typeref="11">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1780" dir="b_a" typeref="11">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="900" externalid="279958930" nodearef="744" nodebref="747">
-                    <name>Bond Street</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578888.26783722,-3922451.51882844 1578883.02738994,-3922450.37353146</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1783" dir="a_b" typeref="25">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1784" dir="b_a" typeref="26">
+                    <linksegment id="1744" dir="b_a" typeref="11">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="901" externalid="720896377" nodearef="744" nodebref="658">
-                    <name>CBD and South East Light Rail</name>
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1578888.26783722,-3922451.51882844 1578885.37624873,-3922458.8834508 1578883.83673748,-3922463.5830959 1578882.40062101,-3922468.34153911 1578881.17438731,-3922473.26255537 1578880.00888725,-3922478.14738922 1578875.64839479,-3922496.98204062 1578873.65329548,-3922505.59511332 1578864.55878155,-3922544.69431005</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="1785" dir="a_b" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>25.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="1786" dir="b_a" typeref="6">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>25.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="902" externalid="34695430" nodearef="745" nodebref="136">
+                <link id="882" externalid="34695430" nodearef="735" nodebref="136">
                     <name>King Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578781.31511725,-3922891.06164835 1578783.23906624,-3922891.39356196</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1789" dir="a_b" typeref="10">
+                    <linksegment id="1749" dir="a_b" typeref="10">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1790" dir="b_a" typeref="24">
+                    <linksegment id="1750" dir="b_a" typeref="24">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="903" externalid="700774594" nodearef="745" nodebref="662">
+                <link id="883" externalid="700774594" nodearef="735" nodebref="662">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578781.31511725,-3922891.06164835 1578782.34691405,-3922886.20289824 1578783.65679907,-3922880.13502062 1578784.91104371,-3922874.53840677 1578786.44948273,-3922867.75578301 1578791.6716603,-3922845.43102453 1578799.73648134,-3922810.56687111 1578812.93718937,-3922753.60003881 1578819.41516238,-3922725.66781867</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1787" dir="a_b" typeref="6">
+                    <linksegment id="1747" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1788" dir="b_a" typeref="6">
+                    <linksegment id="1748" dir="b_a" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="904" externalid="702219827" nodearef="746" nodebref="677">
+                <link id="884" externalid="3190200" nodearef="736" nodebref="40">
+                    <name>King Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578566.6358041,-3922869.50395322 1578572.45225913,-3922869.70380394</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1753" dir="a_b" typeref="10">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1754" dir="b_a" typeref="24">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="885" externalid="524946780" nodearef="736" nodebref="230">
+                    <name>Kent Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578566.6358041,-3922869.50395322 1578567.1859462,-3922863.48733049</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1751" dir="a_b" typeref="4">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1752" dir="b_a" typeref="23">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="886" externalid="676771872" nodearef="737" nodebref="635">
+                    <name>Exchange Place</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578456.00093719,-3922475.73366092 1578455.7553605,-3922478.59565005</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1755" dir="a_b" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1756" dir="b_a" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="887" externalid="676771873" nodearef="737" nodebref="635">
+                    <name>Scotch Row</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578456.00093719,-3922475.73366092 1578455.7553605,-3922478.59565005</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1757" dir="a_b" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1758" dir="b_a" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="888" externalid="702219827" nodearef="738" nodebref="677">
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578762.1739041,-3923046.37103642 1578760.71807921,-3923046.14817349</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1791" dir="a_b" typeref="14">
+                    <linksegment id="1761" dir="a_b" typeref="14">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1792" dir="b_a" typeref="22">
+                    <linksegment id="1762" dir="b_a" typeref="22">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="905" externalid="700774593" nodearef="746" nodebref="721">
+                <link id="889" externalid="700774593" nodearef="738" nodebref="726">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578762.1739041,-3923046.37103642 1578759.52981989,-3923065.96590039</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1793" dir="a_b" typeref="6">
+                    <linksegment id="1759" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1794" dir="b_a" typeref="6">
+                    <linksegment id="1760" dir="b_a" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="906" externalid="279958930" nodearef="747" nodebref="469">
+                <link id="890" externalid="129087878" nodearef="739" nodebref="228">
+                    <name>Erskine Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578411.4749958,-3922635.34153464 1578485.68523066,-3922640.65224149</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1763" dir="a_b" typeref="4">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>50.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1764" dir="b_a" typeref="4">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>50.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="891" externalid="4354612" nodearef="739" nodebref="9">
+                    <name>Shelley Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578411.4749958,-3922635.34153464 1578416.3599907,-3922543.89383612 1578417.28689491,-3922511.46582228</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1765" dir="a_b" typeref="11">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1766" dir="b_a" typeref="11">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="892" externalid="702219812" nodearef="740" nodebref="663">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578817.86999813,-3922739.37724165 1578817.66547305,-3922742.34514552 1578817.48528972,-3922745.33867919 1578817.1895847,-3922748.29402032 1578816.69939028,-3922751.24483989 1578816.25514631,-3922753.2552726</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1767" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1768" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>70.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="893" externalid="762585943" nodearef="740" nodebref="341">
+                    <name>George Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578817.86999813,-3922739.37724165 1578822.88901872,-3922717.38096796</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1769" dir="a_b" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1770" dir="b_a" typeref="15">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="894" externalid="324785023" nodearef="741" nodebref="42">
+                    <name>King Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578784.76659291,-3922891.8379242 1578794.48802157,-3922894.64757416 1578842.1071265,-3922908.38160981 1578861.12180482,-3922914.27616088 1578896.37270371,-3922925.25927235 1578905.67308192,-3922927.95531585</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1771" dir="a_b" typeref="10">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1772" dir="b_a" typeref="24">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="895" externalid="700774593" nodearef="741" nodebref="732">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578784.76659291,-3922891.8379242 1578782.59057086,-3922901.56221093 1578782.34126062,-3922902.69733934 1578780.45062483,-3922913.45222257 1578778.89921697,-3922923.29598853 1578777.5881648,-3922932.13704846 1578768.44985428,-3922999.87730227 1578767.58556227,-3923006.28503834</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1773" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1774" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="896" externalid="279958930" nodearef="742" nodebref="469">
                     <name>Bond Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578883.02738994,-3922450.37353146 1578876.51499322,-3922449.08639437</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1795" dir="a_b" typeref="25">
+                    <linksegment id="1777" dir="a_b" typeref="25">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1796" dir="b_a" typeref="26">
+                    <linksegment id="1778" dir="b_a" typeref="26">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="907" externalid="700774594" nodearef="747" nodebref="826">
+                <link id="897" externalid="700774594" nodearef="742" nodebref="826">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578883.02738994,-3922450.37353146 1578884.19541065,-3922445.06581167 1578893.36423099,-3922403.33728508 1578901.33643031,-3922367.12418426</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1797" dir="a_b" typeref="6">
+                    <linksegment id="1775" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1798" dir="b_a" typeref="6">
+                    <linksegment id="1776" dir="b_a" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="908" externalid="700774594" nodearef="748" nodebref="656">
+                <link id="898" externalid="252133054" nodearef="743" nodebref="448">
+                    <name>Martin Place</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579063.84293224,-3922816.8424345 1579127.22825187,-3922832.47186112</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1779" dir="a_b" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1780" dir="b_a" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="899" externalid="4354653" nodearef="743" nodebref="80">
+                    <name>Castlereagh Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579063.84293224,-3922816.8424345 1579060.33934241,-3922830.87230766</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1781" dir="a_b" typeref="28">
+                        <numberoflanes>3</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1782" dir="b_a" typeref="26">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="900" externalid="700774594" nodearef="744" nodebref="742">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579021.23368621,-3922101.98231314 1579024.22332138,-3922101.39187153 1579027.18751652,-3922101.12091913 1579030.12627138,-3922101.1694559</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578870.54668678,-3922504.87748449 1578872.52505344,-3922496.25096831 1578883.02738994,-3922450.37353146</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1799" dir="a_b" typeref="6">
+                    <linksegment id="1783" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1800" dir="b_a" typeref="6">
+                    <linksegment id="1784" dir="b_a" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="909" externalid="702219816" nodearef="748" nodebref="741">
-                    <name>George Street</name>
+                <link id="901" externalid="129820129" nodearef="744" nodebref="238">
+                    <name>Margaret Street</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579021.23368621,-3922101.98231314 1579017.75805098,-3922110.213092</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578870.54668678,-3922504.87748449 1578872.88728801,-3922505.42274162</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="1801" dir="a_b" typeref="4">
+                    <linksegment id="1785" dir="a_b" typeref="11">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1786" dir="b_a" typeref="11">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="902" externalid="3188360" nodearef="745" nodebref="26">
+                    <name>Martin Place</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578816.00876432,-3922754.3016978 1578820.69747578,-3922755.40437904 1578822.74926259,-3922755.88756435 1578859.75056345,-3922765.22935073 1578938.00890832,-3922785.19026794 1578940.0470513,-3922785.70500893</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1789" dir="a_b" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1790" dir="b_a" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="903" externalid="700774593" nodearef="745" nodebref="741">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578816.00876432,-3922754.3016978 1578802.35777434,-3922813.32268397 1578789.52579021,-3922868.62516013 1578788.43016604,-3922873.47511388 1578786.93512042,-3922880.95426634 1578784.76659291,-3922891.8379242</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1787" dir="a_b" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
-                    <linksegment id="1802" dir="b_a" typeref="23">
+                    <linksegment id="1788" dir="b_a" typeref="6">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="904" externalid="720896377" nodearef="746" nodebref="658">
+                    <name>CBD and South East Light Rail</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578888.26783722,-3922451.51882844 1578885.37624873,-3922458.8834508 1578883.83673748,-3922463.5830959 1578882.40062101,-3922468.34153911 1578881.17438731,-3922473.26255537 1578880.00888725,-3922478.14738922 1578875.64839479,-3922496.98204062 1578873.65329548,-3922505.59511332 1578864.55878155,-3922544.69431005</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1793" dir="a_b" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>25.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1794" dir="b_a" typeref="6">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>25.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="905" externalid="279958930" nodearef="746" nodebref="742">
+                    <name>Bond Street</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578888.26783722,-3922451.51882844 1578883.02738994,-3922450.37353146</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1791" dir="a_b" typeref="25">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1792" dir="b_a" typeref="26">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="906" externalid="151443295" nodearef="747" nodebref="298">
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579571.04658074,-3922015.79099227 1579577.2101938,-3922012.33027896</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1795" dir="a_b" typeref="17">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1796" dir="b_a" typeref="17">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="907" externalid="222399613" nodearef="747" nodebref="428">
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579571.04658074,-3922015.79099227 1579577.96598747,-3921975.50167583 1579581.1494712,-3921964.00082703 1579585.10834737,-3921954.15500844 1579588.13956897,-3921947.5337833 1579592.43581878,-3921941.57699361 1579596.4436764,-3921937.17314993 1579605.80625749,-3921928.84070373 1579619.58172419,-3921919.36792843 1579636.30761372,-3921909.4554021 1579643.38141663,-3921905.9308478 1579649.65412059,-3921903.43191824</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1797" dir="a_b" typeref="36">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1798" dir="b_a" typeref="36">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="908" externalid="362252538" nodearef="748" nodebref="510">
+                    <name>Mercantile Walk</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578354.36116555,-3922386.98801526 1578401.6340178,-3922402.50985445 1578456.54844837,-3922420.76631533</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1801" dir="a_b" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1802" dir="b_a" typeref="21">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>20.0</maxspeed>
+                    </linksegment>
+                </link>
+                <link id="909" externalid="362252544" nodearef="748" nodebref="733">
+                    <name>Barangaroo Avenue</name>
+                    <gml:LineString>
+                        <gml:coordinates decimal="." cs="," ts=" ">1578354.36116555,-3922386.98801526 1578350.84766917,-3922472.59876712</gml:coordinates>
+                    </gml:LineString>
+                    <linksegment id="1799" dir="a_b" typeref="1">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>50.0</maxspeed>
+                    </linksegment>
+                    <linksegment id="1800" dir="b_a" typeref="1">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
                 <link id="910" externalid="280671412" nodearef="749" nodebref="484">
@@ -17382,7 +17382,7 @@
                         <maxspeed>70.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="925" externalid="700774594" nodearef="823" nodebref="724">
+                <link id="925" externalid="700774594" nodearef="823" nodebref="728">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578830.85042804,-3922676.18750923 1578851.20808897,-3922588.51984642</gml:coordinates>
@@ -17396,7 +17396,7 @@
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="926" externalid="700774593" nodearef="824" nodebref="728">
+                <link id="926" externalid="700774593" nodearef="824" nodebref="730">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578833.95072029,-3922676.74833454 1578829.96080921,-3922694.17507244 1578824.47270102,-3922717.75510384</gml:coordinates>
@@ -17410,7 +17410,7 @@
                         <maxspeed>20.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="927" externalid="720896377" nodearef="825" nodebref="744">
+                <link id="927" externalid="720896377" nodearef="825" nodebref="746">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578894.92924099,-3922429.33689847 1578894.45026741,-3922431.53187373 1578893.11425207,-3922437.38447151 1578891.73434718,-3922442.13951895 1578890.33229298,-3922446.17869627 1578888.26783722,-3922451.51882844</gml:coordinates>
@@ -17424,7 +17424,7 @@
                         <maxspeed>25.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="928" externalid="700774594" nodearef="826" nodebref="722">
+                <link id="928" externalid="700774594" nodearef="826" nodebref="727">
                     <name>CBD and South East Light Rail</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578901.33643031,-3922367.12418426 1578903.92546752,-3922355.88649586 1578905.77134782,-3922347.00786051</gml:coordinates>
@@ -17662,7 +17662,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="945" externalid="524946780" nodearef="843" nodebref="739">
+                <link id="945" externalid="524946780" nodearef="843" nodebref="736">
                     <name>Kent Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578559.97945699,-3923048.76450103 1578566.6358041,-3922869.50395322</gml:coordinates>
@@ -17816,7 +17816,7 @@
                         <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="956" externalid="129087878" nodearef="854" nodebref="723">
+                <link id="956" externalid="129087878" nodearef="854" nodebref="739">
                     <name>Erskine Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578375.18251836,-3922633.40279202 1578411.4749958,-3922635.34153464</gml:coordinates>
@@ -17858,7 +17858,7 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="959" externalid="152771366" nodearef="857" nodebref="725">
+                <link id="959" externalid="152771366" nodearef="857" nodebref="720">
                     <name>Argyle Street</name>
                     <gml:LineString>
                         <gml:coordinates decimal="." cs="," ts=" ">1578600.34526822,-3921711.70336701 1578610.02399647,-3921713.54896733 1578625.82762259,-3921716.32740796</gml:coordinates>

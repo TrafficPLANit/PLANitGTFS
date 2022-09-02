@@ -23,7 +23,7 @@ public abstract class GtfsObject {
   protected void appendKeyValues(StringBuilder sb) {
     keyValueMap.forEach( (k,v) -> {
       sb.append(k.value());
-      sb.append("-");
+      sb.append(" ");
       sb.append(v==null ? "n/a" : v);
       sb.append(", ");
     });

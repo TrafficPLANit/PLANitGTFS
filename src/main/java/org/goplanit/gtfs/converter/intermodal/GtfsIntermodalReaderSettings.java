@@ -40,7 +40,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    */
   public GtfsIntermodalReaderSettings(String inputSource, String countryName, final MacroscopicNetwork parentNetwork, Zoning zoningtoPopulate, RouteTypeChoice routeTypeChoice) {
     this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, parentNetwork, routeTypeChoice);
-    this.zoningSettings = new GtfsZoningReaderSettings(inputSource, countryName, parentNetwork, servicesReaderSettings);
+    this.zoningSettings = new GtfsZoningReaderSettings(servicesReaderSettings);
     this.zoningtoPopulate = zoningtoPopulate;
   }
 
