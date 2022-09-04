@@ -27,16 +27,19 @@ public class GtfsZoningHandlerProfiler {
    */
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerProfiler.class.getCanonicalName());
 
-  /** track how many GTFS objects were processed, e.g., incoporated, as it should not count discarded entries */
+  /** track how many GTFS objects were processed, e.g., incorporated, as it should not count discarded entries */
   Map<GtfsObjectType, LongAdder> gtfsObjectTypeCounters = new HashMap<>();
 
   /** track number of newly created transfer zones and augmented existing transfer zones */
   Pair<LongAdder, LongAdder> transferZoneCounterPair;
 
+  LongAdder transferZoneMatchesByPlatformName;
+
   /** Initialise the profiler */
   private void initialise(){
     Arrays.stream(GtfsObjectType.values()).forEach( type -> gtfsObjectTypeCounters.put(type, new LongAdder()));
     transferZoneCounterPair = Pair.of(new LongAdder(), new LongAdder());
+    this.transferZoneMatchesByPlatformName = new LongAdder();
   }
 
   /**
@@ -60,6 +63,11 @@ public class GtfsZoningHandlerProfiler {
       }
     });
 
+    LOGGER.info(String.format("[STATS] transfer zones newly created: %d",this.transferZoneCounterPair.first().intValue()));
+    LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops",this.transferZoneCounterPair.second().intValue()));
+    LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops by platform code/name",this.transferZoneMatchesByPlatformName.intValue()));
+
+
     /* GTFS -> transfer zones */
     zoning.logInfo(LoggingUtils.zoningPrefix(zoning.getId()).concat("[STATS]"));
   }
@@ -68,8 +76,9 @@ public class GtfsZoningHandlerProfiler {
    * reset the profiler
    */
   public void reset() {
-    gtfsObjectTypeCounters.values().forEach( v -> v.reset());
-    transferZoneCounterPair.<LongAdder>both( e -> e.reset());
+    this.gtfsObjectTypeCounters.values().forEach( v -> v.reset());
+    this.transferZoneCounterPair.<LongAdder>both( e -> e.reset());
+    this.transferZoneMatchesByPlatformName.reset();
   }
 
   /**
@@ -86,6 +95,13 @@ public class GtfsZoningHandlerProfiler {
    */
   public void incrementAugmentedTransferZones(){
     this.transferZoneCounterPair.second().increment();
+  }
+
+  /**
+   * Increment count for a augmented existing transfer zones
+   */
+  public void   incrementMatchedTransferZonesOnPlatformName(){
+    this.transferZoneMatchesByPlatformName.increment();
   }
 
   /**

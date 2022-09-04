@@ -144,25 +144,25 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     /* remove nearby zones that are not mode compatible */
     nearbyTransferZones.removeIf(tz -> data.getSupportedPtModesIn(tz, Set.of(gtfsStopMode)).isEmpty());
 
-    var match = matchByPlatform(gtfsStop, nearbyTransferZones);
-    if(match != null){
-      nearbyTransferZones.removeIf( tz -> !tz.equals(match));
-    }
-
     /* no nearby mode compatible transfer zones, create new one */
     if(nearbyTransferZones.isEmpty()){
       processNewStopPlatform(gtfsStop);
       return;
     }
 
-
-    /* find closest existing transfer zone */
-    Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());;
-    var closestTransferZone = findTransferZoneStopLocationClosestTo(projectedGtfsStopLocation.getCoordinate(), nearbyTransferZones).first();
-    if(data.hasMappedGtfsStop(closestTransferZone)){
-      var splitExternalId = closestTransferZone.getSplitExternalId();
-      LOGGER.warning(String.format("PLANit transfer zone (%s) already mapped to GTFS stop (%s), consider mapping explicitly, creating new Transfer zone instead for STOP_ID %s",closestTransferZone.getXmlId(), splitExternalId[splitExternalId.length-1],gtfsStop.getStopId()));
-      return;
+    /* try to match on platform name first as it is most trustworthy... */
+    var closestTransferZone = matchByPlatform(gtfsStop, nearbyTransferZones);
+    if(closestTransferZone == null){
+      /* ... else find closest existing transfer zone */
+      Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
+      closestTransferZone = findTransferZoneStopLocationClosestTo(projectedGtfsStopLocation.getCoordinate(), nearbyTransferZones).first();
+      if (data.hasMappedGtfsStop(closestTransferZone)) {
+        var splitExternalId = closestTransferZone.getSplitExternalId();
+        LOGGER.warning(String.format("PLANit transfer zone (%s) already mapped to GTFS stop (STOP_ID %s), consider verifying mapping correctness for STOP_ID %s", closestTransferZone.getXmlId(), splitExternalId[splitExternalId.length - 1], gtfsStop.getStopId()));
+        return;
+      }
+    }else{
+      data.getProfiler().incrementMatchedTransferZonesOnPlatformName();
     }
 
       /* augment external id with GTFS stop id + index by this id in separate map */
