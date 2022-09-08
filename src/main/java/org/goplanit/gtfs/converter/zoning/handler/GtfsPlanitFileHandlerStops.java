@@ -1,33 +1,24 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
-import org.geotools.geometry.jts.JTS;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
-import org.goplanit.utils.geo.PlanitGraphGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.Edges;
-import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.misc.CharacterUtils;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.zoning.TransferZone;
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -295,7 +286,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    *
    * @param gtfsStop      to create new TransferZone for
    */
-  private void processExistingStopPlatform(final GtfsStop gtfsStop, final Collection<TransferZone> nearbyTransferZones) {
+  private void matchToExistingTransferZone(final GtfsStop gtfsStop, final Collection<TransferZone> nearbyTransferZones) {
     PlanItRunTimeException.throwIfNull(gtfsStop,"GTFS stop null, this is not allowed");
     PlanItRunTimeException.throwIfNullOrEmpty(nearbyTransferZones,"No nearby transfer zones provided, this is not allowed");
 
@@ -394,7 +385,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         processNewStopPlatform(gtfsStop);
         return;
       }
-      processExistingStopPlatform(gtfsStop, nearbyTransferZones);
+      matchToExistingTransferZone(gtfsStop, nearbyTransferZones);
     }
 
   /**
