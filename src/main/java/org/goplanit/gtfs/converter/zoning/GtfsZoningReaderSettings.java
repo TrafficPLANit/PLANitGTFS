@@ -37,7 +37,7 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
 
   /** default search radius for mapping GTFS stops to PLANit transfer zones */
-  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 20;
+  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40;
 
   /** re-use settings from services reader */
   private final GtfsServicesReaderSettings servicesReaderSettings;

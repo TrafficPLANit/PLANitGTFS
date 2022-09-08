@@ -10,7 +10,9 @@ import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
@@ -47,7 +49,14 @@ public class GtfsZoningHandlerData {
   // LOCAL DATA TRACKING
 
   /** Track all registered/mapped transfer zones by their GTFS stop id */
-  private Map<String, TransferZone> transferZonesByGtfsStopId;
+  private Map<String, TransferZone> mappedTransferZonesByGtfsStopId;
+
+  /** track all GTFS stops that have been mapped to pre-existing transfer zones. We do so, to allow for correcting earlier
+   * matches due to - for example - a transfer zone based on OSM was not complete and should be split in two, e.g. there are stops
+   * on both sides of the road, but OSM only contains a stop on one side. In that case we must be able to retrieve the earlier mapped GTFS stop
+   * and decide how to proceed
+   */
+  private Map<String, GtfsStop> mappedGtfsStops;
 
   /** track all supported pt service modes for (partly pre-existing) PLANit transfer zones that have and are to be created and
    * their used directed connectoids so we can pinpoint PT stop locations on the physical road network more accurately rather than
@@ -55,7 +64,10 @@ public class GtfsZoningHandlerData {
   private Map<TransferZone,Set<DirectedConnectoid>> transferZonePtAccess;
 
   /** track existing transfer zones present geo spatially to be able to fuse with GTFS data when appropriate */
-  private Quadtree existingTransferZones;
+  private Quadtree geoIndexExistingTransferZones;
+
+  /** track link geospatially to identify nearby links for GTFS Stops and be able to discern if a matched transfer zone (its access link segment) is appropriate */
+  private Quadtree geoIndexedExistingLinks;
 
   /** geo tools with CRS based configuration to apply */
   private PlanitJtsCrsUtils geoTools;
@@ -91,11 +103,20 @@ public class GtfsZoningHandlerData {
    * Initialise the tracking of data
    */
   private void initialise(){
-    this.transferZonesByGtfsStopId = new HashMap<>();
+    this.mappedTransferZonesByGtfsStopId = new HashMap<>();
     this.serviceNodeAndModeByGtfsStopId = new HashMap<>();
     this.transferZonePtAccess = new HashMap<>();
+    this.mappedGtfsStops = new HashMap<>();
 
-    this.existingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
+    this.geoIndexExistingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
+
+    /* all link across all used layers for activated modes in geoindex format */
+    Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
+    getSettings().getAcivatedPlanitModes().forEach( m -> usedLayers.add(getSettings().getReferenceNetwork().getLayerByMode(m)));
+    Collection<Links> linksCollection = new ArrayList<>();
+    usedLayers.forEach( l -> linksCollection.add(l.getLinks()));
+    this.geoIndexedExistingLinks = GeoContainerUtils.toGeoIndexed(linksCollection);
+
     this.geoTools = new PlanitJtsCrsUtils(getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
     this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
 
@@ -163,8 +184,11 @@ public class GtfsZoningHandlerData {
    * @return true when already mapped by GTFS stop, false otherwise
    */
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
-    var old = transferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
-    PlanItRunTimeException.throwIf(old != null && !old.equals(transferZone), "Multiple transfer zones found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
+    var oldZone = mappedTransferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
+    PlanItRunTimeException.throwIf(oldZone != null && !oldZone.equals(transferZone), "Multiple transfer zones found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
+
+    var oldStop = mappedGtfsStops.put(gtfsStop.getStopId(), gtfsStop);
+    PlanItRunTimeException.throwIf(oldStop != null && !oldStop.equals(gtfsStop), "Multiple GTFS stops found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
   }
 
   /**
@@ -173,8 +197,8 @@ public class GtfsZoningHandlerData {
    * @param gtfsStop to use
    * @return PLANit transfer zone it is mapped to, null if no mapping exists yet
    */
-  public TransferZone getTransferZone(GtfsStop gtfsStop){
-    return transferZonesByGtfsStopId.get(gtfsStop);
+  public TransferZone getMappedTransferZone(GtfsStop gtfsStop){
+    return mappedTransferZonesByGtfsStopId.get(gtfsStop.getStopId());
   }
 
   /**
@@ -183,7 +207,17 @@ public class GtfsZoningHandlerData {
    * @return true when already mapped by GTFS stop, false otherwise
    */
   public boolean hasMappedGtfsStop(TransferZone transferZone) {
-    return transferZonesByGtfsStopId.containsValue(transferZone);
+    return mappedTransferZonesByGtfsStopId.containsValue(transferZone);
+  }
+
+  /**
+   * Retrieve a GTFS stop that has been mapped to a pre-existing PLANit transfer zone
+   *
+   * @param gtfsStopId to use
+   * @return found GTFS stop (if any)
+   */
+  public GtfsStop getMappedGtfsStop(String gtfsStopId) {
+    return mappedGtfsStops.get(gtfsStopId);
   }
 
 
@@ -282,12 +316,21 @@ public class GtfsZoningHandlerData {
   }
 
   /**
-   * Get all the geo index transfer zones as a quad tree
+   * Get all the geo indexed transfer zones as a quad tree
    *
    * @return registered geo indexed transfer zones
    */
   public Quadtree getGeoIndexedTransferZones() {
-    return this.existingTransferZones;
+    return this.geoIndexExistingTransferZones;
+  }
+
+  /**
+   * Get all the geo indexed links as a quad tree
+   *
+   * @return registered geo indexed links
+   */
+  public Quadtree getGeoIndexedExistingLinks() {
+    return this.geoIndexedExistingLinks;
   }
 
 }
