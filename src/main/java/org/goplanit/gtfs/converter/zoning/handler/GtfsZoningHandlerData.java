@@ -11,7 +11,9 @@ import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.DirectedConnectoid;
@@ -113,7 +115,7 @@ public class GtfsZoningHandlerData {
     /* all link across all used layers for activated modes in geoindex format */
     Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
     getSettings().getAcivatedPlanitModes().forEach( m -> usedLayers.add(getSettings().getReferenceNetwork().getLayerByMode(m)));
-    Collection<Links> linksCollection = new ArrayList<>();
+    Collection<MacroscopicLinks> linksCollection = new ArrayList<>();
     usedLayers.forEach( l -> linksCollection.add(l.getLinks()));
     this.geoIndexedExistingLinks = GeoContainerUtils.toGeoIndexed(linksCollection);
 

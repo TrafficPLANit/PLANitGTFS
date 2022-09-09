@@ -1,21 +1,16 @@
 package org.goplanit.gtfs.converter.zoning;
 
-import org.goplanit.converter.ConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Capture all the user configurable settings regarding how to
@@ -37,7 +32,13 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
 
   /** default search radius for mapping GTFS stops to PLANit transfer zones */
-  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40;
+  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40.0;
+
+  /** search radius used when mapping GTFS stops to PLANit road network, which given that GTFS stop is the vehicle stop location, should be less than distance to pole */
+  private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
+
+  /** default search radius for mapping GTFS stops to PLANit links */
+  public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS/2.0;
 
   /** re-use settings from services reader */
   private final GtfsServicesReaderSettings servicesReaderSettings;
@@ -66,6 +67,24 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   public void setGtfsStopToTransferZoneSearchRadiusMeters(double searchRadiusMeters){
     this.gtfsStop2TransferZoneSearchRadiusMeters = searchRadiusMeters;
   }
+
+  /**
+   * Search radius in meters to map a GTFS stop location to an existing PLANit link (for its stop location)
+   *
+   * @return searchRadiusMeters being applied
+   */
+  public double getGtfsStopToLinkSearchRadiusMeters(){
+    return this.gtfsStop2RoadSearchRadiusMeters;
+  }
+
+  /**
+   * Search radius in meters to map a GTFS stop location to an existing PLANit link (for its stop location)
+   * @param searchRadiusMeters to apply
+   */
+  public void setGtfsStopToLinkSearchRadiusMeters(double searchRadiusMeters){
+    this.gtfsStop2RoadSearchRadiusMeters = searchRadiusMeters;
+  }
+
 
   /**
    * Provide the mapping from a PLANit service node in the service network to its GTFS STOP ID
@@ -139,6 +158,7 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    */
   public void log() {
     LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f",getGtfsStopToTransferZoneSearchRadiusMeters()));
+    LOGGER.info(String.format("GTFS stop-to-link search radius (m): %.1f",getGtfsStopToLinkSearchRadiusMeters()));
   }
 
   /**
@@ -147,5 +167,6 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   @Override
   public void reset() {
     setGtfsStopToTransferZoneSearchRadiusMeters(DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS);
+    setGtfsStopToLinkSearchRadiusMeters(DEFAULT_GTFSSTOP_LINK_SEARCH_METERS);
   }
 }
