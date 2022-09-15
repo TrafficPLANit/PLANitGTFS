@@ -1,9 +1,9 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
+import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
-import org.goplanit.io.geo.PlanitGmlUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.*;
 import org.goplanit.utils.graph.Edge;
@@ -14,14 +14,12 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.zoning.TransferZone;
+import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.LineSegment;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.linearref.LinearLocation;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -155,6 +153,110 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     return Pair.of(closest,minDistance);
   }
 
+  /** From the provided options, select the most appropriate based on proximity, mode compatibility, relative location to GTFS stop zone, and importance of the link segment
+   *
+   * @param gtfsStop under consideration
+   * @param accessMode access mode to use
+   * @param eligibleLinks for connectoids
+   * @return most appropriate link that is found, null if no compatible links could be found
+   */
+  private MacroscopicLink findMostAppropriateStopLocationLinkForGtfsStop(GtfsStop gtfsStop, Mode accessMode, Collection<MacroscopicLink> eligibleLinks) {
+    final boolean stopLocationDirectionSpecific = !(accessMode.getPhysicalFeatures().getTrackType() == TrackModeType.RAIL);
+    final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
+    final boolean leftHandDrive = isLeftHandDrive(data.getSettings().getCountryName());
+
+    /* prune if closest edges are incompatible with driving direction, if so indicate we are slaving for later user warning */
+    boolean salvaging = ZoningConverterUtils.excludeClosestLinksIncrementallyOnWrongSideOf(projectedGtfsStopLocation, eligibleLinks, leftHandDrive,  Collections.singleton(accessMode), data.getGeoTools());
+    if(eligibleLinks.isEmpty()) {
+      return null;
+    }
+
+    /* reduce options based on proximity to closest viable link, without ruling out other options that might also be valid*/
+    MacroscopicLink selectedAccessLink = null;
+    Pair<? extends Edge, Set<? extends Edge>> candidatesForStopLocation = PlanitGraphGeoUtils.findEdgesClosest(
+        projectedGtfsStopLocation, eligibleLinks, data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data.getGeoTools());
+    if(candidatesForStopLocation==null) {
+      throw new PlanItRunTimeException("No closest link could be found from selection of eligible close by links for GTFS Stop (STOP_ID %s)", gtfsStop.getStopId());
+    }
+
+    if(candidatesForStopLocation.second() == null || candidatesForStopLocation.second().isEmpty() ) {
+      /* only one option */
+      selectedAccessLink = (MacroscopicLink) candidatesForStopLocation.first();
+    }else {
+
+      /* multiple candidates still, filter candidates based on availability of valid stop location checking (mode support, correct location compared to zone etc.) */
+      @SuppressWarnings("unchecked")
+      Set<MacroscopicLink> candidatesToFilter = (Set<MacroscopicLink>) candidatesForStopLocation.second();
+      candidatesToFilter.add((MacroscopicLink)candidatesForStopLocation.first());
+
+      /* 1) reduce options by removing all compatible links within proximity of the closest link that are on the wrong side of the road infrastructure */
+      candidatesToFilter = (Set<MacroscopicLink>) ZoningConverterUtils.excludeLinksOnWrongSideOf(projectedGtfsStopLocation, candidatesToFilter, leftHandDrive, Collections.singleton(accessMode), data.getGeoTools());
+
+      /* 2) make sure a valid stop_location on each remaining link can be created (for example if stop_location would be on an extreme node, it is possible no access link segment upstream of that node remains
+       *    which would render an otherwise valid position invalid */
+      Iterator<? extends Edge> iterator = candidatesToFilter.iterator();
+      while(iterator.hasNext()) {
+        Edge candidateLink = iterator.next();
+        //TODO: coninue here --> this connectoid helper is now in OSM repo also it relies on OSM info + requires transferzone, this needs to be generalised
+        // for GTFS --> possibly copy functionality to PLANit ZoningConverter repo as this is shared functionality across zoning converters...
+        Point connectoidLocation = null; /*getConnectoidHelper().findConnectoidLocationForStandAloneTransferZoneOnLink(
+            transferZone, (MacroscopicLink)candidateLink, accessMode, getSettings().getStopToWaitingAreaSearchRadiusMeters());*/
+        if(connectoidLocation == null) {
+          iterator.remove();
+        }
+      }
+
+      //todo
+//      if(candidatesToFilter == null || candidatesToFilter.isEmpty() ) {
+//        logWarningIfNotNearBoundingBox(String.format("DISCARD: No suitable stop_location on potential osm way candidates found for transfer zone %s and mode %s", transferZone.getExternalId(), accessMode.getName()), transferZone.getGeometry());
+//        return null;
+//      }
+
+      /* 3) filter based on link hierarchy using osm way types, the premise being that bus services tend to be located on main roads, rather than smaller roads
+       * there is no hierarchy for rail, so we only do this for road modes. This could allow slightly misplaced waiting areas with multiple options near small and big roads
+       * to be salvaged in favour of the larger road */
+      //todo
+//      if(OsmRoadModeTags.isRoadModeTag(osmAccessMode)){
+//        OsmWayUtils.removeEdgesWithOsmHighwayTypesLessImportantThan(OsmWayUtils.findMostProminentOsmHighWayType(candidatesToFilter), candidatesToFilter);
+//      }
+
+      //todo
+//      if(candidatesToFilter.size()==1) {
+//        selectedAccessLink = candidatesToFilter.iterator().next();
+//      }else {
+//        /* 4) still multiple options, now select closest from the remaining candidates */
+//        selectedAccessLink = (MacroscopicLink)PlanitGraphGeoUtils.findEdgeClosest(transferZone.getGeometry(), candidatesToFilter, getGeoUtils());
+//      }
+
+    }
+
+    //todo
+//    if(salvaging == true) {
+//      LOGGER.info(String.format("SALVAGED: Used non-closest osm way to %s %s to ensure waiting area %s is on correct side of road for mode %s",
+//          selectedAccessLink.getExternalId(), selectedAccessLink.getName() != null ?  selectedAccessLink.getName() : "" , transferZone.getExternalId(), osmAccessMode));
+//    }
+
+    return selectedAccessLink;
+  }
+
+
+  /** Based on coordinate draw a virtual line to closest intersection point on link segment and identify the azimuth (0-360 degrees) that goes with this virtual line
+   *  from the intersection point on the link segment towards the coordinate provided
+   *
+   * @param linkSegment to use
+   * @param coordinate to use
+   * @return azimuth in degrees found
+   */
+  private double getAzimuthFromLinkSegmentToCoordinate(LinkSegment linkSegment, Coordinate coordinate) {
+    var linkSegmentGeometry = linkSegment.getParentLink().getGeometry();
+    var closestLinkIntersect = data.getGeoTools().getClosestProjectedLinearLocationOnLineString(coordinate, linkSegmentGeometry);
+    var closestLinkIntersectCoordinate = closestLinkIntersect.getCoordinate(linkSegmentGeometry);
+
+    var dirPos1 = data.getGeoTools().toDirectPosition(closestLinkIntersectCoordinate);
+    var dirPos2 =  data.getGeoTools().toDirectPosition(coordinate);
+    return data.getGeoTools().getAzimuthInDegrees(dirPos1,dirPos2, true);
+  }
+
   /**
    * Match first transfer zone in collecton which has a platform name that equals the GTFS stops platform code
    *
@@ -199,7 +301,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     PlanItRunTimeException.throwIfNullOrEmpty(nearbyTransferZones,"No nearby transfer zones provided, this is not allowed");
 
     final Mode gtfsStopMode = data.getSupportedPtMode(gtfsStop);
-    final boolean leftHandDrive = isLeftHandDrive(data.getSettings().getCountryName());
     final boolean stopLocationDirectionSpecific = !(gtfsStopMode.getPhysicalFeatures().getTrackType() == TrackModeType.RAIL);
     final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
 
@@ -225,13 +326,11 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       return matchedTransferZone;
     }
 
-    /* find closest mode and direction compatible link segment without considering possible nearby transfer zones. We then make sure that
-    *  heading of the link segment matches with the heading of the
-    */
     var nearbyLinks = findNearbyLinks(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters());
-    Set<MacroscopicLinkSegment> nearbyLinkSegments = new HashSet<>();
-    nearbyLinks.forEach(l -> l.<MacroscopicLinkSegment>forEachSegment(ls -> nearbyLinkSegments.add(ls)));
-    nearbyLinkSegments.removeIf(ls -> !ls.isModeAllowed(gtfsStopMode) || (stopLocationDirectionSpecific && !isGeometryOnCorrectSideOfLinkSegment(projectedGtfsStopLocation, ls, leftHandDrive)));
+    //todo first continue with completing this method and refactoring/reusing things from the OSM parser that also does this...
+    MacroscopicLink accessLink = findMostAppropriateStopLocationLinkForGtfsStop(gtfsStop, gtfsStopMode, nearbyLinks);
+    //todo: get the access link segemtn that ges with this
+    MacroscopicLinkSegment accessLinkSegment = null;
 
     do {
       /* no definite match yet, ... find closest existing transfer zone */
@@ -243,28 +342,16 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       var directedConnectoids = data.getTransferZoneConnectoids(matchedTransferZone);
       NEXT:
       for (var cn : directedConnectoids) {
+        //todo: not sure if we should check all connectoids, maybe first check if there is any connectoid that has a decent angle it should be fine?
+        // todo: also check if any of the connectoids have an access link segment matching the found access link segment for the GTFS stop, if so, it is a match too
         var zoneGeoCentroid = (Point) matchedTransferZone.getGeometry(true).getCentroid();
-        var coordinateOnLinkIntersect = data.getGeoTools().getClosestProjectedCoordinateOnGeometry(cn.getAccessNode().getPosition().getCoordinate(), zoneGeoCentroid);
-
-        /* direct position so we do not have to transform to lat/long */
-        var azimuthTransferZoneToLinkIntersect = data.getGeoTools().getAzimuthInDegrees(
-            data.getGeoTools().toDirectPosition(coordinateOnLinkIntersect), data.getGeoTools().toDirectPosition(cn.getAccessNode().getPosition()));
-        for (var ls : nearbyLinkSegments) {
-          var linearLocation = data.getGeoTools().getClosestProjectedLinearLocationOnLineString(projectedGtfsStopLocation.getCoordinate(), ls.getParent().getGeometry());
-          var azimuthGtfsToLinkIntersect = data.getGeoTools().getAzimuthInDegrees(
-              data.getGeoTools().toDirectPosition(projectedGtfsStopLocation), data.getGeoTools().toDirectPosition(linearLocation.getCoordinate(ls.getParent().getGeometry())));
-          if ( Math.abs(azimuthGtfsToLinkIntersect - azimuthTransferZoneToLinkIntersect) > 100) {
-            //connection is on different side of road, e.g. the closest compatible link segment has opposite direction of closest zone's access point because
-            // the connectoid from gtfs to link is in opposite direction of transferzone to link
-
-            //todo: contineu with erskinvillest stop -> it rejects it here, but it shouldn't
-            // 1) find out why it rejects because they use the same access link segment while the stop locations are fairly close!
-            // 2) add provision for when the link segments nearbyb contain the accesslink segment of the transferzone (in which case we accept it
-            //    implement this only after finding out 1) because in this case it would no longer reject because they use the same link segment
-            nearbyTransferZones.remove(matchedTransferZone);
-            matchedTransferZone = null;
-            break NEXT;
-          }
+        double tzAzimuth = getAzimuthFromLinkSegmentToCoordinate(cn.getAccessLinkSegment(), zoneGeoCentroid.getCoordinate());
+        var gtfsAzimuth= getAzimuthFromLinkSegmentToCoordinate(accessLinkSegment, projectedGtfsStopLocation.getCoordinate());
+        double diffAngle = PlanitJtsUtils.minDiffAngleInDegrees(gtfsAzimuth,tzAzimuth);
+        if ( diffAngle > 100) {
+          nearbyTransferZones.remove(matchedTransferZone);
+          matchedTransferZone = null;
+          break NEXT;
         }
       }
     }while (matchedTransferZone == null && !nearbyTransferZones.isEmpty());
