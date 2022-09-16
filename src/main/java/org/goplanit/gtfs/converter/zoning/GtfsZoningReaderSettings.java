@@ -40,6 +40,13 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   /** default search radius for mapping GTFS stops to PLANit links */
   public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS/2.0;
 
+  /**
+   * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop to create connectoids (stop_locations).
+   * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple candidates via this buffer, we can then use more sophisticated ways than proximity
+   * to determine the best candidate
+   */
+  public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 5;
+
   /** re-use settings from services reader */
   private final GtfsServicesReaderSettings servicesReaderSettings;
 

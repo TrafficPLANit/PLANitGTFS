@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
 import org.goplanit.converter.zoning.ZoningConverterUtils;
+import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
@@ -23,6 +24,7 @@ import org.locationtech.jts.geom.Point;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.goplanit.utils.locale.DrivingDirectionDefaultByCountry.isLeftHandDrive;
 
@@ -164,47 +166,36 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     final boolean stopLocationDirectionSpecific = !(accessMode.getPhysicalFeatures().getTrackType() == TrackModeType.RAIL);
     final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
     final boolean leftHandDrive = isLeftHandDrive(data.getSettings().getCountryName());
+    var accessModeAsCollection = Collections.singleton(accessMode);
 
-    /* prune if closest edges are incompatible with driving direction, if so indicate we are slaving for later user warning */
-    boolean salvaging = ZoningConverterUtils.excludeClosestLinksIncrementallyOnWrongSideOf(projectedGtfsStopLocation, eligibleLinks, leftHandDrive,  Collections.singleton(accessMode), data.getGeoTools());
-    if(eligibleLinks.isEmpty()) {
+    /* remove closest roads if incompatible regarding driving direction (relative location of waiting area versus road)
+     * if not, we move to salvaging state and those links are removed from the eligible set */
+    Pair<MacroscopicLink,Boolean> eligibleClosestPair =
+        ZoningConverterUtils.excludeClosestLinksIncrementallyOnWrongSideOf(projectedGtfsStopLocation, eligibleLinks, leftHandDrive,  accessModeAsCollection, data.getGeoTools());
+
+    MacroscopicLink selectedAccessLink = eligibleClosestPair.first();
+    boolean salvaging = eligibleClosestPair.second();
+    if(selectedAccessLink == null) {
       return null;
     }
 
-    /* reduce options based on proximity to closest viable link, without ruling out other options that might also be valid*/
-    MacroscopicLink selectedAccessLink = null;
-    Pair<? extends Edge, Set<? extends Edge>> candidatesForStopLocation = PlanitGraphGeoUtils.findEdgesClosest(
-        projectedGtfsStopLocation, eligibleLinks, data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data.getGeoTools());
-    if(candidatesForStopLocation==null) {
-      throw new PlanItRunTimeException("No closest link could be found from selection of eligible close by links for GTFS Stop (STOP_ID %s)", gtfsStop.getStopId());
-    }
-
-    if(candidatesForStopLocation.second() == null || candidatesForStopLocation.second().isEmpty() ) {
-      /* only one option */
-      selectedAccessLink = (MacroscopicLink) candidatesForStopLocation.first();
-    }else {
-
-      /* multiple candidates still, filter candidates based on availability of valid stop location checking (mode support, correct location compared to zone etc.) */
-      @SuppressWarnings("unchecked")
-      Set<MacroscopicLink> candidatesToFilter = (Set<MacroscopicLink>) candidatesForStopLocation.second();
-      candidatesToFilter.add((MacroscopicLink)candidatesForStopLocation.first());
+    /* reduce options based on proximity to closest viable link, while removing options outside of the closest distance buffer */
+    var candidatesToFilterMap = PlanitGraphGeoUtils.findEdgesWithinClosestDistanceDeltaToGeometry(projectedGtfsStopLocation, eligibleLinks, GtfsZoningReaderSettings.DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M, data.getGeoTools());
+    var candidatesToFilter = ((Map<MacroscopicLink, Double>)candidatesToFilterMap).keySet().stream().collect(Collectors.toSet());
+    if(candidatesToFilter == null || candidatesToFilter.isEmpty()){
+      throw new PlanItRunTimeException("No closest link could be found from selection of eligible close by links when finding potential access links for GTFS STOP (%s), this should not happen", gtfsStop.getStopId());
+    }else if(candidatesToFilter.size()>1){
+      /* more than a single candidate, proceed elimination or replace current closest with more appropriate option if found */
+      selectedAccessLink = null; // consider all remaining options again
 
       /* 1) reduce options by removing all compatible links within proximity of the closest link that are on the wrong side of the road infrastructure */
-      candidatesToFilter = (Set<MacroscopicLink>) ZoningConverterUtils.excludeLinksOnWrongSideOf(projectedGtfsStopLocation, candidatesToFilter, leftHandDrive, Collections.singleton(accessMode), data.getGeoTools());
+      candidatesToFilter = (Set<MacroscopicLink>) ZoningConverterUtils.excludeLinksOnWrongSideOf(projectedGtfsStopLocation,  candidatesToFilter, leftHandDrive, accessModeAsCollection, data.getGeoTools());
 
       /* 2) make sure a valid stop_location on each remaining link can be created (for example if stop_location would be on an extreme node, it is possible no access link segment upstream of that node remains
        *    which would render an otherwise valid position invalid */
-      Iterator<? extends Edge> iterator = candidatesToFilter.iterator();
-      while(iterator.hasNext()) {
-        Edge candidateLink = iterator.next();
-        //TODO: coninue here --> this connectoid helper is now in OSM repo also it relies on OSM info + requires transferzone, this needs to be generalised
-        // for GTFS --> possibly copy functionality to PLANit ZoningConverter repo as this is shared functionality across zoning converters...
-        Point connectoidLocation = null; /*getConnectoidHelper().findConnectoidLocationForStandAloneTransferZoneOnLink(
-            transferZone, (MacroscopicLink)candidateLink, accessMode, getSettings().getStopToWaitingAreaSearchRadiusMeters());*/
-        if(connectoidLocation == null) {
-          iterator.remove();
-        }
-      }
+      //todo --> continue within this method first to fix up Planit core with the utils that we are implementing to support both OSM and GTFS, then continue here below
+      candidatesToFilter.removeIf(
+          l -> null == ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLink(projectedGtfsStopLocation, l, accessMode, getSettings().getStopToWaitingAreaSearchRadiusMeters()));
 
       //todo
 //      if(candidatesToFilter == null || candidatesToFilter.isEmpty() ) {
