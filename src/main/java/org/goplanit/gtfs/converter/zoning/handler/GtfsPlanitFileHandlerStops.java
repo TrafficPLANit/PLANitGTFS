@@ -16,6 +16,7 @@ import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.TransferZone;
 import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.Coordinate;
@@ -23,6 +24,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -191,11 +193,27 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       /* 1) reduce options by removing all compatible links within proximity of the closest link that are on the wrong side of the road infrastructure */
       candidatesToFilter = (Set<MacroscopicLink>) ZoningConverterUtils.excludeLinksOnWrongSideOf(projectedGtfsStopLocation,  candidatesToFilter, leftHandDrive, accessModeAsCollection, data.getGeoTools());
 
+      //todo populate + add options to overwrite in settings so this can get used
+      Function<MacroscopicLink, String> linkToSourceId = l -> l.getExternalId(); // make configurable as used for overwrites
+      final Function<Node,String> getOverwrittenWaitingAreaSourceIdForNode = null;
+      final Function<Point,String> getOverwrittenWaitingAreaSourceIdForPoint = null;
+      final Function<String,String> getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId = null;
+
       /* 2) make sure a valid stop_location on each remaining link can be created (for example if stop_location would be on an extreme node, it is possible no access link segment upstream of that node remains
        *    which would render an otherwise valid position invalid */
-      //todo --> continue within this method first to fix up Planit core with the utils that we are implementing to support both OSM and GTFS, then continue here below
       candidatesToFilter.removeIf(
-          l -> null == ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLink(projectedGtfsStopLocation, l, accessMode, getSettings().getStopToWaitingAreaSearchRadiusMeters()));
+          l -> null == ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLink(
+                  gtfsStop.getStopId(),
+                  projectedGtfsStopLocation,
+                  l,
+                  linkToSourceId.apply(l),
+                  accessMode,
+                  data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(),
+                  getOverwrittenWaitingAreaSourceIdForNode,
+                  getOverwrittenWaitingAreaSourceIdForPoint,
+                  getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId,
+                  data.getSettings().getCountryName(),
+                  data.getGeoTools()));
 
       //todo
 //      if(candidatesToFilter == null || candidatesToFilter.isEmpty() ) {
