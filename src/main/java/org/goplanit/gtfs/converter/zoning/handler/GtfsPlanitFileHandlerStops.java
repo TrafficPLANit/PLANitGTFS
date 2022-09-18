@@ -18,6 +18,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -165,7 +166,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @return most appropriate link that is found, null if no compatible links could be found
    */
   private MacroscopicLink findMostAppropriateStopLocationLinkForGtfsStop(GtfsStop gtfsStop, Mode accessMode, Collection<MacroscopicLink> eligibleLinks) {
-    final boolean stopLocationDirectionSpecific = !(accessMode.getPhysicalFeatures().getTrackType() == TrackModeType.RAIL);
     final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
     final boolean leftHandDrive = isLeftHandDrive(data.getSettings().getCountryName());
     var accessModeAsCollection = Collections.singleton(accessMode);
@@ -215,19 +215,26 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
                   data.getSettings().getCountryName(),
                   data.getGeoTools()));
 
-      //todo
-//      if(candidatesToFilter == null || candidatesToFilter.isEmpty() ) {
-//        logWarningIfNotNearBoundingBox(String.format("DISCARD: No suitable stop_location on potential osm way candidates found for transfer zone %s and mode %s", transferZone.getExternalId(), accessMode.getName()), transferZone.getGeometry());
-//        return null;
-//      }
+      if(candidatesToFilter == null || candidatesToFilter.isEmpty() ) {
+        LOGGER.warning(String.format("DISCARD: No suitable stop_location on PLANit link segment found for Gtfs Stop %s used by mode %s", gtfsStop.getStopId(), accessMode.getName()));
+        // todo: consider suppressing if it is ok to not have a match, e.g. when close or beyond network bounding box for example
+        //logWarningIfNotNearBoundingBox(String.format("DISCARD: No suitable stop_location on potential osm way candidates found for transfer zone %s and mode %s", transferZone.getExternalId(), accessMode.getName()), transferZone.getGeometry());
+        return null;
+      }
 
-      /* 3) filter based on link hierarchy using osm way types, the premise being that bus services tend to be located on main roads, rather than smaller roads
+      /* 3) filter based on importance of the remaining options, the premise being that road based PT services tend to be located on main roads, rather than smaller roads
        * there is no hierarchy for rail, so we only do this for road modes. This could allow slightly misplaced waiting areas with multiple options near small and big roads
        * to be salvaged in favour of the larger road */
-      //todo
-//      if(OsmRoadModeTags.isRoadModeTag(osmAccessMode)){
+      if(!(accessMode.getPhysicalFeatures().getTrackType() == TrackModeType.RAIL) && candidatesToFilter.size()>1){
+        //todo extract eligible link segments from remaining candidates
+        // find maximum capacity across found segments --> create generic groupby with attribute lambda which extracts a tree map!
+        // get the max entry
+//        ZoningConverterUtils.findAccessLinkSegmentsForWaitingArea(
+//                gtfsStop.getStopId(),
+//                projectedGtfsStopLocation,
+//                )
 //        OsmWayUtils.removeEdgesWithOsmHighwayTypesLessImportantThan(OsmWayUtils.findMostProminentOsmHighWayType(candidatesToFilter), candidatesToFilter);
-//      }
+      }
 
       //todo
 //      if(candidatesToFilter.size()==1) {
