@@ -8,6 +8,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -46,6 +48,12 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    * to determine the best candidate
    */
   public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 5;
+
+  /**
+   * Provide explicit mapping from GTFS stop (by GTFS stop id) to and existing PLANit transfer zone based on its external id (third party source ide.g., OSM id),
+   * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
+   */
+  private final Map<String, String> overwriteGtfsStopTransferZoneMapping = new HashMap<>();
 
   /** re-use settings from services reader */
   private final GtfsServicesReaderSettings servicesReaderSettings;
@@ -158,6 +166,36 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   @Override
   public String getInputDirectory() {
     return servicesReaderSettings.getInputDirectory();
+  }
+
+  /**
+   * Provide explicit mapping for GTFS stop id to an existing PLANit transfer zone, e.g., platform, pole, station, halt, stop, etc. (by its external id, e.g. OSM id)
+   * This overrides the parser's mapping functionality and immediately maps the stop to this entity. Can be useful to avoid warnings or wrong mapping of
+   * stop locations in case the automated behaviour does not perform as expected.
+   *
+   * @param gtfsStopId id of stop location
+   * @param transferZoneExternalId osm id of waiting area (platform, pole, etc.) (int or long)
+   */
+  public void setOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final String transferZoneExternalId) {
+    overwriteGtfsStopTransferZoneMapping.put(gtfsStopId,transferZoneExternalId);
+  }
+
+  /** Verify if stop id is marked for overwritten transfer zone mapping
+   *
+   * @param gtfsStopId to verify
+   * @return true when present, false otherwise
+   */
+  public boolean isOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
+    return overwriteGtfsStopTransferZoneMapping.containsKey(gtfsStopId);
+  }
+
+  /** get explicitly mapped transfer zone's external id for given GTFS stop id  (if any))
+   *
+   * @param gtfsStopId to collect for
+   * @return mapped transfer zone (null if none is mapped)
+   */
+  public String getOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
+    return overwriteGtfsStopTransferZoneMapping.get(gtfsStopId);
   }
 
   /**
