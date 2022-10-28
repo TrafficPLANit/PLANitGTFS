@@ -35,11 +35,14 @@ public class GtfsZoningHandlerProfiler {
 
   LongAdder transferZoneMatchesByPlatformName;
 
+  LongAdder transferZoneMatchesByAccessLinkSegment;
+
   /** Initialise the profiler */
   private void initialise(){
     Arrays.stream(GtfsObjectType.values()).forEach( type -> gtfsObjectTypeCounters.put(type, new LongAdder()));
     transferZoneCounterPair = Pair.of(new LongAdder(), new LongAdder());
     this.transferZoneMatchesByPlatformName = new LongAdder();
+    this.transferZoneMatchesByAccessLinkSegment = new LongAdder();
   }
 
   /**
@@ -66,7 +69,7 @@ public class GtfsZoningHandlerProfiler {
     LOGGER.info(String.format("[STATS] transfer zones newly created: %d",this.transferZoneCounterPair.first().intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops",this.transferZoneCounterPair.second().intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops by platform code/name",this.transferZoneMatchesByPlatformName.intValue()));
-
+    LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops by access link segment",this.transferZoneMatchesByAccessLinkSegment.intValue()));
 
     /* GTFS -> transfer zones */
     zoning.logInfo(LoggingUtils.zoningPrefix(zoning.getId()).concat("[STATS]"));
@@ -79,6 +82,7 @@ public class GtfsZoningHandlerProfiler {
     this.gtfsObjectTypeCounters.values().forEach( v -> v.reset());
     this.transferZoneCounterPair.<LongAdder>both( e -> e.reset());
     this.transferZoneMatchesByPlatformName.reset();
+    this.transferZoneMatchesByAccessLinkSegment.reset();
   }
 
   /**
@@ -98,10 +102,17 @@ public class GtfsZoningHandlerProfiler {
   }
 
   /**
-   * Increment count for a augmented existing transfer zones
+   * Increment count for an existing transfer zone match based on platform name
    */
   public void   incrementMatchedTransferZonesOnPlatformName(){
     this.transferZoneMatchesByPlatformName.increment();
+  }
+
+  /**
+   * Increment count for an existing transfer zone match based on access link segment
+   */
+  public void   incrementMatchedTransferZonesOnAccessLinkSegment(){
+    this.transferZoneMatchesByAccessLinkSegment.increment();
   }
 
   /**
