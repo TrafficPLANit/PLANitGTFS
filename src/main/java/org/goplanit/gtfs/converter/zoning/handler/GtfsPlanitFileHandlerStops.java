@@ -311,10 +311,11 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         /* match on link segment */
         if(preferredAccessLinkSegments.contains(cn.getAccessLinkSegment())) {
           var projectedGtfsStopLocation = (Point)PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
-          var distanceStopToExistingAccessNode = data.getGeoTools().getDistanceInMetres(projectedGtfsStopLocation, cn.getAccessNode().getPosition());
+
           /* ensure that actual access node is within acceptable distance as well, e.g., if too far away the access link segment is too long and
-           * transfer zone might not be close enough after all, instead we should break the link and create a new transfer zone possibly */
-          if(distanceStopToExistingAccessNode <= data.getSettings().getGtfsStopToLinkSearchRadiusMeters()) {
+           * transfer zone considered not close enough, given it is a match on the link segment, we allow for a little more distance, namely the allowed distance to a transfer zone + the allowed distance from transfer zone(stop) to the road*/
+          final var maxStopToAccessNodeDistanceForMatchedTransferZonesWithEqualAccessLinkSegment = data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters() + data.getSettings().getGtfsStopToLinkSearchRadiusMeters();
+          if(data.getGeoTools().isDistanceWithinMetres(projectedGtfsStopLocation, cn.getAccessNode().getPosition(), maxStopToAccessNodeDistanceForMatchedTransferZonesWithEqualAccessLinkSegment)) {
             if (match != null) {
               LOGGER.warning(
                   String.format("Multiple matching transfer zones found (PLANit XML ids: %s, %s) which have the same access link segment preferred by GTFS stop (%s), choosing first", match.getXmlId(), transferZone.getXmlId(), gtfsStop.getStopId()));
@@ -322,9 +323,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
               match = transferZone;
             }
           }else{
-            //todo for debugging mainly
             LOGGER.info(
-                String.format("GTFS stop (%s) initially matched to transfer zone (XML id: %s, ext id: %s) sharing same preferred access link segment, but access node too far away, match ignored", gtfsStop.getStopId(), transferZone.getXmlId(), transferZone.getExternalId()));
+                String.format("GTFS stop %s %s (location %s) initially matched to transfer zone (XML id: %s, ext id: %s) sharing same preferred access link segment, but access node too far away, match ignored", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), transferZone.getXmlId(), transferZone.getExternalId()));
           }
         }
       }
@@ -401,16 +401,14 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       var accessLinkSegment = accessResult.second().iterator().next();
 
       /* verify that closest transfer zone is virtually attached to the road network roughly using the same virtual direction as if we were to connect
-       * the gtfs stop to the nearest eligible link segment (mode and direction compatible). check by using azimuth and virtual line segment from these points to road network
-       */
+       * the gtfs stop to the nearest eligible link segment (mode and direction compatible). check by using azimuth and virtual line segment from these points to road network */
       var directedConnectoids = data.getTransferZoneConnectoids(matchedTransferZone);
       boolean connectoidMatch = false;
       NEXT:
       for (var cn : directedConnectoids) {
 
         // check if connectoid within acceptable distance
-        var distanceStopToExistingAccessNode = data.getGeoTools().getDistanceInMetres(projectedGtfsStopLocation, cn.getAccessNode().getPosition());
-        if(distanceStopToExistingAccessNode > data.getSettings().getGtfsStopToLinkSearchRadiusMeters()) {
+        if(!data.getGeoTools().isDistanceWithinMetres(projectedGtfsStopLocation, cn.getAccessNode().getPosition(),data.getSettings().getGtfsStopToLinkSearchRadiusMeters())) {
           continue;
         }
 
@@ -465,6 +463,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     //todo -> now either use the existing mapping to the physical network to update the reference on the service node of the stop
     //        or alternatively if there is no mapping yet create the mapping (isolate the OSM code that does this, make it generic and reuse it)
+    // when mapping exists to physical network for transfer zone and gtfs stop has different access link segment it prefers. Find out if it should be added
+    // or not. For example: when the access link segment has the same downstream node but is a different entry link segment it should be added, but if
+    // it has a different downstream node then the existing transfer zone's access nodes it might well be that it is a broken link which feeds into an already
+    // existing access link segment for the transfer zone:    NEW GTFS       existing access link seg of transfer zone
+    //                                                    *------->-------*------>------*
+    // in the latter case we should not create a new access link segment but reuse the existing one it ends up in!
 
     //todo: if we reuse this for newly created transfer zones we should make the below dependent on a flag */
     /* profiler */
@@ -480,7 +484,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
     final Mode gtfsStopMode = data.getSupportedPtMode(gtfsStop);
-    LoggingUtils.LogSevereIfNull(gtfsStopMode, LOGGER, "GTFSStop %s has no known PLANit mode that uses the stop", gtfsStop.getStopId());
+    LoggingUtils.LogFineIfNull(gtfsStopMode, LOGGER, "GTFS Stop %s %s (location: %s) unknown mapped PLANit mode; likely stop is not used by GTFS, or stop's mode is not activated", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
+
     if(!data.getSettings().getAcivatedPlanitModes().contains(gtfsStopMode)){
       return;
     }
