@@ -54,6 +54,11 @@ public class GtfsStop extends GtfsObject {
 
   public String getStopName(){ return get(GtfsKeyType.STOP_NAME); }
 
+  /**
+   * @return true when stop name is not null or blank, false otherwise
+   */
+  public boolean hasStopName(){ return !StringUtils.isNullOrBlank(getStopName()); }
+
   /** Check for populated platform code
   * @return true when present false otherwise
   */

@@ -8,6 +8,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -68,6 +69,9 @@ public class GtfsZoningHandlerData {
   /** track existing transfer zones present geo spatially to be able to fuse with GTFS data when appropriate */
   private Quadtree geoIndexExistingTransferZones;
 
+  /** track existing transfer zones by their external id to be able to fuse with GTFS data when manually overwritten by user */
+  private Map<String, TransferZone> existingTransferZonesByExternalId;
+
   /** track link geospatially to identify nearby links for GTFS Stops and be able to discern if a matched transfer zone (its access link segment) is appropriate */
   private Quadtree geoIndexedExistingLinks;
 
@@ -110,7 +114,11 @@ public class GtfsZoningHandlerData {
     this.transferZonePtAccess = new HashMap<>();
     this.mappedGtfsStops = new HashMap<>();
 
+    // geo indexed existing transfer zones
     this.geoIndexExistingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
+    // external id indexed existing transfer zones (relying on single and unique external id per transfer zone!),
+    // used for quickly finding overwritten mappings between GTFS stops and existing transfer zones
+    this.existingTransferZonesByExternalId = zoning.getTransferZones().toMap(tz-> tz.getExternalId());
 
     /* all link across all used layers for activated modes in geoindex format */
     Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
@@ -335,4 +343,12 @@ public class GtfsZoningHandlerData {
     return this.geoIndexedExistingLinks;
   }
 
+  /**
+   * Get all the existing transfer zones by their external id
+   *
+   * @return existing transfer zones by external id
+   */
+  public Map<String, TransferZone> getExistingTransferZonesByExternalId() {
+    return existingTransferZonesByExternalId;
+  }
 }

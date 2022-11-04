@@ -120,7 +120,14 @@ public class GtfsToPlanitTest {
 
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(
           GTFS_FILES_DIR, CountryNames.AUSTRALIA, macroscopicNetwork, zoning, RouteTypeChoice.EXTENDED);
-      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork,RoutedServices> result = gtfsIntermodalReader.readWithServices();
+
+      // log mappings, useful for debugging if needed
+      gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
+
+      // manual overrides
+      gtfsIntermodalReader.getSettings().getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("200059","3814704459"); // Museum of Sydney
+
+      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
 
       var serviceNetwork = result.third();
       var routedServices = result.fourth();

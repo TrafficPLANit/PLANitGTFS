@@ -42,6 +42,9 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   /** default search radius for mapping GTFS stops to PLANit links */
   public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS/2.0;
 
+  /** default setting for logging mappings between GTFS zones and existing PLANit transfer zones */
+  public static final boolean DEFAULT_LOG_MAPPED_GTFS_ZONES = false;
+
   /**
    * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop to create connectoids (stop_locations).
    * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple candidates via this buffer, we can then use more sophisticated ways than proximity
@@ -53,7 +56,10 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    * Provide explicit mapping from GTFS stop (by GTFS stop id) to and existing PLANit transfer zone based on its external id (third party source ide.g., OSM id),
    * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
    */
-  private final Map<String, String> overwriteGtfsStopTransferZoneMapping = new HashMap<>();
+  private final Map<String, String> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
+
+  /** flag indicating if parser should log all GTFS zones that are mapped to existing PLANit  transfer zones */
+  private boolean logMappedGtfsZones = DEFAULT_LOG_MAPPED_GTFS_ZONES;
 
   /** re-use settings from services reader */
   private final GtfsServicesReaderSettings servicesReaderSettings;
@@ -177,8 +183,9 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    * @param transferZoneExternalId osm id of waiting area (platform, pole, etc.) (int or long)
    */
   public void setOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final String transferZoneExternalId) {
-    overwriteGtfsStopTransferZoneMapping.put(gtfsStopId,transferZoneExternalId);
+    overwriteGtfsStopTransferZoneExternalIdMapping.put(gtfsStopId,transferZoneExternalId);
   }
+
 
   /** Verify if stop id is marked for overwritten transfer zone mapping
    *
@@ -186,7 +193,7 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    * @return true when present, false otherwise
    */
   public boolean isOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
-    return overwriteGtfsStopTransferZoneMapping.containsKey(gtfsStopId);
+    return overwriteGtfsStopTransferZoneExternalIdMapping.containsKey(gtfsStopId);
   }
 
   /** get explicitly mapped transfer zone's external id for given GTFS stop id  (if any))
@@ -195,13 +202,29 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    * @return mapped transfer zone (null if none is mapped)
    */
   public String getOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
-    return overwriteGtfsStopTransferZoneMapping.get(gtfsStopId);
+    return overwriteGtfsStopTransferZoneExternalIdMapping.get(gtfsStopId);
+  }
+
+  /**
+   * @return true when mapped GTFS stops logged, false otherwise
+   */
+  public boolean isLogMappedGtfsZones() {
+    return logMappedGtfsZones;
+  }
+
+  /**
+   * @param  logMappedGtfsZones when true mapped GTFS stops are logged, otherwise not
+   */
+  public void setLogMappedGtfsZones(boolean logMappedGtfsZones) {
+    this.logMappedGtfsZones = logMappedGtfsZones;
   }
 
   /**
    * {@inheritDoc}
    */
   public void log() {
+    LOGGER.info("GTFS zoning reader settings:");
+    LOGGER.info(String.format("GTFS stop-to-transfer zone mappings are %slogged",isLogMappedGtfsZones() ? "" : "not "));
     LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f",getGtfsStopToTransferZoneSearchRadiusMeters()));
     LOGGER.info(String.format("GTFS stop-to-link search radius (m): %.1f",getGtfsStopToLinkSearchRadiusMeters()));
   }
@@ -214,4 +237,5 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
     setGtfsStopToTransferZoneSearchRadiusMeters(DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS);
     setGtfsStopToLinkSearchRadiusMeters(DEFAULT_GTFSSTOP_LINK_SEARCH_METERS);
   }
+
 }
