@@ -1,6 +1,5 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
-import org.geotools.geometry.jts.JTS;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
@@ -20,6 +19,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.utils.zoning.TransferZoneType;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -45,6 +45,31 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
   /** data tracking during parsing */
   private final GtfsZoningHandlerData data;
+
+  /**
+   * Helper method to create and register a new transfer zone based on a GTFS stop
+   *
+   * @param gtfsStop to use
+   * @param projectedGtfsStopLocation projected location to use
+   * @param type type of transfer zone
+   * @return created and registered transfer zone
+   */
+  private TransferZone createAndRegisterNewTransferZone(GtfsStop gtfsStop, Point projectedGtfsStopLocation, TransferZoneType type) {
+    TransferZone transferZone = data.getZoning().getTransferZones().getFactory().registerNew(type, true);
+    data.getProfiler().incrementCreatedTransferZones();
+    transferZone.setGeometry(projectedGtfsStopLocation);
+
+    /* external id  = GTFS stop id*/
+    transferZone.setExternalId(gtfsStop.getStopId());
+
+    /* name */
+    transferZone.setName(gtfsStop.getStopName());
+
+    /* platform name */
+    transferZone.addTransferZonePlatformName(gtfsStop.getPlatformCode());
+
+    return  transferZone;
+  }
 
   /** extract last entry from Transfer zone external id based on comma separation
   * @param transferZone to use
@@ -415,15 +440,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * Process a GTFS stop that could not be matched to an existing transfer zone. It will trigger the
-   * creation of a new transfer zone on the PLANit zoning
-   *
-   * @param gtfsStop to create new TransferZone for
-   */
-  private void createNewTransferZone(GtfsStop gtfsStop) {
-  }
-
-  /**
    * Process a GTFS stop that could be matched to nearby existing transfer zone(s). If a match is found it will provide the match, of not null is returned
    *
    * @param gtfsStop      to create new TransferZone for
@@ -490,6 +506,54 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
+   * Process a GTFS stop that could not be matched to an existing transfer zone. It will trigger the
+   * creation of a new transfer zone on the PLANit zoning
+   *
+   * @param gtfsStop to create new TransferZone for
+   * @param type of the to be created TransferZone
+   */
+  private void createNewTransferZoneAnConnectoid(GtfsStop gtfsStop, TransferZoneType type) {
+    final Mode gtfsStopMode = data.getSupportedPtMode(gtfsStop);
+    final boolean stopLocationDirectionSpecific = !(gtfsStopMode.getPhysicalFeatures().getTrackType() == TrackModeType.RAIL);
+
+    /* check if within network bounding box, only GTFS stops within the network area are considered */
+    var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(),data.getCrsTransform());
+    if(!data.getReferenceNetworkBoundingBox().contains(projectedGtfsStopLocation.getCoordinate())){
+      return;
+    }
+
+    /** preferred access link segment for GTFS stop */
+    var nearbyLinks = findNearbyLinks(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters());
+    Pair<MacroscopicLink, List<EdgeSegment>> accessResult = findMostAppropriateStopLocationLinkForGtfsStop(gtfsStop, gtfsStopMode, nearbyLinks);
+    if(accessResult == null){
+      final double maxDistanceFromBoundingBoxForDebugMessage = 100; //meters
+      if(!data.getGeoTools().isGeometryNearBoundingBox(projectedGtfsStopLocation, data.getReferenceNetworkBoundingBox(), maxDistanceFromBoundingBoxForDebugMessage)) {
+        LOGGER.fine(String.format("DISCARD: No nearby links to attached GTFS stop %s %s at location %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
+      }
+      return;
+    }
+
+    /** register new transfer zone */
+    TransferZone transferZone = createAndRegisterNewTransferZone(gtfsStop, projectedGtfsStopLocation, type);
+
+
+    /** create and attach connectoid */
+    var accessLink  = accessResult.first();
+    Point connectoidLocation = ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLink(
+        gtfsStop.getStopId(),
+        projectedGtfsStopLocation,
+        accessLink,
+        accessLink.getExternalId(),
+        gtfsStopMode,
+        data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
+        null, null, null,
+        data.getSettings().getCountryName(),
+        data.getGeoTools());
+
+    // TODO CONTINUE HERE --> start breaking links if needed based on (OSMConnectoidHelper::extractConnectoidAccessNodeByLocation) see what we can generalise
+  }
+
+  /**
    * Attach the GTFS stop to the given transfer zone
    *
    * @param gtfsStop to attach
@@ -538,7 +602,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     Collection<TransferZone> nearbyTransferZones = findNearbyTransferZones(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters());
     if(nearbyTransferZones.isEmpty()){
-      createNewTransferZone(gtfsStop);
+      createNewTransferZoneAnConnectoid(gtfsStop, TransferZoneType.PLATFORM);
       return;
     }
 
@@ -547,7 +611,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       attachToTransferZone(gtfsStop, foundMatch);
     }else{
       LOGGER.warning(String.format("GTFS stop %s %s (location %s) has nearby existing transfer zones but no appropriate mapping could be found, verify correctness",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
-      createNewTransferZone(gtfsStop);
+      createNewTransferZoneAnConnectoid(gtfsStop, TransferZoneType.PLATFORM);
     }
   }
 

@@ -62,11 +62,11 @@ public class GtfsZoningHandlerProfiler {
     /* log for each GTFS object type */
     gtfsObjectTypeCounters.forEach( (k,v) -> {
       if(v.longValue() > 0 ){
-        LOGGER.info(String.format("[STATS] converted %d GTFS %s entities in PLANit entities",v.longValue(), k.toString()));
+        LOGGER.info(String.format("[STATS] processed %d GTFS %s entities",v.longValue(), k.toString()));
       }
     });
 
-    LOGGER.info(String.format("[STATS] transfer zones newly created: %d",this.transferZoneCounterPair.first().intValue()));
+    LOGGER.info(String.format("[STATS] %d newly created transfer zones",this.transferZoneCounterPair.first().intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops",this.transferZoneCounterPair.second().intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops by platform code/name",this.transferZoneMatchesByPlatformName.intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops by access link segment",this.transferZoneMatchesByAccessLinkSegment.intValue()));

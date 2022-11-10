@@ -106,6 +106,9 @@ public class GtfsZoningReader implements ZoningReader {
     LOGGER.info("Processing: Identifying GTFS Stops, supplementing PLANit transfer zones memory model...");
     processStops(zoningHandlerData);
     LOGGER.info("Processing: GTFS stops Done");
+
+    //TODO: update all XML ids to internal ids because of mixing of OSM and GTFS stop ids, they are no longer guaranteed to
+    //      be unique
   }
 
   /**

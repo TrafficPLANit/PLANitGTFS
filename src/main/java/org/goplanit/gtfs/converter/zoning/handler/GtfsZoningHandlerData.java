@@ -20,15 +20,20 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.index.quadtree.Quadtree;
 import org.opengis.referencing.operation.MathTransform;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Track data used during handling/parsing of GTFS Stops which end up being converted into PLANit transfer zones
  */
 public class GtfsZoningHandlerData {
+
+  /** Logger to use */
+  private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerData.class.getCanonicalName());
 
   // EXOGENOUS DATA TRACKING/SETTINGS
 
@@ -74,6 +79,9 @@ public class GtfsZoningHandlerData {
 
   /** track link geospatially to identify nearby links for GTFS Stops and be able to discern if a matched transfer zone (its access link segment) is appropriate */
   private Quadtree geoIndexedExistingLinks;
+
+  /** created envelope for the rectangular bounding box of the reference network, can be used to discard unusable GTFS entities that fall outside this area */
+  private Envelope referenceNetworkBoundingBox;
 
   /** geo tools with CRS based configuration to apply */
   private PlanitJtsCrsUtils geoTools;
@@ -163,6 +171,12 @@ public class GtfsZoningHandlerData {
           }
         }
       }
+    }
+
+    /* extract bounding box of the reference network, used to reduce warnings in case GTFS source exceeds area covered by PLANit network */
+    this.referenceNetworkBoundingBox = getSettings().getReferenceNetwork().createBoundingBox();
+    if(referenceNetworkBoundingBox == null){
+      LOGGER.severe("No bounding box could be created for reference network in GTFS zoning handler, likely network is empty");
     }
 
   }
@@ -350,5 +364,11 @@ public class GtfsZoningHandlerData {
    */
   public Map<String, TransferZone> getExistingTransferZonesByExternalId() {
     return existingTransferZonesByExternalId;
+  }
+
+  /**
+   * @return bounding box of used reference network */
+  public Envelope getReferenceNetworkBoundingBox() {
+    return referenceNetworkBoundingBox;
   }
 }
