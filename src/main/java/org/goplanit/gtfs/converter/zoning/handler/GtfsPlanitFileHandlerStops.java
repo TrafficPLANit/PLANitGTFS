@@ -515,7 +515,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     /* update tracking data */
     data.registerMappedGtfsStop(gtfsStop, transferZone);
     if(data.getSettings().isLogMappedGtfsZones()) {
-      LOGGER.info(String.format("Mapped GTFS stop %s %s at location %s to existing Transfer zone %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), transferZone.getXmlId()));
+      LOGGER.info(String.format("Mapped GTFS stop %s %s at location %s to existing Transfer zone %s %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), transferZone.getXmlId(), transferZone.hasName() ? transferZone.getName() : ""));
     }
 
     data.getProfiler().incrementAugmentedTransferZones();
@@ -551,6 +551,11 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     }
   }
 
+  /**
+   * Process manually overwritten mapping between GTFS stop and existing PLANit transfer zone
+   *
+   * @param gtfsStop to process
+   */
   private void handleOverwrittenTransferZoneMapping(GtfsStop gtfsStop) {
     String transferZoneExternalId = data.getSettings().getOverwrittenGtfsStopTransferZoneMapping(gtfsStop.getStopId());
     var transferZone = data.getExistingTransferZonesByExternalId().get(transferZoneExternalId);
@@ -581,6 +586,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     if(data.getSettings().isOverwrittenGtfsStopTransferZoneMapping(gtfsStop.getStopId())){
       handleOverwrittenTransferZoneMapping(gtfsStop);
+      return;
     }
 
     switch (gtfsStop.getLocationType()){
