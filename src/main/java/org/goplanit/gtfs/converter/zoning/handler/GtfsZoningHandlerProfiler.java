@@ -28,14 +28,17 @@ public class GtfsZoningHandlerProfiler {
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerProfiler.class.getCanonicalName());
 
   /** track how many GTFS objects were processed, e.g., incorporated, as it should not count discarded entries */
-  Map<GtfsObjectType, LongAdder> gtfsObjectTypeCounters = new HashMap<>();
+  private Map<GtfsObjectType, LongAdder> gtfsObjectTypeCounters = new HashMap<>();
 
   /** track number of newly created transfer zones and augmented existing transfer zones */
-  Pair<LongAdder, LongAdder> transferZoneCounterPair;
+  private Pair<LongAdder, LongAdder> transferZoneCounterPair;
 
-  LongAdder transferZoneMatchesByPlatformName;
+  /** track number of newly created connectoids*/
+  private LongAdder connectoidCounterPair;
 
-  LongAdder transferZoneMatchesByAccessLinkSegment;
+  private LongAdder transferZoneMatchesByPlatformName;
+
+  private LongAdder transferZoneMatchesByAccessLinkSegment;
 
   /** Initialise the profiler */
   private void initialise(){
@@ -43,6 +46,7 @@ public class GtfsZoningHandlerProfiler {
     transferZoneCounterPair = Pair.of(new LongAdder(), new LongAdder());
     this.transferZoneMatchesByPlatformName = new LongAdder();
     this.transferZoneMatchesByAccessLinkSegment = new LongAdder();
+    this.connectoidCounterPair = new LongAdder();
   }
 
   /**
@@ -67,6 +71,7 @@ public class GtfsZoningHandlerProfiler {
     });
 
     LOGGER.info(String.format("[STATS] %d newly created transfer zones",this.transferZoneCounterPair.first().intValue()));
+    LOGGER.info(String.format("[STATS] %d newly created connectoids",this.connectoidCounterPair.intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops",this.transferZoneCounterPair.second().intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops by platform code/name",this.transferZoneMatchesByPlatformName.intValue()));
     LOGGER.info(String.format("[STATS] %d pre-existing transfer zones matched to GTFS stops by access link segment",this.transferZoneMatchesByAccessLinkSegment.intValue()));
@@ -83,6 +88,7 @@ public class GtfsZoningHandlerProfiler {
     this.transferZoneCounterPair.<LongAdder>both( e -> e.reset());
     this.transferZoneMatchesByPlatformName.reset();
     this.transferZoneMatchesByAccessLinkSegment.reset();
+    this.connectoidCounterPair.reset();
   }
 
   /**
@@ -120,5 +126,12 @@ public class GtfsZoningHandlerProfiler {
    */
   public void incrementCreatedTransferZones(){
     this.transferZoneCounterPair.first().increment();
+  }
+
+  /**
+   * Increment count for a newly created connectoid from GTFS data
+   */
+  public void incrementCreatedConnectoids(){
+    this.connectoidCounterPair.increment();
   }
 }

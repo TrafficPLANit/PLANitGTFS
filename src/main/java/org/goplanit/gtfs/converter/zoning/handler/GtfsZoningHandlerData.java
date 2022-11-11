@@ -357,6 +357,26 @@ public class GtfsZoningHandlerData {
     return this.geoIndexedExistingLinks;
   }
 
+  /** Remove provided links from local spatial index based on links
+   *
+   * @param links to remove
+   */
+  public void removeGeoIndexedLinks(Collection<MacroscopicLink> links) {
+    if(links != null) {
+      links.forEach( link -> geoIndexedExistingLinks.remove(link.createEnvelope(), link));
+    }
+  }
+
+  /** Add provided links to local spatial index based on their bounding box
+   *
+   * @param links to add
+   */
+  public void addGeoIndexedLinks(Collection<MacroscopicLink> links) {
+    if(links != null) {
+      links.forEach( link -> geoIndexedExistingLinks.insert(link.createEnvelope(), link));
+    }
+  }
+
   /**
    * Get all the existing transfer zones by their external id
    *

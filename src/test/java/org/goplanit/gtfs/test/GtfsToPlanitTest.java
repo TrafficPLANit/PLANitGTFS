@@ -122,7 +122,7 @@ public class GtfsToPlanitTest {
           GTFS_FILES_DIR, CountryNames.AUSTRALIA, macroscopicNetwork, zoning, RouteTypeChoice.EXTENDED);
 
       // log mappings, useful for debugging if needed
-      gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
+      //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
 
       // manual overrides
       gtfsIntermodalReader.getSettings().getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("200059","3814704459"); // Museum of Sydney
