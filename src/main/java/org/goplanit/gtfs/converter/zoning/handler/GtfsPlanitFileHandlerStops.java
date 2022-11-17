@@ -15,11 +15,11 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.zoning.ConnectoidUtils;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneType;
@@ -357,7 +357,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStopMode PLANit mode associated with GTFS stop
    * @param type of the to be created TransferZone
    */
-  private void createNewTransferZoneAnConnectoid(GtfsStop gtfsStop, final Mode gtfsStopMode, TransferZoneType type) {
+  private void createNewTransferZoneAndConnectoid(GtfsStop gtfsStop, final Mode gtfsStopMode, TransferZoneType type) {
     PlanItRunTimeException.throwIfNull(gtfsStop,"GTFS stop null, this is not allowed");
     PlanItRunTimeException.throwIfNull(gtfsStopMode,"GTFS stop's associated PLANit mode null, this is not allowed");
 
@@ -400,27 +400,24 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       return;
     }
 
-    //TODO: initialise listener for connectoids such that those are correctly updated by amending the approach of OSM. Then continue with the break links
-    //       method itself in the call below GtfsLinkHelper.extractNodeByLinkGeometryLocation. see how general we can make this
-//    /* track original combinations of linksegment/downstream vertex for each connectoid possibly affected by the links we're about to break link (segments)
-//     * if after breaking links this relation is modified, restore it by updating the connectoid to the correct access link segment directly upstream of the original
-//     * downstream vertex identified */
-//    Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink =
-//        collectConnectoidAccessNodeLocations(linksToBreak, zoningReaderData.getPlanitData().getDirectedConnectoidsByLocation(networkLayer));
-//
-//    /* register additional actions on breaking link via listener for connectoid update (see above)
-//     * TODO: refactor this so it does not require this whole preparing of data. Ideally this is handled more elegantly than now
-//     */
-//    GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(connectoidsAccessNodeLocationBeforeBreakLink);
-    GraphModifierListener listener = null;
-
-        /* create access node and break links if needed */
+    /* track original combinations of linksegment/downstream vertex for each connectoid possibly affected by the links we're about to break link (segments)
+     * if after breaking links this relation is modified, restore it by updating the connectoid to the correct access link segment directly upstream of the original
+     * downstream vertex identified */
     var networkLayer = data.getSettings().getReferenceNetwork().getLayerByMode(gtfsStopMode);
-    Node accessNode = GtfsLinkHelper.extractNodeByLinkGeometryLocation(
-        connectoidLocation, accessLink, networkLayer, Collections.singleton(listener), data);
+    Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink =
+        ConnectoidUtils.findDirectedConnectoidsReferencingLinks(List.of(accessLink), data.getDirectedConnectoidsByLocation(networkLayer));
+
+    /* register additional actions on breaking link via listener for connectoid update (see above)
+     * TODO: refactor this so it does not require this whole preparing of data. Ideally this is handled more elegantly than now */
+    GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(connectoidsAccessNodeLocationBeforeBreakLink);
+
+    /* create access node and break links if needed */
+    Node accessNode = GtfsLinkHelper.extractNodeByLinkGeometryLocation(connectoidLocation, accessLink, networkLayer, Collections.singleton(listener), data);
 
     /* create transfer zone connectoid(s) */
-    //TODO
+    //TODO: link is now broken, or existing access node (and existing access link) is reused)
+
+    // todo register connectoid register on data!
 
     data.getProfiler().incrementCreatedConnectoids();
   }
@@ -468,7 +465,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     Collection<TransferZone> nearbyTransferZones = GtfsTransferZoneHelper.findNearbyTransferZones(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
     if(nearbyTransferZones.isEmpty()){
-      createNewTransferZoneAnConnectoid(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
+      createNewTransferZoneAndConnectoid(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
       return;
     }
 
@@ -477,7 +474,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       attachToTransferZone(gtfsStop, foundMatch);
     }else{
       LOGGER.warning(String.format("GTFS stop %s %s (location %s) has nearby existing transfer zones but no appropriate mapping could be found, verify correctness",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
-      createNewTransferZoneAnConnectoid(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
+      createNewTransferZoneAndConnectoid(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
     }
   }
 

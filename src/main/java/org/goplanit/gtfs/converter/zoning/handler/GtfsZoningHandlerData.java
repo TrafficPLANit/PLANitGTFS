@@ -8,19 +8,19 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
-import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.index.quadtree.Quadtree;
 import org.opengis.referencing.operation.MathTransform;
 
@@ -54,31 +54,18 @@ public class GtfsZoningHandlerData {
    * of modes, therefore we identify those separately for better matching results when mapping service nodes/stops to GTFS STOPS here*/
   private Map<String, Pair<ServiceNode, Mode>> serviceNodeAndModeByGtfsStopId;
 
-  // LOCAL DATA TRACKING
+  // LOCAL DATA TRACKING - UPDATED WHILE PROCESSING
 
-  /** Track all registered/mapped transfer zones by their GTFS stop id */
-  private Map<String, TransferZone> mappedTransferZonesByGtfsStopId;
+  /** track connectoid data */
+  private GtfsZoningHandlerConnectoidData connectoidData;
 
-  /** track all GTFS stops that have been mapped to pre-existing transfer zones. We do so, to allow for correcting earlier
-   * matches due to - for example - a transfer zone based on OSM was not complete and should be split in two, e.g. there are stops
-   * on both sides of the road, but OSM only contains a stop on one side. In that case we must be able to retrieve the earlier mapped GTFS stop
-   * and decide how to proceed
-   */
-  private Map<String, GtfsStop> mappedGtfsStops;
-
-  /** track all supported pt service modes for (partly pre-existing) PLANit transfer zones that have and are to be created and
-   * their used directed connectoids so we can pinpoint PT stop locations on the physical road network more accurately rather than
-   * relying on the location of the transfer zone (pole, platform) which might cause mismatches compared to GTFS STOP locations */
-  private Map<TransferZone,Set<DirectedConnectoid>> transferZonePtAccess;
-
-  /** track existing transfer zones present geo spatially to be able to fuse with GTFS data when appropriate */
-  private Quadtree geoIndexExistingTransferZones;
-
-  /** track existing transfer zones by their external id to be able to fuse with GTFS data when manually overwritten by user */
-  private Map<String, TransferZone> existingTransferZonesByExternalId;
+  /** track transfer zone data */
+  private GtfsZoningHandlerTransferZoneData transferZoneData;
 
   /** track link geospatially to identify nearby links for GTFS Stops and be able to discern if a matched transfer zone (its access link segment) is appropriate */
-  private Quadtree geoIndexedExistingLinks;
+  private Quadtree geoIndexedLinks;
+
+  // STATIC INFORMATION DURING PROCESSING
 
   /** created envelope for the rectangular bounding box of the reference network, can be used to discard unusable GTFS entities that fall outside this area */
   private Envelope referenceNetworkBoundingBox;
@@ -94,46 +81,18 @@ public class GtfsZoningHandlerData {
   /** Zoning to populate (further) */
   final Zoning zoning;
 
-  /** Update registered and activated pt modes and their access information on transfer zone
-   *
-   * @param transferZone to update for
-   * @param directedConnectoid to extract access information from
-   */
-  private void registerPtAccessOnTransferZone(TransferZone transferZone, DirectedConnectoid directedConnectoid) {
-    var allowedModes = ((MacroscopicLinkSegment) directedConnectoid.getAccessLinkSegment()).getAllowedModes();
-
-    /* remove all non service modes */
-    allowedModes.retainAll(getSettings().getAcivatedPlanitModes());
-    if(allowedModes.isEmpty()){
-      return;
-    }
-
-    /* at least one activated PT service mode present on connectoid, register it */
-    transferZonePtAccess.putIfAbsent(transferZone, new HashSet<>());
-    transferZonePtAccess.get(transferZone).add(directedConnectoid);
-  }
-
   /**
    * Initialise the tracking of data
    */
   private void initialise(){
-    this.mappedTransferZonesByGtfsStopId = new HashMap<>();
     this.serviceNodeAndModeByGtfsStopId = new HashMap<>();
-    this.transferZonePtAccess = new HashMap<>();
-    this.mappedGtfsStops = new HashMap<>();
-
-    // geo indexed existing transfer zones
-    this.geoIndexExistingTransferZones = GeoContainerUtils.toGeoIndexed(zoning.getTransferZones());
-    // external id indexed existing transfer zones (relying on single and unique external id per transfer zone!),
-    // used for quickly finding overwritten mappings between GTFS stops and existing transfer zones
-    this.existingTransferZonesByExternalId = zoning.getTransferZones().toMap(tz-> tz.getExternalId());
 
     /* all link across all used layers for activated modes in geoindex format */
     Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
     getSettings().getAcivatedPlanitModes().forEach( m -> usedLayers.add(getSettings().getReferenceNetwork().getLayerByMode(m)));
     Collection<MacroscopicLinks> linksCollection = new ArrayList<>();
     usedLayers.forEach( l -> linksCollection.add(l.getLinks()));
-    this.geoIndexedExistingLinks = GeoContainerUtils.toGeoIndexed(linksCollection);
+    this.geoIndexedLinks = GeoContainerUtils.toGeoIndexed(linksCollection);
 
     this.geoTools = new PlanitJtsCrsUtils(getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
     this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
@@ -152,22 +111,6 @@ public class GtfsZoningHandlerData {
             if(entry == null) {
               this.serviceNodeAndModeByGtfsStopId.put(gtfsStopId, Pair.of(serviceNode, routedService.getMode()));
             }
-          }
-        }
-      }
-    }
-
-    /* index: MODE <-> (pre-existing) TRANSFER ZONE */
-    if(!getZoning().getTransferConnectoids().isEmpty()){
-      /* derive mode support for each transfer zone based on its connectoid (segments) modes. Used to improve matching of GTFS stops to existing
-      * stops in the provided network/zoning */
-      var connectoidsByAccessZone = getZoning().getTransferConnectoids().createIndexByAccessZone();
-      for(var entry :connectoidsByAccessZone.entrySet()){
-        if(entry.getKey() instanceof TransferZone){
-          var transferZone = (TransferZone) entry.getKey();
-          for(var dirConnectoid : entry.getValue()){
-            /* register on transfer zone */
-            registerPtAccessOnTransferZone(transferZone,dirConnectoid);
           }
         }
       }
@@ -195,55 +138,11 @@ public class GtfsZoningHandlerData {
     this.routedServices = routedServices;
     this.settings = settings;
     this.handlerProfiler = handlerProfiler;
+    this.connectoidData = new GtfsZoningHandlerConnectoidData(settings.getReferenceNetwork(), zoningToPopulate);
+    this.transferZoneData = new GtfsZoningHandlerTransferZoneData(settings, zoningToPopulate);
 
     initialise();
   }
-
-  /**
-   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops mode as supported
-   * on the PLANit transfer zone (if not already present)
-   *
-   * @param gtfsStop to register on PLANit transfer zone
-   * @param transferZone to register one
-   * @return true when already mapped by GTFS stop, false otherwise
-   */
-  public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
-    var oldZone = mappedTransferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
-    PlanItRunTimeException.throwIf(oldZone != null && !oldZone.equals(transferZone), "Multiple transfer zones found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
-
-    var oldStop = mappedGtfsStops.put(gtfsStop.getStopId(), gtfsStop);
-    PlanItRunTimeException.throwIf(oldStop != null && !oldStop.equals(gtfsStop), "Multiple GTFS stops found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
-  }
-
-  /**
-   * Get the transfer zone that the GTFS stop was already mapped to (if any)
-   *
-   * @param gtfsStop to use
-   * @return PLANit transfer zone it is mapped to, null if no mapping exists yet
-   */
-  public TransferZone getMappedTransferZone(GtfsStop gtfsStop){
-    return mappedTransferZonesByGtfsStopId.get(gtfsStop.getStopId());
-  }
-
-  /**
-   * Check if transfer zone already has a mapped GTFS stop
-   * @param transferZone to check
-   * @return true when already mapped by GTFS stop, false otherwise
-   */
-  public boolean hasMappedGtfsStop(TransferZone transferZone) {
-    return mappedTransferZonesByGtfsStopId.containsValue(transferZone);
-  }
-
-  /**
-   * Retrieve a GTFS stop that has been mapped to a pre-existing PLANit transfer zone
-   *
-   * @param gtfsStopId to use
-   * @return found GTFS stop (if any)
-   */
-  public GtfsStop getMappedGtfsStop(String gtfsStopId) {
-    return mappedGtfsStops.get(gtfsStopId);
-  }
-
 
   /**
    * Collect the mapped PLANit pt mode using this GTFS stop
@@ -254,31 +153,6 @@ public class GtfsZoningHandlerData {
   public Mode getSupportedPtMode(GtfsStop gtfsStop){
     var resultPair = this.serviceNodeAndModeByGtfsStopId.get(gtfsStop.getStopId());
     return resultPair!=null ? resultPair.second() : null;
-  }
-
-  /**
-   * The pt services modes supported on the given transfer zone
-   *
-   * @param planitTransferZone to get supported pt service modes for
-   * @param modesFilter to select from
-   * @return found PLANit modes
-   */
-  public Set<Mode> getSupportedPtModesIn(TransferZone planitTransferZone, Set<Mode> modesFilter){
-    var ptConnectoids = transferZonePtAccess.get(planitTransferZone);
-    Set<Mode> ptServiceModes = new HashSet<>();
-    for(var connectoid : ptConnectoids) {
-      ptServiceModes.addAll(((MacroscopicLinkSegment) connectoid.getAccessLinkSegment()).getAllowedModesFrom(modesFilter));
-    }
-    return ptServiceModes;
-  }
-
-  /**
-   * Connectoids related to Pt activated modes available for this transfer zone
-   * @param transferZone to extract for
-   * @return known connectoids
-   */
-  public Set<DirectedConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
-    return transferZonePtAccess.get(transferZone);
   }
 
   /**
@@ -340,41 +214,173 @@ public class GtfsZoningHandlerData {
   }
 
   /**
+   * Get all the geo indexed links as a quad tree
+   *
+   * @return registered geo indexed links
+   */
+  public Quadtree getGeoIndexedLinks() {
+    return this.geoIndexedLinks;
+  }
+
+  /** Remove link from local spatial index based on links
+   *
+   * @param link to remove
+   */
+  public void removeGeoIndexedLink(MacroscopicLink link) {
+    if(link != null) {
+      geoIndexedLinks.remove(link.createEnvelope(), link);
+    }
+  }
+
+  /** Add provided link to local spatial index based on their bounding box
+   *
+   * @param link to add
+   */
+  public void addGeoIndexedLink(MacroscopicLink link) {
+    if(link != null) {
+      geoIndexedLinks.insert(link.createEnvelope(), link);
+    }
+  }
+
+  /** Add provided link to local spatial index based on their bounding box
+   *
+   * @param links to add
+   */
+  public void addGeoIndexedLinks(MacroscopicLink... links) {
+    if(links != null) {
+      for(var link : links) {
+        geoIndexedLinks.insert(link.createEnvelope(), link);
+      }
+    }
+  }
+
+  // CONNECTOID METHODS
+
+  /**
+   * @return bounding box of used reference network */
+  public Envelope getReferenceNetworkBoundingBox() {
+    return referenceNetworkBoundingBox;
+  }
+
+  /** collect the registered connectoids indexed by their locations for a given network layer (unmodifiable)
+   *
+   * @param networkLayer to use
+   * @return registered directed connectoids indexed by location
+   */
+  public Map<Point, List<DirectedConnectoid>> getDirectedConnectoidsByLocation(MacroscopicNetworkLayer networkLayer) {
+    return connectoidData.getDirectedConnectoidsByLocation(networkLayer);
+  }
+
+  /** Collect the registered connectoids by given locations and network layer (unmodifiable)
+   *
+   * @param nodeLocation to verify
+   * @param networkLayer to extract from
+   * @return found connectoids (if any), otherwise null or empty set
+   */
+  public List<DirectedConnectoid> getDirectedConnectoidsByLocation(Point nodeLocation, MacroscopicNetworkLayer networkLayer) {
+    return connectoidData.getDirectedConnectoidsByLocation(nodeLocation, networkLayer);
+  }
+
+  /** Add a connectoid to the registered connectoids indexed by their OSM id
+   *
+   * @param networkLayer to register for
+   * @param connectoidLocation this connectoid relates to
+   * @param connectoid to add
+   * @return true when successful, false otherwise
+   */
+  public boolean addDirectedConnectoidByLocation(MacroscopicNetworkLayer networkLayer, Point connectoidLocation , DirectedConnectoid connectoid) {
+    return connectoidData.addDirectedConnectoidByLocation(networkLayer, connectoidLocation, connectoid);
+  }
+
+  /** Check if any connectoids have been registered for the given location on any layer
+   *
+   * @param location to verify
+   * @return true when present, false otherwise
+   */
+  public boolean hasAnyDirectedConnectoidsForLocation(Point location) {
+    return connectoidData.hasAnyDirectedConnectoidsForLocation(location);
+  }
+
+  /** Check if any connectoid has been registered for the given location for this layer
+   *
+   * @param networkLayer to check for
+   * @param point to use
+   * @return true when present, false otherwise
+   */
+  public boolean hasDirectedConnectoidForLocation(NetworkLayer networkLayer, Point point) {
+    return connectoidData.hasDirectedConnectoidForLocation(networkLayer, point);
+  }
+
+  // TRANSFER ZONE METHODS
+
+  /**
+   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops mode as supported
+   * on the PLANit transfer zone (if not already present)
+   *
+   * @param gtfsStop to register on PLANit transfer zone
+   * @param transferZone to register one
+   * @return true when already mapped by GTFS stop, false otherwise
+   */
+  public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
+    transferZoneData.registerMappedGtfsStop(gtfsStop, transferZone);
+  }
+
+  /**
+   * Get the transfer zone that the GTFS stop was already mapped to (if any)
+   *
+   * @param gtfsStop to use
+   * @return PLANit transfer zone it is mapped to, null if no mapping exists yet
+   */
+  public TransferZone getMappedTransferZone(GtfsStop gtfsStop){
+    return transferZoneData.getMappedTransferZone(gtfsStop);
+  }
+
+  /**
+   * Check if transfer zone already has a mapped GTFS stop
+   * @param transferZone to check
+   * @return true when already mapped by GTFS stop, false otherwise
+   */
+  public boolean hasMappedGtfsStop(TransferZone transferZone) {
+    return transferZoneData.hasMappedGtfsStop(transferZone);
+  }
+
+  /**
+   * Retrieve a GTFS stop that has been mapped to a pre-existing PLANit transfer zone
+   *
+   * @param gtfsStopId to use
+   * @return found GTFS stop (if any)
+   */
+  public GtfsStop getMappedGtfsStop(String gtfsStopId) {
+    return transferZoneData.getMappedGtfsStop(gtfsStopId);
+  }
+
+  /**
+   * The pt services modes supported on the given transfer zone
+   *
+   * @param planitTransferZone to get supported pt service modes for
+   * @param modesFilter to select from
+   * @return found PLANit modes
+   */
+  public Set<Mode> getSupportedPtModesIn(TransferZone planitTransferZone, Set<Mode> modesFilter){
+    return transferZoneData.getSupportedPtModesIn(planitTransferZone, modesFilter);
+  }
+
+  /**
+   * Connectoids related to Pt activated modes available for this transfer zone
+   * @param transferZone to extract for
+   * @return known connectoids
+   */
+  public Set<DirectedConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
+    return transferZoneData.getTransferZoneConnectoids(transferZone);
+  }
+
+  /**
    * Get all the geo indexed transfer zones as a quad tree
    *
    * @return registered geo indexed transfer zones
    */
   public Quadtree getGeoIndexedTransferZones() {
-    return this.geoIndexExistingTransferZones;
-  }
-
-  /**
-   * Get all the geo indexed links as a quad tree
-   *
-   * @return registered geo indexed links
-   */
-  public Quadtree getGeoIndexedExistingLinks() {
-    return this.geoIndexedExistingLinks;
-  }
-
-  /** Remove provided links from local spatial index based on links
-   *
-   * @param links to remove
-   */
-  public void removeGeoIndexedLinks(Collection<MacroscopicLink> links) {
-    if(links != null) {
-      links.forEach( link -> geoIndexedExistingLinks.remove(link.createEnvelope(), link));
-    }
-  }
-
-  /** Add provided links to local spatial index based on their bounding box
-   *
-   * @param links to add
-   */
-  public void addGeoIndexedLinks(Collection<MacroscopicLink> links) {
-    if(links != null) {
-      links.forEach( link -> geoIndexedExistingLinks.insert(link.createEnvelope(), link));
-    }
+    return transferZoneData.getGeoIndexedTransferZones();
   }
 
   /**
@@ -383,12 +389,6 @@ public class GtfsZoningHandlerData {
    * @return existing transfer zones by external id
    */
   public Map<String, TransferZone> getExistingTransferZonesByExternalId() {
-    return existingTransferZonesByExternalId;
-  }
-
-  /**
-   * @return bounding box of used reference network */
-  public Envelope getReferenceNetworkBoundingBox() {
-    return referenceNetworkBoundingBox;
+    return transferZoneData.getExistingTransferZonesByExternalId();
   }
 }

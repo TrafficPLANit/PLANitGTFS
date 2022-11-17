@@ -6,11 +6,10 @@ import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.CollectionUtils;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.zoning.modifier.event.handler.UpdateDirectedConnectoidsOnBreakLinkSegmentHandler;
 import org.locationtech.jts.geom.Point;
 
 import java.util.*;
@@ -33,7 +32,7 @@ public class GtfsLinkHelper {
     //todo change implementation so it does not necessarily require WGS84 input locations as it is inconsistent with the utils class
     var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
     searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
-    return GeoContainerUtils.queryEdgeQuadtree(data.getGeoIndexedExistingLinks(), searchEnvelope);
+    return GeoContainerUtils.queryEdgeQuadtree(data.getGeoIndexedLinks(), searchEnvelope);
   }
 
   /** Extract/create a PLANit node based on the given location. Either it already exists as a PLANit node, or it is internal to an existing link. In the latter case
@@ -65,51 +64,52 @@ public class GtfsLinkHelper {
     planitNode = networkLayer.getNodes().getFactory().registerNew(gtfsStopNodeLocation, true);
 
     /* now perform the breaking of links at the given node and update related tracking/reference information to broken link(segment)(s) where needed */
-    breakLinksAtPlanitNode(planitNode, networkLayer, Collections.singleton(referenceLink), temporaryListeners, data);
+    breakLinksAtPlanitNode(planitNode, networkLayer, referenceLink, temporaryListeners, data);
 
     return planitNode;
   }
 
   /**
-   * break a PLANit link at the PLANit node location while also updating all OSM related tracking indices and/or PLANit network link and link segment reference
+   * break a PLANit link at the PLANit node location while also updating all related tracking indices and/or PLANit network link and link segment references
    * that might be affected by this process:
    * <ul>
-   * <li>tracking of OSM ways with multiple PLANit links</li>
+   * <li>tracking of geo indexed PLANit links</li>
    * <li>connectoid access link segments affected by breaking of link (if any)</li>
    * </ul>
-   *  @param planitNode to break link at
-   *
+   *  @param planitNode to break link at (its location, it is assumed node has already been created)
    * @param networkLayer       the node and link(s) reside on
-   * @param linksToBreak       the links to break
+   * @param linkToBreak       the link to break
    * @param temporaryListeners graph modifier listeners to register and apply when  breaking link(s) at PLANit node location, and unregister afterwards
    * @param data containing state
    */
   public static void breakLinksAtPlanitNode(
-      final Node planitNode, final MacroscopicNetworkLayer networkLayer, final Collection<MacroscopicLink> linksToBreak, Collection<GraphModifierListener> temporaryListeners, GtfsZoningHandlerData data){
+      final Node planitNode, final MacroscopicNetworkLayer networkLayer, final MacroscopicLink linkToBreak, Collection<GraphModifierListener> temporaryListeners, GtfsZoningHandlerData data){
 
-    /* add listeners */
+    /* BEFORE - add listeners */
     if(!CollectionUtils.nullOrEmpty(temporaryListeners)) {
       temporaryListeners.forEach(l -> networkLayer.getLayerModifier().addListener(l));
     }
 
-    /* LOCAL TRACKING DATA CONSISTENCY  - BEFORE */
     {
-      /* remove links from spatial index when they are broken up and their geometry changes, after breaking more links exist with smaller geometries... insert those after as replacements*/
-      data.removeGeoIndexedLinks(linksToBreak);
+      /* BEFORE - LOCAL TRACKING DATA CONSISTENCY */
+      {
+        /* remove links from spatial index when they are broken up and their geometry changes, after breaking more links exist with smaller geometries... insert those after as replacements*/
+        data.removeGeoIndexedLink(linkToBreak);
+      }
+
+      /* break links */
+      Map<Long, Pair<MacroscopicLink, MacroscopicLink>> newlyBrokenLinks = networkLayer.getLayerModifier().breakAt(
+          linkToBreak, planitNode, data.getGeoTools().getCoordinateReferenceSystem());
+
+
+      /* AFTER - TRACKING DATA CONSISTENCY */
+      {
+        /* insert created/updated links and their geometries to spatial index instead */
+        newlyBrokenLinks.forEach( (id, linkPair) -> data.addGeoIndexedLinks(linkPair.first(), linkPair.second()));
+      }
     }
 
-    /* break links */
-    Map<Long, Set<MacroscopicLink>> newlyBrokenLinks = null; // TODO continue here see below, but first fix the creation of the connectoid listener that is passed in
-//    Map<Long, Set<MacroscopicLink>> newlyBrokenLinks = OsmNetworkHandlerHelper.breakLinksWithInternalNode(
-//        planitNode, linksToBreak, networkLayer, getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
-
-    /* TRACKING DATA CONSISTENCY - AFTER */
-    {
-      /* insert created/updated links and their geometries to spatial index instead */
-      newlyBrokenLinks.forEach( (id, links) -> data.addGeoIndexedLinks(links));
-    }
-
-    /* remove listeners */
+    /* AFTER - remove listeners */
     if(!CollectionUtils.nullOrEmpty(temporaryListeners)) {
       temporaryListeners.forEach(l -> networkLayer.getLayerModifier().removeListener(l));
     }
