@@ -36,7 +36,7 @@ public class BasicGtfsTest {
 
   private static Logger LOGGER;
 
-  public static final Path GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQGTFS.zip");
+  public static final Path GTFS_SEQ_ALL = Path.of(ResourceUtils.getResourceUri(Path.of("GTFS","SEQ","SEQGTFS.zip").toString()));
 
   @BeforeClass
   public static void setUp() throws Exception {
@@ -105,7 +105,7 @@ public class BasicGtfsTest {
       tripsFileReader.read();
       
       assertNotNull(tripsHandler.trips);
-      assertEquals(tripsHandler.trips.size(), 156225);
+      assertEquals(156225,tripsHandler.trips.size());
       assertFalse(tripsHandler.trips.values().iterator().next().containsKey(GtfsKeyType.TRIP_HEADSIGN));
       
     } catch (Exception e) {

@@ -38,7 +38,6 @@ public class GtfsTransferZoneHelper {
    */
   public static TransferZone createAndRegisterNewTransferZone(GtfsStop gtfsStop, Point projectedGtfsStopLocation, TransferZoneType type, GtfsZoningHandlerData data) {
     TransferZone transferZone = data.getZoning().getTransferZones().getFactory().registerNew(type, true);
-    data.getProfiler().incrementCreatedTransferZones();
     transferZone.setGeometry(projectedGtfsStopLocation);
 
     /* external id  = GTFS stop id*/
@@ -49,6 +48,8 @@ public class GtfsTransferZoneHelper {
 
     /* platform name */
     transferZone.addTransferZonePlatformName(gtfsStop.getPlatformCode());
+
+    data.getProfiler().incrementCreatedTransferZones();
 
     return  transferZone;
   }
@@ -149,6 +150,6 @@ public class GtfsTransferZoneHelper {
     //todo change implementation so it does not necessarily require WGS84 input locations as it is inconsistent with the utils class
     var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
     searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
-    return GeoContainerUtils.queryZoneQuadtree(data.getGeoIndexedTransferZones(), searchEnvelope);
+    return GeoContainerUtils.queryZoneQuadtree(data.getGeoIndexedPReExistingTransferZones(), searchEnvelope);
   }
 }
