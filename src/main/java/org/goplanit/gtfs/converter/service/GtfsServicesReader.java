@@ -18,7 +18,10 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.StringUtils;
+import org.goplanit.utils.network.layer.service.ServiceLeg;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -226,6 +229,21 @@ public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, 
 
     /* return parsed GTFS services in PLANit memory model form*/
     return Pair.of(fileHandlerData.getServiceNetwork(), fileHandlerData.getRoutedServices());
+  }
+
+  /**
+   * GTFS Services are ingested and lead to PLANit service nodes to be created based on GTFS stop ids. When at some later point in time
+   * these PLANit service nodes are to be linked to PLANit transfer zones (which in turn have an association with a GTFS stop) the mapping
+   * between PLANit service node and its underlying GTFS stop needs to remain available. This function provides this mapping.
+   * <p>
+   *   For now this mapping is purely based on the external id, but if this changes using this explicit functional approach allows
+   *   us to change this without having to change the process flow itself
+   * </p>
+   *
+   * @return mapping from PLANit service node to underlying source GTFS stop id
+   */
+  public Function<ServiceNode, String> getServiceNodeToGtfsStopIdMapping(){
+    return GtfsServicesHandlerData.getServiceNodeToGtfsStopIdMapping();
   }
 
   /**

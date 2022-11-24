@@ -412,11 +412,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
     }
 
-    /* register new transfer zone */
+    /* register new transfer zone and its connectoids on PLANit network/zoning */
     TransferZone transferZone = GtfsTransferZoneHelper.createAndRegisterNewTransferZone(gtfsStop, projectedGtfsStopLocation, type, data);
-
-    /* create transfer zone connectoid(s) */
     GtfsDirectedConnectoidHelper.createAndRegisterDirectedConnectoids(transferZone, networkLayer, accessResult.second(), Collections.singleton(gtfsStopMode), data);
+    if(data.getSettings().isLogCreatedGtfsZones()) {
+      LOGGER.info(String.format("GTFS stop %s %s at location %s triggered creation of new PLANit Transfer zone %s %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), transferZone.getXmlId(), transferZone.hasName() ? transferZone.getName() : ""));
+    }
 
     //TODO: track newly created transfer zones by mode...
   }
@@ -525,16 +526,20 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       case STOP_PLATFORM:
         handleStopPlatform(gtfsStop, gtfsStopMode);
       case BOARDING_AREA:
-        // not processed yet
+        // not processed yet, if we find that boarding areas are used without a platform, they could be treated as a platform
+        int bla = 4;
         return;
       case STATION:
         // not processed yet
+        bla = 4;
         return;
       case GENERIC_NODE:
         // not processed yet
+        bla = 4;
         return;
       case ENTRANCE_EXIT:
-        // not processed yet
+        bla = 4;
+        // not processed yet, in future these could be used to connect to a separate pedestrian layer but this is not yet available
         return;
       default:
         throw new PlanItRunTimeException("Unrecognised GTFS stop location type %s encountered", gtfsStop.getLocationType());

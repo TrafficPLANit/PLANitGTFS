@@ -123,6 +123,7 @@ public class GtfsToPlanitTest {
 
       // log mappings, useful for debugging if needed
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
+      //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
       // manual overrides
       gtfsIntermodalReader.getSettings().getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("200059","3814704459"); // Museum of Sydney

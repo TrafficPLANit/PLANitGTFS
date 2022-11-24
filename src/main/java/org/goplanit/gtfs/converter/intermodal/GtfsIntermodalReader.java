@@ -95,10 +95,25 @@ public class GtfsIntermodalReader implements IntermodalReader {
 
     /* ZONING (PT stops as transfer zones) */
     final var zoningReader = GtfsZoningReaderFactory.create(
-        getSettings().getZoningSettings(), getSettings().getReferenceZoning(), servicesResult.first(), servicesResult.second());
-    zoningReader.read();
+        getSettings().getZoningSettings(),
+        getSettings().getReferenceZoning(),
+        servicesResult.first(),
+        servicesResult.second(),
+        servicesReader.getServiceNodeToGtfsStopIdMapping());
+    var zoning = zoningReader.read();
+
+    /* integrate the zoning, service network and network by finding paths between the identified stops for all given services,
+    * for now, we generate the paths based on simple Dijkstra shortest paths, in the future more sophisticated alternatives could be used */
+    var integrator = new GtfsServicesAndZoningReaderIntegrator(
+        settings.getReferenceNetwork(),
+        zoning,
+        servicesResult.first(),
+        servicesResult.second(),
+        servicesReader.getServiceNodeToGtfsStopIdMapping(),
+        null); // TODO <- create mapping
+    integrator.execute();
 
     /* combined result */
-    return Quadruple.of(settings.getReferenceNetwork(),settings.getReferenceZoning(),servicesResult.first(),servicesResult.second());
+    return Quadruple.of(settings.getReferenceNetwork(),zoning,servicesResult.first(),servicesResult.second());
   }
 }

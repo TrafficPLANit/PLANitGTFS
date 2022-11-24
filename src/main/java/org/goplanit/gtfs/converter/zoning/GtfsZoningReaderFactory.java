@@ -26,17 +26,19 @@ public class GtfsZoningReaderFactory {
    * This mode is obtained from the GTFS services parsed earlier and available in the Service network and Routed Services, while the OSM stops are part of
    * the Zoning. In that case this factory method is the best choice to fuse the two together.
    *
-   * @param settings                 to use, containing the physical reference network and reference to source file and other configuration settings
-   * @param zoningToPopulate         the zoning to populate further beyond the already partially populated transfer zones
-   * @param serviceNetwork           the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
-   * @param routedServices           the compatible PLANit routed services that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param settings                       to use, containing the physical reference network and reference to source file and other configuration settings
+   * @param zoningToPopulate               the zoning to populate further beyond the already partially populated transfer zones
+   * @param serviceNetwork                 the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param routedServices                 the compatible PLANit routed services that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param serviceNodeToGtfsStopIdMapping allows mapping between the service nodes in the routed services and the underlying GTFS stop ids which are presumed present such that we can create routes on the physical road/rail network
    * @return zoning reader to use for parsing
    */
   public static GtfsZoningReader create(
       GtfsZoningReaderSettings settings,
       Zoning zoningToPopulate,
       ServiceNetwork serviceNetwork,
-      RoutedServices routedServices) {
+      RoutedServices routedServices,
+      Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
     return new GtfsZoningReader(settings, zoningToPopulate, serviceNetwork, routedServices);
   }
 }

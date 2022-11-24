@@ -54,25 +54,11 @@ public class GtfsZoningReader implements ZoningReader {
    * perform final preparation before conducting parsing of OSM pt entities
    */
   private GtfsZoningHandlerData initialiseBeforeParsing() {
-
-    var zoningHandlerData = new GtfsZoningHandlerData(getSettings(),zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
-
-    //todo: spatially index all existing transfer zones
-    //zoningReaderData.getPlanitData().initialiseSpatiallyIndexedLinks(getSettings().getReferenceNetwork());
-
-    //todo: support bounding polygon, which in combined parser with OSM) will be based on network bounding box. However within reader this is not
-    //      known as it can also be used in a stand-alone fashion...so validate
-    /* make sure that if a bounding box has been set, the zoning bounding box does not exceed the network bounding box
-     * since it makes little sense to try and parse pt infrastructure outside of the network's geographically parsed area */
-    //validateZoningBoundingPolygon();
-
-    return zoningHandlerData;
+    return new GtfsZoningHandlerData(getSettings(),zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
   }
 
   /**
    * Process the GTFS stops
-   * TODO: not done yet, because mapping to Planit entities is inadequate due to lack of mode information
-   * TODO: ...to narrow down matches
    *
    * @param gtfsZoningHandlerData to use
    */

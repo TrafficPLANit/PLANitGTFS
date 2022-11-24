@@ -45,6 +45,10 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   /** default setting for logging mappings between GTFS zones and existing PLANit transfer zones */
   public static final boolean DEFAULT_LOG_MAPPED_GTFS_ZONES = false;
 
+  /** default setting for logging the creation of new transfer zones based and GTFS stops */
+  public static final boolean DEFAULT_LOG_CREATED_GTFS_ZONES = false;
+
+
   /**
    * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop to create connectoids (stop_locations).
    * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple candidates via this buffer, we can then use more sophisticated ways than proximity
@@ -60,6 +64,9 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
 
   /** flag indicating if parser should log all GTFS zones that are mapped to existing PLANit  transfer zones */
   private boolean logMappedGtfsZones = DEFAULT_LOG_MAPPED_GTFS_ZONES;
+
+  /** flag indicating if parser should log all GTFS stops that triggered the creation of a new PLANit  transfer zone */
+  private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
 
   /** re-use settings from services reader */
   private final GtfsServicesReaderSettings servicesReaderSettings;
@@ -110,7 +117,7 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   /**
    * Provide the mapping from a PLANit service node in the service network to its GTFS STOP ID
    *
-   * @return function mapping to perforsm conversion from a given service node to GTFS STOP ID
+   * @return function mapping to perform conversion from a given service node to GTFS STOP ID
    */
   public Function<ServiceNode, String> getServiceNodeToGtfsStopIdFunction(){
     return GtfsServicesReaderSettings.getServiceNodeToGtfsStopIdMapping();
@@ -217,6 +224,20 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    */
   public void setLogMappedGtfsZones(boolean logMappedGtfsZones) {
     this.logMappedGtfsZones = logMappedGtfsZones;
+  }
+
+  /**
+   * @return true when newly created transfer zones based on GTFS stops logged, false otherwise
+   */
+  public boolean isLogCreatedGtfsZones() {
+    return logCreatedGtfsZones;
+  }
+
+  /**
+   * @param  logCreatedGtfsZones when true, each newly created (unmapped) transfer zones based on GTFS stops are logged, otherwise not
+   */
+  public void setLogCreatedGtfsZones(boolean logCreatedGtfsZones) {
+    this.logCreatedGtfsZones = logCreatedGtfsZones;
   }
 
   /**
