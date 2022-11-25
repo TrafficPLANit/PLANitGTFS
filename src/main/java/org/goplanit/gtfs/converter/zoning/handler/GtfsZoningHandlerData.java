@@ -23,11 +23,15 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.index.quadtree.Quadtree;
 import org.opengis.referencing.operation.MathTransform;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
  * Track data used during handling/parsing of GTFS Stops which end up being converted into PLANit transfer zones
+ *
+ * @author markr
  */
 public class GtfsZoningHandlerData {
 
@@ -106,7 +110,9 @@ public class GtfsZoningHandlerData {
           for(var serviceNode :  usedServiceNodes) {
             var gtfsStopId = getSettings().getServiceNodeToGtfsStopIdFunction().apply(serviceNode);
             var entry = this.serviceNodeAndModeByGtfsStopId.get(gtfsStopId);
-            PlanItRunTimeException.throwIf(entry!=null && !entry.second().equals(routedService.getMode()),"GTFS STOP %s supports multiple modes, this is not yet supported", gtfsStopId);
+            if(entry!=null && !entry.second().equals(routedService.getMode())) {
+              throw new PlanItRunTimeException( "GTFS STOP %s supports multiple modes, this is not yet supported", gtfsStopId);
+            }
             if(entry == null) {
               this.serviceNodeAndModeByGtfsStopId.put(gtfsStopId, Pair.of(serviceNode, routedService.getMode()));
             }
@@ -401,5 +407,14 @@ public class GtfsZoningHandlerData {
    */
   public Map<String, TransferZone> getPreExistingTransferZonesByExternalId() {
     return transferZoneData.getPreExistingTransferZonesByExternalId();
+  }
+
+  /**
+   * Create mapping function while hiding how the mapping is stored
+   *
+   * @return function that can map GTFS stop ids to transfer zones based on internal state of this data tracker
+   */
+  public Function<String, TransferZone> createGtfsStopToTransferZoneMappingFunction() {
+    return transferZoneData.createGtfsStopToTransferZoneMappingFunction();
   }
 }

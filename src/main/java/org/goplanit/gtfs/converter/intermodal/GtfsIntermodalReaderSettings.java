@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter.intermodal;
 
 import org.goplanit.converter.ConverterReaderSettings;
+import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
@@ -21,12 +22,17 @@ import java.util.function.Function;
  *
  */
 public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
+
+  /** default search for chepeast paths is based on free flow approach */
+  public final String DEFAULT_STOP_TO_STOP_COST_APPROACH = PhysicalCost.FREEFLOW;
   
   /** the services settings to use */
   protected final GtfsServicesReaderSettings servicesReaderSettings;
   
   /** the zoning settings to use */
   protected final GtfsZoningReaderSettings zoningSettings;
+
+  private final String stopToStopPathSearchPhysicalCostApproach = DEFAULT_STOP_TO_STOP_COST_APPROACH;
 
   /** Zoning to populate (further) */
   protected final Zoning zoningtoPopulate;
@@ -84,5 +90,13 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
   public Zoning getReferenceZoning() {
     // todo maybe should not be part of settings, but on reader itself, like zoning reader...
     return zoningtoPopulate;
+  }
+
+  /** The methodology used to find the paths between stops by means of its full canonical class name which is assumed to be supported by
+   * PLANit as a valid cost generating method
+   *
+   * @return stopToStopPathSearchPhysicalCostApproach*/
+  public String getStopToStopPathSearchPhysicalCostApproach() {
+    return stopToStopPathSearchPhysicalCostApproach;
   }
 }

@@ -33,7 +33,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     this.data = gtfsServicesHandlerData;
 
     PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS routes");
-    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable toparse GTFS routes");
+    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS routes");
   }
 
   /**

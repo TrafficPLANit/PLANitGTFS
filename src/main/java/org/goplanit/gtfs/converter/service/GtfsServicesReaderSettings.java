@@ -242,7 +242,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   }
 
   /**
-   * Currently activated mapped PLANit modes
+   * Currently activated mapped PLANit modes as a new set, i.e., modifying this set does not impact the configuration
+   *
    * @return activated, i.e., mapped PLANit modes
    */
   public Set<Mode> getAcivatedPlanitModes() {

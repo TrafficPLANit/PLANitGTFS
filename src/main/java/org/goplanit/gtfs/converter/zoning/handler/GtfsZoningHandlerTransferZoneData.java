@@ -12,6 +12,7 @@ import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.index.quadtree.Quadtree;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -20,6 +21,27 @@ import java.util.logging.Logger;
  * @author markr
  */
 public class GtfsZoningHandlerTransferZoneData {
+
+  /**
+   * Function to hide implementation of mapping between GTFS Stop id and transfer zone
+   *
+   * @author markr
+   */
+  public class GtfsStopIdToTransferZone implements Function<String, TransferZone> {
+
+    private final Map<String, TransferZone> mappedTransferZonesByGtfsStopId;
+
+    /** Constructor
+     * @param mappedTransferZonesByGtfsStopId containing the mapping two wrap*/
+    private GtfsStopIdToTransferZone(Map<String, TransferZone> mappedTransferZonesByGtfsStopId){
+      this.mappedTransferZonesByGtfsStopId = mappedTransferZonesByGtfsStopId;
+    }
+
+    @Override
+    public TransferZone apply(String gtfsStopId) {
+      return mappedTransferZonesByGtfsStopId.get(gtfsStopId);
+    }
+  }
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerTransferZoneData.class.getCanonicalName());
@@ -108,10 +130,14 @@ public class GtfsZoningHandlerTransferZoneData {
    */
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
     var oldZone = mappedTransferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
-    PlanItRunTimeException.throwIf(oldZone != null && !oldZone.equals(transferZone), "Multiple transfer zones found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
+    if(oldZone != null && !oldZone.equals(transferZone)) {
+      throw new PlanItRunTimeException("Multiple transfer zones found for the same GTFS STOP_ID %s, this is not yet supported", gtfsStop.getStopId());
+    }
 
     var oldStop = mappedGtfsStops.put(gtfsStop.getStopId(), gtfsStop);
-    PlanItRunTimeException.throwIf(oldStop != null && !oldStop.equals(gtfsStop), "Multiple GTFS stops found for the same GTFS STOP_ID %s, this is not yet supported",gtfsStop.getStopId());
+    if(oldStop != null && !oldStop.equals(gtfsStop)) {
+      throw new PlanItRunTimeException("Multiple GTFS stops found for the same GTFS STOP_ID %s, this is not yet supported", gtfsStop.getStopId());
+    }
   }
 
   /**
@@ -205,6 +231,15 @@ public class GtfsZoningHandlerTransferZoneData {
    */
   public Map<String, TransferZone> getPreExistingTransferZonesByExternalId() {
     return preExistingTransferZonesByExternalId;
+  }
+
+  /**
+   * Create mapping function while hiding how the mapping is stored
+   *
+   * @return function that can map GTFS stop ids to transfer zones based on internal state of this data tracker
+   */
+  public Function<String, TransferZone> createGtfsStopToTransferZoneMappingFunction() {
+    return new GtfsStopIdToTransferZone(this.mappedTransferZonesByGtfsStopId);
   }
 
 }

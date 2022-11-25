@@ -14,8 +14,10 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
+import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -43,6 +45,12 @@ public class GtfsZoningReader implements ZoningReader {
   /** routed services to use to improve matching of GTFS stops (optional) */
   private final RoutedServices routedServices;
 
+  /** function that allows user to map a GTFS stop id to the underlying transfer zone (after {@link #read()} has been invoked) */
+  private Function<String, TransferZone> gtfsStopIdToTransferZoneMapping;
+
+  /** flag whether {@link #read()} has been invoked, false after {@link #reset()}  */
+  private boolean readInvoked;
+
   /**
    * Log some information about this reader's configuration
    */
@@ -54,6 +62,7 @@ public class GtfsZoningReader implements ZoningReader {
    * perform final preparation before conducting parsing of OSM pt entities
    */
   private GtfsZoningHandlerData initialiseBeforeParsing() {
+    readInvoked = false;
     return new GtfsZoningHandlerData(getSettings(),zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
   }
 
@@ -145,6 +154,10 @@ public class GtfsZoningReader implements ZoningReader {
     /* log stats */
     zoningHandlerData.getProfiler().logProcessingStats(zoning);
 
+    /* generate mapping function now that mapping is known, for third parties to use if needed */
+    gtfsStopIdToTransferZoneMapping = zoningHandlerData.createGtfsStopToTransferZoneMappingFunction();
+    readInvoked = true;
+
     /* return parsed/augmented zoning */
     return this.zoning;    
   }
@@ -157,6 +170,9 @@ public class GtfsZoningReader implements ZoningReader {
   public void reset() {
     /* free memory */
     getSettings().reset();
+    /* reset state */
+    readInvoked = false;
+    gtfsStopIdToTransferZoneMapping = null;
   }  
 
   /**
@@ -168,6 +184,18 @@ public class GtfsZoningReader implements ZoningReader {
     return gtfsSettings;
   }
 
+  /**
+   * Provide mapping between GTFS Stop id and its found/created PLANit transfer zone (if any)
+   *
+   * @return function that takes a GTFS stop id (String) and produces the PLANit transfer zone that goes with it if any)
+   */
+  public Function<String, TransferZone> getGtfsStopIdToTransferZoneMapping() {
+    if(!readInvoked){
+      LOGGER.warning("Unable to provide GTFS Stop id to transfer zone mapping before read() has been invoked on reader, ignored");
+      return null;
+    }
+    return gtfsStopIdToTransferZoneMapping;
+  }
 
 
 }
