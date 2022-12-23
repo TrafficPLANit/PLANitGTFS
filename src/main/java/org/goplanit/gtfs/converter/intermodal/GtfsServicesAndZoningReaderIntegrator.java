@@ -8,26 +8,28 @@ import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.path.SimpleDirectedPathFactoryImpl;
+import org.goplanit.path.SimpleDirectedPathImpl;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
- * Integrates the service network and routed services (GTFS iterary) with the physical road network and zoning (GTFS stop based transfer zones)
+ * Integrates the service network and routed services (GTFS itinerary) with the physical road network and zoning (GTFS stop based transfer zones)
  *
  * @author markr
  */
@@ -77,7 +79,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
               AbstractPhysicalCost.class, settings.getStopToStopPathSearchPhysicalCostApproach(), new Object[]{ idToken});
 
       /* populate based on cost configuration and underlying physical network's link segments and connectoids */
-      double[]  modalLinkSegmentCosts = CostUtils.createModalSegmentCost(mode, physicalCostApproach, network);
+      double[]  modalLinkSegmentCosts = CostUtils.createAndPopulateModalSegmentCost(mode, physicalCostApproach, network);
 
       int numberOfVerticesAllLayers = TransportModelNetwork.getNumberOfVerticesAllLayers(network, this.zoning);
       double heuristicMultiplier = Math.min(1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
@@ -88,23 +90,24 @@ public class GtfsServicesAndZoningReaderIntegrator {
   }
 
   /**
-   * Get the connectod for given transfer zone, where we only allow a single connectoid at this point
+   * Get the connectoids for given transfer zone, grouped by unique access nodes (as multiple access nodes across more than one
+   * connectoid might exist)
    *
    * @param gtfsStopId provided for logging purposes
    * @param transferZone       to use
-   * @return connectoid found
+   * @return connectoids found, grouped by access node
    */
-  private DirectedConnectoid findTransferZoneConnectoid(String gtfsStopId, TransferZone transferZone) {
+  private Map<Node, List<DirectedConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(String gtfsStopId, TransferZone transferZone) {
     var transferZoneConnectoids = connectoidsByAccessZone.get(transferZone);
-    if(transferZoneConnectoids.stream().map( c -> c.getAccessNode()).distinct().count() >1){
-      LOGGER.warning(String.format("Multiple access nodes found for the same PLANit transfer zone for GTFS stop %s, GTFS based transfer zones are expected to only have a single physical access node, verify correctness", gtfsStopId));
-    }
-    return transferZoneConnectoids.stream().findFirst().get();
+    /* it is possible multiple connectoids exist, e.g., train platforms with access on both sides in either direction, therefore we group by
+     * access node */
+    return transferZoneConnectoids.stream().collect(Collectors.groupingBy(c -> c.getAccessNode()));
   }
 
   /**
    * Perform the integration for a given service layer's service leg's leg segment,
-   * where we identify a path on the physical network between the service nodes
+   * where we identify a path on the physical network between the service nodes. Note that we create service paths
+   * for all eligible pt modes on the layer/segment regardless if an actual trip takes place between the leg segment stops.
    *
    * @param layer the segment resides in
    * @param legSegment between two service nodes
@@ -120,30 +123,115 @@ public class GtfsServicesAndZoningReaderIntegrator {
       return;
     }
 
-    /* link service node to transfer zone access node (which is a physical node) */
-    var upstreamConnectoid = findTransferZoneConnectoid(gtfsStopIdUpstream, transferZoneUpstream);
-    var downstreamConnectoid = findTransferZoneConnectoid(gtfsStopIdDownstream, transferZoneDownstream);
-    for(var mode : eligibleServiceModes) {
-      /* transfer zone mode compatibility */
-      if (!(upstreamConnectoid.isModeAllowed(transferZoneUpstream, mode) && downstreamConnectoid.isModeAllowed(transferZoneDownstream, mode))) {
+
+    for (var mode : eligibleServiceModes) {
+      if (!layer.supports(mode)) {
         continue;
       }
-
-      /* connectoid access link segment mode compatibility */
-      if (!(upstreamConnectoid.getAccessLinkSegment().isModeAllowed(mode) && downstreamConnectoid.getAccessLinkSegment().isModeAllowed(mode))) {
-        continue;
-      }
-
       var shortestPathAlgo = shortestPathAlgoByMode.get(mode);
-      // find shortest path using the upstream access node and downstream access link segment upstream node to ensure that we use both access link segments in the final path
-      // we then supplement the found path with the two access link segments which we know are mode compatible
-      ShortestPathResult result = shortestPathAlgo.executeOneToOne(upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
-      var simplePath = result.createPath(new SimpleDirectedPathFactoryImpl(),upstreamConnectoid.getAccessNode(),downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
-      LOGGER.info(simplePath.toString());
+
+      /* link service node to transfer zone access node (which is a physical node) */
+      var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream);
+      var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdDownstream, transferZoneDownstream);
+
+      // only proceed if at least a single connectoid on any access node supports the current mode as well
+      if( !upstreamConnectoidsByAccessNode.values().stream().anyMatch( l -> l.stream().anyMatch( c -> c.isModeAllowed(transferZoneUpstream, mode))) ||
+          !downstreamConnectoidsByAccessNode.values().stream().anyMatch( l -> l.stream().anyMatch( c -> c.isModeAllowed(transferZoneDownstream, mode)))){
+        continue;
+      }
+
+      Set<SimpleDirectedPath> allLegSegmentPathOptions = new HashSet<>();
+      for(var upstreamAccessNodeConnectoidsEntry : upstreamConnectoidsByAccessNode.entrySet()) {
+        for (var downstreamAccessNodeConnectoidsEntry : downstreamConnectoidsByAccessNode.entrySet()) {
+
+          // find eligible paths between upstream access node and downstream access node(s).
+          Set<SimpleDirectedPath> accessNodePathOptions =
+                  createShortestPathsbetweenAccessNodes(
+                          mode,
+                          upstreamAccessNodeConnectoidsEntry.getValue(),
+                          transferZoneUpstream,
+                          downstreamAccessNodeConnectoidsEntry.getValue(),
+                          transferZoneDownstream,
+                          shortestPathAlgo);
+          allLegSegmentPathOptions.addAll(accessNodePathOptions);
+        }
+      }
+
+      // when no options are found but connectoids support current mode, issue a warning
+      if(allLegSegmentPathOptions.isEmpty()){
+        LOGGER.warning(String.format("Unable to find physical path between GTFS stop %s and GTFS stop %s on underlying PLANit network", gtfsStopIdUpstream, gtfsStopIdDownstream));
+      }
+      //TODO: NOTE: We can have multiple paths still despite this being a call for a single leg segment. This is because it is possible that the related transfer zone of the
+      //      service node may represent multiple stops (and service nodes). Therefore we must make an educated guess how to link the leg segment (and service node) to the found
+      //      which of the found paths if multiple exist. Once a choice has been made, we will then encounter another leg segment later on which will generate the same paths but now
+      //      should be matched to the remaining (other) path. This likely ONLY happens for consecutive train stations with platforms having tracks on both sides, e.g. redfern and central
+      //      RULE --> use rule of thumb where we use the shortest path (this will eliminate crossing paths most likely (switches), we then
+      //      might still choose the wrong platform/track but this is not a big issue.
+
       //TODO continue here by using the simplepath result to link the leg segment to the physical network by attaching its macroscopic link segments to it! --> THEN TEST
 
+      //TODO Only ~45 paths created. Should be many more, seem to be too few leg segments as there should be many more given that
+      // we have abound 85 transfer zones in the network, each with at least a single connectoid
+      for(var foundPath : allLegSegmentPathOptions) {
+        LOGGER.info(mode.getName() + " " + StreamSupport.stream(foundPath.spliterator(), false).map(e -> e.getParent().getExternalId()).collect(Collectors.joining(", ")));
+      }
     }
+  }
 
+  private Set<SimpleDirectedPath> createShortestPathsbetweenAccessNodes(
+          Mode mode,
+          List<DirectedConnectoid> upstreamAccessNodeConnectoids,
+          TransferZone transferZoneUpstream,
+          List<DirectedConnectoid> downstreamAccessNodeConnectoids,
+          TransferZone transferZoneDownstream, ShortestPathAStar shortestPathAlgo) {
+
+    Set<SimpleDirectedPath> createdPaths = new HashSet<>();
+    for(var upstreamConnectoid : upstreamAccessNodeConnectoids) {
+      if (!(upstreamConnectoid.isModeAllowed(transferZoneUpstream, mode) && upstreamConnectoid.getAccessLinkSegment().isModeAllowed(mode))) {
+        continue;
+      }
+      for(var downstreamConnectoid : downstreamAccessNodeConnectoids) {
+        if (!(downstreamConnectoid.isModeAllowed(transferZoneDownstream, mode) && downstreamConnectoid.getAccessLinkSegment().isModeAllowed(mode))) {
+          continue;
+        }
+
+        /* find shortest path using the upstream access node and downstream access link segment upstream node to ensure that we use both access link segments in the final path
+           we then supplement the found path with the two access link segments which we know are mode compatible */
+        try {
+          ShortestPathResult result = shortestPathAlgo.executeOneToOne(upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
+          var foundPath = (SimpleDirectedPathImpl) result.createPath(new SimpleDirectedPathFactoryImpl(), upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
+
+          /* no u-turn allowed between access link segment and first link on path */
+          if(foundPath!=null && !foundPath.isEmpty() && foundPath.iterator().next().equals(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment())){
+            continue;
+          }
+          foundPath.append(downstreamConnectoid.getAccessLinkSegment());
+          createdPaths.add(foundPath);
+          //LOGGER.info(StreamSupport.stream(foundPath.spliterator(), false).map( e -> e.getParent().getExternalId()).collect(Collectors.joining(", ")));
+        } catch (PlanItRunTimeException e) {
+          /* when no path can be found this means we have a problem OR in case of multiple access nodes per transfer zone, e.g., station platform with tracks on either side
+             it can still be fine. We therefore do not report a problem if no path between upstream access node and used downstream access node can be found */
+        }
+      }
+    }
+    /* discard redundant paths, for example an access node with two connectoids having two access link segments:
+        o-------->*<--------o
+        can result in situation of having two paths generated:
+        1. o------->* and
+        2. o-------->*------->o
+                      <------/
+        the second path is created because we require access via upstream node of access link segment, then supplementing with the final segment causes
+        a u-turn. This is currently accepted if there is no other way to reach the access node (to be revisited), but here it makes no sense as we already have
+        a better option. Therefore, we filter such redundant options out and do not use the path.
+     */
+    var iter = createdPaths.iterator();
+    while(iter.hasNext()){
+      var currOption = iter.next();
+      if(createdPaths.stream().anyMatch(o -> o!=currOption && currOption.containsSubPath(o.iterator()))){
+        iter.remove();
+      }
+    }
+    return createdPaths;
   }
 
   /**
