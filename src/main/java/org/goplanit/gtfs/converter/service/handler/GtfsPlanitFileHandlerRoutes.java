@@ -70,7 +70,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     if(gtfsRoute.hasLongName()) {
       planitRoutedService.setNameDescription(gtfsRoute.getLongName());
     }
-    /* service description -> GTFS rote_desc */
+    /* service description -> GTFS route_desc */
     if(gtfsRoute.hasRouteDescription()) {
       planitRoutedService.setServiceDescription(gtfsRoute.getRouteDescription());
     }

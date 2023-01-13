@@ -355,7 +355,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
   /**
    * Process a GTFS stop that could not be matched to an existing transfer zone. It will trigger the
-   * creation of a new transfer zone on the PLANit zoning
+   * creation of a new transfer zone on the PLANit zoning as along as it falls within the network's bounding box
    *
    * @param gtfsStop to create new TransferZone for
    * @param gtfsStopMode PLANit mode associated with GTFS stop

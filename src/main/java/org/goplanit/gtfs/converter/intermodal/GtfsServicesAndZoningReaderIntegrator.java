@@ -6,15 +6,17 @@ import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.network.layer.service.ServiceLegSegmentImpl;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.path.SimpleDirectedPathImpl;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.zoning.DirectedConnectoid;
@@ -26,7 +28,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Integrates the service network and routed services (GTFS itinerary) with the physical road network and zoning (GTFS stop based transfer zones)
@@ -85,8 +86,6 @@ public class GtfsServicesAndZoningReaderIntegrator {
       double heuristicMultiplier = Math.min(1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
       shortestPathAlgoByMode.put(mode, new ShortestPathAStar(modalLinkSegmentCosts, numberOfVerticesAllLayers,  network.getCoordinateReferenceSystem(), heuristicMultiplier));
     }
-
-
   }
 
   /**
@@ -105,77 +104,93 @@ public class GtfsServicesAndZoningReaderIntegrator {
   }
 
   /**
-   * Perform the integration for a given service layer's service leg's leg segment,
-   * where we identify a path on the physical network between the service nodes. Note that we create service paths
-   * for all eligible pt modes on the layer/segment regardless if an actual trip takes place between the leg segment stops.
+   * Given a network layer and two GTFS stop's transfer zones, find the most likely path between them taking the mode and shortest distance into account
    *
-   * @param layer the segment resides in
-   * @param legSegment between two service nodes
+   * @param layer to use for the physical network
+   * @param gtfsStopUpstreamServiceNode departure GTFS stop in service node form
+   * @param gtfsStopDownstreamServiceNode arrival GTFS stop in service node form
+   * @return found most likely physical path (if any, can be null)
    */
-  private void integrateLegSegment(ServiceNetworkLayer layer, ServiceLegSegment legSegment){
-    var gtfsStopIdUpstream = serviceNodeToGtfsStopIdMapping.apply(legSegment.getUpstreamServiceNode());
+  private SimpleDirectedPath findMostLikelyPathBetweenGtfsStopServiceNodes(
+      ServiceNetworkLayer layer,  ServiceNode gtfsStopUpstreamServiceNode,ServiceNode gtfsStopDownstreamServiceNode) {
+
+    var gtfsStopIdUpstream = serviceNodeToGtfsStopIdMapping.apply(gtfsStopUpstreamServiceNode);
     TransferZone transferZoneUpstream = gtfsStopIdToTransferZoneMapping.apply(gtfsStopIdUpstream);
 
-    var gtfsStopIdDownstream = serviceNodeToGtfsStopIdMapping.apply(legSegment.getDownstreamServiceNode());
+    var gtfsStopIdDownstream = serviceNodeToGtfsStopIdMapping.apply(gtfsStopDownstreamServiceNode);
     TransferZone transferZoneDownstream = gtfsStopIdToTransferZoneMapping.apply(gtfsStopIdDownstream);
     if(transferZoneUpstream==null || transferZoneDownstream == null){
       /* likely no mapping found for stops due to physical network not being close enough, i.e., routes/legs/nodes fall outside bounding box of physical network we are mapping to */
-      return;
+      return null;
     }
 
+//    if(gtfsStopIdUpstream.equals("2000452") && gtfsStopIdDownstream.equals("2000449")){
+//      int bla = 4;
+//    }
 
+    /* link service node to transfer zone access node (which is a physical node) */
+    var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream);
+    var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdDownstream, transferZoneDownstream);
+
+    //todo: not great that we assume the first matching mode is the only service mode used by the leg segment. This assumes each GTFS stop ONLY ever services
+    //      a single mode, if not this breaks...and our format as well, because we only support a single string of physical link segments for each service leg segment.
+    //      to solve this we would need to either places these in seaprate layers (probably best) in which case this structure can be retained, or multiple service legs(segments) between
+    //      the same service nodes should be allowed, where the service legs(segments) must become mode aware via a service leg segment type for example.
+    SimpleDirectedPath chosenPath = null;
     for (var mode : eligibleServiceModes) {
       if (!layer.supports(mode)) {
         continue;
       }
       var shortestPathAlgo = shortestPathAlgoByMode.get(mode);
 
-      /* link service node to transfer zone access node (which is a physical node) */
-      var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream);
-      var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdDownstream, transferZoneDownstream);
-
-      // only proceed if at least a single connectoid on any access node supports the current mode as well
-      if( !upstreamConnectoidsByAccessNode.values().stream().anyMatch( l -> l.stream().anyMatch( c -> c.isModeAllowed(transferZoneUpstream, mode))) ||
-          !downstreamConnectoidsByAccessNode.values().stream().anyMatch( l -> l.stream().anyMatch( c -> c.isModeAllowed(transferZoneDownstream, mode)))){
+      // proceed for the first support mode when at least a single connectoid on any access node supports it
+      if (!upstreamConnectoidsByAccessNode.values().stream().anyMatch(l -> l.stream().anyMatch(c -> c.isModeAllowed(transferZoneUpstream, mode))) ||
+          !downstreamConnectoidsByAccessNode.values().stream().anyMatch(l -> l.stream().anyMatch(c -> c.isModeAllowed(transferZoneDownstream, mode)))) {
         continue;
       }
 
+      if(chosenPath != null){
+        throw new PlanItRunTimeException("Service leg segment is ambiguous, it supports more than a single mode which is not supported in PLANit yet (within a single layer)");
+      }
+
       Set<SimpleDirectedPath> allLegSegmentPathOptions = new HashSet<>();
-      for(var upstreamAccessNodeConnectoidsEntry : upstreamConnectoidsByAccessNode.entrySet()) {
+      for (var upstreamAccessNodeConnectoidsEntry : upstreamConnectoidsByAccessNode.entrySet()) {
         for (var downstreamAccessNodeConnectoidsEntry : downstreamConnectoidsByAccessNode.entrySet()) {
 
           // find eligible paths between upstream access node and downstream access node(s).
           Set<SimpleDirectedPath> accessNodePathOptions =
-                  createShortestPathsbetweenAccessNodes(
-                          mode,
-                          upstreamAccessNodeConnectoidsEntry.getValue(),
-                          transferZoneUpstream,
-                          downstreamAccessNodeConnectoidsEntry.getValue(),
-                          transferZoneDownstream,
-                          shortestPathAlgo);
+              createShortestPathsbetweenAccessNodes(
+                  mode,
+                  upstreamAccessNodeConnectoidsEntry.getValue(),
+                  transferZoneUpstream,
+                  downstreamAccessNodeConnectoidsEntry.getValue(),
+                  transferZoneDownstream,
+                  shortestPathAlgo);
           allLegSegmentPathOptions.addAll(accessNodePathOptions);
         }
       }
 
       // when no options are found but connectoids support current mode, issue a warning
-      if(allLegSegmentPathOptions.isEmpty()){
-        LOGGER.warning(String.format("Unable to find physical path between GTFS stop %s and GTFS stop %s on underlying PLANit network", gtfsStopIdUpstream, gtfsStopIdDownstream));
+      if (allLegSegmentPathOptions.isEmpty()) {
+        return null;
       }
-      //TODO: NOTE: We can have multiple paths still despite this being a call for a single leg segment. This is because it is possible that the related transfer zone of the
-      //      service node may represent multiple stops (and service nodes). Therefore we must make an educated guess how to link the leg segment (and service node) to the found
-      //      which of the found paths if multiple exist. Once a choice has been made, we will then encounter another leg segment later on which will generate the same paths but now
-      //      should be matched to the remaining (other) path. This likely ONLY happens for consecutive train stations with platforms having tracks on both sides, e.g. redfern and central
-      //      RULE --> use rule of thumb where we use the shortest path (this will eliminate crossing paths most likely (switches), we then
-      //      might still choose the wrong platform/track but this is not a big issue.
 
-      //TODO continue here by using the simplepath result to link the leg segment to the physical network by attaching its macroscopic link segments to it! --> THEN TEST
-
-      //TODO Only ~45 paths created. Should be many more, seem to be too few leg segments as there should be many more given that
-      // we have abound 85 transfer zones in the network, each with at least a single connectoid
-      for(var foundPath : allLegSegmentPathOptions) {
-        LOGGER.info(mode.getName() + " " + StreamSupport.stream(foundPath.spliterator(), false).map(e -> e.getParent().getExternalId()).collect(Collectors.joining(", ")));
+      chosenPath = allLegSegmentPathOptions.iterator().next();
+      if (allLegSegmentPathOptions.size() > 1) {
+        //  We can have multiple paths still despite this being a call for a single leg segment. This is because it is possible that the related transfer zone of the
+        //  service node may represent multiple stops (and service nodes). Therefore we must make an educated guess how to link the leg segment (and service node) to the found
+        //  which of the found paths if multiple exist. Once a choice has been made, we will then encounter another leg segment later on which will generate the same paths but now
+        //  should be matched to the remaining (other) path. This likely ONLY happens for consecutive train stations with platforms having tracks on both sides, e.g. redfern and central
+        //  RULE --> use rule of thumb where we use the shortest path (this will eliminate crossing paths most likely (switches), we then
+        //  might still choose the wrong platform/track but this is not a big issue.
+        LOGGER.fine(String.format("Multiple paths possible between two GTFS stops (%s, %s) due to GTFS stop having multiple possible access points to physical network, e.g., train platform, choosing first", gtfsStopIdUpstream, gtfsStopIdDownstream));
+        chosenPath = allLegSegmentPathOptions.stream().min(Comparator.comparingDouble(p -> p.computeLengthKm())).get();
       }
     }
+
+    // print all subsquent (OSM) node external ids of each chosen path for visualisation/error checking purposes
+    //LOGGER.info(mode.getName() + " " + chosenPath.iterator().next().getUpstreamVertex().getExternalId() + ","+ StreamSupport.stream(chosenPath.spliterator(), false).map(es -> es.getDownstreamVertex().getExternalId()).collect(Collectors.joining(", ")));
+    return chosenPath;
   }
 
   private Set<SimpleDirectedPath> createShortestPathsbetweenAccessNodes(
@@ -198,13 +213,22 @@ public class GtfsServicesAndZoningReaderIntegrator {
         /* find shortest path using the upstream access node and downstream access link segment upstream node to ensure that we use both access link segments in the final path
            we then supplement the found path with the two access link segments which we know are mode compatible */
         try {
-          ShortestPathResult result = shortestPathAlgo.executeOneToOne(upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
+
+          /* ban direct u-turn around access link segments as option */
+          // todo if ever we support turn bans, then we must make the below more sophisticated
+          Set<EdgeSegment> bannedLinkSegments = new HashSet<>();
+          if(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment() != null){
+            bannedLinkSegments.add(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment());
+          }
+          if( downstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment() != null){
+            bannedLinkSegments.add( downstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment());
+          }
+
+          /* execute shortest path */
+          ShortestPathResult result = shortestPathAlgo.executeOneToOne(
+              upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode(), bannedLinkSegments);
           var foundPath = (SimpleDirectedPathImpl) result.createPath(new SimpleDirectedPathFactoryImpl(), upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
 
-          /* no u-turn allowed between access link segment and first link on path */
-          if(foundPath!=null && !foundPath.isEmpty() && foundPath.iterator().next().equals(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment())){
-            continue;
-          }
           foundPath.append(downstreamConnectoid.getAccessLinkSegment());
           createdPaths.add(foundPath);
           //LOGGER.info(StreamSupport.stream(foundPath.spliterator(), false).map( e -> e.getParent().getExternalId()).collect(Collectors.joining(", ")));
@@ -251,6 +275,26 @@ public class GtfsServicesAndZoningReaderIntegrator {
   }
 
   /**
+   * Perform the integration for a given service layer's service leg's leg segment,
+   * where we identify a path on the physical network between the service nodes. Note that we create service paths
+   * for all eligible pt modes on the layer/segment regardless if an actual trip takes place between the leg segment stops.
+   *
+   * @param layer the segment resides in
+   * @param legSegment between two service nodes that will be populated with physical link segments (references)
+   */
+  private void integrateLegSegment(ServiceNetworkLayer layer, ServiceLegSegmentImpl legSegment){
+
+    var chosenPath = findMostLikelyPathBetweenGtfsStopServiceNodes(layer, legSegment.getUpstreamServiceNode(), legSegment.getDownstreamServiceNode());
+    if(chosenPath == null){
+      LOGGER.warning(String.format("Unable to find physical path between GTFS stop %s and GTFS stop %s on underlying PLANit network",
+          serviceNodeToGtfsStopIdMapping.apply(legSegment.getUpstreamServiceNode()), serviceNodeToGtfsStopIdMapping.apply(legSegment.getDownstreamServiceNode())));
+    }else {
+      /* now attach the link segments to the service leg segment based on the found path */
+      legSegment.setPhysicalParentSegments(IterableUtils.toTypeCastList(chosenPath));
+    }
+  }
+
+  /**
    * Constructor
    *
    * @param settings of the parent reader used
@@ -283,11 +327,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
   public void execute() {
     initialise();
 
-    /* process service leg segments */
-    serviceNetwork.getTransportLayers().forEach( layer -> layer.getLegs().forEach(leg -> leg.forEachSegment( legSegment -> integrateLegSegment(layer, (ServiceLegSegment) legSegment))));
-
-    //todo: prune service network and routes for unmatched service nodes (and routes) --> many routes/service nodes/legs might not have been matched due to network
-    //      not covering entire GTFS area in which case we should remove them as it does result in an invalid/incomplete routedservices/servicenetwork
+    /* process service leg segments - knowing that all leg segments are instances of ServiceLegSegmentImpl as this is how the GTFS converter has created them */
+    serviceNetwork.getTransportLayers().forEach( layer -> layer.getLegs().forEach(leg -> leg.forEachSegment( legSegment -> integrateLegSegment(layer, (ServiceLegSegmentImpl) legSegment))));
   }
 
   /**

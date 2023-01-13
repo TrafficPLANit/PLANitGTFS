@@ -89,11 +89,12 @@ public class GtfsIntermodalReader implements IntermodalReader {
   @Override
   public Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> readWithServices() {
 
-    /* SERVICES */
+    /* SERVICES without geo filter (since locations are currently only parsed when considering GTFS stops via (transfer) zoning reader), hence
+    *  all routes/services are initially mapped to PLANit equivalents but without mapping to physical network yet*/
     GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(getSettings().getServiceSettings());
     Pair<ServiceNetwork,RoutedServices> servicesResult = servicesReader.read();
 
-    /* ZONING (PT stops as transfer zones) */
+    /* ZONING (PT stops as transfer zones) this parses GTFS stops and their locations, parsed GTFS stops are constrained to bounding box of underlying physical network*/
     final var zoningReader = GtfsZoningReaderFactory.create(
         getSettings().getZoningSettings(),
         getSettings().getReferenceZoning(),
@@ -102,7 +103,7 @@ public class GtfsIntermodalReader implements IntermodalReader {
         servicesReader.getServiceNodeToGtfsStopIdMapping());
     var zoning = zoningReader.read();
 
-    /* integrate the zoning, service network and network by finding paths between the identified stops for all given services,
+    /* INTEGRATE: integrate the zoning, service network and network by finding paths between the identified stops for all given services,
     * for now, we generate the paths based on simple Dijkstra shortest paths, in the future more sophisticated alternatives could be used */
     var integrator = new GtfsServicesAndZoningReaderIntegrator(
         settings,
@@ -112,6 +113,9 @@ public class GtfsIntermodalReader implements IntermodalReader {
         servicesReader.getServiceNodeToGtfsStopIdMapping(),
         zoningReader.getGtfsStopIdToTransferZoneMapping());
     integrator.execute();
+
+    /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped */
+    servicesResult.first().getTransportLayers().forEach( l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
 
     /* combined result */
     return Quadruple.of(settings.getReferenceNetwork(),zoning,servicesResult.first(),servicesResult.second());
