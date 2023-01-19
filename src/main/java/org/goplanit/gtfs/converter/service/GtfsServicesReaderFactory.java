@@ -2,9 +2,6 @@ package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.ServiceNetwork;
-import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.utils.id.IdGroupingToken;
 
 
 /**

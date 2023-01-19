@@ -59,8 +59,7 @@ public class GtfsToPlanitTest {
     String INPUT_PATH = Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
 
     /* parse PLANit intermodal network from disk to memory */
-    PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(
-            new PlanitIntermodalReaderSettings(INPUT_PATH));
+    PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(INPUT_PATH));
     var planitIntermodalNetworkTuple = planitReader.read();
     macroscopicNetwork = planitIntermodalNetworkTuple.first();
     zoning = planitIntermodalNetworkTuple.second();

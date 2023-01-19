@@ -9,7 +9,6 @@ import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.reader.GtfsFileReaderStops;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
-import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;

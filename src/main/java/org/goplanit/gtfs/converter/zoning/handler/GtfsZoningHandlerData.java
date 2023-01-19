@@ -23,7 +23,6 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.index.quadtree.Quadtree;
 import org.opengis.referencing.operation.MathTransform;
 
-import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;

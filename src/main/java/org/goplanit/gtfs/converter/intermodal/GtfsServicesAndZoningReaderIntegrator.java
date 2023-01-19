@@ -59,33 +59,43 @@ public class GtfsServicesAndZoningReaderIntegrator {
   private Collection<Mode> eligibleServiceModes;
 
   /**
+   * Initialise a shortest path algorithm with free flow costs for the entire network for a given mode so it can be reused when needed
+   *
+   * @param mode to prep algorithm for (stored in class member)
+   */
+  private void initialiseShortestPathAlgorithmForMode(Mode mode) {
+    var network = settings.getReferenceNetwork();
+    var idToken = network.getIdGroupingToken();
+
+    /* costs used for physical component of road network based on user settings */
+    var physicalCostApproach =
+        PlanitComponentFactory.create(
+            AbstractPhysicalCost.class, settings.getStopToStopPathSearchPhysicalCostApproach(), new Object[]{ idToken});
+
+    /* populate based on cost configuration and underlying physical network's link segments and connectoids */
+    double[]  modalLinkSegmentCosts = CostUtils.createAndPopulateModalSegmentCost(mode, physicalCostApproach, network);
+
+    int numberOfVerticesAllLayers = TransportModelNetwork.getNumberOfVerticesAllLayers(network, this.zoning);
+    double heuristicMultiplier = Math.min(1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
+    this.shortestPathAlgoByMode.put(mode, new ShortestPathAStar(modalLinkSegmentCosts, numberOfVerticesAllLayers,  network.getCoordinateReferenceSystem(), heuristicMultiplier));
+  }
+
+  /**
    * Initialise some local indices that are to be used
    */
   private void initialise(){
     this.connectoidsByAccessZone = zoning.getTransferConnectoids().createIndexByAccessZone();
-    this.shortestPathAlgoByMode = new HashMap<>();
-
-    var network = settings.getReferenceNetwork();
-    var idToken = network.getIdGroupingToken();
 
     /* determine eligible service modes by intersecting physical layer modes with activate public transport modes of the GTFS settings */
     this.eligibleServiceModes = serviceNetwork.getTransportLayers().getSupportedModes();
     eligibleServiceModes.retainAll(settings.getServiceSettings().getAcivatedPlanitModes());
 
     /* prep shortest path algorithm (costs) per mode across network link segments for path searching, since costs are fixed, we can do this beforehand and reuse */
+    this.shortestPathAlgoByMode = new HashMap<>();
     for(var mode : eligibleServiceModes) {
-      /* costs used for physical component of road network based on user settings */
-      var physicalCostApproach =
-          PlanitComponentFactory.create(
-              AbstractPhysicalCost.class, settings.getStopToStopPathSearchPhysicalCostApproach(), new Object[]{ idToken});
-
-      /* populate based on cost configuration and underlying physical network's link segments and connectoids */
-      double[]  modalLinkSegmentCosts = CostUtils.createAndPopulateModalSegmentCost(mode, physicalCostApproach, network);
-
-      int numberOfVerticesAllLayers = TransportModelNetwork.getNumberOfVerticesAllLayers(network, this.zoning);
-      double heuristicMultiplier = Math.min(1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
-      shortestPathAlgoByMode.put(mode, new ShortestPathAStar(modalLinkSegmentCosts, numberOfVerticesAllLayers,  network.getCoordinateReferenceSystem(), heuristicMultiplier));
+      initialiseShortestPathAlgorithmForMode(mode);
     }
+
   }
 
   /**
@@ -96,11 +106,23 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * @param transferZone       to use
    * @return connectoids found, grouped by access node
    */
-  private Map<Node, List<DirectedConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(String gtfsStopId, TransferZone transferZone) {
+  private Map<Node, List<DirectedConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(
+      String gtfsStopId, TransferZone transferZone, ServiceNode gtfsStopServiceNode) {
     var transferZoneConnectoids = connectoidsByAccessZone.get(transferZone);
     /* it is possible multiple connectoids exist, e.g., train platforms with access on both sides in either direction, therefore we group by
      * access node */
-    return transferZoneConnectoids.stream().collect(Collectors.groupingBy(c -> c.getAccessNode()));
+    var resultByAccessNode = transferZoneConnectoids.stream().collect(Collectors.groupingBy(c -> c.getAccessNode()));
+
+    /* When GTFS stop has been linked to a service node which in turn has already been mapped to a physical node, then we must limit the connectoids we consider to
+     * access nodes matching the physical node that is related to this service node */
+    if(gtfsStopServiceNode.hasPhysicalParentNode()){
+      resultByAccessNode.entrySet().removeIf( e -> e.getKey() != gtfsStopServiceNode.getPhysicalParentNode());
+    }
+
+    if(resultByAccessNode.isEmpty() && gtfsStopServiceNode.hasPhysicalParentNode()){
+      LOGGER.severe(String.format("Unable to find available transfer zone access nodes for leg segment, likely GTFS stop %s mapped to incorrect physical access node upon earlier path search", gtfsStopId));
+    }
+    return resultByAccessNode;
   }
 
   /**
@@ -112,7 +134,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * @return found most likely physical path (if any, can be null)
    */
   private SimpleDirectedPath findMostLikelyPathBetweenGtfsStopServiceNodes(
-      ServiceNetworkLayer layer,  ServiceNode gtfsStopUpstreamServiceNode,ServiceNode gtfsStopDownstreamServiceNode) {
+      ServiceNetworkLayer layer,  ServiceNode gtfsStopUpstreamServiceNode, ServiceNode gtfsStopDownstreamServiceNode) {
 
     var gtfsStopIdUpstream = serviceNodeToGtfsStopIdMapping.apply(gtfsStopUpstreamServiceNode);
     TransferZone transferZoneUpstream = gtfsStopIdToTransferZoneMapping.apply(gtfsStopIdUpstream);
@@ -129,8 +151,11 @@ public class GtfsServicesAndZoningReaderIntegrator {
 //    }
 
     /* link service node to transfer zone access node (which is a physical node) */
-    var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream);
-    var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdDownstream, transferZoneDownstream);
+    var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream, gtfsStopUpstreamServiceNode);
+    var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdDownstream, transferZoneDownstream, gtfsStopDownstreamServiceNode);
+    if(upstreamConnectoidsByAccessNode.isEmpty() || downstreamConnectoidsByAccessNode.isEmpty()){
+      return null;
+    }
 
     //todo: not great that we assume the first matching mode is the only service mode used by the leg segment. This assumes each GTFS stop ONLY ever services
     //      a single mode, if not this breaks...and our format as well, because we only support a single string of physical link segments for each service leg segment.
@@ -178,7 +203,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
       chosenPath = allLegSegmentPathOptions.iterator().next();
       if (allLegSegmentPathOptions.size() > 1) {
         //  We can have multiple paths still despite this being a call for a single leg segment. This is because it is possible that the related transfer zone of the
-        //  service node may represent multiple stops (and service nodes). Therefore we must make an educated guess how to link the leg segment (and service node) to the found
+        //  service node may represent multiple stops (and service nodes). Therefore, we must make an educated guess how to link the leg segment (and service node) to the found
         //  which of the found paths if multiple exist. Once a choice has been made, we will then encounter another leg segment later on which will generate the same paths but now
         //  should be matched to the remaining (other) path. This likely ONLY happens for consecutive train stations with platforms having tracks on both sides, e.g. redfern and central
         //  RULE --> use rule of thumb where we use the shortest path (this will eliminate crossing paths most likely (switches), we then
@@ -285,13 +310,34 @@ public class GtfsServicesAndZoningReaderIntegrator {
   private void integrateLegSegment(ServiceNetworkLayer layer, ServiceLegSegmentImpl legSegment){
 
     var chosenPath = findMostLikelyPathBetweenGtfsStopServiceNodes(layer, legSegment.getUpstreamServiceNode(), legSegment.getDownstreamServiceNode());
-    if(chosenPath == null){
-      LOGGER.warning(String.format("Unable to find physical path between GTFS stop %s and GTFS stop %s on underlying PLANit network",
-          serviceNodeToGtfsStopIdMapping.apply(legSegment.getUpstreamServiceNode()), serviceNodeToGtfsStopIdMapping.apply(legSegment.getDownstreamServiceNode())));
-    }else {
+    if(chosenPath != null) {
+      // now attach service nodes to physical network nodes
+      integrateServiceNode(legSegment.getUpstreamServiceNode(), (Node) chosenPath.getFirstSegment().getUpstreamVertex());
+      integrateServiceNode(legSegment.getDownstreamServiceNode(), (Node) chosenPath.getLastSegment().getDownstreamVertex());
+
       /* now attach the link segments to the service leg segment based on the found path */
       legSegment.setPhysicalParentSegments(IterableUtils.toTypeCastList(chosenPath));
+      return;
     }
+
+    /* check if we should provide a warning in case we expected a path, e.g., service nodes are mapped to physical network indicating it
+     * (roughly) falls within the network's bounding box (otherwise these would not have been mapped to a physical network node either in which case it is logical
+     * no match is found and no warning is given */
+    if(legSegment.getUpstreamServiceNode().hasPhysicalParentNode() && legSegment.getDownstreamServiceNode().hasPhysicalParentNode()) {
+      LOGGER.warning(String.format("Unable to find physical path between GTFS stop %s and GTFS stop %s on underlying PLANit network",
+          serviceNodeToGtfsStopIdMapping.apply(legSegment.getUpstreamServiceNode()), serviceNodeToGtfsStopIdMapping.apply(legSegment.getDownstreamServiceNode())));
+    }
+  }
+
+  /**
+   * Given a service node and physical network node, connect the two such that mapping between physical and service network is made
+   * appropriately
+   *
+   * @param serviceNode to relate to physicalNetworkNode when appropriate
+   * @param physicalNetworkNode to attach to service node when appropriate
+   */
+  private void integrateServiceNode(ServiceNode serviceNode, Node physicalNetworkNode) {
+    serviceNode.setPhysicalParentNode(physicalNetworkNode);
   }
 
   /**
