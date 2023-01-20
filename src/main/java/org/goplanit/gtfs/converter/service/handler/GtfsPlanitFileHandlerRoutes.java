@@ -3,7 +3,7 @@ package org.goplanit.gtfs.converter.service.handler;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerRoutes;
-import org.goplanit.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.mode.Mode;
 

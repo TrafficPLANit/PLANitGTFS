@@ -6,10 +6,13 @@ import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.service.routed.*;
 import org.goplanit.utils.misc.CustomIndexTracker;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
+import org.goplanit.utils.service.routed.RoutedTripSchedule;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -12,13 +12,13 @@ import org.goplanit.gtfs.reader.GtfsFileReaderTrips;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.service.routed.*;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.goplanit.service.routed.RoutedServices;
 
 import java.util.function.Function;
 import java.util.logging.Logger;
