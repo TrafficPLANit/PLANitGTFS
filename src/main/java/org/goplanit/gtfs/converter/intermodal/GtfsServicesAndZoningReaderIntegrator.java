@@ -15,7 +15,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.RoutedServiceLayer;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.path.SimpleDirectedPath;
@@ -134,7 +134,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * @return found most likely physical path (if any, can be null)
    */
   private SimpleDirectedPath findMostLikelyPathBetweenGtfsStopServiceNodes(
-      ServiceNetworkLayer layer,  ServiceNode gtfsStopUpstreamServiceNode, ServiceNode gtfsStopDownstreamServiceNode) {
+          RoutedServiceLayer layer, ServiceNode gtfsStopUpstreamServiceNode, ServiceNode gtfsStopDownstreamServiceNode) {
 
     var gtfsStopIdUpstream = serviceNodeToGtfsStopIdMapping.apply(gtfsStopUpstreamServiceNode);
     TransferZone transferZoneUpstream = gtfsStopIdToTransferZoneMapping.apply(gtfsStopIdUpstream);
@@ -307,7 +307,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * @param layer the segment resides in
    * @param legSegment between two service nodes that will be populated with physical link segments (references)
    */
-  private void integrateLegSegment(ServiceNetworkLayer layer, ServiceLegSegmentImpl legSegment){
+  private void integrateLegSegment(RoutedServiceLayer layer, ServiceLegSegmentImpl legSegment){
 
     var chosenPath = findMostLikelyPathBetweenGtfsStopServiceNodes(layer, legSegment.getUpstreamServiceNode(), legSegment.getDownstreamServiceNode());
     if(chosenPath != null) {
