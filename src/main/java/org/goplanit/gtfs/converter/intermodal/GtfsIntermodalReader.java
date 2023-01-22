@@ -116,6 +116,7 @@ public class GtfsIntermodalReader implements IntermodalReader {
 
     /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped */
     servicesResult.first().getTransportLayers().forEach( l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
+    servicesResult.second().getLayers().forEach( l -> l.getLayerModifier().truncateToServiceNetwork());
 
     /* combined result */
     return Quadruple.of(settings.getReferenceNetwork(),zoning,servicesResult.first(),servicesResult.second());

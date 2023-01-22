@@ -41,7 +41,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
   /** track previous entry's related GTFS trip - as for now we assume they will only be provided in consecutive order within the file,
    * If for a given GTFS file this is violated, we will need to have a more sophisticated way: either first parse all entries and then process in order
-   * (memory intesnive), or, on the fly change the PLANit memory model (departures, stop ordering). The latter seems a better approach)
+   * (memory intensive), or, on the fly change the PLANit memory model (departures, stop ordering). The latter seems a better approach)
    */
   private GtfsTrip prevStopTimeTrip;
 
@@ -223,7 +223,8 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       var duration = arrivalTime.minus(GtfsUtils.parseGtfsTime(prevSameTripStopTime.getDepartureTime()));
       var dwellTime = departureTime.minus(arrivalTime);
       if(duration.exceedsSingleDay() || dwellTime.exceedsSingleDay()){
-        LOGGER.severe(String.format("Duration between stops (%s) and/or dwell time at stop (%s) should be less than a day, ignored", duration, dwellTime));
+        LOGGER.severe(String.format("Duration (%s) between stops (%s, %s) and/or dwell time at stop (%s) should be less than a day, ignored",
+                duration, serviceNetworkSegment.getUpstreamServiceNode().getExternalId(), serviceNetworkSegment.getDownstreamServiceNode().getExternalId(), dwellTime));
         return;
       }
       planitTrip.addRelativeLegSegmentTiming(serviceNetworkSegment, duration.asLocalTimeBeforeMidnight(), dwellTime.asLocalTimeBeforeMidnight());
