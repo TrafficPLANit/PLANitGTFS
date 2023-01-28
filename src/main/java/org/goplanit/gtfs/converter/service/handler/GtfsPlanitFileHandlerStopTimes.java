@@ -7,7 +7,7 @@ import org.goplanit.gtfs.util.GtfsUtils;
 import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.RoutedTripSchedule;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.network.layer.RoutedServiceLayer;
+import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -100,7 +100,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    * @param gtfsStopTime to extract information for service node for
    * @return created or found service node
    */
-  private ServiceNode collectOrRegisterServiceNode(RoutedServiceLayer layer, GtfsStopTime gtfsStopTime) {
+  private ServiceNode collectOrRegisterServiceNode(ServiceNetworkLayer layer, GtfsStopTime gtfsStopTime) {
     var currServiceNode = data.getServiceNodeByExternalId(gtfsStopTime.getStopId());
     if(currServiceNode == null){
       currServiceNode = layer.getServiceNodes().getFactory().registerNew(null);
@@ -124,7 +124,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    * @param gtfsStopTime to use
    * @return found or created service leg segment
    */
-  private ServiceLegSegment collectOrRegisterNetworkServiceSegment(RoutedServiceLayer layer, GtfsStopTime gtfsStopTime) {
+  private ServiceLegSegment collectOrRegisterNetworkServiceSegment(ServiceNetworkLayer layer, GtfsStopTime gtfsStopTime) {
     /* service nodes */
     var prevServiceNode = data.getServiceNodeByExternalId(prevSameTripStopTime.getStopId());
     /* service node registered by GTFS_STOP_ID */
