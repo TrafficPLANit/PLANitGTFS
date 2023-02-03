@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.converter.service;
 
-import org.goplanit.converter.MultiConverterReader;
+import org.goplanit.converter.PairConverterReader;
 import org.goplanit.gtfs.converter.service.handler.GtfsServicesHandlerData;
 import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerRoutes;
 import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerStopTimes;
@@ -33,7 +33,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class GtfsServicesReader implements MultiConverterReader<ServiceNetwork, RoutedServices> {
+public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, RoutedServices> {
   
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReader.class.getCanonicalName());

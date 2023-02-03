@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class GtfsIntermodalReader implements IntermodalReader {
+public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, RoutedServices> {
   
   /** intermodal reader settings to use */
   protected final GtfsIntermodalReaderSettings settings;
