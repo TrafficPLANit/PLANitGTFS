@@ -27,7 +27,7 @@ public class GtfsIntermodalReaderFactory {
    * @param countryName to use
    * @param parentNetwork the network the routed services and service network are to be built upon
    * @param parentZoning the zoning the transfer zones are to be expanded upon or mapped to
-   * @param typeChoice to apply
+   * @param typeChoice to apply, this pertains to how the GTFS siles are to be parsed as they have different specifications
    * @return created routed service reader
    */
   public static GtfsIntermodalReader create(final String inputDirectory, final String countryName, MacroscopicNetwork parentNetwork, Zoning parentZoning, RouteTypeChoice typeChoice) {

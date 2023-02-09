@@ -4,9 +4,7 @@ import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
-import org.goplanit.io.converter.intermodal.PlanitIntermodalReader;
-import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderFactory;
-import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderSettings;
+import org.goplanit.io.converter.intermodal.*;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
@@ -132,7 +130,6 @@ public class GtfsToPlanitTest {
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
-      // todo: add assertions
 
     } catch (Exception e) {
       e.printStackTrace();
