@@ -136,6 +136,10 @@ public class GtfsServicesAndZoningReaderIntegrator {
   private SimpleDirectedPath findMostLikelyPathBetweenGtfsStopServiceNodes(
           ServiceNetworkLayer layer, ServiceNode gtfsStopUpstreamServiceNode, ServiceNode gtfsStopDownstreamServiceNode) {
 
+//    if(gtfsStopUpstreamServiceNode.getExternalId().equals("200031") && gtfsStopDownstreamServiceNode.getExternalId().equals("2000136")){
+//      int bla = 4;
+//    }
+
     var gtfsStopIdUpstream = serviceNodeToGtfsStopIdMapping.apply(gtfsStopUpstreamServiceNode);
     TransferZone transferZoneUpstream = gtfsStopIdToTransferZoneMapping.apply(gtfsStopIdUpstream);
 
@@ -145,10 +149,6 @@ public class GtfsServicesAndZoningReaderIntegrator {
       /* likely no mapping found for stops due to physical network not being close enough, i.e., routes/legs/nodes fall outside bounding box of physical network we are mapping to */
       return null;
     }
-
-//    if(gtfsStopIdUpstream.equals("2000452") && gtfsStopIdDownstream.equals("2000449")){
-//      int bla = 4;
-//    }
 
     /* link service node to transfer zone access node (which is a physical node) */
     var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream, gtfsStopUpstreamServiceNode);

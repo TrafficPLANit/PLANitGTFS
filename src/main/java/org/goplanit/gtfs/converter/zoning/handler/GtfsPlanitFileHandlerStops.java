@@ -360,15 +360,16 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStop to create new TransferZone for
    * @param gtfsStopMode PLANit mode associated with GTFS stop
    * @param type of the to be created TransferZone
+   * @return created transfer zone (if any, may be null if not found)
    */
-  private void createNewTransferZoneAndConnectoids(GtfsStop gtfsStop, final Mode gtfsStopMode, TransferZoneType type) {
+  private TransferZone createNewTransferZoneAndConnectoids(GtfsStop gtfsStop, final Mode gtfsStopMode, TransferZoneType type) {
     PlanItRunTimeException.throwIfNull(gtfsStop,"GTFS stop null, this is not allowed");
     PlanItRunTimeException.throwIfNull(gtfsStopMode,"GTFS stop's associated PLANit mode null, this is not allowed");
 
     /* check if within network bounding box, only GTFS stops within the network area are considered */
     var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(),data.getCrsTransform());
     if(!data.getReferenceNetworkBoundingBox().contains(projectedGtfsStopLocation.getCoordinate())){
-      return;
+      return null;
     }
 
     /* preferred access link segment for GTFS stop */
@@ -379,7 +380,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       if(!data.getGeoTools().isGeometryNearBoundingBox(projectedGtfsStopLocation, data.getReferenceNetworkBoundingBox(), maxDistanceFromBoundingBoxForDebugMessage)) {
         LOGGER.fine(String.format("DISCARD: No nearby links to attached GTFS stop %s %s at location %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
       }
-      return;
+      return null;
     }
 
     /* find connectoid location*/
@@ -395,7 +396,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         data.getGeoTools());
     if(connectoidLocation == null){
       LOGGER.warning(String.format("DISCARD: No connectoids location could be found for GTFS stop's %s %s %s selected access link, should not happen",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
-      return;
+      return null;
     }
 
     /* create access node and break links if needed */
@@ -408,7 +409,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       accessResult = findMostAppropriateStopLocationLinkForGtfsStop(gtfsStop, gtfsStopMode, accessNode.getLinks());
       if(accessResult == null){
         LOGGER.severe(String.format("Unable to update GTFS Stop %s %s %s access link after breaking PLANit link, should not happen", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
-        return;
+        return null;
       }
     }
 
@@ -419,7 +420,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       LOGGER.info(String.format("GTFS stop %s %s at location %s triggered creation of new PLANit Transfer zone %s %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), transferZone.getXmlId(), transferZone.hasName() ? transferZone.getName() : ""));
     }
 
-    //TODO: track newly created transfer zones by mode...
+    return transferZone;
   }
 
   /**
@@ -463,18 +464,22 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private void handleStopPlatform(final GtfsStop gtfsStop, final Mode gtfsStopMode) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
+    TransferZone theTransferZone = null;
+
     Collection<TransferZone> nearbyTransferZones = GtfsTransferZoneHelper.findNearbyTransferZones(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
-    if(nearbyTransferZones.isEmpty()){
-      createNewTransferZoneAndConnectoids(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
-      return;
+    if(!nearbyTransferZones.isEmpty()){
+      theTransferZone = findMatchingExistingTransferZone(gtfsStop, gtfsStopMode, nearbyTransferZones);
+      if(theTransferZone == null){
+        LOGGER.warning(String.format("GTFS stop %s %s (location %s) has nearby existing transfer zones but no appropriate mapping could be found, verify correctness",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
+      }
     }
 
-    var foundMatch = findMatchingExistingTransferZone(gtfsStop, gtfsStopMode, nearbyTransferZones);
-    if(foundMatch != null){
-      attachToTransferZone(gtfsStop, foundMatch);
-    }else{
-      LOGGER.warning(String.format("GTFS stop %s %s (location %s) has nearby existing transfer zones but no appropriate mapping could be found, verify correctness",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
-      createNewTransferZoneAndConnectoids(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
+    if(theTransferZone == null) {
+      theTransferZone = createNewTransferZoneAndConnectoids(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
+    }
+
+    if(theTransferZone != null){
+      attachToTransferZone(gtfsStop, theTransferZone);
     }
   }
 
@@ -511,6 +516,10 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   @Override
   public void handle(GtfsStop gtfsStop) {
 
+//    if(gtfsStop.getStopId().equals("200043") || gtfsStop.getStopId().equals("200047") || gtfsStop.getStopId().equals("200031") || gtfsStop.getStopId().equals("2000136")){
+//      int bla = 4;
+//    }
+
     final Mode gtfsStopMode = data.getSupportedPtMode(gtfsStop);
     LoggingUtils.LogFineIfNull(gtfsStopMode, LOGGER, "GTFS Stop %s %s (location: %s) unknown mapped PLANit mode; likely stop is not used by GTFS, or stop's mode is not activated", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
     if(gtfsStopMode == null || !data.getSettings().getAcivatedPlanitModes().contains(gtfsStopMode)){
@@ -525,6 +534,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     switch (gtfsStop.getLocationType()){
       case STOP_PLATFORM:
         handleStopPlatform(gtfsStop, gtfsStopMode);
+        return;
       case BOARDING_AREA:
         // not processed yet, if we find that boarding areas are used without a platform, they could be treated as a platform
         int bla = 4;

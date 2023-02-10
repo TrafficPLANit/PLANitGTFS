@@ -39,6 +39,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   /** Activated GTFS modes. Not all possible mappings might be activated for parsing. */
   private  final Set<RouteType> activatedGtfsModes = new HashSet<>();
 
+  /** allow explicit logging of all trips of a GTFS route by means of its short name */
+  private Set<String> logGtfsRouteInformationByShortName = new HashSet<>();
 
   /**
    * Provides access to how GTFS STOP IDS can be extracted from service nodes when service nodes are created using these settings
@@ -259,6 +261,34 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   }
 
   /**
+   * Activate tracking of information for a given GTFS route by its short name
+   *
+   * @param gtfsShortName to trac while parsing
+   */
+  public void activateLoggingForGtfsRouteByShortName(String gtfsShortName){
+    logGtfsRouteInformationByShortName.add(gtfsShortName);
+  }
+
+  /**
+   * Verify if a GTFS short name is already tracked for logging purposes
+   *
+   * @param gtfsShortName to verify
+   * @returns true, when tracked, false otherwise
+   */
+  public boolean isActivatedLoggingForGtfsRouteByShortName(String gtfsShortName){
+    return logGtfsRouteInformationByShortName.contains(gtfsShortName);
+  }
+
+  /**
+   * Unmodifiable set of tracked GTFS routes for logging purposes
+   *
+   * @return the set
+   */
+  public Set<String> getActivatedLoggingForGtfsRoutesByShortName(){
+    return Collections.unmodifiableSet(logGtfsRouteInformationByShortName);
+  }
+
+  /**
    * Log settings used
    */
   public void log() {
@@ -273,6 +303,10 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
       }else{
         LOGGER.info(String.format("[DEACTIVATED] %s", entry));
       }
+    }
+
+    for(var entry : logGtfsRouteInformationByShortName) {
+      LOGGER.info(String.format("Tracking GTFS route %s information while parsing", entry));
     }
   }
 

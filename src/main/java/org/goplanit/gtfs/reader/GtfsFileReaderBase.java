@@ -128,6 +128,11 @@ public abstract class GtfsFileReaderBase {
         handler.handleRaw(gtfsObject);
       }
     }
+
+    /* delegate to handler to finalise */
+    for(GtfsFileHandler<? extends GtfsObject> handler : handlers) {
+      handler.handleComplete();
+    }
   }
 
   /** Explicitly indicate the expectations regarding the presence of this file. When marked as optional no warnings will be logged

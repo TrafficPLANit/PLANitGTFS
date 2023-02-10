@@ -7,12 +7,17 @@ import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.service.routed.modifier.event.handler.SyncDeparturesXmlIdToIdHandler;
+import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlIdToIdHandler;
+import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 import org.goplanit.zoning.Zoning;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -116,7 +121,17 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
     /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped */
     servicesResult.first().getTransportLayers().forEach( l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
-    servicesResult.second().getLayers().forEach( l -> l.getLayerModifier().truncateToServiceNetwork());
+
+    List<RoutedServicesModifierListener> listeners =
+        List.of(new SyncDeparturesXmlIdToIdHandler(), new SyncRoutedServicesXmlIdToIdHandler(), new SyncRoutedTripsXmlIdToIdHandler());
+    for( var layer : servicesResult.second().getLayers()){
+      listeners.forEach( l -> layer.getLayerModifier().addListener(l));
+
+      /* execute with listeners in place */
+      layer.getLayerModifier().truncateToServiceNetwork();
+
+      listeners.forEach( l -> layer.getLayerModifier().removeListener(l));
+    }
 
     /* combined result */
     return Quadruple.of(settings.getReferenceNetwork(),zoning,servicesResult.first(),servicesResult.second());

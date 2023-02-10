@@ -64,4 +64,9 @@ public abstract class GtfsFileHandler<T extends GtfsObject> {
    * Reset the handler
    */
   public void reset(){}
+
+  /**
+   * Allow for callback after all records have been parsed, default empty
+   */
+  public void handleComplete() {}
 }

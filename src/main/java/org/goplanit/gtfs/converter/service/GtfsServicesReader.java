@@ -20,6 +20,7 @@ import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.service.routed.RoutedServices;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -95,7 +96,8 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     LOGGER.info("Processing: parsing GTFS trip stop times...");
 
     /** handler that will process individual trip stop times upon ingesting */
-    var tripStopTimeHandler = new GtfsPlanitFileHandlerStopTimes(fileHandlerData);
+    var tripStopTimeHandler = new GtfsPlanitFileHandlerStopTimes(
+        fileHandlerData, settings.getActivatedLoggingForGtfsRoutesByShortName());
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each trip stop time found */
     GtfsFileReaderStopTimes stopTimeFileReader = (GtfsFileReaderStopTimes) GtfsReaderFactory.createFileReader(

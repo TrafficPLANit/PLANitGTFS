@@ -1,6 +1,9 @@
 package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.converter.zoning.ZoningReader;
+import org.goplanit.event.handler.SyncXmlIdToIdGraphEntitiesHandler;
+import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdBreakEdgeHandler;
+import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdBreakEdgeSegmentHandler;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
@@ -13,6 +16,7 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 
@@ -58,10 +62,43 @@ public class GtfsZoningReader implements ZoningReader {
   }
 
   /**
-   * perform final preparation before conducting parsing of OSM pt entities
+   * Initialise event listeners used to inject functionality to the modifiers when modifications are made to the zoning and/or network. For example
+   * by syncing XML ids to internal ids when we break links
+   */
+  private void initialiseEventListeners() {
+    /** listener with functionality to sync XML ids to unique internal id upon breaking a link, ensures that when persisting
+     *  physical network by XML id,  we do not have duplicate ids */
+    SyncXmlIdToIdBreakEdgeHandler syncXmlIdToIdOnBreakLink = new SyncXmlIdToIdBreakEdgeHandler();
+
+    /** listener with functionality to sync XML ids to unique internal id upon breaking a link segment, ensures that when persisting
+     * physical network by XML id,  we do not have duplicate ids */
+    SyncXmlIdToIdBreakEdgeSegmentHandler syncXmlIdToIdOnBreakLinkSegment = new SyncXmlIdToIdBreakEdgeSegmentHandler();
+
+    /** listener which updates all XML ids to internal id's upon calling recreating managed id entities on a graph layer */
+    SyncXmlIdToIdGraphEntitiesHandler syncXmlIdOnRecreateManagedIds = new SyncXmlIdToIdGraphEntitiesHandler();
+
+    for(MacroscopicNetworkLayer networkLayer : getSettings().getReferenceNetwork().getTransportLayers()){
+      var layerModifier = networkLayer.getLayerModifier();
+      layerModifier.removeAllListeners();
+
+      /* whenever a link(segment) is broken we ensure that its XML id is synced with the internal id to ensure it remains unique */
+      layerModifier.addListener(syncXmlIdToIdOnBreakLink);
+      layerModifier.addListener(syncXmlIdToIdOnBreakLinkSegment);
+
+      /* make sure all XML ids are in line with internal ids, so that when we make changes, we do not accidentally create an XML id
+       * that already existed before when syncing to internal ids on-the-fly during breaking of links */
+      layerModifier.addListener(syncXmlIdOnRecreateManagedIds);
+      layerModifier.recreateManagedIdEntities();
+      layerModifier.removeListener(syncXmlIdOnRecreateManagedIds);
+    }
+  }
+
+  /**
+   * perform final preparation before conducting parsing of GTFS pt entities
    */
   private GtfsZoningHandlerData initialiseBeforeParsing() {
     readInvoked = false;
+    initialiseEventListeners();
     return new GtfsZoningHandlerData(getSettings(),zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
   }
 
