@@ -104,6 +104,8 @@ public class GtfsToPlanitTest {
       e.printStackTrace();
       Assert.fail();
     }
+
+    System.gc();
   }
 
   /**
@@ -135,5 +137,7 @@ public class GtfsToPlanitTest {
       e.printStackTrace();
       Assert.fail();
     }
+
+    System.gc();
   }
 }

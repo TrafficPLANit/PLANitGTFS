@@ -1,9 +1,9 @@
 package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.converter.zoning.ZoningReader;
-import org.goplanit.event.handler.SyncXmlIdToIdGraphEntitiesHandler;
+import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdDirectedGraphEntitiesHandler;
 import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdBreakEdgeHandler;
-import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdBreakEdgeSegmentHandler;
+import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdBreakEdgeSegmentHandler;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
@@ -19,6 +19,7 @@ import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
+import org.goplanit.zoning.modifier.event.handler.SyncXmlIdToIdZoningEntitiesHandler;
 
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -65,7 +66,7 @@ public class GtfsZoningReader implements ZoningReader {
    * Initialise event listeners used to inject functionality to the modifiers when modifications are made to the zoning and/or network. For example
    * by syncing XML ids to internal ids when we break links
    */
-  private void initialiseEventListeners() {
+  private void syncIdsAndinitialiseEventListeners() {
     /** listener with functionality to sync XML ids to unique internal id upon breaking a link, ensures that when persisting
      *  physical network by XML id,  we do not have duplicate ids */
     SyncXmlIdToIdBreakEdgeHandler syncXmlIdToIdOnBreakLink = new SyncXmlIdToIdBreakEdgeHandler();
@@ -75,8 +76,9 @@ public class GtfsZoningReader implements ZoningReader {
     SyncXmlIdToIdBreakEdgeSegmentHandler syncXmlIdToIdOnBreakLinkSegment = new SyncXmlIdToIdBreakEdgeSegmentHandler();
 
     /** listener which updates all XML ids to internal id's upon calling recreating managed id entities on a graph layer */
-    SyncXmlIdToIdGraphEntitiesHandler syncXmlIdOnRecreateManagedIds = new SyncXmlIdToIdGraphEntitiesHandler();
+    SyncXmlIdToIdDirectedGraphEntitiesHandler syncXmlIdToNetworkEntitiesIds = new SyncXmlIdToIdDirectedGraphEntitiesHandler();
 
+    /* network layers */
     for(MacroscopicNetworkLayer networkLayer : getSettings().getReferenceNetwork().getTransportLayers()){
       var layerModifier = networkLayer.getLayerModifier();
       layerModifier.removeAllListeners();
@@ -85,12 +87,19 @@ public class GtfsZoningReader implements ZoningReader {
       layerModifier.addListener(syncXmlIdToIdOnBreakLink);
       layerModifier.addListener(syncXmlIdToIdOnBreakLinkSegment);
 
-      /* make sure all XML ids are in line with internal ids, so that when we make changes, we do not accidentally create an XML id
-       * that already existed before when syncing to internal ids on-the-fly during breaking of links */
-      layerModifier.addListener(syncXmlIdOnRecreateManagedIds);
-      layerModifier.recreateManagedIdEntities();
-      layerModifier.removeListener(syncXmlIdOnRecreateManagedIds);
+      /* make sure all XML ids are in line with internal ids, so that when we make changes (and sync XML ids to internal ids),
+       * we do not accidentally create an XML id that already exists */
+      layerModifier.addListener(syncXmlIdToNetworkEntitiesIds);
+      layerModifier.recreateManagedIdEntities(); // sync ids and XML ids
+      layerModifier.removeListener(syncXmlIdToNetworkEntitiesIds);
     }
+
+    /* zoning: since zoning can be partially populated we must ensure we do not generate XML ids synced to internal ids that clash with
+    * pre-existing XML ids, hence recreated managed ids and sync all XML ids to internal ids as well */
+    SyncXmlIdToIdZoningEntitiesHandler syncXmlIdToZoningEntitiesIds = new SyncXmlIdToIdZoningEntitiesHandler();
+    this.zoning.getZoningModifier().addListener(syncXmlIdToZoningEntitiesIds);
+    this.zoning.getZoningModifier().recreateManagedIdEntities();
+    this.zoning.getZoningModifier().removeListener(syncXmlIdToZoningEntitiesIds);
   }
 
   /**
@@ -98,7 +107,7 @@ public class GtfsZoningReader implements ZoningReader {
    */
   private GtfsZoningHandlerData initialiseBeforeParsing() {
     readInvoked = false;
-    initialiseEventListeners();
+    syncIdsAndinitialiseEventListeners();
     return new GtfsZoningHandlerData(getSettings(),zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
   }
 

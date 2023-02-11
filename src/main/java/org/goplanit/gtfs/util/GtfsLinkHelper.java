@@ -126,6 +126,10 @@ public class GtfsLinkHelper {
         data.removeGeoIndexedLink(linkToBreak);
       }
 
+      if(planitNode.getXmlId().equals("981")){
+        int bla = 4;
+      }
+
       /* break links */
       Map<Long, Pair<MacroscopicLink, MacroscopicLink>> newlyBrokenLinks = networkLayer.getLayerModifier().breakAt(
           linkToBreak, planitNode, data.getGeoTools().getCoordinateReferenceSystem());
