@@ -12,6 +12,7 @@ import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.reader.GtfsFileReaderStops;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
+import org.goplanit.network.MacroscopicNetworkModifierUtils;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -19,6 +20,7 @@ import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
+import org.goplanit.zoning.ZoningModifierUtils;
 import org.goplanit.zoning.modifier.event.handler.SyncXmlIdToIdZoningEntitiesHandler;
 
 import java.util.function.Function;
@@ -75,9 +77,6 @@ public class GtfsZoningReader implements ZoningReader {
      * physical network by XML id,  we do not have duplicate ids */
     SyncXmlIdToIdBreakEdgeSegmentHandler syncXmlIdToIdOnBreakLinkSegment = new SyncXmlIdToIdBreakEdgeSegmentHandler();
 
-    /** listener which updates all XML ids to internal id's upon calling recreating managed id entities on a graph layer */
-    SyncXmlIdToIdDirectedGraphEntitiesHandler syncXmlIdToNetworkEntitiesIds = new SyncXmlIdToIdDirectedGraphEntitiesHandler();
-
     /* network layers */
     for(MacroscopicNetworkLayer networkLayer : getSettings().getReferenceNetwork().getTransportLayers()){
       var layerModifier = networkLayer.getLayerModifier();
@@ -86,20 +85,14 @@ public class GtfsZoningReader implements ZoningReader {
       /* whenever a link(segment) is broken we ensure that its XML id is synced with the internal id to ensure it remains unique */
       layerModifier.addListener(syncXmlIdToIdOnBreakLink);
       layerModifier.addListener(syncXmlIdToIdOnBreakLinkSegment);
-
-      /* make sure all XML ids are in line with internal ids, so that when we make changes (and sync XML ids to internal ids),
-       * we do not accidentally create an XML id that already exists */
-      layerModifier.addListener(syncXmlIdToNetworkEntitiesIds);
-      layerModifier.recreateManagedIdEntities(); // sync ids and XML ids
-      layerModifier.removeListener(syncXmlIdToNetworkEntitiesIds);
     }
+
+    // update all network XML ids to internal id's upon calling recreating managed id entities on a graph layer
+    MacroscopicNetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(getSettings().getReferenceNetwork());
 
     /* zoning: since zoning can be partially populated we must ensure we do not generate XML ids synced to internal ids that clash with
     * pre-existing XML ids, hence recreated managed ids and sync all XML ids to internal ids as well */
-    SyncXmlIdToIdZoningEntitiesHandler syncXmlIdToZoningEntitiesIds = new SyncXmlIdToIdZoningEntitiesHandler();
-    this.zoning.getZoningModifier().addListener(syncXmlIdToZoningEntitiesIds);
-    this.zoning.getZoningModifier().recreateManagedIdEntities();
-    this.zoning.getZoningModifier().removeListener(syncXmlIdToZoningEntitiesIds);
+    ZoningModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(zoning);
   }
 
   /**
@@ -146,9 +139,6 @@ public class GtfsZoningReader implements ZoningReader {
     LOGGER.info("Processing: Identifying GTFS Stops, supplementing PLANit transfer zones memory model...");
     processStops(zoningHandlerData);
     LOGGER.info("Processing: GTFS stops Done");
-
-    //TODO: update all XML ids to internal ids because of mixing of OSM and GTFS stop ids, they are no longer guaranteed to
-    //      be unique
   }
 
   /**
