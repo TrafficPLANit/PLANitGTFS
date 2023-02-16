@@ -88,10 +88,12 @@ public class GtfsZoningReader implements ZoningReader {
     }
 
     // update all network XML ids to internal id's upon calling recreating managed id entities on a graph layer
+    LOGGER.info("Syncing PLANit network XML ids to internal ids");
     MacroscopicNetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(getSettings().getReferenceNetwork());
 
     /* zoning: since zoning can be partially populated we must ensure we do not generate XML ids synced to internal ids that clash with
     * pre-existing XML ids, hence recreated managed ids and sync all XML ids to internal ids as well */
+    LOGGER.info("Syncing PLANit zoning XML ids to internal ids");
     ZoningModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(zoning);
   }
 
