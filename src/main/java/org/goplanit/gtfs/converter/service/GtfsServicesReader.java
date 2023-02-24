@@ -7,6 +7,7 @@ import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.reader.*;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -71,6 +72,32 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    */
   private void logSettings() {
     getSettings().log();
+  }
+
+  /**
+   * Invoked when {@link #getSettings().isGroupIdenticalGtfsTrips()} is true. In which case PLANit trips that are 1:1 mappings from GTFS trips are now grouped
+   * whenever they have identical relative schedules (but different departure time).
+   * <p>
+   *   In case anything else uses the ids or XML ids of routed trips or their departures, handlers should be created that are called back when these ids change
+   *   during the course of this method, since the ids will be recreated and many PLANit trips might get removed
+   * </p>
+   *
+   * @param fileHandlerData
+   */
+  private void groupIdenticallyScheduledPlanitTrips(GtfsServicesHandlerData fileHandlerData) {
+    /* do this for each layer */
+    for(var layer : fileHandlerData.getRoutedServices().getLayers()){
+      /* perform consolidation per mode*/
+      for( var mode : layer.getSupportedModes()){
+        layer.getLayerModifier().consolidateIdenticallyScheduledTrips(mode);
+      }
+
+      /* recreate ids and sync XML ids */
+      var syncRoutedTripXmlIds = new SyncRoutedTripsXmlIdToIdHandler();
+      layer.getLayerModifier().addListener(syncRoutedTripXmlIds);
+      layer.getLayerModifier().recreateRoutedTripsIds();
+      layer.getLayerModifier().removeListener(syncRoutedTripXmlIds);
+    }
   }
 
   /**
@@ -197,8 +224,10 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     processFrequencies(fileHandlerData);
 
     /* optional optimisation/processing */
-    //TODO: option to consolidate PLANit trips by having multiple departure times per trip (instead of one)
-    // if schedule for each departure is the same. currently single departure + schedule per trip
+    if(getSettings().isGroupIdenticalGtfsTrips()){
+      LOGGER.info("Optimising: Consolidating GTFS trip departures with identical relative schedules...");
+      groupIdenticallyScheduledPlanitTrips(fileHandlerData);
+    }
 
     //TODO: option to convert schedules to frequency based approach
 

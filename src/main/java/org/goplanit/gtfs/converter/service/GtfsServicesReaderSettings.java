@@ -32,6 +32,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   /** filter the GTFS trips by day (or days) of week during parsing, only listed days will be parsed, default, contains all days of week */
   private Set<DayOfWeek> dayOfWeekFilter = DEFAULT_DAYS_OF_WEEK;
 
+  /** when true all GTFS trips which are identical except for their departure time will be grouped into a single PLANitTripSchedule, when false they are kept separate */
+  private boolean groupIdenticalGtfsTrips = DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS;
+
   /** Indicates what route types are applied, e.g. the default or the extended */
   private final RouteTypeChoice routeTypeChoice;
 
@@ -162,6 +165,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
 
   /** by default all days of week are activated for parsing */
   public static final Set<DayOfWeek> DEFAULT_DAYS_OF_WEEK = Set.of(DayOfWeek.values());
+
+  /** by default group all identical Gtfs trips in a single PLANit trip (with a departure listing per original Gtfs trip) */
+  public static final boolean DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS = true;
 
 
   /** Constructor with user defined source locale
@@ -327,8 +333,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
 
     LOGGER.info(String.format("Route type choice set to: %s ", this.routeTypeChoice));
     LOGGER.info(String.format(
-        "Days of week filter keeps: %s ",
+        "Days of week filter set to: %s ",
         this.dayOfWeekFilter.stream().map(dow -> dow.getDisplayName(TextStyle.FULL, Locale.ENGLISH)).collect(Collectors.joining(","))));
+    LOGGER.info(String.format("Consolidate identical GTFS trips flag set to: %s ", String.valueOf(isGroupIdenticalGtfsTrips())));
 
     /* mode mappings GTFS -> PLANit */
     for(var entry : defaultGtfsMode2PlanitModeMap.entrySet()){
@@ -344,4 +351,19 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
     }
   }
 
+  /** check value of flag
+   *
+   * @return flag
+   */
+  public boolean isGroupIdenticalGtfsTrips() {
+    return groupIdenticalGtfsTrips;
+  }
+
+  /**
+   * Set flag indicating to group GtfsTrips into single PLANit Trip schedule as long as they are identical except for departure time (which is listed separately)
+   * @param groupIdenticalGtfsTrips flag to set
+   */
+  public void setGroupIdenticalGtfsTrips(boolean groupIdenticalGtfsTrips) {
+    this.groupIdenticalGtfsTrips = groupIdenticalGtfsTrips;
+  }
 }
