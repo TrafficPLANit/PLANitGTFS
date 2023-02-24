@@ -15,13 +15,21 @@ import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedTripSchedule;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
  * Track data used during handling/parsing of GTFS routes
  */
 public class GtfsServicesHandlerData {
+
+  /** reason for discarding trips, used during registering them */
+  public enum TripDiscardType{
+    ROUTE_DISCARDED,
+    SERVICE_ID_DISCARDED;
+  }
 
   // EXOGENOUS DATA TRACKING/SETTINGS
 
@@ -33,15 +41,17 @@ public class GtfsServicesHandlerData {
 
   // LOCAL DATA TRACKING
 
+  /** track activated service ids, indicating which days trips are to be parsed */
+  Set<String> activeGtfsServiceIds = new HashSet<>();
+
   /** track all data mappings using a single 1:1 mapping*/
   CustomIndexTracker customIndexTracker;
 
   /** track which routes have been discarded by mode, to ensure we do not log warnings for correctly ignored GTFS routes */
   Map<String, RouteType> modeDiscardedRoutes;
 
-  /** track which trips have been discarded by route (which in turn have been discarded for example because their mode is not supported),
-   *  to ensure we do not log warnings for correctly ignored GTFS trips */
-  Map<String, String> routeDiscardedTrips;
+  /** track which trips have been discarded based on discard type */
+  Map<TripDiscardType, Set<String>> discardedTrips;
 
   /** index routed services by mode */
   Map<Mode, RoutedServicesLayer> routedServiceLayerByMode;
@@ -65,6 +75,7 @@ public class GtfsServicesHandlerData {
     /* lay indices by mode -> routedServicesLayer */
     routedServiceLayerByMode = routedServices.getLayers().indexLayersByMode();
 
+    activeGtfsServiceIds = new HashSet<>();
     customIndexTracker = new CustomIndexTracker();
 
     /* track routed service entries by external id (GTFS ROUTE_ID) */
@@ -77,7 +88,7 @@ public class GtfsServicesHandlerData {
     customIndexTracker.initialiseEntityContainer(ServiceNode.class, getServiceNodeToGtfsStopIdMapping());
 
     modeDiscardedRoutes = new HashMap<>();
-    routeDiscardedTrips = new HashMap<>();
+    discardedTrips = new HashMap<>();
   }
 
   /**
@@ -125,7 +136,7 @@ public class GtfsServicesHandlerData {
    *
    * @param gtfsRoute to mark as discarded
    */
-  public void registeredDiscardByUnsupportedRoute(GtfsRoute gtfsRoute){
+  public void registeredDiscardedRoute(GtfsRoute gtfsRoute){
     this.modeDiscardedRoutes.put(gtfsRoute.getRouteId(), gtfsRoute.getRouteType());
   }
 
@@ -139,22 +150,56 @@ public class GtfsServicesHandlerData {
   }
 
   /**
-   * Register GTFS trip as discarded based on its route, see {@link #registeredDiscardByUnsupportedRoute(GtfsRoute)}, which is a valid reason to
-   * ignore it from further processing.
+   * Register GTFS trip as discarded for a reason, e.g. because it route is discarded, see {@link #registeredDiscardedRoute(GtfsRoute)}, or because its service is not
+   * registered for incusion, which are valid reasonsto ignore it from further processing without warning
    *
    * @param gtfsTrip to mark as discarded
+   * @param type reason for discarding
    */
-  public void registeredDiscardByUnsupportedRoute(GtfsTrip gtfsTrip){
-    this.routeDiscardedTrips.put(gtfsTrip.getTripId(), gtfsTrip.getRouteId());
+  public void registeredDiscardedTrip(GtfsTrip gtfsTrip, TripDiscardType type){
+    var routeDiscardedTrips = this.discardedTrips.get(type);
+    if(routeDiscardedTrips==null){
+      routeDiscardedTrips = new HashSet<>();
+      this.discardedTrips.put(type, routeDiscardedTrips);
+    }
+    routeDiscardedTrips.add(gtfsTrip.getTripId());
   }
 
-  /** Verify if GTFS trip has been discarded based on its route being discarded in this run
+  /** Verify if GTFS trip has been discarded based on some reason in this run
    *
    * @param gtfsTripId to verify
    * @return true when discarded, false otherwise
    */
   public boolean isGtfsTripDiscarded(String gtfsTripId){
-    return this.routeDiscardedTrips.containsKey(gtfsTripId);
+    return this.discardedTrips.entrySet().stream().filter( e -> e.getValue().contains(gtfsTripId)).findFirst().isPresent();
+  }
+
+  /**
+   * Register all active service ids, which will be cross-referenced with parsed trips. Only trips with an actve service id
+   * should be parsed
+   *
+   * @param gtfsServiceId to register
+   */
+  public void registerActiveServiceId(String gtfsServiceId) {
+    this.activeGtfsServiceIds.add(gtfsServiceId);
+  }
+
+  /**
+   * Verify if any service ids have been activated
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasActiveServiceIds() {
+    return !this.activeGtfsServiceIds.isEmpty();
+  }
+
+  /**
+   * Verify if a service id have been activated
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean isActiveServiceId(String serviceId) {
+    return this.activeGtfsServiceIds.contains(serviceId);
   }
 
   /**

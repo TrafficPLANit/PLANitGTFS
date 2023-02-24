@@ -1,15 +1,10 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.PairConverterReader;
-import org.goplanit.gtfs.converter.service.handler.GtfsServicesHandlerData;
-import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerRoutes;
-import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerStopTimes;
-import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerTrips;
+import org.goplanit.gtfs.converter.service.handler.*;
+import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsFileType;
-import org.goplanit.gtfs.reader.GtfsFileReaderRoutes;
-import org.goplanit.gtfs.reader.GtfsFileReaderStopTimes;
-import org.goplanit.gtfs.reader.GtfsFileReaderTrips;
-import org.goplanit.gtfs.reader.GtfsReaderFactory;
+import org.goplanit.gtfs.reader.*;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -20,8 +15,8 @@ import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.service.routed.RoutedServices;
 
-import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -129,6 +124,28 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
+   * Process GTFS calendars. Capture all service ids that fall within the selected day/time period so we can filter trips appropriately
+   *
+   * @param fileHandlerData containing all data to track and resources needed to perform the processing
+   */
+  private void processCalendars(GtfsServicesHandlerData fileHandlerData) {
+    LOGGER.info("Processing: parsing GTFS Calendar...");
+
+    Predicate<GtfsCalendar> filterServiceIds = calRow -> calRow.isActiveOnAny(getSettings().getFilteredDaysOfWeek());
+
+    /** handler that will process individual calendar rows upon ingesting */
+    var calendarHandler = new GtfsPlanitFileHandlerCalendar(fileHandlerData, filterServiceIds);
+
+    /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
+    GtfsFileReaderCalendars calendarFileReader = (GtfsFileReaderCalendars) GtfsReaderFactory.createFileReader(
+        GtfsFileSchemeFactory.create(GtfsFileType.CALENDARS), getSettings().getInputDirectory());
+    calendarFileReader.addHandler(calendarHandler);
+
+    /** execute */
+    calendarFileReader.read();
+  }
+
+  /**
    * Process GTFS routes. Capture modes of routes to use later on to identify supported mdoes for GTFS stops
    * which in turn are used to map to PLANit entities
    *
@@ -170,6 +187,8 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /* meta-data for routes including its mode */
     processRoutes(fileHandlerData);
+    /* meta-data for routes including its mode */
+    processCalendars(fileHandlerData);
     /* meta-data for grouping of instances for a route via its service id */
     processTrips(fileHandlerData);
     /* matching routes and trips to stops at actual times */

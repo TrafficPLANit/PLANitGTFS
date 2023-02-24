@@ -11,6 +11,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
+import java.time.DayOfWeek;
+import java.time.format.TextStyle;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -26,6 +28,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReaderSettings.class.getCanonicalName());
+
+  /** filter the GTFS trips by day (or days) of week during parsing, only listed days will be parsed, default, contains all days of week */
+  private Set<DayOfWeek> dayOfWeekFilter = DEFAULT_DAYS_OF_WEEK;
 
   /** Indicates what route types are applied, e.g. the default or the extended */
   private final RouteTypeChoice routeTypeChoice;
@@ -154,6 +159,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
     activateGtfsRouteTypeMode(gtfsMode);
     addToModeExternalId(planitMode,gtfsMode);
   }
+
+  /** by default all days of week are activated for parsing */
+  public static final Set<DayOfWeek> DEFAULT_DAYS_OF_WEEK = Set.of(DayOfWeek.values());
 
 
   /** Constructor with user defined source locale
@@ -289,12 +297,38 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   }
 
   /**
+   * Filter GTFS by days of week. If none are set, defaults to no filter and all days of week are processed, the provided
+   * days are the days that we keep, missing days are days that will be discarded.
+   *
+   * @param daysOfWeek to filter on (one or more)
+   */
+  public void filterDaysOfWeek(DayOfWeek... daysOfWeek){
+    if(dayOfWeekFilter == null || dayOfWeekFilter.isEmpty()){
+      LOGGER.warning("days of week filter contains no days, defaulting to all days");
+      this.dayOfWeekFilter = DEFAULT_DAYS_OF_WEEK;
+    }else {
+      this.dayOfWeekFilter = Set.of(daysOfWeek);
+    }
+  }
+
+  /** Currently active days of week that we collect GTFS data for
+   *
+   * @return daysOfWeekFilter
+   */
+  public Set<DayOfWeek> getFilteredDaysOfWeek(){
+    return dayOfWeekFilter;
+  }
+
+  /**
    * Log settings used
    */
   public void log() {
     super.log();
 
     LOGGER.info(String.format("Route type choice set to: %s ", this.routeTypeChoice));
+    LOGGER.info(String.format(
+        "Days of week filter keeps: %s ",
+        this.dayOfWeekFilter.stream().map(dow -> dow.getDisplayName(TextStyle.FULL, Locale.ENGLISH)).collect(Collectors.joining(","))));
 
     /* mode mappings GTFS -> PLANit */
     for(var entry : defaultGtfsMode2PlanitModeMap.entrySet()){

@@ -218,10 +218,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       prevSameTripStopTime = null;
     }
 
-    if(gtfsStopTime.getStopId().equals("2000136") && prevSameTripStopTime!= null && prevSameTripStopTime.getStopId().equals("200031")){
-      int bla = 4;
-    }
-
     /* SCHEDULED TRIP */
     RoutedTripSchedule planitTrip = collectScheduledTrip(gtfsTrip, planitRoutedService);
 

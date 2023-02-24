@@ -42,6 +42,14 @@ public class GtfsTrip extends GtfsObject {
     return get(GtfsKeyType.TRIP_ID);
   }
 
+  /** Get the service id
+   *
+   * @return service id
+   */
+  public String getServiceId() {
+    return get(GtfsKeyType.SERVICE_ID);
+  }
+
   /**
    * Get the route id for this trip
    * @return route id
@@ -61,5 +69,4 @@ public class GtfsTrip extends GtfsObject {
     return sb.toString();
   }
 
-
-}
+  }

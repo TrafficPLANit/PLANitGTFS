@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 /**
  * Handler for handling trips and populating a PLANit (Service) network and trips with the found GTFS trips.
  * <p>
- *   Prerequisite: It is assumed GTFS routes have been parsed already and PLANit entities are available to collect by GTFS route id
+ *   Prerequisite: It is assumed GTFS routes and calendar have been parsed already and PLANit entities are available to collect by GTFS route id
  * </p>
  * 
  * @author markr
@@ -33,7 +33,8 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
     this.data = gtfsServicesHandlerData;
 
     PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS trips");
-    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable toparse GTFS trips");
+    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS trips");
+    PlanItRunTimeException.throwIfNull(data.hasActiveServiceIds(), "GTFS Calendar likely not yet parsed, no service ids activated, unable to parse GTFS trips");
     // prerequisites
     PlanItRunTimeException.throwIf(data.getRoutedServices().getLayers().isEachLayerEmpty()==true,"No GTFS routes parsed yet, unable to parse GTFS trips");
   }
@@ -47,10 +48,16 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
     var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
     if(planitRoutedService == null){
       if(data.isGtfsRouteDiscarded(gtfsTrip.getRouteId())){
-        data.registeredDiscardByUnsupportedRoute(gtfsTrip);
+        data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.ROUTE_DISCARDED);
         return;
       }
       LOGGER.severe(String.format("Unable to find GTFS route %s in PLANit memory model corresponding to GTFS trip %s, GTFS trip ignored", gtfsTrip.getRouteId(), gtfsTrip.getTripId()));
+      return;
+    }
+
+    if(!data.isActiveServiceId(gtfsTrip.getServiceId())){
+      /* trip runs on day that is not selected to be parsed, discard */
+      data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.SERVICE_ID_DISCARDED);
       return;
     }
 

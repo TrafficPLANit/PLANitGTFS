@@ -44,7 +44,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     RouteType routeType = gtfsRoute.getRouteType();
     Mode planitMode = data.getSettings().getPlanitModeIfActivated(routeType);
     if(planitMode == null){
-      data.registeredDiscardByUnsupportedRoute(gtfsRoute);
+      data.registeredDiscardedRoute(gtfsRoute);
       return;
     }
 
