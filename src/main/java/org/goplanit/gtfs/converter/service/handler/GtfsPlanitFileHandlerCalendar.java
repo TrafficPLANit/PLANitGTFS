@@ -1,10 +1,7 @@
 package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.entity.GtfsCalendar;
-import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.handler.GtfsFileHandlerCalendars;
-import org.goplanit.gtfs.handler.GtfsFileHandlerTrips;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -33,7 +30,8 @@ public class GtfsPlanitFileHandlerCalendar extends GtfsFileHandlerCalendars {
    * Constructor
    *
    * @param gtfsServicesHandlerData      containing all data to track and resources needed to perform the processing
-   * @param serviceIdFilter             filters each row whether to register the service id (when true), or not (when false)
+   * @param serviceIdFilter             filters each row whether to register the service id (when true), or not (when false) as active, i.e., its associated trips are eligible
+   *                                    for potential parsing
    */
   public GtfsPlanitFileHandlerCalendar(final GtfsServicesHandlerData gtfsServicesHandlerData, Predicate<GtfsCalendar> serviceIdFilter) {
     super();
@@ -47,8 +45,9 @@ public class GtfsPlanitFileHandlerCalendar extends GtfsFileHandlerCalendars {
   @Override
   public void handle(GtfsCalendar gtfsCalendar) {
 
+    // test would typically be based on what days are deemed eligible
     if(serviceIdFilter.test(gtfsCalendar)){
-      data.registerActiveServiceId(gtfsCalendar.getServiceId());
+      data.registerServiceIdCalendarAsActive(gtfsCalendar);
     }
 
   }

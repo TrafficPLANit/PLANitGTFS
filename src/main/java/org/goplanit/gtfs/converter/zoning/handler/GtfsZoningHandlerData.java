@@ -103,8 +103,13 @@ public class GtfsZoningHandlerData {
     for(var routedServiceLayer : getRoutedServices().getLayers()){
       for(var routedModeServices : routedServiceLayer) {
         for(var routedService : routedModeServices){
-          var usedServiceNodes = routedService.getTripInfo().getScheduleBasedTrips().getUsedServiceNodes();
-          usedServiceNodes.addAll(routedService.getTripInfo().getFrequencyBasedTrips().getUsedServiceNodes());
+          if(!routedService.getTripInfo().hasAnyTrips()){
+            LOGGER.warning(String.format("Found empty routed service %s %s, indicating sub-optimal or corrupt PLANit routed services, this shouldn't happen", routedService.getXmlId(), routedService.getName()));
+            continue;
+          }
+
+          var usedServiceNodes = routedService.getTripInfo().getScheduleBasedTrips().determineUsedServiceNodes();
+          usedServiceNodes.addAll(routedService.getTripInfo().getFrequencyBasedTrips().determineUsedServiceNodes());
           /* mode specific service nodes */
           for(var serviceNode :  usedServiceNodes) {
             var gtfsStopId = getSettings().getServiceNodeToGtfsStopIdFunction().apply(serviceNode);

@@ -55,8 +55,8 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
       return;
     }
 
-    if(!data.isActiveServiceId(gtfsTrip.getServiceId())){
-      /* trip runs on day that is not selected to be parsed, discard */
+    if(!data.isServiceIdActivated(gtfsTrip.getServiceId())){
+      /* trip runs on day that is not selected to be parsed at all, discard */
       data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.SERVICE_ID_DISCARDED);
       return;
     }

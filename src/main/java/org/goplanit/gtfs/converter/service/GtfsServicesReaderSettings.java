@@ -1,17 +1,20 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.ConverterReaderSettings;
-import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsImpl;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.ComparablePair;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
 import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.function.Function;
@@ -29,14 +32,21 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReaderSettings.class.getCanonicalName());
 
-  /** filter the GTFS trips by day (or days) of week during parsing, only listed days will be parsed, default, contains all days of week */
-  private Set<DayOfWeek> dayOfWeekFilter = DEFAULT_DAYS_OF_WEEK;
-
   /** when true all GTFS trips which are identical except for their departure time will be grouped into a single PLANitTripSchedule, when false they are kept separate */
   private boolean groupIdenticalGtfsTrips = DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS;
 
   /** Indicates what route types are applied, e.g. the default or the extended */
   private final RouteTypeChoice routeTypeChoice;
+
+  /** currently the GTFS parser will only generate PLANit services and service network based on a single reference day provided. If multiple are required
+   * the parser needs to be run multiple times.
+   *
+   * todo: allow additional functionality to generate multiple results in one go
+   */
+  private DayOfWeek dayOfWeek;
+
+  /** configured activated time periods, if empty, all are supported implicitly*/
+  private final Set<ComparablePair<LocalTime, LocalTime>> timePeriodFilters;
 
   /* configure how to obtain GTFS_STOP_IDs from PLANit service nodes */
   private static final Function<ServiceNode, String> GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION = sn -> sn.getExternalId();
@@ -163,12 +173,22 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
     addToModeExternalId(planitMode,gtfsMode);
   }
 
-  /** by default all days of week are activated for parsing */
-  public static final Set<DayOfWeek> DEFAULT_DAYS_OF_WEEK = Set.of(DayOfWeek.values());
+  /**
+   * Validate the settings, log issues found
+   *
+   * @return false if not valid
+   */
+  boolean validate() {
+    if(getDayOfWeek() == null){
+      LOGGER.severe("Day of week not chosen for GTFS services reader settings, unable to continue");
+      return false;
+    }
+
+    return true;
+  }
 
   /** by default group all identical Gtfs trips in a single PLANit trip (with a departure listing per original Gtfs trip) */
   public static final boolean DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS = true;
-
 
   /** Constructor with user defined source locale
    *
@@ -178,8 +198,23 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
    * @param parentNetwork to use
    */
   public GtfsServicesReaderSettings(String inputSource, String countryName, final MacroscopicNetwork parentNetwork, RouteTypeChoice routeTypeChoice) {
+    this(inputSource, countryName, null, parentNetwork, routeTypeChoice);
+  }
+
+  /** Constructor with user defined source locale
+   *
+   * @param inputSource to use
+   * @param countryName to base source locale on
+   * @param dayOfWeekFilter to use
+   * @param routeTypeChoice to apply
+   * @param parentNetwork to use
+   */
+  public GtfsServicesReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeekFilter, final MacroscopicNetwork parentNetwork, RouteTypeChoice routeTypeChoice) {
     super(inputSource, countryName, parentNetwork);
     this.routeTypeChoice = routeTypeChoice;
+    this.dayOfWeek = dayOfWeekFilter;
+    this.timePeriodFilters = new TreeSet<>();
+
     initialise(parentNetwork.getModes());
   }
 
@@ -302,39 +337,83 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
     return Collections.unmodifiableSet(logGtfsRouteInformationByShortName);
   }
 
-  /**
-   * Filter GTFS by days of week. If none are set, defaults to no filter and all days of week are processed, the provided
-   * days are the days that we keep, missing days are days that will be discarded.
+  /** Add a time period filter. When one or more filters are set, not full day of chosen day of week is parsed but only the trips that
+   * departure within the registered time periods
    *
-   * @param daysOfWeek to filter on (one or more)
+   * @param startTimeWithinDay within day start time (inclusive)
+   * @param endTimeWithinDay within day end time (inclusive)
    */
-  public void filterDaysOfWeek(DayOfWeek... daysOfWeek){
-    if(dayOfWeekFilter == null || dayOfWeekFilter.isEmpty()){
-      LOGGER.warning("days of week filter contains no days, defaulting to all days");
-      this.dayOfWeekFilter = DEFAULT_DAYS_OF_WEEK;
-    }else {
-      this.dayOfWeekFilter = Set.of(daysOfWeek);
+  public void addTimePeriodFilter(LocalTime startTimeWithinDay, LocalTime endTimeWithinDay) {
+    var newEntry = ComparablePair.of(startTimeWithinDay, endTimeWithinDay);
+    boolean overlap = timePeriodFilters.stream().anyMatch(
+        e -> !startTimeWithinDay.isBefore(e.first()) && !startTimeWithinDay.isAfter(e.second()) ||
+        !endTimeWithinDay.isBefore(e.first()) && !endTimeWithinDay.isAfter(e.second()));
+    if(overlap){
+      LOGGER.warning(String.format("Cannot register overlapping time period filter, revise ignored filter (%s to %s)",
+          startTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME), endTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME)));
+      return;
     }
+
+    timePeriodFilters.add(newEntry);
   }
 
-  /** Currently active days of week that we collect GTFS data for
+  /**
+   * Collect the currently configured time period filters. If no filters are applied, an empty set is provided, representing
+   * all times are included
    *
-   * @return daysOfWeekFilter
+   * @return map of eligible time periods by start, end time pairs
    */
-  public Set<DayOfWeek> getFilteredDaysOfWeek(){
-    return dayOfWeekFilter;
+  public Set<Pair<LocalTime, LocalTime>> getTimePeriodFilters() {
+    return Collections.unmodifiableSet(timePeriodFilters);
+  }
+
+  /**
+   * Check wether any time priods are being filtered
+   *
+   * @return true when filters are set, false otherwise
+   */
+  public boolean hasTimePeriodFilters() {
+    return getTimePeriodFilters()!=null && !getTimePeriodFilters().isEmpty();
+  }
+
+  /**
+   * Set the day of week to filter on (mandatory to be set)
+   *
+   * @param dayOfWeek to choose
+   */
+  public void setDayOfWeek(DayOfWeek dayOfWeek) {
+    this.dayOfWeek = dayOfWeek;
+  }
+
+  /**
+   * The day of week to filter on
+   * @return dayOfWeek chosen
+   */
+  public DayOfWeek getDayOfWeek() {
+    return this.dayOfWeek;
   }
 
   /**
    * Log settings used
    */
-  public void log() {
-    super.log();
+  public void logSettings() {
+    super.logSettings();
 
     LOGGER.info(String.format("Route type choice set to: %s ", this.routeTypeChoice));
-    LOGGER.info(String.format(
-        "Days of week filter set to: %s ",
-        this.dayOfWeekFilter.stream().map(dow -> dow.getDisplayName(TextStyle.FULL, Locale.ENGLISH)).collect(Collectors.joining(","))));
+
+    LOGGER.info(String.format("Activated day of week: %s", dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)));
+
+    if(hasTimePeriodFilters()) {
+      LOGGER.info("Activated time periods:");
+      getTimePeriodFilters().forEach( e -> LOGGER.info(
+          String.format("start-time: %s end-time: %s",
+              e.first().format(DateTimeFormatter.ISO_LOCAL_TIME),
+              e.second().format(DateTimeFormatter.ISO_LOCAL_TIME))));
+
+    }else{
+      LOGGER.info("activate time periods: NO FILTER");
+    }
+
     LOGGER.info(String.format("Consolidate identical GTFS trips flag set to: %s ", String.valueOf(isGroupIdenticalGtfsTrips())));
 
     /* mode mappings GTFS -> PLANit */
@@ -366,4 +445,15 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   public void setGroupIdenticalGtfsTrips(boolean groupIdenticalGtfsTrips) {
     this.groupIdenticalGtfsTrips = groupIdenticalGtfsTrips;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+    this.timePeriodFilters.clear();
+    this.dayOfWeek = null;
+  }
+
 }

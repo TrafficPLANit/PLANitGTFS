@@ -1,16 +1,13 @@
 package org.goplanit.gtfs.converter;
 
 import org.goplanit.converter.ConverterReaderSettings;
-import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.misc.Pair;
 
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Capture all common user configurable settings regarding GTFS converter readers for raw (static) GTFS feeds. To be
@@ -42,5 +39,5 @@ public interface GtfsConverterReaderSettings extends ConverterReaderSettings {
   /**
    * Log settings used
    */
-  public abstract void log();
+  public abstract void logSettings();
 }

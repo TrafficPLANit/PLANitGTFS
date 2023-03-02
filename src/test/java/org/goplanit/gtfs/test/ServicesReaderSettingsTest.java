@@ -6,11 +6,14 @@ import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetworkLayerConfigurator;
 import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -68,5 +71,29 @@ public class ServicesReaderSettingsTest {
     assertThat(externalId, not(CoreMatchers.containsString(";")));
     assertThat(externalId, CoreMatchers.containsString(String.valueOf(RouteType.BUS.getValue())));
     assertThat(externalId, not(CoreMatchers.containsString(String.valueOf(RouteType.TROLLEY_BUS.getValue()))));
+  }
+
+  @Test
+  public void timePeriodSettingsTest(){
+
+    /* time period filters */
+    assertThat(settings.hasTimePeriodFilters(), is(false));
+
+    settings.setDayOfWeek(DayOfWeek.TUESDAY);
+    assertThat(settings.getDayOfWeek(), is(DayOfWeek.TUESDAY));
+
+    settings.addTimePeriodFilter(LocalTime.of(6,0,0), LocalTime.of(9,0,0));
+
+    assertThat(settings.hasTimePeriodFilters(), is(true));
+
+    var pmPeriod = Pair.of(LocalTime.of(17,0,0), LocalTime.of(19,0,0));
+    settings.addTimePeriodFilter(pmPeriod.first(), pmPeriod.second());
+
+    assertThat(settings.getTimePeriodFilters().size(), is(2));
+
+    /* add to same filter, since time period is the same, it should be ignored and warning should be logged*/
+    settings.addTimePeriodFilter(pmPeriod.first(), pmPeriod.second());
+    assertThat(settings.getTimePeriodFilters().size(), is(2));
+
   }
 }

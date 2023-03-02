@@ -5,7 +5,6 @@ import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStopTimes;
 import org.goplanit.gtfs.util.GtfsUtils;
 import org.goplanit.utils.service.routed.RoutedService;
-import org.goplanit.utils.service.routed.RoutedTrip;
 import org.goplanit.utils.service.routed.RoutedTripSchedule;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
@@ -214,16 +213,25 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     var layer = data.getServiceNetwork().getLayerByMode(planitRoutedService.getMode());
 
     /* change of GTFS trip between stop times, assume current stop time is the very first stop time for the new trip */
+    boolean isTripDepartureTime = false;
     if(gtfsTrip != prevStopTimeTrip){
       prevSameTripStopTime = null;
+      isTripDepartureTime = true;
     }
-
-    /* SCHEDULED TRIP */
-    RoutedTripSchedule planitTrip = collectScheduledTrip(gtfsTrip, planitRoutedService);
 
     /* STOP_TIME - Arrival time/departure time */
     ExtendedLocalTime arrivalTime = GtfsUtils.parseGtfsTime(gtfsStopTime.getArrivalTime());
     ExtendedLocalTime departureTime = GtfsUtils.parseGtfsTime(gtfsStopTime.getDepartureTime());
+
+    /* verify if departure time of this trip falls within eligible time window */
+    if(isTripDepartureTime && !data.isDepartureTimeOfServiceIdWithinEligibleTimePeriod(gtfsTrip.getServiceId(), departureTime)){
+      /* outside time period of interest for any day the trip runs, do not parse */
+      data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.TIME_PERIOD_DISCARDED);
+      return;
+    }
+
+    /* SCHEDULED TRIP */
+    RoutedTripSchedule planitTrip = collectScheduledTrip(gtfsTrip, planitRoutedService);
 
     /* STOP_TIME - INITIAL DEPARTURE */
     if(planitTrip.getDepartures().isEmpty()){

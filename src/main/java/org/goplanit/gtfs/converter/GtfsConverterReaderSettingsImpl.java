@@ -2,8 +2,16 @@ package org.goplanit.gtfs.converter;
 
 import org.goplanit.converter.ConverterReaderSettings;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.time.LocalTimeUtils;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Capture all common user configurable settings regarding GTFS converter readers for raw (static) GTFS feeds. To be
@@ -68,7 +76,7 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
    */
   @Override
   public void reset() {
-    //TODO
+    //todo
   }
   
   // TRANSFERRED FROM NETWORK READER
@@ -113,12 +121,14 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
     return this.inputDirectory;
   }
 
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public void log() {
+  public void logSettings() {
     LOGGER.info(String.format("GTFS input source: %s", getInputDirectory()));
     LOGGER.info(String.format("Country: %s", getCountryName()));
   }
+
 }

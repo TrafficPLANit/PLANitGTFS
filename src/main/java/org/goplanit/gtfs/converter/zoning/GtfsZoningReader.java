@@ -1,7 +1,6 @@
 package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.converter.zoning.ZoningReader;
-import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdDirectedGraphEntitiesHandler;
 import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdBreakEdgeHandler;
 import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdBreakEdgeSegmentHandler;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
@@ -21,7 +20,6 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.ZoningModifierUtils;
-import org.goplanit.zoning.modifier.event.handler.SyncXmlIdToIdZoningEntitiesHandler;
 
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -61,7 +59,7 @@ public class GtfsZoningReader implements ZoningReader {
    * Log some information about this reader's configuration
    */
   private void logSettings() {
-    getSettings().log();
+    getSettings().logSettings();
   }
 
   /**
@@ -103,7 +101,7 @@ public class GtfsZoningReader implements ZoningReader {
   private GtfsZoningHandlerData initialiseBeforeParsing() {
     readInvoked = false;
     syncIdsAndinitialiseEventListeners();
-    return new GtfsZoningHandlerData(getSettings(),zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
+    return new GtfsZoningHandlerData(getSettings(), zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
   }
 
   /**

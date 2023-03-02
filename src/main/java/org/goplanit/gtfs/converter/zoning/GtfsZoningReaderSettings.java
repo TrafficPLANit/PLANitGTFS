@@ -243,7 +243,7 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   /**
    * {@inheritDoc}
    */
-  public void log() {
+  public void logSettings() {
     LOGGER.info("GTFS zoning reader settings:");
     LOGGER.info(String.format("GTFS stop-to-transfer zone mappings are %slogged",isLogMappedGtfsZones() ? "" : "not "));
     LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f",getGtfsStopToTransferZoneSearchRadiusMeters()));

@@ -2,6 +2,7 @@ package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.converter.service.GtfsServicesHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
+import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.enums.RouteType;
@@ -13,22 +14,27 @@ import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedTripSchedule;
+import org.goplanit.utils.time.ExtendedLocalTime;
 
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 /**
  * Track data used during handling/parsing of GTFS routes
  */
 public class GtfsServicesHandlerData {
 
+  private static final Logger LOGGER = Logger.getLogger(GtfsServicesHandlerData.class.getCanonicalName());
+
   /** reason for discarding trips, used during registering them */
   public enum TripDiscardType{
     ROUTE_DISCARDED,
-    SERVICE_ID_DISCARDED;
+    SERVICE_ID_DISCARDED, TIME_PERIOD_DISCARDED;
   }
 
   // EXOGENOUS DATA TRACKING/SETTINGS
@@ -41,8 +47,8 @@ public class GtfsServicesHandlerData {
 
   // LOCAL DATA TRACKING
 
-  /** track activated service ids, indicating which days trips are to be parsed */
-  Set<String> activeGtfsServiceIds = new HashSet<>();
+  /** track activated service id calendars, containing at least a single activated day its trips are to be collected for */
+  Map<String, GtfsCalendar> activeGtfsServiceIdCalendars;
 
   /** track all data mappings using a single 1:1 mapping*/
   CustomIndexTracker customIndexTracker;
@@ -75,7 +81,7 @@ public class GtfsServicesHandlerData {
     /* lay indices by mode -> routedServicesLayer */
     routedServiceLayerByMode = routedServices.getLayers().indexLayersByMode();
 
-    activeGtfsServiceIds = new HashSet<>();
+    activeGtfsServiceIdCalendars = new HashMap<>();
     customIndexTracker = new CustomIndexTracker();
 
     /* track routed service entries by external id (GTFS ROUTE_ID) */
@@ -151,7 +157,7 @@ public class GtfsServicesHandlerData {
 
   /**
    * Register GTFS trip as discarded for a reason, e.g. because it route is discarded, see {@link #registeredDiscardedRoute(GtfsRoute)}, or because its service is not
-   * registered for incusion, which are valid reasonsto ignore it from further processing without warning
+   * registered for inclusion, which are valid reasonsto ignore it from further processing without warning
    *
    * @param gtfsTrip to mark as discarded
    * @param type reason for discarding
@@ -175,13 +181,14 @@ public class GtfsServicesHandlerData {
   }
 
   /**
-   * Register all active service ids, which will be cross-referenced with parsed trips. Only trips with an actve service id
-   * should be parsed
+   * Register all active service ids, which will be cross-referenced with parsed trips. Only trips with an active service id
+   * should be parsed. Active relates to the fact that the service occurs on a day for which an eligible time period filter has
+   * registered (or all times on that day are deemed eligible)
    *
-   * @param gtfsServiceId to register
+   * @param gtfsCalendar to register
    */
-  public void registerActiveServiceId(String gtfsServiceId) {
-    this.activeGtfsServiceIds.add(gtfsServiceId);
+  public void registerServiceIdCalendarAsActive(GtfsCalendar gtfsCalendar) {
+    this.activeGtfsServiceIdCalendars.put(gtfsCalendar.getServiceId(), gtfsCalendar);
   }
 
   /**
@@ -190,17 +197,74 @@ public class GtfsServicesHandlerData {
    * @return true when present, false otherwise
    */
   public boolean hasActiveServiceIds() {
-    return !this.activeGtfsServiceIds.isEmpty();
+    return !this.activeGtfsServiceIdCalendars.isEmpty();
   }
 
   /**
-   * Verify if a service id have been activated
+   * Verify if a service id has been activated, i.e., it occurs on a day with an active time period (note that the filtering for the
+   * time period has to be done separately, so it is possible a service is active on the day, but it falls outside of the chosen time period) in which
+   * case this method still returns true
    *
-   * @return true when present, false otherwise
+   * @return true when deemed active on a date serviced by this service id, false otherwise
    */
-  public boolean isActiveServiceId(String serviceId) {
-    return this.activeGtfsServiceIds.contains(serviceId);
+  public boolean isServiceIdActivated(String serviceId) {
+    return this.activeGtfsServiceIdCalendars.containsKey(serviceId);
   }
+
+  /**
+   * Verify if a service id is active AND the given departure time for that service id falls within an active time period
+   *
+   * @return true when deemed active on a date serviced by this service id, false otherwise
+   */
+  public boolean isDepartureTimeOfServiceIdWithinEligibleTimePeriod(String serviceId, ExtendedLocalTime departureTime) {
+
+    if(!isServiceIdActivated(serviceId)) {
+      return false;
+    }
+
+    /* lambda function to apply once we have prepped our departure time and mapped it to the right reference day */
+    Function<LocalTime, Boolean> isEligibleDeparture = withinDayDepartureTime -> {
+      if(!getSettings().hasTimePeriodFilters()){
+        /* all time accepted on the day */
+        return true;
+      }
+
+      /* check filters */
+      return getSettings().getTimePeriodFilters().stream().anyMatch(
+                    // period starts before or on departure time    AND period ends after or on departure time
+          period -> !period.first().isAfter(withinDayDepartureTime) && !period.second().isBefore(withinDayDepartureTime));
+    };
+
+    /* same day regular case */
+    var gtfsCalendar = activeGtfsServiceIdCalendars.get(serviceId);
+    if(gtfsCalendar.isActiveOn(getSettings().getDayOfWeek())){
+
+
+      if(departureTime.exceedsSingleDay()){
+        /* not on same day due to extended time*/
+        return false;
+      }
+
+      /* check filters by looking at component before midnight */
+      return isEligibleDeparture.apply(departureTime.asLocalTimeBeforeMidnight());
+
+    }
+    /* preceding day special case */
+    else if(gtfsCalendar.isActiveOn(getSettings().getDayOfWeek().minus(1))){
+      if(!departureTime.exceedsSingleDay()){
+        /* not on actual selected day due to extended time not overflowing*/
+        return false;
+      }
+
+      /* check filters by looking at component after midnight which given it is on preceding day, results in the morning of the eligible day*/
+      return isEligibleDeparture.apply(departureTime.asLocalTimeAfterMidnight());
+
+    }else{
+      LOGGER.severe("ServiceId active but GTFSCalendar entry does not match eligible active day, this should not happen");
+      return false;
+    }
+  }
+
 
   /**
    * Index the service node by its external id (GTFS_STOP_ID)

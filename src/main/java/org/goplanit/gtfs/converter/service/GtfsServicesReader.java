@@ -7,6 +7,8 @@ import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.reader.*;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.service.routed.modifier.event.handler.SyncDeparturesXmlIdToIdHandler;
+import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlIdToIdHandler;
 import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -15,7 +17,9 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -71,7 +75,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    * Log the settings and other information used
    */
   private void logSettings() {
-    getSettings().log();
+    getSettings().logSettings();
   }
 
   /**
@@ -158,7 +162,10 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   private void processCalendars(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS Calendar...");
 
-    Predicate<GtfsCalendar> filterServiceIds = calRow -> calRow.isActiveOnAny(getSettings().getFilteredDaysOfWeek());
+    /* due to overflow into the next day, we must accept all services from the preceding day as well and then determine if it matches
+     * the stop times on the day after bearing this in mind */
+    Predicate<GtfsCalendar> filterServiceIds = calRow ->
+        calRow.isActiveOn(getSettings().getDayOfWeek()) || calRow.isActiveOn(getSettings().getDayOfWeek().minus(1));
 
     /** handler that will process individual calendar rows upon ingesting */
     var calendarHandler = new GtfsPlanitFileHandlerCalendar(fileHandlerData, filterServiceIds);
@@ -191,6 +198,29 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /** execute */
     routesFileReader.read();
+  }
+
+  /**
+   * Given that due to time period and day based filtering it is likely that GTFS routes triggered creation of PLANit services
+   * which eventually did not get mapped to any eligible trips in which case, this method can be used to clean up, i.e., remove
+   * those services (and we recreate their underlying ids
+   *
+   * @param routedServices to prune
+   */
+  private void removeServiceRoutesWithoutTrips(RoutedServices routedServices) {
+
+    /* we only remove empty routed services here, so only routed services XML ids are synced*/
+    List<RoutedServicesModifierListener> listeners = List.of(new SyncRoutedServicesXmlIdToIdHandler());
+    for( var layer : routedServices.getLayers()){
+      listeners.forEach( l -> layer.getLayerModifier().addListener(l));
+
+      /* execute with listeners in place */
+      var supportedModes = layer.getSupportedModes();
+      supportedModes.forEach( mode -> layer.getLayerModifier().removeRoutedServicesWithoutTrips(true, mode));
+
+      listeners.forEach( l -> layer.getLayerModifier().removeListener(l));
+    }
+
   }
 
   /**
@@ -231,7 +261,8 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     //TODO: option to convert schedules to frequency based approach
 
-    //todo clean up indices that we no longer need to save memory for gtfs transfer zone converion next
+    //todo clean up indices that we no longer need to save memory for gtfs transfer zone conversion next
+    removeServiceRoutesWithoutTrips(fileHandlerData.getRoutedServices());
 
     LOGGER.info("Processing: GTFS services Done");
   }
@@ -267,6 +298,11 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* prepare for parsing */
     var fileHandlerData = initialiseBeforeParsing();
 
+    boolean valid = getSettings().validate();
+    if(!valid){
+      LOGGER.severe("GTFS routed services reader settings incomplete or invalid, unable to commence parsing");
+      return null;
+    }
     logSettings();
 
     /* main processing  */
