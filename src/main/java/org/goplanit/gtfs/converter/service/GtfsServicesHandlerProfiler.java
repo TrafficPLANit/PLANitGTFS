@@ -29,6 +29,9 @@ public class GtfsServicesHandlerProfiler {
   /** track how many GTFS trip stop times were processed */
   private LongAdder gtfsTripStopTimeCounter;
 
+  /** track how many duplicate GTFS trip stop times were found and discarded */
+  private LongAdder gtfsDuplicateTripStopTimeCounter;
+
   /** track how many GTFS frequency entries were processed*/
   private LongAdder gtfsFrequencyCounter;
 
@@ -38,6 +41,7 @@ public class GtfsServicesHandlerProfiler {
     gtfsTripStopTimeCounter = new LongAdder();
     gtfsScheduleBasedTripCounter = new LongAdder();
     gtfsFrequencyCounter = new LongAdder();
+    gtfsDuplicateTripStopTimeCounter = new LongAdder();
   }
 
   /**
@@ -53,6 +57,8 @@ public class GtfsServicesHandlerProfiler {
    *
    */
   public void logProcessingStats() {
+    LOGGER.info(String.format("[STATS] discarded %d duplicate GTFS trip stop time entries",gtfsDuplicateTripStopTimeCounter.longValue()));
+
     gtfsRoutesCounter.forEach( (k,v) -> LOGGER.info(String.format("[STATS] processed %d GTFS routes - %s ",v.longValue(), k)));
     LOGGER.info(String.format("[STATS] processed %d GTFS trips (scheduled)",gtfsScheduleBasedTripCounter.longValue()));
     LOGGER.info(String.format("[STATS] processed %d GTFS trip stop times",gtfsTripStopTimeCounter.longValue()));
@@ -100,5 +106,12 @@ public class GtfsServicesHandlerProfiler {
    */
   public void incrementTripStopTimeCount() {
     gtfsTripStopTimeCounter.increment();
+  }
+
+  /**
+   * Increment count for an identified  GTFStrip stop time duplicate
+   */
+  public void incrementDuplicateStopTimeCount() {
+    gtfsDuplicateTripStopTimeCounter.increment();
   }
 }

@@ -4,6 +4,7 @@ import org.goplanit.converter.intermodal.IntermodalReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
+import org.goplanit.gtfs.util.GtfsRoutedServicesModifierUtils;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
@@ -39,6 +40,23 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
   /** id token to use */
   private IdGroupingToken idToken;
+
+  /* Remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
+   * therefore have no mapping populated with respect to their parent service network (and physical network). Sync XML ids to avoid gaps
+   * or potentially duplicate usage of these ids
+   * */
+  private void truncateToServiceNetwork(RoutedServices routedServices) {
+    List<RoutedServicesModifierListener> listeners =
+        List.of(new SyncDeparturesXmlIdToIdHandler(), new SyncRoutedServicesXmlIdToIdHandler(), new SyncRoutedTripsXmlIdToIdHandler());
+    for( var layer : routedServices.getLayers()){
+      listeners.forEach( l -> layer.getLayerModifier().addListener(l));
+
+      /* execute with listeners in place */
+      layer.getLayerModifier().truncateToServiceNetwork();
+
+      listeners.forEach( l -> layer.getLayerModifier().removeListener(l));
+    }
+  }
 
   /** Constructor where settings are directly provided such that input information can be extracted from it
    *
@@ -122,18 +140,21 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped */
     servicesResult.first().getTransportLayers().forEach( l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
 
-    List<RoutedServicesModifierListener> listeners =
-        List.of(new SyncDeparturesXmlIdToIdHandler(), new SyncRoutedServicesXmlIdToIdHandler(), new SyncRoutedTripsXmlIdToIdHandler());
-    for( var layer : servicesResult.second().getLayers()){
-      listeners.forEach( l -> layer.getLayerModifier().addListener(l));
+    /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
+    * therefore have no mapping populated with respect to their parent service network (and physical network) */
+    truncateToServiceNetwork(servicesResult.second());
 
-      /* execute with listeners in place */
-      layer.getLayerModifier().truncateToServiceNetwork();
-
-      listeners.forEach( l -> layer.getLayerModifier().removeListener(l));
+    /* CLEAN-UP: optional optimisation/processing. Note while we already did this in the services reader as well, due to the above truncation
+    *  trips have been altered and as a result more trips will now have identical leg timings and therefore can be grouped further */
+    if(getSettings().getServiceSettings().isGroupIdenticalGtfsTrips()){
+      LOGGER.info("Optimising: Consolidating remaining GTFS trip departures with identical relative schedules...");
+      GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(servicesResult.second());
     }
+    /* CLEAN-UP: Due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often see duplicate departure times occurring. these need to be removed */
+    GtfsRoutedServicesModifierUtils.removeDuplicateTripDepartures(servicesResult.second());
 
     /* combined result */
     return Quadruple.of(settings.getReferenceNetwork(),zoning,servicesResult.first(),servicesResult.second());
   }
+
 }

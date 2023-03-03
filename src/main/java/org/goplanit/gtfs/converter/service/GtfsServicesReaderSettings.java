@@ -32,6 +32,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReaderSettings.class.getCanonicalName());
 
+  /* configure how to obtain GTFS_STOP_IDs from PLANit service nodes */
+  private static final Function<ServiceNode, String> GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION = sn -> sn.getExternalId();
+
   /** when true all GTFS trips which are identical except for their departure time will be grouped into a single PLANitTripSchedule, when false they are kept separate */
   private boolean groupIdenticalGtfsTrips = DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS;
 
@@ -48,8 +51,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
   /** configured activated time periods, if empty, all are supported implicitly*/
   private final Set<ComparablePair<LocalTime, LocalTime>> timePeriodFilters;
 
-  /* configure how to obtain GTFS_STOP_IDs from PLANit service nodes */
-  private static final Function<ServiceNode, String> GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION = sn -> sn.getExternalId();
+  /** flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
+   * falling outside this window */
+  private  boolean includePartialGtfsTripsWithInvalidDepartureIfStopsInTimePeriod = DEFAULT_INCLUDE_PARTIAL_GTFS_TRIPS_IF_STOPS_IN_TIME_PERIOD;
 
   /** Default mapping (specific to this (services) network) from each supported GTFS mode to an available PLANit mode. Not each mapping is necessarily activated.*/
   private  final Map<RouteType, Mode> defaultGtfsMode2PlanitModeMap= new HashMap<>();
@@ -59,15 +63,6 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
 
   /** allow explicit logging of all trips of a GTFS route by means of its short name */
   private Set<String> logGtfsRouteInformationByShortName = new HashSet<>();
-
-  /**
-   * Provides access to how GTFS STOP IDS can be extracted from service nodes when service nodes are created using these settings
-   *
-   * @return function that maps service node to its GTFS_STOP_ID
-   */
-  public static Function<ServiceNode, String> getServiceNodeToGtfsStopIdMapping(){
-    return GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION;
-  }
 
   /**
    * Conduct general initialisation for any instance of this class
@@ -189,6 +184,18 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
 
   /** by default group all identical Gtfs trips in a single PLANit trip (with a departure listing per original Gtfs trip) */
   public static final boolean DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS = true;
+
+  /** by default, we include GTFS trips from the moment a stop falls within the eligible time period */
+  public static final boolean DEFAULT_INCLUDE_PARTIAL_GTFS_TRIPS_IF_STOPS_IN_TIME_PERIOD = true;
+
+  /**
+   * Provides access to how GTFS STOP IDS can be extracted from service nodes when service nodes are created using these settings
+   *
+   * @return function that maps service node to its GTFS_STOP_ID
+   */
+  public static Function<ServiceNode, String> getServiceNodeToGtfsStopIdMapping(){
+    return GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION;
+  }
 
   /** Constructor with user defined source locale
    *
@@ -414,7 +421,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
       LOGGER.info("activate time periods: NO FILTER");
     }
 
-    LOGGER.info(String.format("Consolidate identical GTFS trips flag set to: %s ", String.valueOf(isGroupIdenticalGtfsTrips())));
+    LOGGER.info(String.format("Consolidate identical GTFS trips: %s ", String.valueOf(isGroupIdenticalGtfsTrips())));
+    LOGGER.info(String.format("Including partial GTFS trips for portion within time period: %s ", String.valueOf(isIncludePartialGtfsTripsIfStopsInTimePeriod())));
 
     /* mode mappings GTFS -> PLANit */
     for(var entry : defaultGtfsMode2PlanitModeMap.entrySet()){
@@ -444,6 +452,24 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
    */
   public void setGroupIdenticalGtfsTrips(boolean groupIdenticalGtfsTrips) {
     this.groupIdenticalGtfsTrips = groupIdenticalGtfsTrips;
+  }
+
+  /** get flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
+   * falling outside this window
+   *
+   * @return flag state
+   */
+  public boolean isIncludePartialGtfsTripsIfStopsInTimePeriod() {
+    return includePartialGtfsTripsWithInvalidDepartureIfStopsInTimePeriod;
+  }
+
+  /** set flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
+   * falling outside this window
+   *
+   * @param includePartialGtfsTripsIfStopsInTimePeriod flag to set
+   */
+  public void setIncludePartialGtfsTripsIfStopsInTimePeriod(boolean includePartialGtfsTripsIfStopsInTimePeriod) {
+    this.includePartialGtfsTripsWithInvalidDepartureIfStopsInTimePeriod = includePartialGtfsTripsIfStopsInTimePeriod;
   }
 
   /**

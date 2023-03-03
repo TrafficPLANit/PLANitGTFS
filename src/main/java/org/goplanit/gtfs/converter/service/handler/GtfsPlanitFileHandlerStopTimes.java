@@ -56,6 +56,17 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   private GtfsStopTime prevSameTripStopTime;
 
   /**
+   * @return compare by ids and departure arrival time, when all equal, it is considered equal for our intents and purposes and true is returned, false otherwise
+   */
+  private boolean isConsideredEqual(GtfsStopTime left, GtfsStopTime right) {
+    return
+        left.getTripId().equals(right.getTripId()) &&
+        left.getStopId().equals(right.getStopId()) &&
+        left.getDepartureTime().equals(right.getDepartureTime()) &&
+        left.getArrivalTime().equals(right.getArrivalTime());
+  }
+
+  /**
    * Collect or created a routed scheduled PLANit trip to populate
    *
    * @param gtfsTrip to use and find/create PLANit trip
@@ -92,9 +103,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
     /* XML id */
     departure.setXmlId(departure.getId());
-
-    /* external id --> stop_sequence */
-    departure.setExternalId(gtfsStopTime.getStopSequence());
 
   }
 
@@ -195,12 +203,14 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   @Override
   public void handle(GtfsStopTime gtfsStopTime) {
 
+    if(data.isGtfsTripDiscarded(gtfsStopTime.getTripId())) {
+      return;
+    }
+
     /* PREP */
     GtfsTrip gtfsTrip = data.getGtfsTripByGtfsTripId(gtfsStopTime.getTripId());
     if(gtfsTrip == null){
-      if(!data.isGtfsTripDiscarded(gtfsStopTime.getTripId())) {
-        LOGGER.severe(String.format("Unable to find GTFS trip %s for current GTFS stop time (stop id: %s), GTFS stop time ignored", gtfsStopTime.getTripId(), gtfsStopTime.getStopId()));
-      }
+      LOGGER.severe(String.format("Unable to find GTFS trip %s for current GTFS stop time (stop id: %s), GTFS stop time ignored", gtfsStopTime.getTripId(), gtfsStopTime.getStopId()));
       return;
     }
 
@@ -223,10 +233,18 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     ExtendedLocalTime arrivalTime = GtfsUtils.parseGtfsTime(gtfsStopTime.getArrivalTime());
     ExtendedLocalTime departureTime = GtfsUtils.parseGtfsTime(gtfsStopTime.getDepartureTime());
 
-    /* verify if departure time of this trip falls within eligible time window */
+    /* verify if departure time of this trip falls within eligible time window, if not and we do not allow for partial trips, discard the trip fully */
     if(isTripDepartureTime && !data.isDepartureTimeOfServiceIdWithinEligibleTimePeriod(gtfsTrip.getServiceId(), departureTime)){
-      /* outside time period of interest for any day the trip runs, do not parse */
-      data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.TIME_PERIOD_DISCARDED);
+      /* outside time period of interest for any day the trip runs, do not parse, unless maybe later stops fall in time windows and we want to check that */
+      if(!data.getSettings().isIncludePartialGtfsTripsIfStopsInTimePeriod()) {
+        data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.TIME_PERIOD_DISCARDED);
+      }
+      return;
+    }
+
+    /* GTFS may contain virtually identical entries in terms of arrival departure times for the same trip and stop. These are filtered here */
+    if(!isTripDepartureTime && prevSameTripStopTime!= null && isConsideredEqual(gtfsStopTime, prevSameTripStopTime)){
+      data.getProfiler().incrementDuplicateStopTimeCount();
       return;
     }
 
@@ -239,7 +257,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       /* service node registered by GTFS_STOP_ID */
       collectOrRegisterServiceNode(layer, gtfsStopTime);
     }
-
     /* STOP_TIME - INTERMEDIATE STOP */
     else{
       if(prevStopTimeTrip == null){

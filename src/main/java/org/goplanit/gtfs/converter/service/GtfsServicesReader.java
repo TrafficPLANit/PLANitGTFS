@@ -6,6 +6,7 @@ import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.reader.*;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
+import org.goplanit.gtfs.util.GtfsRoutedServicesModifierUtils;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.modifier.event.handler.SyncDeparturesXmlIdToIdHandler;
 import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlIdToIdHandler;
@@ -76,32 +77,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    */
   private void logSettings() {
     getSettings().logSettings();
-  }
-
-  /**
-   * Invoked when {@link #getSettings().isGroupIdenticalGtfsTrips()} is true. In which case PLANit trips that are 1:1 mappings from GTFS trips are now grouped
-   * whenever they have identical relative schedules (but different departure time).
-   * <p>
-   *   In case anything else uses the ids or XML ids of routed trips or their departures, handlers should be created that are called back when these ids change
-   *   during the course of this method, since the ids will be recreated and many PLANit trips might get removed
-   * </p>
-   *
-   * @param fileHandlerData
-   */
-  private void groupIdenticallyScheduledPlanitTrips(GtfsServicesHandlerData fileHandlerData) {
-    /* do this for each layer */
-    for(var layer : fileHandlerData.getRoutedServices().getLayers()){
-      /* perform consolidation per mode*/
-      for( var mode : layer.getSupportedModes()){
-        layer.getLayerModifier().consolidateIdenticallyScheduledTrips(mode);
-      }
-
-      /* recreate ids and sync XML ids */
-      var syncRoutedTripXmlIds = new SyncRoutedTripsXmlIdToIdHandler();
-      layer.getLayerModifier().addListener(syncRoutedTripXmlIds);
-      layer.getLayerModifier().recreateRoutedTripsIds();
-      layer.getLayerModifier().removeListener(syncRoutedTripXmlIds);
-    }
   }
 
   /**
@@ -201,29 +176,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
-   * Given that due to time period and day based filtering it is likely that GTFS routes triggered creation of PLANit services
-   * which eventually did not get mapped to any eligible trips in which case, this method can be used to clean up, i.e., remove
-   * those services (and we recreate their underlying ids
-   *
-   * @param routedServices to prune
-   */
-  private void removeServiceRoutesWithoutTrips(RoutedServices routedServices) {
-
-    /* we only remove empty routed services here, so only routed services XML ids are synced*/
-    List<RoutedServicesModifierListener> listeners = List.of(new SyncRoutedServicesXmlIdToIdHandler());
-    for( var layer : routedServices.getLayers()){
-      listeners.forEach( l -> layer.getLayerModifier().addListener(l));
-
-      /* execute with listeners in place */
-      var supportedModes = layer.getSupportedModes();
-      supportedModes.forEach( mode -> layer.getLayerModifier().removeRoutedServicesWithoutTrips(true, mode));
-
-      listeners.forEach( l -> layer.getLayerModifier().removeListener(l));
-    }
-
-  }
-
-  /**
    * Log some stats on the now available PLANit entities in memory
    */
   private void logPlanitStats(GtfsServicesHandlerData fileHandlerData) {
@@ -253,16 +205,23 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* matching routes and trips to stops based on frequency information */
     processFrequencies(fileHandlerData);
 
+    //TODO: option to convert schedules to frequency based approach
+
+    /* due to time period based filtering it is possible that trips have just a single valid stop, meaning no single leg. These need to be removed */
+    GtfsRoutedServicesModifierUtils.removeScheduledTripsWithoutLegs(fileHandlerData.getRoutedServices());
+    /* due to routed being created beforehand without knowing what trips are eligible, routes can end up without having trips in the valid time period. These need to be removed */
+    GtfsRoutedServicesModifierUtils.removeServiceRoutesWithoutTrips(fileHandlerData.getRoutedServices());
+    /* due to removal of service routes, or some modes not being supported, it is possible entire modes no longer have any routes associated with them. These need to be removed */
+    GtfsRoutedServicesModifierUtils.removeEmptyRoutedServices(fileHandlerData.getRoutedServices());
+
     /* optional optimisation/processing */
     if(getSettings().isGroupIdenticalGtfsTrips()){
       LOGGER.info("Optimising: Consolidating GTFS trip departures with identical relative schedules...");
-      groupIdenticallyScheduledPlanitTrips(fileHandlerData);
+      GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(fileHandlerData.getRoutedServices());
     }
 
-    //TODO: option to convert schedules to frequency based approach
-
-    //todo clean up indices that we no longer need to save memory for gtfs transfer zone conversion next
-    removeServiceRoutesWithoutTrips(fileHandlerData.getRoutedServices());
+    /* due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often see duplicate departure times occurring. these need to be removed */
+    GtfsRoutedServicesModifierUtils.removeDuplicateTripDepartures(fileHandlerData.getRoutedServices());
 
     LOGGER.info("Processing: GTFS services Done");
   }
