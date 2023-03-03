@@ -13,6 +13,7 @@ import org.goplanit.utils.id.ManagedIdEntityFactory;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.zoning.Zoning;
 
+import java.time.DayOfWeek;
 import java.util.function.Function;
 
 /**
@@ -48,6 +49,20 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
     this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, parentNetwork, routeTypeChoice);
     this.zoningSettings = new GtfsZoningReaderSettings(servicesReaderSettings);
     this.zoningtoPopulate = zoningtoPopulate;
+  }
+
+  /** Constructor with user defined source locale
+   *
+   * @param inputSource to use
+   * @param countryName to base source locale on
+   * @param dayOfWeek to filter on
+   * @param routeTypeChoice to apply
+   * @param parentNetwork to use
+   */
+  public GtfsIntermodalReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeek, final MacroscopicNetwork parentNetwork, Zoning zoningToPopulate, RouteTypeChoice routeTypeChoice) {
+    this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, dayOfWeek, parentNetwork, routeTypeChoice);
+    this.zoningSettings = new GtfsZoningReaderSettings(servicesReaderSettings);
+    this.zoningtoPopulate = zoningToPopulate;
   }
 
   /**

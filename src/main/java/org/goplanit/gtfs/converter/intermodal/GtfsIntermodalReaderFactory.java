@@ -11,6 +11,7 @@ import org.goplanit.xml.generated.XMLElementMacroscopicNetwork;
 import org.goplanit.xml.generated.XMLElementMacroscopicZoning;
 import org.goplanit.zoning.Zoning;
 
+import java.time.DayOfWeek;
 import java.util.function.Function;
 
 /**
@@ -35,6 +36,24 @@ public class GtfsIntermodalReaderFactory {
     var intermodalReaderSettings =
         new GtfsIntermodalReaderSettings(
             inputDirectory, countryName, parentNetwork, parentZoning, typeChoice);
+    return create(intermodalReaderSettings);
+  }
+
+  /** Create a GtfsIntermodalReader sourced from given input directory
+   *
+   * @param inputDirectory to use (directory only, find first compatible file)
+   * @param countryName to use
+   * @param dayOfWeek dayOfWeek to filter on
+   * @param parentNetwork the network the routed services and service network are to be built upon
+   * @param parentZoning the zoning the transfer zones are to be expanded upon or mapped to
+   * @param typeChoice to apply, this pertains to how the GTFS siles are to be parsed as they have different specifications
+   * @return created routed service reader
+   */
+  public static GtfsIntermodalReader create(final String inputDirectory, final String countryName, DayOfWeek dayOfWeek, MacroscopicNetwork parentNetwork, Zoning parentZoning, RouteTypeChoice typeChoice) {
+
+    var intermodalReaderSettings =
+        new GtfsIntermodalReaderSettings(
+            inputDirectory, countryName, dayOfWeek, parentNetwork, parentZoning, typeChoice);
     return create(intermodalReaderSettings);
   }
 

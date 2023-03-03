@@ -13,7 +13,7 @@
 
 	<groupId>org.goplanit.gtfs</groupId>
 	<artifactId>planit-gtfs</artifactId>
-	<description>PlanIt GTFS code for accressing GTFS file data in memory</description>
+	<description>PlanIt GTFS code for accessing GTFS file data in memory</description>
 	<packaging>jar</packaging>
 
 	<name>planit-gtfs</name>
