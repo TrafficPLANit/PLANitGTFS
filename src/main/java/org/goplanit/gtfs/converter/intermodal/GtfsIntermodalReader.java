@@ -137,24 +137,42 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
         zoningReader.getGtfsStopIdToTransferZoneMapping());
     integrator.execute();
 
-    /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped */
-    servicesResult.first().getTransportLayers().forEach( l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
-
-    /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
-    * therefore have no mapping populated with respect to their parent service network (and physical network) */
-    truncateToServiceNetwork(servicesResult.second());
-
-    /* CLEAN-UP: optional optimisation/processing. Note while we already did this in the services reader as well, due to the above truncation
-    *  trips have been altered and as a result more trips will now have identical leg timings and therefore can be grouped further */
-    if(getSettings().getServiceSettings().isGroupIdenticalGtfsTrips()){
-      LOGGER.info("Optimising: Consolidating remaining GTFS trip departures with identical relative schedules...");
-      GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(servicesResult.second());
+    /* SERVICE NETWORK CLEAN-UP */
+    {
+      /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped */
+      servicesResult.first().getTransportLayers().forEach(l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
     }
-    /* CLEAN-UP: Due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often see duplicate departure times occurring. these need to be removed */
-    GtfsRoutedServicesModifierUtils.removeDuplicateTripDepartures(servicesResult.second());
+
+    /* ROUTED SERVICES CLEAN-UP */
+    {
+      /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
+       * therefore have no mapping populated with respect to their parent service network (and physical network) */
+      truncateToServiceNetwork(servicesResult.second());
+
+      /* CLEAN-UP: optional optimisation/processing. Note while we already did this in the services reader as well, due to the above truncation
+       *  trips have been altered and as a result more trips will now have identical leg timings and therefore can be grouped further */
+      if (getSettings().getServiceSettings().isGroupIdenticalGtfsTrips()) {
+        LOGGER.info("Optimising: Consolidating remaining GTFS trip departures with identical relative schedules...");
+        GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(servicesResult.second());
+      }
+      /* CLEAN-UP: Due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often see duplicate departure times occurring. these need to be removed */
+      GtfsRoutedServicesModifierUtils.removeDuplicateTripDepartures(servicesResult.second());
+    }
+
+    /* ZONING CLEAN-UP */
+    {
+      if(getSettings().getZoningSettings().isRemoveUnusedTransferZones()){
+        /* first remove the unused connectoids */
+        zoning.getZoningModifier().removeUnusedTransferConnectoids(servicesResult.first().getTransportLayers(), true);
+        /* then we can remove transfer zones without connectoids */
+        zoning.getZoningModifier().removeDanglingTransferZones(true);
+        /* then we can remove transfer zone groups without transfer zones */
+        zoning.getZoningModifier().removeDanglingTransferZoneGroups();
+      }
+    }
 
     /* combined result */
-    return Quadruple.of(settings.getReferenceNetwork(),zoning,servicesResult.first(),servicesResult.second());
+    return Quadruple.of(settings.getReferenceNetwork(), zoning,servicesResult.first(), servicesResult.second());
   }
 
 }

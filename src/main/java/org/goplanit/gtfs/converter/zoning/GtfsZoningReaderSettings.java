@@ -33,11 +33,32 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   /** search radius used when mapping GTFS stops to PLANit transfer zones */
   private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
 
-  /** default search radius for mapping GTFS stops to PLANit transfer zones */
-  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40.0;
-
   /** search radius used when mapping GTFS stops to PLANit road network, which given that GTFS stop is the vehicle stop location, should be less than distance to pole */
   private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
+
+  /**
+   * Provide explicit mapping from GTFS stop (by GTFS stop id) to and existing PLANit transfer zone based on its external id (third party source ide.g., OSM id),
+   * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
+   */
+  private final Map<String, String> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
+
+  /** flag to indicate if transfer zones that have no services stopping after parsing is complete, are to be removed or not */
+  private boolean removeUnusedTransferZones = DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES;
+
+  /** flag indicating if parser should log all GTFS zones that are mapped to existing PLANit  transfer zones */
+  private boolean logMappedGtfsZones = DEFAULT_LOG_MAPPED_GTFS_ZONES;
+
+  /** flag indicating if parser should log all GTFS stops that triggered the creation of a new PLANit  transfer zone */
+  private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
+
+  /** re-use settings from services reader */
+  private final GtfsServicesReaderSettings servicesReaderSettings;
+
+  /** default flag setting whether to remove unused transfer zones after GTFS parsing is complete */
+  public static final boolean DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES = true;
+
+  /** default search radius for mapping GTFS stops to PLANit transfer zones */
+  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40.0;
 
   /** default search radius for mapping GTFS stops to PLANit links */
   public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS/2.0;
@@ -55,21 +76,6 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    * to determine the best candidate
    */
   public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 5;
-
-  /**
-   * Provide explicit mapping from GTFS stop (by GTFS stop id) to and existing PLANit transfer zone based on its external id (third party source ide.g., OSM id),
-   * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
-   */
-  private final Map<String, String> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
-
-  /** flag indicating if parser should log all GTFS zones that are mapped to existing PLANit  transfer zones */
-  private boolean logMappedGtfsZones = DEFAULT_LOG_MAPPED_GTFS_ZONES;
-
-  /** flag indicating if parser should log all GTFS stops that triggered the creation of a new PLANit  transfer zone */
-  private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
-
-  /** re-use settings from services reader */
-  private final GtfsServicesReaderSettings servicesReaderSettings;
 
   /** Constructor leveraging the services reader settings as base information
    *
@@ -241,6 +247,20 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   }
 
   /**
+   * @return true when removing unused transfer zones, false otherwise
+   */
+  public boolean isRemoveUnusedTransferZones() {
+    return removeUnusedTransferZones;
+  }
+
+  /**
+   * @param  removeUnusedTransferZones when true, remove unused transfer zones, otherwise do not
+   */
+  public void setRemoveUnusedTransferZones(boolean removeUnusedTransferZones) {
+    this.removeUnusedTransferZones = removeUnusedTransferZones;
+  }
+
+  /**
    * {@inheritDoc}
    */
   public void logSettings() {
@@ -248,6 +268,7 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
     LOGGER.info(String.format("GTFS stop-to-transfer zone mappings are %slogged",isLogMappedGtfsZones() ? "" : "not "));
     LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f",getGtfsStopToTransferZoneSearchRadiusMeters()));
     LOGGER.info(String.format("GTFS stop-to-link search radius (m): %.1f",getGtfsStopToLinkSearchRadiusMeters()));
+    LOGGER.info(String.format("GTFS remove unused transfer zones (stops): %s",isRemoveUnusedTransferZones()));
   }
 
   /**
@@ -257,6 +278,7 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   public void reset() {
     setGtfsStopToTransferZoneSearchRadiusMeters(DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS);
     setGtfsStopToLinkSearchRadiusMeters(DEFAULT_GTFSSTOP_LINK_SEARCH_METERS);
+    setRemoveUnusedTransferZones(DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES);
   }
 
 }

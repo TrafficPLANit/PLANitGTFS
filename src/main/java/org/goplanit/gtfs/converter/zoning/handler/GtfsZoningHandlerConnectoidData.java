@@ -29,8 +29,11 @@ public class GtfsZoningHandlerConnectoidData {
    * @param referenceZoning to use
    */
   public GtfsZoningHandlerConnectoidData(MacroscopicNetwork referenceNetwork, Zoning referenceZoning){
-    //TODO: no support yet for OD connectoids, meaning that if links are broken they connectoids is potentially moved for OD zones
-    directedConnectoidsByLocation = referenceZoning.getTransferConnectoids().indexByPhysicalLayerAndLocation(referenceNetwork.getTransportLayers());
+    //TODO: no support yet for OD connectoids, meaning that if links are broken the connectoid is potentially moved for OD zones
+
+    /* locate by position (point) so we can use it even if the entities/ids change */
+    directedConnectoidsByLocation = referenceZoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(
+        referenceNetwork.getTransportLayers(), d -> d.getAccessNode().getPosition());
   }
 
   /**
