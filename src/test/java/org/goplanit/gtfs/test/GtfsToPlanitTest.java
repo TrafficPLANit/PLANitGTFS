@@ -71,7 +71,8 @@ public class GtfsToPlanitTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services from GTFS data
+   * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on underlying networks, just collate all
+   * data for a given reference day (all times)
    */
   @Test
   public void testGtfsRoutedServicesReader() {
@@ -90,18 +91,17 @@ public class GtfsToPlanitTest {
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
 
-      //todo: update now that we use filter by day
-//      assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(58478));
-//      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(93608));
-//      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(93608));
-//      assert(serviceNetwork.getTransportLayers().getFirst().getSupportedModes().containsAll(servicesReader.getSettings().getAcivatedPlanitModes()));
-//
-//      assertThat(routedServices.getLayers().size(),equalTo(1));
-//      Modes modes = macroscopicNetwork.getModes();
-//      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),equalTo(8150));
-//      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(5));
-//      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(42));
-//      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(1));
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(58207));
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(92222));
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(92222));
+      assert(serviceNetwork.getTransportLayers().getFirst().getSupportedModes().containsAll(servicesReader.getSettings().getAcivatedPlanitModes()));
+
+      assertThat(routedServices.getLayers().size(),equalTo(1));
+      Modes modes = macroscopicNetwork.getModes();
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),equalTo(7903));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(5));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(39));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(1));
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
@@ -133,9 +133,40 @@ public class GtfsToPlanitTest {
 
       Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
 
+      var network = gtfsIntermodalReader.getSettings().getReferenceNetwork();
+      var zoning = gtfsIntermodalReader.getSettings().getReferenceZoning();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
+      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
+      // and a conscious choice has to be amde whether this is better or not before changing the below results
+      assertThat(network.getTransportLayers().size(),equalTo(1));
+      assertThat(network.getTransportLayers().getFirst().getLinks().size(),equalTo(1306));
+      assertThat(network.getTransportLayers().getFirst().getNodes().size(),equalTo(1088));
+      assertThat(network.getTransportLayers().getFirst().getLinkSegments().size(),equalTo(2581));
+      assertThat(network.getTransportLayers().getFirst().getLinkSegmentTypes().size(),equalTo(50));
+
+      assertThat(zoning.getOdZones().size(),equalTo(0));
+      assertThat(zoning.getTransferZones().size(),equalTo(75));
+      assertThat(zoning.getOdConnectoids().size(),equalTo(0));
+      assertThat(zoning.getTransferConnectoids().size(),equalTo(90));
+
+      assertThat(serviceNetwork.getTransportLayers().size(),equalTo(1));
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(79));
+
+      /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
+       * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(67));
+      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(67));
+
+      assert(serviceNetwork.getTransportLayers().getFirst().getSupportedModes().containsAll(gtfsIntermodalReader.getSettings().getServiceSettings().getAcivatedPlanitModes()));
+
+      assertThat(routedServices.getLayers().size(),equalTo(1));
+      Modes modes = macroscopicNetwork.getModes();
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),equalTo(85));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(2));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(7));
+      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(0));
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());

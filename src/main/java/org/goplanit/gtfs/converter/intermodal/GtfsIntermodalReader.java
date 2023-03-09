@@ -13,10 +13,12 @@ import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlI
 import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 import org.goplanit.zoning.Zoning;
+import org.hsqldb.persist.Log;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -171,8 +173,15 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
       }
     }
 
+    /* log final result */
+    LOGGER.info("Final result Stats:");
+    settings.getReferenceNetwork().logInfo(LoggingUtils.networkPrefix(settings.getReferenceNetwork().getId()));
+    zoning.logInfo(LoggingUtils.zoningPrefix(zoning.getId()));
+    servicesResult.first().logInfo(LoggingUtils.serviceNetworkPrefix(servicesResult.first().getId()));
+    servicesResult.second().logInfo(LoggingUtils.routedServicesPrefix(servicesResult.second().getId()));
+
     /* combined result */
-    return Quadruple.of(settings.getReferenceNetwork(), zoning,servicesResult.first(), servicesResult.second());
+    return Quadruple.of(settings.getReferenceNetwork(), zoning, servicesResult.first(), servicesResult.second());
   }
 
 }
