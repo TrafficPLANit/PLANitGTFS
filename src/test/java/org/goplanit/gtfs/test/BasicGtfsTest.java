@@ -21,6 +21,7 @@ import org.goplanit.utils.resource.ResourceUtils;
 import org.junit.*;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
@@ -81,7 +82,7 @@ public class BasicGtfsTest {
       gtfsReader.addFileHandler(new GtfsFileHandlerTrips());
       
       /* should be able to parse all data (without doing anything) */
-      gtfsReader.read();
+      gtfsReader.read(StandardCharsets.UTF_8);
 
       System.gc();
     } catch (Exception e) {
@@ -104,7 +105,7 @@ public class BasicGtfsTest {
       tripsFileReader.addHandler(tripsHandler);
       
       tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);
-      tripsFileReader.read();
+      tripsFileReader.read(StandardCharsets.UTF_8);
       
       assertNotNull(tripsHandler.trips);
       assertEquals(156225,tripsHandler.trips.size());

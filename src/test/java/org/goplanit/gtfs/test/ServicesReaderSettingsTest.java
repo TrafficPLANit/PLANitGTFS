@@ -71,6 +71,7 @@ public class ServicesReaderSettingsTest {
     assertThat(externalId, not(CoreMatchers.containsString(";")));
     assertThat(externalId, CoreMatchers.containsString(String.valueOf(RouteType.BUS.getValue())));
     assertThat(externalId, not(CoreMatchers.containsString(String.valueOf(RouteType.TROLLEY_BUS.getValue()))));
+
   }
 
   @Test

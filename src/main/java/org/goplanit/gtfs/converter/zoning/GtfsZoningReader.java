@@ -21,6 +21,7 @@ import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.ZoningModifierUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -126,7 +127,7 @@ public class GtfsZoningReader implements ZoningReader {
     stopsFileReader.getSettings().excludeColumns(GtfsKeyType.WHEELCHAIR_BOARDING);
 
     /* execute */
-    stopsFileReader.read();
+    stopsFileReader.read(StandardCharsets.UTF_8);
   }
 
 

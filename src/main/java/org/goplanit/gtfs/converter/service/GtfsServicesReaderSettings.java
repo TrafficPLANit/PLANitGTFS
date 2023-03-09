@@ -113,15 +113,23 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsImpl 
         /* not present */
         return;
       }
+
+      boolean isOnlyMode = gtfsModeId.length() == planitMode.getExternalId().length();
+      if(isOnlyMode){
+        planitMode.setExternalId(null);
+        return;
+      }
+
       if(startIndex==0) {
         /* first */
-        planitMode.setExternalId(planitMode.getExternalId().substring(startIndex+gtfsModeId.length()));
-      }else {
-        /* not first, so preceded by another" */
-        String before = planitMode.getExternalId().substring(0,startIndex-1);
-        String after = planitMode.getExternalId().substring(startIndex+gtfsModeId.length());
-        planitMode.setExternalId(before.concat(after));
+        planitMode.setExternalId(planitMode.getExternalId().substring(gtfsModeId.length()+1));
+        return;
       }
+
+      /* not first, so preceded by another" */
+      String before = planitMode.getExternalId().substring(0,startIndex-1);
+      String after = planitMode.getExternalId().substring(startIndex+gtfsModeId.length());
+      planitMode.setExternalId(before.concat(after));
     }
   }
 

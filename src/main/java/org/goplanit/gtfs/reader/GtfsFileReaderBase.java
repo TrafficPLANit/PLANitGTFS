@@ -5,14 +5,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -63,7 +60,7 @@ public abstract class GtfsFileReaderBase {
     EnumSet<GtfsKeyType> supportedKeys = GtfsUtils.getSupportedKeys(fileScheme.getObjectType());
     boolean unsupportedColumns = false;
     for(String headerEntry : headerMap.keySet()) {
-      if(!GtfsKeyType.valueIn(supportedKeys,headerEntry.trim().toLowerCase())) {
+      if(!GtfsKeyType.valueIn(supportedKeys,headerEntry.trim())) {
         LOGGER.warning(String.format("Encountered unknown GTFS column header (%s), column will be ignored",headerEntry));
         unsupportedColumns = true;
       }
@@ -196,12 +193,14 @@ public abstract class GtfsFileReaderBase {
   
   /**
    * Perform the reading of the file
+   *
+   * @param charSetToUse
    */
-  public void read() {
+  public void read(Charset charSetToUse) {
             
     try (InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition);){
       if(gtfsInputStream!=null) {
-        Reader gtfsInputReader = new InputStreamReader(gtfsInputStream, Charset.defaultCharset());
+        Reader gtfsInputReader = new InputStreamReader(gtfsInputStream, charSetToUse);
         CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());
 
         var headerWithBom = csvParser.getHeaderMap();

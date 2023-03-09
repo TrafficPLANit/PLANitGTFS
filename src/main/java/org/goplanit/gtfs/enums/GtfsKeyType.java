@@ -150,23 +150,23 @@ public enum GtfsKeyType {
     return value;
   }
 
-  /** Verify if value is present in provided enumset's values 
+  /** Verify if value is present in provided enumset's values (ignoring case)
    * 
    * @param supportedKeys to check
    * @param value to check
    * @return true when present, false otherwise
    */
   public static boolean valueIn(EnumSet<GtfsKeyType> supportedKeys, String value) {
-    return supportedKeys.stream().anyMatch( entry -> entry.value.equals(value));
+    return supportedKeys.stream().anyMatch( entry -> entry.value.equalsIgnoreCase(value));
   }
 
-  /** Construct enum from given value
+  /** Construct enum from given value (ignoring case)
    * 
    * @param value to construct enum from
    * @return GtfsKeyType produced
    */
   public static Optional<GtfsKeyType> fromValue(String value) {
-    return Arrays.stream(values()).filter( key -> key.value.equals(value)).findFirst();
+    return Arrays.stream(values()).filter( key -> key.value.equalsIgnoreCase(value)).findFirst();
   }
   
 }

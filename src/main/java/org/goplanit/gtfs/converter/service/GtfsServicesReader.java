@@ -20,6 +20,7 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -106,7 +107,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     stopTimeFileReader.addHandler(tripStopTimeHandler);
 
     /** execute */
-    stopTimeFileReader.read();
+    stopTimeFileReader.read(StandardCharsets.UTF_8);
   }
 
   /**
@@ -126,7 +127,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     tripsFileReader.addHandler(tripsHandler);
 
     /** execute */
-    tripsFileReader.read();
+    tripsFileReader.read(StandardCharsets.UTF_8);
   }
 
   /**
@@ -151,7 +152,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     calendarFileReader.addHandler(calendarHandler);
 
     /** execute */
-    calendarFileReader.read();
+    calendarFileReader.read(StandardCharsets.UTF_8);
   }
 
   /**
@@ -172,7 +173,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     routesFileReader.addHandler(routesHandler);
 
     /** execute */
-    routesFileReader.read();
+    routesFileReader.read(StandardCharsets.UTF_8);
   }
 
   /**

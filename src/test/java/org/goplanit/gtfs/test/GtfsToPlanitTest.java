@@ -104,6 +104,7 @@ public class GtfsToPlanitTest {
 //      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(1));
 
     } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
       e.printStackTrace();
       Assert.fail();
     }
@@ -137,6 +138,7 @@ public class GtfsToPlanitTest {
 
 
     } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
       e.printStackTrace();
       Assert.fail();
     }

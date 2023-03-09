@@ -1,6 +1,8 @@
 package org.goplanit.gtfs.reader;
 
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -40,12 +42,13 @@ public class GtfsReader {
    * 
    * @param gtfsFileType to reader
    * @param gtfsFileCondition on the file type
+   * @param charSet to use for the reader
    */
-  private void read(GtfsFileType gtfsFileType, GtfsFileConditions gtfsFileCondition) {
+  private void read(GtfsFileType gtfsFileType, GtfsFileConditions gtfsFileCondition, Charset charSet) {
     if(fileReaders.containsKey(gtfsFileType)) {
       GtfsFileReaderBase fileReader = fileReaders.get(gtfsFileType);
       fileReader.setPresenceCondition(gtfsFileCondition);
-      fileReader.read();
+      fileReader.read(charSet);
     }
   }
 
@@ -69,31 +72,33 @@ public class GtfsReader {
   
   /**
    * Read GTFS files based on the registered file handlers
+   *
+   * @param charSet to use for reading
    */
-  public void read() {
+  public void read(Charset charSet) {
     if(gtfsLocation==null) {
       return;
     }
     
     /* perform reading of files in a logical order, i.e. from less dependencies to more */
-    read(GtfsFileType.AGENCIES,       GtfsFileConditions.required() );
-    read(GtfsFileType.STOPS,          GtfsFileConditions.required() );
-    read(GtfsFileType.ROUTES,         GtfsFileConditions.required() );
-    read(GtfsFileType.TRIPS,          GtfsFileConditions.required() );
-    read(GtfsFileType.STOP_TIMES,     GtfsFileConditions.required() );
+    read(GtfsFileType.AGENCIES,       GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.STOPS,          GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.ROUTES,         GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.TRIPS,          GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.STOP_TIMES,     GtfsFileConditions.required(), charSet );
     
-    read(GtfsFileType.CALENDARS,      GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDAR_DATES) ); // technically required if not all are specified in CALENDAR_DATES
-    read(GtfsFileType.CALENDAR_DATES, GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDARS)  );
-    read(GtfsFileType.FARE_ATTRIBUTES,GtfsFileConditions.optional() );
-    read(GtfsFileType.FARE_RULES,     GtfsFileConditions.optional());
-    read(GtfsFileType.SHAPES,         GtfsFileConditions.optional());
-    read(GtfsFileType.FREQUENCIES,    GtfsFileConditions.optional());
-    read(GtfsFileType.TRANSFERS,      GtfsFileConditions.optional());
-    read(GtfsFileType.PATHWAYS,       GtfsFileConditions.optional());
-    read(GtfsFileType.LEVELS,         GtfsFileConditions.optional());
-    read(GtfsFileType.FEED_INFO,      GtfsFileConditions.requiredinPresenceOf(GtfsFileType.TRANSLATIONS));
-    read(GtfsFileType.TRANSLATIONS,   GtfsFileConditions.optional());
-    read(GtfsFileType.ATTRIBUTIONS,   GtfsFileConditions.optional());
+    read(GtfsFileType.CALENDARS,      GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDAR_DATES), charSet ); // technically required if not all are specified in CALENDAR_DATES
+    read(GtfsFileType.CALENDAR_DATES, GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDARS), charSet  );
+    read(GtfsFileType.FARE_ATTRIBUTES,GtfsFileConditions.optional(), charSet );
+    read(GtfsFileType.FARE_RULES,     GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.SHAPES,         GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.FREQUENCIES,    GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.TRANSFERS,      GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.PATHWAYS,       GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.LEVELS,         GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.FEED_INFO,      GtfsFileConditions.requiredinPresenceOf(GtfsFileType.TRANSLATIONS), charSet);
+    read(GtfsFileType.TRANSLATIONS,   GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.ATTRIBUTIONS,   GtfsFileConditions.optional(), charSet);
     
   }
 
