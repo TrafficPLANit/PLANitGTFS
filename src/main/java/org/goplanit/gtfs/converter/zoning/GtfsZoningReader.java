@@ -60,6 +60,11 @@ public class GtfsZoningReader implements ZoningReader {
    * Log some information about this reader's configuration
    */
   private void logSettings() {
+    if(zoning.getTransferConnectoids().isEmpty()){
+      LOGGER.info("PLANit Zoning has no transfer zone connectoids, creating new transfer zones for each eligible GTFS stop");
+    }else{
+      LOGGER.info("PLANit Zoning has transfer zone connectoids, fusing existing transfer zones with GTFS stops where possible");
+    }
     getSettings().logSettings();
   }
 

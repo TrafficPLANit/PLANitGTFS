@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.zoning;
 
+import com.sun.istack.NotNull;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -34,11 +35,11 @@ public class GtfsZoningReaderFactory {
    * @return zoning reader to use for parsing
    */
   public static GtfsZoningReader create(
-      GtfsZoningReaderSettings settings,
-      Zoning zoningToPopulate,
-      ServiceNetwork serviceNetwork,
-      RoutedServices routedServices,
-      Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
+      @NotNull GtfsZoningReaderSettings settings,
+      @NotNull Zoning zoningToPopulate,
+      @NotNull ServiceNetwork serviceNetwork,
+      @NotNull RoutedServices routedServices,
+      @NotNull Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
     return new GtfsZoningReader(settings, zoningToPopulate, serviceNetwork, routedServices);
   }
 }
