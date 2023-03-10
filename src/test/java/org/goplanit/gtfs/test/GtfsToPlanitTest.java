@@ -9,6 +9,7 @@ import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.locale.CountryNames;
@@ -71,6 +72,26 @@ public class GtfsToPlanitTest {
     IdGenerator.reset();
   }
 
+  @Before
+  public void before() throws PlanItException {
+    LOGGER.setLevel(Level.SEVERE);
+    //Prep PLANit memory model
+    final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
+    String INPUT_PATH = Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
+
+    /* parse PLANit intermodal network from disk to memory */
+    PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(INPUT_PATH));
+    var planitIntermodalNetworkTuple = planitReader.read();
+    macroscopicNetwork = planitIntermodalNetworkTuple.first();
+    zoning = planitIntermodalNetworkTuple.second();
+    LOGGER.setLevel(Level.INFO);
+  }
+
+  @After
+  public void after() {
+    IdGenerator.reset();
+  }
+
   /**
    * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on underlying networks/zoning, just collate all
    * data for a given reference day (all times)
@@ -125,9 +146,8 @@ public class GtfsToPlanitTest {
       String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
       /* construct intermodal reader without pre-existing zoning */
-      var networkCopy = macroscopicNetwork.deepClone();
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(
-          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.MONDAY, networkCopy, RouteTypeChoice.EXTENDED);
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.MONDAY, macroscopicNetwork, RouteTypeChoice.EXTENDED);
 
       // log mappings, useful for debugging if needed
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
@@ -192,9 +212,8 @@ public class GtfsToPlanitTest {
     try {
       String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
-      var networkCopy = macroscopicNetwork.deepClone();
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(
-          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.MONDAY, networkCopy, zoning, RouteTypeChoice.EXTENDED);
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.MONDAY, macroscopicNetwork, zoning, RouteTypeChoice.EXTENDED);
 
       // log mappings, useful for debugging if needed
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
