@@ -42,7 +42,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
   @Override
   public void handle(GtfsRoute gtfsRoute) {
     RouteType routeType = gtfsRoute.getRouteType();
-    Mode planitMode = data.getSettings().getPlanitModeIfActivated(routeType);
+    Mode planitMode = data.getPlanitModeIfActivated(routeType);
     if(planitMode == null){
       data.registeredDiscardedRoute(gtfsRoute);
       return;

@@ -39,63 +39,18 @@ public class GtfsServicesAndZoningReaderIntegrator {
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesAndZoningReaderIntegrator.class.getCanonicalName());
 
-  /** settings from the parent reader used */
-  private final GtfsIntermodalReaderSettings settings;
-  private final Zoning zoning;
-  private final ServiceNetwork serviceNetwork;
-  private final RoutedServices services;
+  /** data tracking useful information for during integration itself*/
+  private final GtfsServicesAndZoningIntegratorData data;
 
   private final Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping;
 
   private final Function<String, TransferZone> gtfsStopIdToTransferZoneMapping;
 
-  // local data during execution
-  private Map<Zone, Set<DirectedConnectoid>> connectoidsByAccessZone;
-
-  /** shortest path algorithm used specific to each mode (and its link segment costs) */
-  private Map<Mode, ShortestPathAStar> shortestPathAlgoByMode;
-
-  /** Modes considered eligible for the service network based on activated modes during GTFs parsing and the modes available on the PLANit network */
-  private Collection<Mode> eligibleServiceModes;
-
-  /**
-   * Initialise a shortest path algorithm with free flow costs for the entire network for a given mode so it can be reused when needed
-   *
-   * @param mode to prep algorithm for (stored in class member)
-   */
-  private void initialiseShortestPathAlgorithmForMode(Mode mode) {
-    var network = settings.getReferenceNetwork();
-    var idToken = network.getIdGroupingToken();
-
-    /* costs used for physical component of road network based on user settings */
-    var physicalCostApproach =
-        PlanitComponentFactory.create(
-            AbstractPhysicalCost.class, settings.getStopToStopPathSearchPhysicalCostApproach(), new Object[]{ idToken});
-
-    /* populate based on cost configuration and underlying physical network's link segments and connectoids */
-    double[]  modalLinkSegmentCosts = CostUtils.createAndPopulateModalSegmentCost(mode, physicalCostApproach, network);
-
-    int numberOfVerticesAllLayers = TransportModelNetwork.getNumberOfVerticesAllLayers(network, this.zoning);
-    double heuristicMultiplier = Math.min(1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
-    this.shortestPathAlgoByMode.put(mode, new ShortestPathAStar(modalLinkSegmentCosts, numberOfVerticesAllLayers,  network.getCoordinateReferenceSystem(), heuristicMultiplier));
-  }
-
   /**
    * Initialise some local indices that are to be used
    */
   private void initialise(){
-    this.connectoidsByAccessZone = zoning.getTransferConnectoids().createIndexByAccessZone();
-
-    /* determine eligible service modes by intersecting physical layer modes with activate public transport modes of the GTFS settings */
-    this.eligibleServiceModes = serviceNetwork.getTransportLayers().getSupportedModes();
-    eligibleServiceModes.retainAll(settings.getServiceSettings().getAcivatedPlanitModes());
-
-    /* prep shortest path algorithm (costs) per mode across network link segments for path searching, since costs are fixed, we can do this beforehand and reuse */
-    this.shortestPathAlgoByMode = new HashMap<>();
-    for(var mode : eligibleServiceModes) {
-      initialiseShortestPathAlgorithmForMode(mode);
-    }
-
+    data.initialise();
   }
 
   /**
@@ -108,7 +63,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
    */
   private Map<Node, List<DirectedConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(
       String gtfsStopId, TransferZone transferZone, ServiceNode gtfsStopServiceNode) {
-    var transferZoneConnectoids = connectoidsByAccessZone.get(transferZone);
+    var transferZoneConnectoids = data.getConnectoidsByAccessZone(transferZone);
     /* it is possible multiple connectoids exist, e.g., train platforms with access on both sides in either direction, therefore we group by
      * access node */
     var resultByAccessNode = transferZoneConnectoids.stream().collect(Collectors.groupingBy(c -> c.getAccessNode()));
@@ -136,10 +91,6 @@ public class GtfsServicesAndZoningReaderIntegrator {
   private SimpleDirectedPath findMostLikelyPathBetweenGtfsStopServiceNodes(
           ServiceNetworkLayer layer, ServiceNode gtfsStopUpstreamServiceNode, ServiceNode gtfsStopDownstreamServiceNode) {
 
-//    if(gtfsStopUpstreamServiceNode.getExternalId().equals("200031") && gtfsStopDownstreamServiceNode.getExternalId().equals("2000136")){
-//      int bla = 4;
-//    }
-
     var gtfsStopIdUpstream = serviceNodeToGtfsStopIdMapping.apply(gtfsStopUpstreamServiceNode);
     TransferZone transferZoneUpstream = gtfsStopIdToTransferZoneMapping.apply(gtfsStopIdUpstream);
 
@@ -159,14 +110,14 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     //todo: not great that we assume the first matching mode is the only service mode used by the leg segment. This assumes each GTFS stop ONLY ever services
     //      a single mode, if not this breaks...and our format as well, because we only support a single string of physical link segments for each service leg segment.
-    //      to solve this we would need to either places these in seaprate layers (probably best) in which case this structure can be retained, or multiple service legs(segments) between
+    //      to solve this we would need to either places these in separate layers (probably best) in which case this structure can be retained, or multiple service legs(segments) between
     //      the same service nodes should be allowed, where the service legs(segments) must become mode aware via a service leg segment type for example.
     SimpleDirectedPath chosenPath = null;
-    for (var mode : eligibleServiceModes) {
+    for (var mode : data.getActivatedPlanitModes()) {
       if (!layer.supports(mode)) {
         continue;
       }
-      var shortestPathAlgo = shortestPathAlgoByMode.get(mode);
+      var shortestPathAlgo = data.getShortestPathAlgoByMode(mode);
 
       // proceed for the first support mode when at least a single connectoid on any access node supports it
       if (!upstreamConnectoidsByAccessNode.values().stream().anyMatch(l -> l.stream().anyMatch(c -> c.isModeAllowed(transferZoneUpstream, mode))) ||
@@ -289,14 +240,13 @@ public class GtfsServicesAndZoningReaderIntegrator {
   private void validateInputs() {
     PlanItRunTimeException.throwIfNull(this.serviceNodeToGtfsStopIdMapping, "serviceNodeToGtfsStopIdMapping is null");
     PlanItRunTimeException.throwIfNull(this.gtfsStopIdToTransferZoneMapping, "gtfsStopIdToTransferZoneMapping is null");
-    PlanItRunTimeException.throwIfNull(this.serviceNetwork, "serviceNetwork is null");
-    PlanItRunTimeException.throwIfNull(this.settings, "GTFS Intermodal reader settings is null");
-    PlanItRunTimeException.throwIfNull(this.zoning, "zoning is null");
-    PlanItRunTimeException.throwIfNull(this.services, "routed services is null");
+    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "serviceNetwork is null");
+    PlanItRunTimeException.throwIfNull(data.getSettings(), "GTFS Intermodal reader settings is null");
+    PlanItRunTimeException.throwIfNull(data.getZoning(), "zoning is null");
 
     //todo: multiple layers should be possible to implement but at this point simply has not been done due to absence of a case where this is used
-    PlanItRunTimeException.throwIf(settings.getReferenceNetwork().getTransportLayers().size()>1, "Currently GTFS converter only supports physical reference networks with a single layer");
-    PlanItRunTimeException.throwIf(serviceNetwork.getTransportLayers().size()>1, "Currently GTFS converter only supports service networks with a single layer");
+    PlanItRunTimeException.throwIf(data.getServiceNetwork().getParentNetwork().getTransportLayers().size()>1, "Currently GTFS converter only supports physical reference networks with a single layer");
+    PlanItRunTimeException.throwIf(data.getServiceNetwork().getTransportLayers().size()>1, "Currently GTFS converter only supports service networks with a single layer");
   }
 
   /**
@@ -346,7 +296,6 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * @param settings of the parent reader used
    * @param zoning to integrate
    * @param serviceNetwork to integrate
-   * @param services to integrate
    * @param serviceNodeToGtfsStopIdMapping mapping from PLANit service nodes to GTFS stop ids
    * @param gtfsStopIdToTransferZoneMapping mapping from GTFS stop id to PLANit transfer zone
    */
@@ -354,15 +303,14 @@ public class GtfsServicesAndZoningReaderIntegrator {
       GtfsIntermodalReaderSettings settings,
       Zoning zoning,
       ServiceNetwork serviceNetwork,
-      RoutedServices services,
       Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping,
       Function<String, TransferZone> gtfsStopIdToTransferZoneMapping) {
-    this.settings = settings;
-    this.zoning = zoning;
-    this.serviceNetwork = serviceNetwork;
-    this.services = services;
+
     this.serviceNodeToGtfsStopIdMapping = serviceNodeToGtfsStopIdMapping;
     this.gtfsStopIdToTransferZoneMapping = gtfsStopIdToTransferZoneMapping;
+
+    this.data = new GtfsServicesAndZoningIntegratorData(serviceNetwork, zoning, settings);
+
     validateInputs();
   }
 
@@ -374,14 +322,13 @@ public class GtfsServicesAndZoningReaderIntegrator {
     initialise();
 
     /* process service leg segments - knowing that all leg segments are instances of ServiceLegSegmentImpl as this is how the GTFS converter has created them */
-    serviceNetwork.getTransportLayers().forEach( layer -> layer.getLegs().forEach(leg -> leg.forEachSegment( legSegment -> integrateLegSegment(layer, (ServiceLegSegmentImpl) legSegment))));
+    data.getServiceNetwork().getTransportLayers().forEach( layer -> layer.getLegs().forEach(leg -> leg.forEachSegment( legSegment -> integrateLegSegment(layer, (ServiceLegSegmentImpl) legSegment))));
   }
 
   /**
    * Reset internal (temporary) state
    */
   public void reset(){
-    this.connectoidsByAccessZone = null;
-    this.shortestPathAlgoByMode = null;
+    data.reset();
   }
 }

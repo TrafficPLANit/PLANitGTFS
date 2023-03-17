@@ -11,7 +11,6 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
-import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
@@ -104,7 +103,7 @@ public class GtfsToPlanitTest {
 
       var networkCopy = macroscopicNetwork.deepClone();
       GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(
-          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, networkCopy, RouteTypeChoice.EXTENDED);
+          networkCopy, GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
       Pair<ServiceNetwork,RoutedServices> servicesPair = servicesReader.read();
 
       var serviceNetwork = servicesPair.first();
@@ -117,7 +116,6 @@ public class GtfsToPlanitTest {
       assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(58207));
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(92222));
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(92222));
-      assert(serviceNetwork.getTransportLayers().getFirst().getSupportedModes().containsAll(servicesReader.getSettings().getAcivatedPlanitModes()));
 
       assertThat(routedServices.getLayers().size(),equalTo(1));
       Modes modes = macroscopicNetwork.getModes();
@@ -158,8 +156,8 @@ public class GtfsToPlanitTest {
 
       Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
 
-      var network = gtfsIntermodalReader.getSettings().getReferenceNetwork();
-      var zoning = gtfsIntermodalReader.getSettings().getReferenceZoning();
+      var network = result.first();
+      var zoning = result.second();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
@@ -183,8 +181,6 @@ public class GtfsToPlanitTest {
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(56));
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(56));
-
-      assert(serviceNetwork.getTransportLayers().getFirst().getSupportedModes().containsAll(gtfsIntermodalReader.getSettings().getServiceSettings().getAcivatedPlanitModes()));
 
       assertThat(routedServices.getLayers().size(),equalTo(1));
       Modes modes = macroscopicNetwork.getModes();
@@ -224,8 +220,8 @@ public class GtfsToPlanitTest {
 
       Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
 
-      var network = gtfsIntermodalReader.getSettings().getReferenceNetwork();
-      var zoning = gtfsIntermodalReader.getSettings().getReferenceZoning();
+      var network = result.first();
+      var zoning = result.second();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
@@ -249,8 +245,6 @@ public class GtfsToPlanitTest {
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(67));
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(67));
-
-      assert(serviceNetwork.getTransportLayers().getFirst().getSupportedModes().containsAll(gtfsIntermodalReader.getSettings().getServiceSettings().getAcivatedPlanitModes()));
 
       assertThat(routedServices.getLayers().size(),equalTo(1));
       Modes modes = macroscopicNetwork.getModes();

@@ -1,8 +1,6 @@
-package org.goplanit.gtfs.converter.service;
+package org.goplanit.gtfs.converter;
 
-import org.goplanit.converter.ConverterReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
 
 /**
@@ -34,19 +32,16 @@ public class RouteTypeOriginalToPlanitModeMappingCreator extends RouteTypeToPlan
    * Perform and populate mapping in provided settings
    *
    * @param settings to populate
-   * @param planitModes to use
    */
-  public static void execute(GtfsServicesReaderSettings settings, Modes planitModes) {
-    /* initialise road modes on planit side that we are about to map */
-    registerPlanitModes(planitModes);
+  public static void execute(GtfsConverterReaderSettingsWithModeMapping settings) {
 
     /* add default mapping for default route types */
     {
-      settings.setDefaultGtfs2PlanitModeMapping(RouteType.TRAM_LIGHTRAIL, planitModes.get(PredefinedModeType.LIGHTRAIL));
-      settings.setDefaultGtfs2PlanitModeMapping(RouteType.SUBWAY_METRO, planitModes.get(PredefinedModeType.SUBWAY));
-      settings.setDefaultGtfs2PlanitModeMapping(RouteType.RAIL, planitModes.get(PredefinedModeType.TRAIN));
-      settings.setDefaultGtfs2PlanitModeMapping(RouteType.BUS, planitModes.get(PredefinedModeType.BUS));
-      settings.setDefaultGtfs2PlanitModeMapping(RouteType.TROLLEY_BUS, planitModes.get(PredefinedModeType.BUS));
+      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.TRAM_LIGHTRAIL, PredefinedModeType.LIGHTRAIL);
+      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.SUBWAY_METRO, PredefinedModeType.SUBWAY);
+      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.RAIL, PredefinedModeType.TRAIN);
+      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.BUS, PredefinedModeType.BUS);
+      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.TROLLEY_BUS, PredefinedModeType.BUS);
     }
 
     /* activate all mapped defaults initially*/

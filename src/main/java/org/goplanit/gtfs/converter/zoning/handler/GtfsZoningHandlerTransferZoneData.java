@@ -1,7 +1,9 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
+import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
+import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.mode.Mode;
@@ -20,7 +22,7 @@ import java.util.logging.Logger;
  *
  * @author markr
  */
-public class GtfsZoningHandlerTransferZoneData {
+public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData {
 
   /**
    * Function to hide implementation of mapping between GTFS Stop id and transfer zone
@@ -93,7 +95,7 @@ public class GtfsZoningHandlerTransferZoneData {
           var transferZone = (TransferZone) entry.getKey();
           for(var dirConnectoid : entry.getValue()){
             /* register on transfer zone */
-            registerTransferZoneToConnectoidModes(transferZone,dirConnectoid, settings.getAcivatedPlanitModes());
+            registerTransferZoneToConnectoidModes(transferZone,dirConnectoid, getActivatedPlanitModesByGtfsMode());
           }
         }
       }
@@ -103,10 +105,13 @@ public class GtfsZoningHandlerTransferZoneData {
 
   /**
    * Constructor
-   * @param settings to use
+   *
+   * @param serviceNetwork
+   * @param settings        to use
    * @param referenceZoning to use
    */
-  public GtfsZoningHandlerTransferZoneData(GtfsZoningReaderSettings settings, Zoning referenceZoning){
+  public GtfsZoningHandlerTransferZoneData(ServiceNetwork serviceNetwork, GtfsZoningReaderSettings settings, Zoning referenceZoning){
+    super(serviceNetwork, settings);
     initialise(settings, referenceZoning);
   }
 
@@ -192,8 +197,8 @@ public class GtfsZoningHandlerTransferZoneData {
    * @param directedConnectoid  to extract access information from
    * @param activatedPlanitModes supported modes
    */
-  public void registerTransferZoneToConnectoidModes(TransferZone transferZone, DirectedConnectoid directedConnectoid, Set<Mode> activatedPlanitModes) {
-    var allowedModes = ((MacroscopicLinkSegment) directedConnectoid.getAccessLinkSegment()).getAllowedModes();
+  public void registerTransferZoneToConnectoidModes(TransferZone transferZone, DirectedConnectoid directedConnectoid, Collection<Mode> activatedPlanitModes) {
+    var allowedModes = directedConnectoid.getAccessLinkSegment().getAllowedModes();
 
     /* remove all non service modes */
     allowedModes.retainAll(activatedPlanitModes);

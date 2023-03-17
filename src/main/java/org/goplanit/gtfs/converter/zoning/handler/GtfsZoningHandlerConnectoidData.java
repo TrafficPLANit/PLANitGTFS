@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
-import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.zoning.DirectedConnectoid;
@@ -25,15 +25,15 @@ public class GtfsZoningHandlerConnectoidData {
 
   /**
    * Constructor
-   * @param referenceNetwork to use
+   * @param serviceNetwork to use
    * @param referenceZoning to use
    */
-  public GtfsZoningHandlerConnectoidData(MacroscopicNetwork referenceNetwork, Zoning referenceZoning){
+  public GtfsZoningHandlerConnectoidData(ServiceNetwork serviceNetwork, Zoning referenceZoning){
     //TODO: no support yet for OD connectoids, meaning that if links are broken the connectoid is potentially moved for OD zones
 
     /* locate by position (point) so we can use it even if the entities/ids change */
     directedConnectoidsByLocation = referenceZoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(
-        referenceNetwork.getTransportLayers(), d -> d.getAccessNode().getPosition());
+        serviceNetwork.getParentNetwork().getTransportLayers(), d -> d.getAccessNode().getPosition());
   }
 
   /**

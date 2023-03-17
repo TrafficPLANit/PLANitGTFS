@@ -24,7 +24,7 @@ import java.util.function.Function;
  */
 public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
 
-  /** default search for chepeast paths is based on free flow approach */
+  /** default search for cheapest paths is based on free flow approach */
   public final String DEFAULT_STOP_TO_STOP_COST_APPROACH = PhysicalCost.FREEFLOW;
   
   /** the services settings to use */
@@ -35,20 +35,15 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
 
   private final String stopToStopPathSearchPhysicalCostApproach = DEFAULT_STOP_TO_STOP_COST_APPROACH;
 
-  /** Zoning to populate (further) */
-  protected final Zoning zoningtoPopulate;
-
   /** Constructor with user defined source locale
    *
    * @param inputSource to use
    * @param countryName to base source locale on
    * @param routeTypeChoice to apply
-   * @param parentNetwork to use
    */
-  public GtfsIntermodalReaderSettings(String inputSource, String countryName, final MacroscopicNetwork parentNetwork, Zoning zoningtoPopulate, RouteTypeChoice routeTypeChoice) {
-    this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, parentNetwork, routeTypeChoice);
+  public GtfsIntermodalReaderSettings(String inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
+    this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, routeTypeChoice);
     this.zoningSettings = new GtfsZoningReaderSettings(servicesReaderSettings);
-    this.zoningtoPopulate = zoningtoPopulate;
   }
 
   /** Constructor with user defined source locale
@@ -57,12 +52,10 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    * @param countryName to base source locale on
    * @param dayOfWeek to filter on
    * @param routeTypeChoice to apply
-   * @param parentNetwork to use
    */
-  public GtfsIntermodalReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeek, final MacroscopicNetwork parentNetwork, Zoning zoningToPopulate, RouteTypeChoice routeTypeChoice) {
-    this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, dayOfWeek, parentNetwork, routeTypeChoice);
+  public GtfsIntermodalReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
+    this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, dayOfWeek, routeTypeChoice);
     this.zoningSettings = new GtfsZoningReaderSettings(servicesReaderSettings);
-    this.zoningtoPopulate = zoningToPopulate;
   }
 
   /**
@@ -89,22 +82,17 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
   }
 
   /**
-   * Collect reference physical network used
-   *
-   * @return reference network
+   * {@inheritDoc}
    */
-  public MacroscopicNetwork getReferenceNetwork() {
-    return servicesReaderSettings.getReferenceNetwork();
+  public String getCountryName() {
+    return servicesReaderSettings.getCountryName();
   }
 
   /**
-   * Collect reference zoning used (to populate further)
-   *
-   * @return reference zoning
+   * {@inheritDoc}
    */
-  public Zoning getReferenceZoning() {
-    // todo maybe should not be part of settings, but on reader itself, like zoning reader...
-    return zoningtoPopulate;
+  public String getInputDirectory() {
+    return servicesReaderSettings.getInputDirectory();
   }
 
   /** The methodology used to find the paths between stops by means of its full canonical class name which is assumed to be supported by

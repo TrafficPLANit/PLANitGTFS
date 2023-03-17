@@ -26,9 +26,6 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(GtfsConverterReaderSettingsImpl.class.getCanonicalName());
 
-  /** the reference network to use during parsing of the pt zones */
-  private MacroscopicNetwork referenceNetwork = null;
-
   /** Input directory to use */
   private String inputDirectory;
 
@@ -44,31 +41,12 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
 
   /** Constructor with user defined source locale
    *
-   * @param inputDirectory to extract GTFS information from
+   * @param inputDirectory to use
    * @param countryName to base source locale on
    */
   public GtfsConverterReaderSettingsImpl(String inputDirectory, String countryName) {
-    this(inputDirectory, countryName, null);
-  }
-
-  /** Constructor with user defined source locale
-   * @param countryName to base source locale on
-   * @param referenceNetwork to use
-   */
-  public GtfsConverterReaderSettingsImpl(String countryName, MacroscopicNetwork referenceNetwork) {
-    this(null, countryName, referenceNetwork);
-  }
-
-  /** Constructor with user defined source locale
-   *
-   * @param inputDirectory to use
-   * @param countryName to base source locale on
-   * @param referenceNetwork to use
-   */
-  public GtfsConverterReaderSettingsImpl(String inputDirectory, String countryName, MacroscopicNetwork referenceNetwork) {
     this.inputDirectory = inputDirectory;
     this.countryName = countryName;
-    this.referenceNetwork = referenceNetwork;
   }
 
   /**
@@ -77,23 +55,6 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   @Override
   public void reset() {
     //todo
-  }
-  
-  // TRANSFERRED FROM NETWORK READER
-  
-  /** Set the reference network to use
-   * @param referenceNetwork to use
-   */
-  public void setReferenceNetwork(MacroscopicNetwork referenceNetwork) {
-    this.referenceNetwork = referenceNetwork;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicNetwork getReferenceNetwork() {
-    return this.referenceNetwork;
   }
 
   /**

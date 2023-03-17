@@ -1,10 +1,12 @@
 package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
+import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
 import java.util.Collection;
@@ -22,7 +24,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
+public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithModeMapping implements GtfsConverterReaderSettings {
   
   /** logger to use */
   @SuppressWarnings("unused")
@@ -51,9 +53,6 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   /** flag indicating if parser should log all GTFS stops that triggered the creation of a new PLANit  transfer zone */
   private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
 
-  /** re-use settings from services reader */
-  private final GtfsServicesReaderSettings servicesReaderSettings;
-
   /** default flag setting whether to remove unused transfer zones after GTFS parsing is complete */
   public static final boolean DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES = true;
 
@@ -77,12 +76,13 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
    */
   public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 5;
 
-  /** Constructor leveraging the services reader settings as base information
+  /** Copy constructor creating a shallow copy of the underlying mode mapping so it is synced with the provided settings. Useful when both settings are used
+   *  in conjunction and we want to avoid having to sync information
    *
-   * @param servicesReaderSettings to obtain mode mapping information from
+   * @param settings to obtain mode mapping information from
    */
-  public GtfsZoningReaderSettings(GtfsServicesReaderSettings servicesReaderSettings) {
-    this.servicesReaderSettings = servicesReaderSettings;
+  public GtfsZoningReaderSettings(GtfsConverterReaderSettingsWithModeMapping settings) {
+    super(settings);
   }
 
   /**
@@ -129,64 +129,6 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
     return GtfsServicesReaderSettings.getServiceNodeToGtfsStopIdMapping();
   }
 
-  /** Convenience method that collects the currently mapped PLANit mode for the given GTFS mode if any
-   *
-   * @param gtfsMode to collect mapped mode for (if any)
-   * @return mapped PLANit mode, if not available null is returned
-   */
-  public Mode getPlanitModeIfActivated(final RouteType gtfsMode) {
-    return servicesReaderSettings.getPlanitModeIfActivated(gtfsMode);
-  }
-
-  /** Convenience method that provides access to all the currently active GTFS modes (unmodifiable)
-   *
-   * @return mapped GTFS modes, if not available (due to lack of mapping or inactive parser) empty collection is returned
-   */
-  public Collection<RouteType> getAcivatedGtfsModes() {
-    return servicesReaderSettings.getAcivatedGtfsModes();
-  }
-
-  /** Convenience method that collects all the currently mapped GTFS modes for the given PLANit mode
-   *
-   * @param planitMode to collect mapped mode for (if any)
-   * @return mapped GTFS modes, if not available (due to lack of mapping or inactive parser) empty collection is returned
-   */
-  public Collection<RouteType> getAcivatedGtfsModes(final Mode planitMode) {
-    return servicesReaderSettings.getAcivatedGtfsModes(planitMode);
-  }
-
-  /**
-   * Currently activated mapped PLANit modes
-   * @return activated, i.e., mapped PLANit modes
-   */
-  public Set<Mode> getAcivatedPlanitModes() {
-    return servicesReaderSettings.getAcivatedPlanitModes();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicNetwork getReferenceNetwork() {
-    return servicesReaderSettings.getReferenceNetwork();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getCountryName() {
-    return servicesReaderSettings.getCountryName();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getInputDirectory() {
-    return servicesReaderSettings.getInputDirectory();
-  }
-
   /**
    * Provide explicit mapping for GTFS stop id to an existing PLANit transfer zone, e.g., platform, pole, station, halt, stop, etc. (by its external id, e.g. OSM id)
    * This overrides the parser's mapping functionality and immediately maps the stop to this entity. Can be useful to avoid warnings or wrong mapping of
@@ -198,7 +140,6 @@ public class GtfsZoningReaderSettings implements GtfsConverterReaderSettings {
   public void setOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final String transferZoneExternalId) {
     overwriteGtfsStopTransferZoneExternalIdMapping.put(gtfsStopId,transferZoneExternalId);
   }
-
 
   /** Verify if stop id is marked for overwritten transfer zone mapping
    *

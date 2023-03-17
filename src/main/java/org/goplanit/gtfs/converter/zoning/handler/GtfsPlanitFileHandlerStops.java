@@ -400,7 +400,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     }
 
     /* create access node and break links if needed */
-    var networkLayer = data.getSettings().getReferenceNetwork().getLayerByMode(gtfsStopMode);
+    var networkLayer = data.getServiceNetwork().getParentNetwork().getLayerByMode(gtfsStopMode);
     var accessNodeResult = GtfsLinkHelper.extractNodeByLinkGeometryLocation(connectoidLocation, accessResult.first() /* access link */, networkLayer, data);
     Node accessNode = accessNodeResult.first();
     Boolean newlyCreatedAccessNode = accessNodeResult.second();
@@ -451,8 +451,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     if(data.getSettings().isLogMappedGtfsZones()) {
       LOGGER.info(String.format("Mapped GTFS stop %s %s at location %s to existing Transfer zone %s %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), transferZone.getXmlId(), transferZone.hasName() ? transferZone.getName() : ""));
     }
-
-    data.getProfiler().incrementAugmentedTransferZones();
   }
 
   /**
@@ -474,12 +472,17 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
     }
 
-    if(theTransferZone == null) {
+    boolean createNewTransferZone = theTransferZone == null;
+    if(createNewTransferZone) {
       theTransferZone = createNewTransferZoneAndConnectoids(gtfsStop, gtfsStopMode, TransferZoneType.PLATFORM);
     }
 
     if(theTransferZone != null){
       attachToTransferZone(gtfsStop, theTransferZone);
+    }
+
+    if(!createNewTransferZone){
+      data.getProfiler().incrementAugmentedTransferZones();
     }
   }
 
@@ -522,7 +525,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     final Mode gtfsStopMode = data.getSupportedPtMode(gtfsStop);
     LoggingUtils.LogFineIfNull(gtfsStopMode, LOGGER, "GTFS Stop %s %s (location: %s) unknown mapped PLANit mode; likely stop is not used by GTFS, or stop's mode is not activated", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
-    if(gtfsStopMode == null || !data.getSettings().getAcivatedPlanitModes().contains(gtfsStopMode)){
+    if(gtfsStopMode == null || !data.getActivatedPlanitModesByGtfsMode().contains(gtfsStopMode)){
       return;
     }
 

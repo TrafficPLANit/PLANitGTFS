@@ -82,7 +82,8 @@ public class GtfsZoningReader implements ZoningReader {
     SyncXmlIdToIdBreakEdgeSegmentHandler syncXmlIdToIdOnBreakLinkSegment = new SyncXmlIdToIdBreakEdgeSegmentHandler();
 
     /* network layers */
-    for(MacroscopicNetworkLayer networkLayer : getSettings().getReferenceNetwork().getTransportLayers()){
+    var referenceNetwork = this.serviceNetwork.getParentNetwork();
+    for(MacroscopicNetworkLayer networkLayer : referenceNetwork.getTransportLayers()){
       var layerModifier = networkLayer.getLayerModifier();
       layerModifier.removeAllListeners();
 
@@ -93,7 +94,7 @@ public class GtfsZoningReader implements ZoningReader {
 
     // update all network XML ids to internal id's upon calling recreating managed id entities on a graph layer
     LOGGER.info("Syncing PLANit network XML ids to internal ids");
-    MacroscopicNetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(getSettings().getReferenceNetwork());
+    MacroscopicNetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(referenceNetwork);
 
     /* zoning: since zoning can be partially populated we must ensure we do not generate XML ids synced to internal ids that clash with
     * pre-existing XML ids, hence recreated managed ids and sync all XML ids to internal ids as well */
@@ -182,7 +183,7 @@ public class GtfsZoningReader implements ZoningReader {
   public Zoning read(){
     PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()), "Country not set for GTFS zoning reader, unable to proceed");
     PlanItRunTimeException.throwIfNull(getSettings().getInputDirectory(), "Input source not set for GTFS zoning reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(getSettings().getReferenceNetwork(),"Reference network not available when parsing GTFS zoning, unable to proceed");
+    PlanItRunTimeException.throwIfNull(serviceNetwork.getParentNetwork(),"Reference physical network not available when parsing GTFS zoning, unable to proceed");
 
     /* prepare for parsing */
     var zoningHandlerData = initialiseBeforeParsing();

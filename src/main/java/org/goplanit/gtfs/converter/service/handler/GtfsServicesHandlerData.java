@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
 import org.goplanit.gtfs.converter.service.GtfsServicesHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsCalendar;
@@ -27,7 +28,7 @@ import java.util.logging.Logger;
 /**
  * Track data used during handling/parsing of GTFS routes
  */
-public class GtfsServicesHandlerData {
+public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
 
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesHandlerData.class.getCanonicalName());
 
@@ -38,9 +39,6 @@ public class GtfsServicesHandlerData {
   }
 
   // EXOGENOUS DATA TRACKING/SETTINGS
-
-  /** settings to make available */
-  private final GtfsServicesReaderSettings settings;
 
   /** profiler stats to update across applying of various handlers that use this data instance */
   private final GtfsServicesHandlerProfiler handlerProfiler;
@@ -64,9 +62,6 @@ public class GtfsServicesHandlerData {
 
   // TO POPULATE
 
-  /** service network to populate */
-  final ServiceNetwork serviceNetwork;
-
   /** routed service to populate (indirectly via mode indexed {@link #routedServiceLayerByMode}) */
   final RoutedServices routedServices;
 
@@ -78,6 +73,7 @@ public class GtfsServicesHandlerData {
    * @param routedServices to use
    */
   private void initialise(final RoutedServices routedServices){
+
     /* lay indices by mode -> routedServicesLayer */
     routedServiceLayerByMode = routedServices.getLayers().indexLayersByMode();
 
@@ -106,9 +102,8 @@ public class GtfsServicesHandlerData {
    * @param handlerProfiler to use
    */
   public GtfsServicesHandlerData(final GtfsServicesReaderSettings settings, final ServiceNetwork serviceNetwork, final RoutedServices routedServices, final GtfsServicesHandlerProfiler handlerProfiler){
-    this.serviceNetwork = serviceNetwork;
+    super(serviceNetwork, settings);
     this.routedServices = routedServices;
-    this.settings = settings;
     this.handlerProfiler = handlerProfiler;
 
     initialise(routedServices);
@@ -335,14 +330,6 @@ public class GtfsServicesHandlerData {
     return ServiceNode::getExternalId;
   }
 
-
-  /** Access to the service network
-   * @return the service network being populated
-   */
-  public ServiceNetwork getServiceNetwork() {
-    return serviceNetwork;
-  }
-
   /** Access to the routed services container
    * @return the routed services  being populated
    */
@@ -364,8 +351,9 @@ public class GtfsServicesHandlerData {
    *
    * @return user configuration settings
    */
+  @Override
   public GtfsServicesReaderSettings getSettings() {
-    return this.settings;
+    return ( GtfsServicesReaderSettings) super.getSettings();
   }
 
 

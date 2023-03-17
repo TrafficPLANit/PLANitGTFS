@@ -62,11 +62,8 @@ public class GtfsIntermodalReaderFactory {
    * @return created routed service reader
    */
   public static GtfsIntermodalReader create(final String inputDirectory, final String countryName, MacroscopicNetwork parentNetwork, Zoning parentZoning, RouteTypeChoice typeChoice) {
-
-    var intermodalReaderSettings =
-        new GtfsIntermodalReaderSettings(
-            inputDirectory, countryName, parentNetwork, parentZoning, typeChoice);
-    return create(intermodalReaderSettings);
+    var intermodalReaderSettings = new GtfsIntermodalReaderSettings(inputDirectory, countryName, typeChoice);
+    return create(parentNetwork, parentZoning, intermodalReaderSettings);
   }
 
   /** Create a GtfsIntermodalReader sourced from given input directory
@@ -79,12 +76,9 @@ public class GtfsIntermodalReaderFactory {
    * @param typeChoice to apply, this pertains to how the GTFS siles are to be parsed as they have different specifications
    * @return created routed service reader
    */
-  public static GtfsIntermodalReader create(final String inputDirectory, final String countryName, DayOfWeek dayOfWeek, MacroscopicNetwork parentNetwork, Zoning parentZoning, RouteTypeChoice typeChoice) {
-
-    var intermodalReaderSettings =
-        new GtfsIntermodalReaderSettings(
-            inputDirectory, countryName, dayOfWeek, parentNetwork, parentZoning, typeChoice);
-    return create(intermodalReaderSettings);
+  public static GtfsIntermodalReader create(
+      final String inputDirectory, final String countryName, DayOfWeek dayOfWeek, final MacroscopicNetwork parentNetwork, final Zoning parentZoning, RouteTypeChoice typeChoice) {
+    return create(parentNetwork, parentZoning, new GtfsIntermodalReaderSettings(inputDirectory, countryName, dayOfWeek, typeChoice));
   }
 
   /** Create a GtfsIntermodalReader based on given settings which in turn contain information on required location and reference inputs
@@ -92,7 +86,7 @@ public class GtfsIntermodalReaderFactory {
    * @param settings to use
    * @return created routed service reader
    */
-  public static GtfsIntermodalReader create(final GtfsIntermodalReaderSettings settings) {
-    return new GtfsIntermodalReader(settings.getReferenceNetwork().getIdGroupingToken(), settings);
+  public static GtfsIntermodalReader create(final MacroscopicNetwork parentNetwork, final Zoning parentZoning, final GtfsIntermodalReaderSettings settings) {
+    return new GtfsIntermodalReader(parentNetwork.getIdGroupingToken(), parentNetwork, parentZoning, settings);
   }
 }

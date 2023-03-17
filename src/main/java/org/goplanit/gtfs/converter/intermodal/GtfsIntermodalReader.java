@@ -43,6 +43,12 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
   /** id token to use */
   private IdGroupingToken idToken;
 
+  /** network to use */
+  private final MacroscopicNetwork parentNetwork;
+
+  /** zoning to use */
+  private final Zoning parentZoning;
+
   /* Remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
    * therefore have no mapping populated with respect to their parent service network (and physical network). Sync XML ids to avoid gaps
    * or potentially duplicate usage of these ids
@@ -63,11 +69,15 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
   /** Constructor where settings are directly provided such that input information can be extracted from it
    *
    * @param idToken to use for the routed services and service network ids
+   * @param parentNetwork to use
+   * @param parentZoning to use
    * @param settings to use
    */
-  protected GtfsIntermodalReader(final IdGroupingToken idToken, final GtfsIntermodalReaderSettings settings){
+  protected GtfsIntermodalReader(final IdGroupingToken idToken, MacroscopicNetwork parentNetwork, final Zoning parentZoning, final GtfsIntermodalReaderSettings settings){
     this.idToken = idToken;
     this.settings = settings;
+    this.parentNetwork = parentNetwork;
+    this. parentZoning =  parentZoning;
   }   
 
   /**
@@ -116,13 +126,13 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
     /* SERVICES without geo filter (since locations are currently only parsed when considering GTFS stops via (transfer) zoning reader), hence
     *  all routes/services are initially mapped to PLANit equivalents but without mapping to physical network yet*/
-    GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(getSettings().getServiceSettings());
+    GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(parentNetwork, getSettings().getServiceSettings());
     Pair<ServiceNetwork,RoutedServices> servicesResult = servicesReader.read();
 
     /* ZONING (PT stops as transfer zones) this parses GTFS stops and their locations, parsed GTFS stops are constrained to bounding box of underlying physical network*/
     final var zoningReader = GtfsZoningReaderFactory.create(
         getSettings().getZoningSettings(),
-        getSettings().getReferenceZoning(),
+        parentZoning,
         servicesResult.first(),
         servicesResult.second(),
         servicesReader.getServiceNodeToGtfsStopIdMapping());
@@ -134,7 +144,6 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
         settings,
         zoning,
         servicesResult.first(),
-        servicesResult.second(),
         servicesReader.getServiceNodeToGtfsStopIdMapping(),
         zoningReader.getGtfsStopIdToTransferZoneMapping());
     integrator.execute();
@@ -175,13 +184,13 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
     /* log final result */
     LOGGER.info("Final result Stats:");
-    settings.getReferenceNetwork().logInfo(LoggingUtils.networkPrefix(settings.getReferenceNetwork().getId()));
+    parentNetwork.logInfo(LoggingUtils.networkPrefix(parentNetwork.getId()));
     zoning.logInfo(LoggingUtils.zoningPrefix(zoning.getId()));
     servicesResult.first().logInfo(LoggingUtils.serviceNetworkPrefix(servicesResult.first().getId()));
     servicesResult.second().logInfo(LoggingUtils.routedServicesPrefix(servicesResult.second().getId()));
 
     /* combined result */
-    return Quadruple.of(settings.getReferenceNetwork(), zoning, servicesResult.first(), servicesResult.second());
+    return Quadruple.of(parentNetwork, zoning, servicesResult.first(), servicesResult.second());
   }
 
 }

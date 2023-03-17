@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
+import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
@@ -32,18 +33,12 @@ import java.util.logging.Logger;
  *
  * @author markr
  */
-public class GtfsZoningHandlerData {
+public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerData.class.getCanonicalName());
 
   // EXOGENOUS DATA TRACKING/SETTINGS
-
-  /** settings to make available */
-  private final GtfsZoningReaderSettings settings;
-
-  /** service network to utilise */
-  final ServiceNetwork serviceNetwork;
 
   /** routed service to utilise */
   final RoutedServices routedServices;
@@ -86,17 +81,17 @@ public class GtfsZoningHandlerData {
   /**
    * Initialise the tracking of data
    */
-  private void initialise(){
+  protected void initialise(){
     this.serviceNodeAndModeByGtfsStopId = new HashMap<>();
 
-    /* all link across all used layers for activated modes in geoindex format */
+    /* all links across all used layers for activated modes in geoindexed format */
     Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
-    getSettings().getAcivatedPlanitModes().forEach( m -> usedLayers.add(getSettings().getReferenceNetwork().getLayerByMode(m)));
+    getActivatedPlanitModesByGtfsMode().forEach(m -> usedLayers.add(getServiceNetwork().getParentNetwork().getLayerByMode(m)));
     Collection<MacroscopicLinks> linksCollection = new ArrayList<>();
     usedLayers.forEach( l -> linksCollection.add(l.getLinks()));
     this.geoIndexedLinks = GeoContainerUtils.toGeoIndexed(linksCollection);
 
-    this.geoTools = new PlanitJtsCrsUtils(getSettings().getReferenceNetwork().getCoordinateReferenceSystem());
+    this.geoTools = new PlanitJtsCrsUtils(getServiceNetwork().getParentNetwork().getCoordinateReferenceSystem());
     this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
 
     /* index: MODE -> (pre-existing) SERVICE NODE */
@@ -126,7 +121,7 @@ public class GtfsZoningHandlerData {
     }
 
     /* extract bounding box of the reference network, used to reduce warnings in case GTFS source exceeds area covered by PLANit network */
-    this.referenceNetworkBoundingBox = getSettings().getReferenceNetwork().createBoundingBox();
+    this.referenceNetworkBoundingBox = getServiceNetwork().getParentNetwork().createBoundingBox();
     if(referenceNetworkBoundingBox == null){
       LOGGER.severe("No bounding box could be created for reference network in GTFS zoning handler, likely network is empty");
     }
@@ -141,16 +136,20 @@ public class GtfsZoningHandlerData {
    * @param routedServices to use
    * @param handlerProfiler to use
    */
-  public GtfsZoningHandlerData(final GtfsZoningReaderSettings settings, final Zoning zoningToPopulate, final ServiceNetwork serviceNetwork, final RoutedServices routedServices, final GtfsZoningHandlerProfiler handlerProfiler){
+  public GtfsZoningHandlerData(
+      final GtfsZoningReaderSettings settings,
+      final Zoning zoningToPopulate,
+      final ServiceNetwork serviceNetwork,
+      final RoutedServices routedServices,
+      final GtfsZoningHandlerProfiler handlerProfiler){
+    super(serviceNetwork, settings);
     this.zoning = zoningToPopulate;
-    this.serviceNetwork = serviceNetwork;
     this.routedServices = routedServices;
-    this.settings = settings;
     this.handlerProfiler = handlerProfiler;
-    this.connectoidData = new GtfsZoningHandlerConnectoidData(settings.getReferenceNetwork(), zoningToPopulate);
-    this.transferZoneData = new GtfsZoningHandlerTransferZoneData(settings, zoningToPopulate);
 
     initialise();
+    this.connectoidData = new GtfsZoningHandlerConnectoidData(serviceNetwork, zoningToPopulate);
+    this.transferZoneData = new GtfsZoningHandlerTransferZoneData(serviceNetwork, settings, zoningToPopulate);
   }
 
   /**
@@ -170,13 +169,6 @@ public class GtfsZoningHandlerData {
    */
   public Zoning getZoning() {
     return zoning;
-  }
-
-  /** Access to the service network
-   * @return the service network being populated
-   */
-  public ServiceNetwork getServiceNetwork() {
-    return serviceNetwork;
   }
 
   /** Access to the routed services container
@@ -200,8 +192,9 @@ public class GtfsZoningHandlerData {
    *
    * @return user configuration settings
    */
+  @Override
   public GtfsZoningReaderSettings getSettings() {
-    return this.settings;
+    return (GtfsZoningReaderSettings) super.getSettings();
   }
 
   /**

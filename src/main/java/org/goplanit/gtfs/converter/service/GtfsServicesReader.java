@@ -4,27 +4,30 @@ import org.goplanit.converter.PairConverterReader;
 import org.goplanit.gtfs.converter.service.handler.*;
 import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsFileType;
+import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.reader.*;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
+import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
 import org.goplanit.gtfs.util.GtfsRoutedServicesModifierUtils;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.service.routed.modifier.event.handler.SyncDeparturesXmlIdToIdHandler;
-import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlIdToIdHandler;
-import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.StringUtils;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of a GTFS services reader from GTFS files. This reads the following GTFS files:
@@ -40,6 +43,9 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReader.class.getCanonicalName());
+
+  /** the reference network to use during parsing of the pt zones */
+  private MacroscopicNetwork referenceNetwork = null;
   
   /** the settings for this reader */
   private final GtfsServicesReaderSettings settings;
@@ -53,15 +59,18 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    * @return file handler data to track required data across the various GTFS PLANit file handlers
    */
   private GtfsServicesHandlerData initialiseBeforeParsing() {
-    var serviceNetwork = new ServiceNetwork(idToken, settings.getReferenceNetwork());
+    var serviceNetwork = new ServiceNetwork(idToken, this.referenceNetwork);
     var routedServices = new RoutedServices(idToken, serviceNetwork);
 
     PlanItRunTimeException.throwIf(routedServices.getParentNetwork() != serviceNetwork, "Routed services its service network does not match the service network provided");
     PlanItRunTimeException.throwIf(!serviceNetwork.getTransportLayers().isEmpty() && serviceNetwork.getTransportLayers().isEachLayerEmpty(), "Service network is expected to have been initialise with empty layers before populating with GTFS routes");
     PlanItRunTimeException.throwIf(!routedServices.getLayers().isEmpty() && routedServices.getLayers().isEachLayerEmpty(), "Routed services layers are expected to have been initialised empty when populating with GTFS routes");
 
+    /* sync the PLANit modes to the configured modes in the settings if needed */
+    GtfsConverterReaderHelper.updatePlanitModesBeforeParsing(getSettings(), serviceNetwork.getParentNetwork().getModes());
+
     /* create a new service network layer for each physical layer that is present */
-    settings.getReferenceNetwork().getTransportLayers().forEach(parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
+    this.referenceNetwork.getTransportLayers().forEach(parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
 
     /* create a routed services for each service layer that we created */
     serviceNetwork.getTransportLayers().forEach(parentLayer -> routedServices.getLayers().getFactory().registerNew(parentLayer));
@@ -229,18 +238,21 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
   /** Constructor where settings are directly provided such that input information can be extracted from it
    *
+   * @param referenceNetwork to use
    * @param settings to use
    */
-  protected GtfsServicesReader(final GtfsServicesReaderSettings settings) {
-    this(IdGroupingToken.collectGlobalToken(), settings);
+  protected GtfsServicesReader(MacroscopicNetwork referenceNetwork, final GtfsServicesReaderSettings settings) {
+    this(IdGroupingToken.collectGlobalToken(), referenceNetwork, settings);
   }
 
   /** Constructor where settings are directly provided such that input information can be extracted from it
    * 
    * @param idToken to use for the routed services and service network ids
+   * @param referenceNetwork to use
    * @param settings to use
    */
-  protected GtfsServicesReader(final IdGroupingToken idToken, final GtfsServicesReaderSettings settings) {
+  protected GtfsServicesReader(final IdGroupingToken idToken, MacroscopicNetwork referenceNetwork, final GtfsServicesReaderSettings settings) {
+    this.referenceNetwork = referenceNetwork;
     this.settings = settings;
     this.idToken = idToken;
   }  
@@ -253,7 +265,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()), "Country not set for GTFS services reader, unable to proceed");
     PlanItRunTimeException.throwIfNull(getSettings().getInputDirectory(), "Input directory not set for GTFS services reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(getSettings().getReferenceNetwork(),"Reference network not available when parsing GTFS services, unable to proceed");
+    PlanItRunTimeException.throwIfNull(referenceNetwork,"Reference network not available when parsing GTFS services, unable to proceed");
 
     /* prepare for parsing */
     var fileHandlerData = initialiseBeforeParsing();

@@ -18,12 +18,6 @@ import java.util.Map;
  */
 public interface GtfsConverterReaderSettings extends ConverterReaderSettings {
 
-  /** Get the reference network to use
-   * 
-   * @return referenceNetwork
-   */
-  public abstract MacroscopicNetwork getReferenceNetwork();
-
   /** The country name used to initialise GTFS defaults for
    *
    * @return country name

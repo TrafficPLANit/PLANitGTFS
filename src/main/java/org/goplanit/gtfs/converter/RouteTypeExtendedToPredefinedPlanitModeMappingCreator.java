@@ -1,7 +1,6 @@
-package org.goplanit.gtfs.converter.service;
+package org.goplanit.gtfs.converter;
 
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
 
 import java.util.HashMap;
@@ -30,19 +29,14 @@ import java.util.Set;
  * </ul>
  *
  */
-public class RouteTypeExtendedToPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator {
+public class RouteTypeExtendedToPredefinedPlanitModeMappingCreator extends RouteTypeToPlanitModeMappingCreator {
 
   /**
    * Perform and populate mapping in provided settings
    *
    * @param settings to populate
-   * @param planitModes to use
    */
-  public static void execute(GtfsServicesReaderSettings settings, Modes planitModes) {
-
-    /* initialise road modes on planit side that we are about to map (train, lightrail, bus, subway)*/
-    registerPlanitModes(planitModes);
-
+  public static void execute(GtfsConverterReaderSettingsWithModeMapping settings) {
     /* add default mapping for default route types */
     Map<PredefinedModeType, Set<RouteType>> modeMappings = new HashMap<>();
     {
@@ -66,7 +60,7 @@ public class RouteTypeExtendedToPlanitModeMappingCreator extends RouteTypeToPlan
       modeMappings.put(PredefinedModeType.LIGHTRAIL, RouteType.getInValueRange((short)900,(short)906));
     }
     modeMappings.forEach( (planitModeType, routeTypes) ->
-            routeTypes.forEach( routeType -> settings.setDefaultGtfs2PlanitModeMapping(routeType, planitModes.get(planitModeType))));
+            routeTypes.forEach( routeType -> settings.setDefaultGtfs2PredefinedModeTypeMapping(routeType, planitModeType)));
 
     /* activate all mapped defaults initially*/
     modeMappings.forEach( (planitModeType, gtfsRouteTypes) ->
