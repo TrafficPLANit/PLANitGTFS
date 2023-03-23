@@ -519,10 +519,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   @Override
   public void handle(GtfsStop gtfsStop) {
 
-//    if(gtfsStop.getStopId().equals("200043") || gtfsStop.getStopId().equals("200047") || gtfsStop.getStopId().equals("200031") || gtfsStop.getStopId().equals("2000136")){
-//      int bla = 4;
-//    }
-
     final Mode gtfsStopMode = data.getSupportedPtMode(gtfsStop);
     LoggingUtils.LogFineIfNull(gtfsStopMode, LOGGER, "GTFS Stop %s %s (location: %s) unknown mapped PLANit mode; likely stop is not used by GTFS, or stop's mode is not activated", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
     if(gtfsStopMode == null || !data.getActivatedPlanitModesByGtfsMode().contains(gtfsStopMode)){
@@ -540,18 +536,14 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         return;
       case BOARDING_AREA:
         // not processed yet, if we find that boarding areas are used without a platform, they could be treated as a platform
-        int bla = 4;
         return;
       case STATION:
         // not processed yet
-        bla = 4;
         return;
       case GENERIC_NODE:
         // not processed yet
-        bla = 4;
         return;
       case ENTRANCE_EXIT:
-        bla = 4;
         // not processed yet, in future these could be used to connect to a separate pedestrian layer but this is not yet available
         return;
       default:
