@@ -140,7 +140,7 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * Verify if a GTFS short name is already tracked for logging purposes
    *
    * @param gtfsShortName to verify
-   * @returns true, when tracked, false otherwise
+   * @return true, when tracked, false otherwise
    */
   public boolean isActivatedLoggingForGtfsRouteByShortName(String gtfsShortName){
     return logGtfsRouteInformationByShortName.contains(gtfsShortName);

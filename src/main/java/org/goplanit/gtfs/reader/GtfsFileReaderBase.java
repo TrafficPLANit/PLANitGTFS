@@ -194,7 +194,7 @@ public abstract class GtfsFileReaderBase {
   /**
    * Perform the reading of the file
    *
-   * @param charSetToUse
+   * @param charSetToUse the charset to use
    */
   public void read(Charset charSetToUse) {
             

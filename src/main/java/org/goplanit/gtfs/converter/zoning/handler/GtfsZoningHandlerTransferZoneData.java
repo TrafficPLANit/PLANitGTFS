@@ -106,7 +106,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
   /**
    * Constructor
    *
-   * @param serviceNetwork
+   * @param serviceNetwork to use
    * @param settings        to use
    * @param referenceZoning to use
    */
@@ -131,7 +131,6 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
    *
    * @param gtfsStop to register on PLANit transfer zone
    * @param transferZone to register one
-   * @return true when already mapped by GTFS stop, false otherwise
    */
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
     var oldZone = mappedTransferZonesByGtfsStopId.put(gtfsStop.getStopId(), transferZone);

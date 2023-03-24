@@ -34,6 +34,7 @@ public class GtfsConverterHandlerData {
    * Constructor
    *
    * @param serviceNetwork to use
+   * @param settings to use
    */
   public GtfsConverterHandlerData(final ServiceNetwork serviceNetwork, GtfsConverterReaderSettingsWithModeMapping settings){
     this.serviceNetwork = serviceNetwork;

@@ -200,6 +200,7 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
    * time period has to be done separately, so it is possible a service is active on the day, but it falls outside of the chosen time period) in which
    * case this method still returns true
    *
+   * @param serviceId to check
    * @return true when deemed active on a date serviced by this service id, false otherwise
    */
   public boolean isServiceIdActivated(String serviceId) {
@@ -209,6 +210,8 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
   /**
    * Verify if a service id is active AND the given departure time for that service id falls within an active time period
    *
+   * @param serviceId to check
+   * @param departureTime to check
    * @return true when deemed active on a date serviced by this service id, false otherwise
    */
   public boolean isDepartureTimeOfServiceIdWithinEligibleTimePeriod(String serviceId, ExtendedLocalTime departureTime) {

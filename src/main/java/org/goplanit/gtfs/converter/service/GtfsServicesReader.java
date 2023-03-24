@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
 
 /**
  * Implementation of a GTFS services reader from GTFS files. This reads the following GTFS files:
- *  * <ul>
- *  *   <li>routes.txt</li>
- *  * </ul>
+ *  <ul>
+ *    <li>routes.txt</li>
+ *  </ul>
  *  The result is both the service network as well as the routed services as a PLANit memory model
  *
  * @author markr

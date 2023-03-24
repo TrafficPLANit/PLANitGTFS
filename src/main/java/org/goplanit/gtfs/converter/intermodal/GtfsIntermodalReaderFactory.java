@@ -1,19 +1,12 @@
 package org.goplanit.gtfs.converter.intermodal;
 
 import com.sun.istack.NotNull;
-import org.goplanit.gtfs.converter.service.GtfsServicesReader;
-import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.service.ServiceNode;
-import org.goplanit.xml.generated.XMLElementMacroscopicNetwork;
-import org.goplanit.xml.generated.XMLElementMacroscopicZoning;
 import org.goplanit.zoning.Zoning;
 
 import java.time.DayOfWeek;
-import java.util.function.Function;
 
 /**
  * Factory class for creating intermodal reader for GTFS files
@@ -83,10 +76,13 @@ public class GtfsIntermodalReaderFactory {
 
   /** Create a GtfsIntermodalReader based on given settings which in turn contain information on required location and reference inputs
    *
+   * @param parentNetwork to use
+   * @param parentZoning to use
    * @param settings to use
    * @return created routed service reader
    */
-  public static GtfsIntermodalReader create(final MacroscopicNetwork parentNetwork, final Zoning parentZoning, final GtfsIntermodalReaderSettings settings) {
+  public static GtfsIntermodalReader create(
+      final MacroscopicNetwork parentNetwork, final Zoning parentZoning, final GtfsIntermodalReaderSettings settings) {
     return new GtfsIntermodalReader(parentNetwork.getIdGroupingToken(), parentNetwork, parentZoning, settings);
   }
 }

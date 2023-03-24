@@ -132,6 +132,7 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    * Constructor
    *
    * @param settings to use
+   * @param zoningToPopulate the zoning to populate
    * @param serviceNetwork to use
    * @param routedServices to use
    * @param handlerProfiler to use
@@ -321,7 +322,6 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    *
    * @param gtfsStop to register on PLANit transfer zone
    * @param transferZone to register one
-   * @return true when already mapped by GTFS stop, false otherwise
    */
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
     transferZoneData.registerMappedGtfsStop(gtfsStop, transferZone);

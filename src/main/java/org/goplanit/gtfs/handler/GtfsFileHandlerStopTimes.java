@@ -20,6 +20,8 @@ public class GtfsFileHandlerStopTimes extends GtfsFileHandler<GtfsStopTime> {
 
   /**
    * Handle a GTFS stop time
+   *
+   * @param gtfsStop to handler
    */
   @Override
   public void handle(GtfsStopTime gtfsStop) {

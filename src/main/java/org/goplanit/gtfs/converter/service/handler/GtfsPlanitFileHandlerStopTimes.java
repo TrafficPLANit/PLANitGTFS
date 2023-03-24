@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  *   Prerequisites:
  *   (i) It is assumed routed services and service network are available and layers are initialised, (ii) it is assumed
  *   the sequence of stops per trip is increasing while traversing the file, i.e., a stop with sequence 1 will always be parsed before
- *   any other stop with sequence > 1.
+ *   any other stop with sequence greater than 1.
  * </p>
  * <p>
  *   As part of this handler, we create schedule based trips as needed where we make no effort to consolidate trips that have the
