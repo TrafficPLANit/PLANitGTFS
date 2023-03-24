@@ -12,7 +12,6 @@ import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +43,7 @@ public class ServicesReaderSettingsAndDataTest {
     parentNetwork = new MacroscopicNetwork(IdGenerator.createIdGroupingToken("testToken"));
     parentNetwork.getModes().getFactory().registerNew(PredefinedModeType.BUS);
     parentNetwork.getModes().getFactory().registerNew(PredefinedModeType.TRAIN);
-    parentNetwork.initialiseLayers(MacroscopicNetworkLayerConfigurator.createAllInOneConfiguration(parentNetwork.getModes()));
+    parentNetwork.createAndRegisterLayers(MacroscopicNetworkLayerConfigurator.createAllInOneConfiguration(parentNetwork.getModes()));
     settings  = new GtfsServicesReaderSettings("InputSource", "country", RouteTypeChoice.ORIGINAL);
 
     serviceNetwork = new ServiceNetwork(parentNetwork.getIdGroupingToken(), parentNetwork);
