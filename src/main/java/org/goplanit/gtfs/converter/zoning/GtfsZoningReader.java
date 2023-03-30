@@ -22,6 +22,7 @@ import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.ZoningModifierUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -51,7 +52,7 @@ public class GtfsZoningReader implements ZoningReader {
   private final RoutedServices routedServices;
 
   /** function that allows user to map a GTFS stop id to the underlying transfer zone (after {@link #read()} has been invoked) */
-  private Function<String, TransferZone> gtfsStopIdToTransferZoneMapping;
+  private Function<String, List<TransferZone>> gtfsStopIdToTransferZoneMapping;
 
   /** flag whether {@link #read()} has been invoked, false after {@link #reset()}  */
   private boolean readInvoked;
@@ -231,7 +232,7 @@ public class GtfsZoningReader implements ZoningReader {
    *
    * @return function that takes a GTFS stop id (String) and produces the PLANit transfer zone that goes with it if any)
    */
-  public Function<String, TransferZone> getGtfsStopIdToTransferZoneMapping() {
+  public Function<String, List<TransferZone>> getGtfsStopIdToTransferZoneMapping() {
     if(!readInvoked){
       LOGGER.warning("Unable to provide GTFS Stop id to transfer zone mapping before read() has been invoked on reader, ignored");
       return null;

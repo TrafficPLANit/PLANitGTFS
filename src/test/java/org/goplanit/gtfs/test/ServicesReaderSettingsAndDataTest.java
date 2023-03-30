@@ -51,7 +51,7 @@ public class ServicesReaderSettingsAndDataTest {
   }
 
   @Test
-  public void settingsTest1() {
+  public void settingsTest() {
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
 
     /* mapping for already present modes */

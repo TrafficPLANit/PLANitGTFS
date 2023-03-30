@@ -113,6 +113,8 @@ public class GtfsToPlanitTest {
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
 
+      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
+      // and a conscious choice has to be made whether this is better or not before changing the below results
       assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(58207));
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(92222));
       assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(92222));
@@ -162,7 +164,7 @@ public class GtfsToPlanitTest {
       var routedServices = result.fourth();
 
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
-      // and a conscious choice has to be amde whether this is better or not before changing the below results
+      // and a conscious choice has to be made whether this is better or not before changing the below results
       assertThat(network.getTransportLayers().size(),equalTo(1));
       assertThat(network.getTransportLayers().getFirst().getLinks().size(),equalTo(1338));
       assertThat(network.getTransportLayers().getFirst().getNodes().size(),equalTo(1120));

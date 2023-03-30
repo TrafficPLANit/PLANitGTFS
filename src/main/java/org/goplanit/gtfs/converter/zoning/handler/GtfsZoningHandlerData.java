@@ -5,7 +5,6 @@ import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -49,7 +48,7 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
   /** All pre-existing service nodes and the modes this node supports by means of the routed services that visit id by their GTFS stop id.
    * Note that service nodes might reside in a layer supporting many modes, while the service node itself only covers a few routed services with a subset
    * of modes, therefore we identify those separately for better matching results when mapping service nodes/stops to GTFS STOPS here*/
-  private Map<String, Pair<ServiceNode, Mode>> serviceNodeAndModeByGtfsStopId;
+  private Map<String, Pair<ServiceNode, List<Mode>>> serviceNodeModesByGtfsStopId;
 
   // LOCAL DATA TRACKING - UPDATED WHILE PROCESSING
 
@@ -82,7 +81,7 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    * Initialise the tracking of data
    */
   protected void initialise(){
-    this.serviceNodeAndModeByGtfsStopId = new HashMap<>();
+    this.serviceNodeModesByGtfsStopId = new HashMap<>();
 
     /* all links across all used layers for activated modes in geoindexed format */
     Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
@@ -108,12 +107,14 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
           /* mode specific service nodes */
           for(var serviceNode :  usedServiceNodes) {
             var gtfsStopId = getSettings().getServiceNodeToGtfsStopIdFunction().apply(serviceNode);
-            var entry = this.serviceNodeAndModeByGtfsStopId.get(gtfsStopId);
-            if(entry!=null && !entry.second().equals(routedService.getMode())) {
-              throw new PlanItRunTimeException( "GTFS STOP %s supports multiple modes, this is not yet supported", gtfsStopId);
-            }
+            var entry = this.serviceNodeModesByGtfsStopId.get(gtfsStopId);
             if(entry == null) {
-              this.serviceNodeAndModeByGtfsStopId.put(gtfsStopId, Pair.of(serviceNode, routedService.getMode()));
+              entry = Pair.of(serviceNode, new ArrayList<>(1));
+              this.serviceNodeModesByGtfsStopId.put(gtfsStopId, entry);
+            }
+            var supportedModes = entry.second();
+            if(!supportedModes.contains(routedService.getMode())){
+              supportedModes.add(routedService.getMode());
             }
           }
         }
@@ -157,10 +158,10 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    * Collect the mapped PLANit pt mode using this GTFS stop
    *
    * @param gtfsStop to collect PLANit mode for
-   * @return found PLANit mode, or null if none is found
+   * @return found PLANit modes, or null if none is found
    */
-  public Mode getSupportedPtMode(GtfsStop gtfsStop){
-    var resultPair = this.serviceNodeAndModeByGtfsStopId.get(gtfsStop.getStopId());
+  public List<Mode> getSupportedPtModes(GtfsStop gtfsStop){
+    var resultPair = this.serviceNodeModesByGtfsStopId.get(gtfsStop.getStopId());
     return resultPair!=null ? resultPair.second() : null;
   }
 
@@ -333,8 +334,8 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    * @param gtfsStop to use
    * @return PLANit transfer zone it is mapped to, null if no mapping exists yet
    */
-  public TransferZone getMappedTransferZone(GtfsStop gtfsStop){
-    return transferZoneData.getMappedTransferZone(gtfsStop);
+  public List<TransferZone> getMappedTransferZone(GtfsStop gtfsStop){
+    return transferZoneData.getMappedTransferZones(gtfsStop);
   }
 
   /**
@@ -411,7 +412,7 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    *
    * @return function that can map GTFS stop ids to transfer zones based on internal state of this data tracker
    */
-  public Function<String, TransferZone> createGtfsStopToTransferZoneMappingFunction() {
-    return transferZoneData.createGtfsStopToTransferZoneMappingFunction();
+  public Function<String, List<TransferZone>> createGtfsStopToTransferZoneMappingFunction() {
+    return transferZoneData.createGtfsStopToTransferZonesMappingFunction();
   }
 }
