@@ -29,18 +29,18 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
    *
    * @author markr
    */
-  public class GtfsStopIdToTransferZone implements Function<String, List<TransferZone>> {
+  public class GtfsStopIdToTransferZone implements Function<String, TransferZone> {
 
-    private final Map<String, List<TransferZone>> mappedTransferZonesByGtfsStopId;
+    private final Map<String, TransferZone> mappedTransferZonesByGtfsStopId;
 
     /** Constructor
      * @param mappedTransferZonesByGtfsStopId containing the mapping two wrap*/
-    private GtfsStopIdToTransferZone(Map<String, List<TransferZone>> mappedTransferZonesByGtfsStopId){
+    private GtfsStopIdToTransferZone(Map<String, TransferZone> mappedTransferZonesByGtfsStopId){
       this.mappedTransferZonesByGtfsStopId = mappedTransferZonesByGtfsStopId;
     }
 
     @Override
-    public List<TransferZone> apply(String gtfsStopId) {
+    public TransferZone apply(String gtfsStopId) {
       return mappedTransferZonesByGtfsStopId.get(gtfsStopId);
     }
   }
@@ -49,7 +49,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerTransferZoneData.class.getCanonicalName());
 
   /** Track all registered/mapped transfer zones by their GTFS stop id */
-  private Map<String, List<TransferZone>> mappedTransferZonesByGtfsStopId;
+  private Map<String, TransferZone> mappedTransferZoneByGtfsStopId;
 
   /** track all supported pt service modes for (partly pre-existing) PLANit transfer zones that have and are to be created and
    * their used directed connectoids so we can pinpoint PT stop locations on the physical road network more accurately rather than
@@ -75,7 +75,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
    * @param zoning to use
    */
   private void initialise(GtfsZoningReaderSettings settings, Zoning zoning){
-    this.mappedTransferZonesByGtfsStopId = new HashMap<>();
+    this.mappedTransferZoneByGtfsStopId = new HashMap<>();
     this.transferZoneConnectoidIndex = new HashMap<>();
     this.mappedGtfsStops = new HashMap<>();
 
@@ -119,35 +119,28 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
    * Reset the PLANit data tracking containers
    */
   public void reset() {
-    mappedTransferZonesByGtfsStopId.clear();
+    mappedTransferZoneByGtfsStopId.clear();
     transferZoneConnectoidIndex.clear();
     geoIndexPreExistingTransferZones = null;
     preExistingTransferZonesByExternalId.clear();
   }
 
   /**
-   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops mode as supported
-   * on the PLANit transfer zone (if not already present)
+   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops as mapped
    *
    * @param gtfsStop to register on PLANit transfer zone
    * @param transferZone to register one
    */
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
-    var tzEntries = mappedTransferZonesByGtfsStopId.get(gtfsStop);
-    if(tzEntries == null){
-      tzEntries = new ArrayList<>(1);
-      mappedTransferZonesByGtfsStopId.put(gtfsStop.getStopId(), tzEntries);
+    var mappedTransferZone = mappedTransferZoneByGtfsStopId.get(gtfsStop);
+    if(mappedTransferZone != null && !mappedTransferZone.equals(transferZone)){
+      throw new PlanItRunTimeException("Different transfer zone attempted to be mapped to a single GTFS stop (STOP_ID %s), this is not allowed", gtfsStop.getStopId());
     }
-
-    if(tzEntries.contains(transferZone)){
-      LOGGER.severe(String.format("Transfer zone already registered to the given GTFS stop, this shouldn't happen", gtfsStop.getStopId()));
-      return;
-    }
-    tzEntries.add(transferZone);
+    mappedTransferZoneByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
 
     var oldStop = mappedGtfsStops.put(gtfsStop.getStopId(), gtfsStop);
     if(oldStop != null && !oldStop.equals(gtfsStop)) {
-      throw new PlanItRunTimeException("Multiple GTFS stops found for the same GTFS STOP_ID %s, this is not yet supported", gtfsStop.getStopId());
+      LOGGER.warning(String.format("[DISCARD] Multiple GTFS stops found for the same GTFS STOP_ID %s, ignoring duplicate entry %s", oldStop.getStopId(), oldStop));
     }
   }
 
@@ -155,19 +148,20 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
    * Get the transfer zone that the GTFS stop was already mapped to (if any)
    *
    * @param gtfsStop to use
-   * @return PLANit transfer zone(s) it is mapped to, null if no mapping exists yet
+   * @return PLANit transfer zone it is mapped to, null if no mapping exists yet
    */
-  public List<TransferZone> getMappedTransferZones(GtfsStop gtfsStop){
-    return mappedTransferZonesByGtfsStopId.get(gtfsStop.getStopId());
+  public TransferZone getMappedTransferZone(GtfsStop gtfsStop){
+    return mappedTransferZoneByGtfsStopId.get(gtfsStop.getStopId());
   }
 
   /**
    * Check if transfer zone already has a mapped GTFS stop
+   *
    * @param transferZone to check
    * @return true when already mapped by GTFS stop, false otherwise
    */
   public boolean hasMappedGtfsStop(TransferZone transferZone) {
-    return mappedTransferZonesByGtfsStopId.values().stream().flatMap(e -> e.stream()).anyMatch( tz -> tz.equals(transferZone));
+    return mappedTransferZoneByGtfsStopId.values().contains(transferZone);
   }
 
   /**
@@ -191,7 +185,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
     var ptConnectoids = transferZoneConnectoidIndex.get(planitTransferZone);
     Set<Mode> ptServiceModes = new HashSet<>();
     for(var connectoid : ptConnectoids) {
-      ptServiceModes.addAll(((MacroscopicLinkSegment) connectoid.getAccessLinkSegment()).getAllowedModesFrom(modesFilter));
+      ptServiceModes.addAll(connectoid.getAccessLinkSegment().getAllowedModesFrom(modesFilter));
     }
     return ptServiceModes;
   }
@@ -249,8 +243,8 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
    *
    * @return function that can map GTFS stop ids to transfer zones based on internal state of this data tracker
    */
-  public Function<String, List<TransferZone>> createGtfsStopToTransferZonesMappingFunction() {
-    return new GtfsStopIdToTransferZone(this.mappedTransferZonesByGtfsStopId);
+  public Function<String, TransferZone> createGtfsStopToTransferZonesMappingFunction() {
+    return new GtfsStopIdToTransferZone(this.mappedTransferZoneByGtfsStopId);
   }
 
 }

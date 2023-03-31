@@ -4,6 +4,7 @@ import org.goplanit.gtfs.entity.GtfsStopTime;
 import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStopTimes;
 import org.goplanit.gtfs.util.GtfsUtils;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.RoutedTripSchedule;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -135,10 +136,11 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    * network that is to be used to route the trip over. Create service node for end point of leg segment if need be based on GTFS_STOP_ID
    *
    * @param layer to use
+   * @param serviceModeForStop the mode of the routed service that is visiting this stop
    * @param gtfsStopTime to use
    * @return found or created service leg segment
    */
-  private ServiceLegSegment collectOrRegisterNetworkServiceSegment(ServiceNetworkLayer layer, GtfsStopTime gtfsStopTime) {
+  private ServiceLegSegment collectOrRegisterNetworkServiceSegment(ServiceNetworkLayer layer, Mode serviceModeForStop, GtfsStopTime gtfsStopTime) {
     /* service nodes */
     var prevServiceNode = data.getServiceNodeByExternalId(prevSameTripStopTime.getStopId());
     /* service node registered by GTFS_STOP_ID */
@@ -146,6 +148,13 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
     /* service segment */
     var serviceNetworkSegment = prevServiceNode.getLegSegment(currServiceNode);
+    if(serviceNetworkSegment!= null && !this.data.getServiceLegMode(serviceNetworkSegment.getParent()).equals(serviceModeForStop)){
+      /* service leg is attributed to a different mode, so likely requires different infrastructure later on, e.g., bus vs tram
+       * operating on same GTFS stop. Therefore, create a separate service leg(segment) and attribute to this new mode
+       * as wel will map different (physical) paths between the stops based on this mode separation */
+      serviceNetworkSegment = null;
+    }
+
     if(serviceNetworkSegment == null){
       ServiceLeg parentLeg = null;
       boolean dirPrevCur = true;
@@ -165,6 +174,8 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       serviceNetworkSegment.setExternalId(
           dirPrevCur ? serviceNetworkSegment.getUpstreamServiceNode().getExternalId()+"_"+serviceNetworkSegment.getDownstreamServiceNode().getExternalId() :
               serviceNetworkSegment.getDownstreamServiceNode().getExternalId()+"_"+serviceNetworkSegment.getUpstreamServiceNode().getExternalId());
+      // attach mode to service leg until we create physical link segment mapping (with the same mode)
+      data.registerServiceLegMode(parentLeg, serviceModeForStop);
     }
     return serviceNetworkSegment;
   }
@@ -265,7 +276,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       }
 
       /* TIMING BETWEEN STOP and PREV STOP + SERVICE NETWORK UPDATE IF NEEDED (service node by GTFS_STOP_ID) */
-      var serviceNetworkSegment = collectOrRegisterNetworkServiceSegment(layer, gtfsStopTime);
+      var serviceNetworkSegment = collectOrRegisterNetworkServiceSegment(layer, planitRoutedService.getMode(), gtfsStopTime);
       var duration = arrivalTime.minus(GtfsUtils.parseGtfsTime(prevSameTripStopTime.getDepartureTime()));
       var dwellTime = departureTime.minus(arrivalTime);
       if(duration.exceedsSingleDay() || dwellTime.exceedsSingleDay()){

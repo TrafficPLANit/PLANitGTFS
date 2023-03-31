@@ -334,8 +334,8 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    * @param gtfsStop to use
    * @return PLANit transfer zone it is mapped to, null if no mapping exists yet
    */
-  public List<TransferZone> getMappedTransferZone(GtfsStop gtfsStop){
-    return transferZoneData.getMappedTransferZones(gtfsStop);
+  public TransferZone getMappedTransferZone(GtfsStop gtfsStop){
+    return transferZoneData.getMappedTransferZone(gtfsStop);
   }
 
   /**
@@ -394,7 +394,7 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    *
    * @return registered geo indexed transfer zones
    */
-  public Quadtree getGeoIndexedPReExistingTransferZones() {
+  public Quadtree getGeoIndexedPreExistingTransferZones() {
     return transferZoneData.getGeoIndexedPreExistingTransferZones();
   }
 
@@ -412,7 +412,8 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
    *
    * @return function that can map GTFS stop ids to transfer zones based on internal state of this data tracker
    */
-  public Function<String, List<TransferZone>> createGtfsStopToTransferZoneMappingFunction() {
+  public Function<String, TransferZone> createGtfsStopToTransferZoneMappingFunction() {
     return transferZoneData.createGtfsStopToTransferZonesMappingFunction();
   }
+
 }

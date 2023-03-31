@@ -7,6 +7,7 @@ import org.goplanit.utils.geo.PlanitEntityGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.CharacterUtils;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneType;
 import org.locationtech.jts.geom.Coordinate;
@@ -14,6 +15,7 @@ import org.locationtech.jts.geom.Point;
 
 import java.util.Collection;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.goplanit.utils.locale.DrivingDirectionDefaultByCountry.isLeftHandDrive;
 
@@ -73,11 +75,17 @@ public class GtfsTransferZoneHelper {
    * @param data containing state
    * @return true when on correct side of the road, false otherwise
    */
-  public static boolean isGtfsStopOnCorrectSideOfTransferZoneAccessLinkSegments(GtfsStop gtfsStop, TransferZone transferZone, GtfsZoningHandlerData data) {
+  public static boolean isGtfsStopOnCorrectSideOfTransferZoneAccessLinkSegments(GtfsStop gtfsStop, Mode gtfsMode, TransferZone transferZone, GtfsZoningHandlerData data) {
     boolean leftHandDrive = isLeftHandDrive(data.getSettings().getCountryName());
     var connectoids = data.getTransferZoneConnectoids(transferZone);
     if(connectoids== null || connectoids.isEmpty()){
       LOGGER.warning(String.format("Cannot determine of GTFS stop (%s) is on correct side of transfer zone (%s) access links since transfer zone has no connectoids associated with it, this shouldn't happen", gtfsStop.getStopId(), transferZone.getXmlId()));
+      return false;
+    }
+
+    /* only consider connectoids that are mode compatible */
+    connectoids = connectoids.stream().filter( c -> c.isModeAllowed(transferZone, gtfsMode)).collect(Collectors.toUnmodifiableSet());
+    if(connectoids== null || connectoids.isEmpty()){
       return false;
     }
 
@@ -150,6 +158,6 @@ public class GtfsTransferZoneHelper {
     //todo change implementation so it does not necessarily require WGS84 input locations as it is inconsistent with the utils class
     var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
     searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
-    return GeoContainerUtils.queryZoneQuadtree(data.getGeoIndexedPReExistingTransferZones(), searchEnvelope);
+    return GeoContainerUtils.queryZoneQuadtree(data.getGeoIndexedPreExistingTransferZones(), searchEnvelope);
   }
 }

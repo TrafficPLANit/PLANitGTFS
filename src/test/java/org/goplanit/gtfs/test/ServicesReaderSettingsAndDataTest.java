@@ -55,21 +55,21 @@ public class ServicesReaderSettingsAndDataTest {
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
 
     /* mapping for already present modes */
-    assertThat(data.getPlanitModeIfActivated(RouteType.BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
-    assertThat(data.getPlanitModeIfActivated(RouteType.TROLLEY_BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
-    assertThat(data.getPlanitModeIfActivated(RouteType.RAIL), is(parentNetwork.getModes().get((PredefinedModeType.TRAIN))));
+    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
+    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.TROLLEY_BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
+    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.RAIL), is(parentNetwork.getModes().get((PredefinedModeType.TRAIN))));
 
     /* other mappings should have been added as well */
-    assertThat(data.getPlanitModeIfActivated(RouteType.SUBWAY_METRO), is(parentNetwork.getModes().get((PredefinedModeType.SUBWAY))));
+    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.SUBWAY_METRO), is(parentNetwork.getModes().get((PredefinedModeType.SUBWAY))));
 
     /* remove all mappings except one */
     settings.deactivateAllModesExcept(List.of(RouteType.BUS,RouteType.TROLLEY_BUS));
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
 
-    assertThat(data.getPlanitModeIfActivated(RouteType.BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
-    assertThat(data.getPlanitModeIfActivated(RouteType.TROLLEY_BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
-    assert(data.getPlanitModeIfActivated(RouteType.RAIL)==null);
-    assert(data.getPlanitModeIfActivated(RouteType.SUBWAY_METRO)==null);
+    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
+    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.TROLLEY_BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
+    assert(data.getPrimaryPlanitModeIfActivated(RouteType.RAIL)==null);
+    assert(data.getPrimaryPlanitModeIfActivated(RouteType.SUBWAY_METRO)==null);
 
   }
 

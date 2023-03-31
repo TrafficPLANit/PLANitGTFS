@@ -4,6 +4,7 @@ import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.utils.mode.PredefinedModeType;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,31 +40,38 @@ public class RouteTypeExtendedToPredefinedPlanitModeMappingCreator extends Route
   public static void execute(GtfsConverterReaderSettingsWithModeMapping settings) {
     /* add default mapping for default route types */
     Map<PredefinedModeType, Set<RouteType>> modeMappings = new HashMap<>();
+    // allow multi mapping where first entry is preferred and second, third, etc. are fallbacks indicating
+    // the mode is considered compatible with stops/infrastructure servicing the secondary modes as well in case no
+    // matches can be found based on primary match
+    Map<RouteType, List<PredefinedModeType>> gtfs2PlanitModeMappings = new HashMap<>();
     {
       /* train types */
       var trainTypes = RouteType.getInValueRange((short)100,(short)117);
       trainTypes.add(RouteType.of((short)400));
       trainTypes.addAll(RouteType.getInValueRange((short)403,(short)404));
       trainTypes.add(RouteType.of((short)1503));
+      trainTypes.forEach( gtfsModeType -> gtfs2PlanitModeMappings.put(gtfsModeType, List.of(PredefinedModeType.TRAIN)));
       modeMappings.put(PredefinedModeType.TRAIN, trainTypes);
 
       /* bus types */
       var busTypes = RouteType.getInValueRange((short)200,(short)209);
       busTypes.addAll(RouteType.getInValueRange((short)700,(short)716));
       busTypes.add(RouteType.of((short)800));
+      busTypes.forEach( gtfsModeType -> gtfs2PlanitModeMappings.put(gtfsModeType, List.of(PredefinedModeType.BUS)));
       modeMappings.put(PredefinedModeType.BUS, busTypes);
 
       /* subway/metro types */
       modeMappings.put(PredefinedModeType.SUBWAY, RouteType.getInValueRange((short)401,(short)402));
+      busTypes.forEach( gtfsModeType -> gtfs2PlanitModeMappings.put(gtfsModeType, List.of(PredefinedModeType.BUS)));
 
       /* lightrail/tram types */
-      modeMappings.put(PredefinedModeType.LIGHTRAIL, RouteType.getInValueRange((short)900,(short)906));
+      var tramLightRailTypes = RouteType.getInValueRange((short)900,(short)906);
+      modeMappings.put(PredefinedModeType.LIGHTRAIL, tramLightRailTypes);
+      tramLightRailTypes.forEach( gtfsModeType -> gtfs2PlanitModeMappings.put(gtfsModeType, List.of(PredefinedModeType.TRAM,PredefinedModeType.LIGHTRAIL)));
     }
-    modeMappings.forEach( (planitModeType, routeTypes) ->
-            routeTypes.forEach( routeType -> settings.setDefaultGtfs2PredefinedModeTypeMapping(routeType, planitModeType)));
+    gtfs2PlanitModeMappings.entrySet().forEach(e-> settings.setDefaultGtfs2PredefinedModeTypeMapping(e.getKey(), e.getValue()));
 
     /* activate all mapped defaults initially*/
-    modeMappings.forEach( (planitModeType, gtfsRouteTypes) ->
-            gtfsRouteTypes.forEach( gtfsRouteType -> settings.activateGtfsRouteTypeMode(gtfsRouteType)));
+    gtfs2PlanitModeMappings.keySet().forEach( gtfsRouteType -> settings.activateGtfsRouteTypeMode(gtfsRouteType));
   }
 }

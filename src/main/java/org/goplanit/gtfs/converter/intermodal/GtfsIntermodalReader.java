@@ -144,6 +144,7 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
         settings,
         zoning,
         servicesResult.first(),
+        servicesResult.second(),
         servicesReader.getServiceNodeToGtfsStopIdMapping(),
         zoningReader.getGtfsStopIdToTransferZoneMapping());
     integrator.execute();

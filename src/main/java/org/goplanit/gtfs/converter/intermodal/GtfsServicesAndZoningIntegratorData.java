@@ -8,7 +8,9 @@ import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.Zone;
@@ -28,6 +30,9 @@ public class GtfsServicesAndZoningIntegratorData {
   /** zoning to use */
   private final Zoning zoning;
 
+  /** routed services to use */
+  private final RoutedServices routedServices;
+
   private final GtfsIntermodalReaderSettings settings;
 
   // local data during execution
@@ -35,6 +40,10 @@ public class GtfsServicesAndZoningIntegratorData {
 
   /** shortest path algorithm used specific to each mode (and its link segment costs) */
   private Map<Mode, ShortestPathAStar> shortestPathAlgoByMode;
+
+  /** track the expected mode to be used for a given service leg (before physical link segments have been attached), based on
+   * the routed services that traverse it (which do have a mode) */
+  private Map<ServiceLeg, Mode> serviceLegToModeMapping;
 
   /** use this for the mode mapping */
   private GtfsConverterHandlerData modeMappingData;
@@ -66,17 +75,23 @@ public class GtfsServicesAndZoningIntegratorData {
    * Constructor
    *
    * @param serviceNetwork to use
+   * @param routedServices to use
    * @param zoning to use
    * @param settings to extract mode mapping from
    */
-  protected GtfsServicesAndZoningIntegratorData(ServiceNetwork serviceNetwork, Zoning zoning, GtfsIntermodalReaderSettings settings) {
+  protected GtfsServicesAndZoningIntegratorData(
+      ServiceNetwork serviceNetwork,
+      RoutedServices routedServices,
+      Zoning zoning,
+      GtfsIntermodalReaderSettings settings) {
     this.modeMappingData = new GtfsConverterHandlerData(serviceNetwork, settings.getServiceSettings());
     this.settings = settings;
     this.zoning = zoning;
+    this.routedServices = routedServices;
   }
 
   /**
-   * Initialise before start of integration on the owner of this instance. Only after initialisation the availabe public getters/settings can be used
+   * Initialise before start of integration on the owner of this instance. Only after initialisation the available public getters/settings can be used
    */
   public void initialise() {
     this.connectoidsByAccessZone = zoning.getTransferConnectoids().createIndexByAccessZone();
@@ -93,6 +108,14 @@ public class GtfsServicesAndZoningIntegratorData {
     for(var mode : eligibleServiceModes) {
       initialiseShortestPathAlgorithmForMode(mode);
     }
+
+    /* infer the modes for each service leg based on the routed services that use it, this reduced the complexity of finding paths
+    *  for a leg and allows for validity check, in case routes with different PLANit modes use the same leg (which we do not allow)
+    *  essentially, each mode potentially obtains its own service network in terms of legs and leg segments when they would use different
+    *  physical routes between service nodes */
+    serviceLegToModeMapping = new HashMap<>();
+    this.routedServices.getLayers().forEach(l -> l.forEach( rs -> rs.forEach(
+        s -> s.getTripInfo().getLegSegmentsStream().forEach(ls -> serviceLegToModeMapping.put(ls.getParent(), s.getMode())))));
   }
 
   /** Access to the service network
@@ -113,6 +136,16 @@ public class GtfsServicesAndZoningIntegratorData {
     return modeMappingData.getActivatedPlanitModesByGtfsMode();
   }
 
+  /**
+   * Determine the expected mode to be used for a given service leg
+   *
+   * @param serviceLeg to find mode for based on routed services that use it
+   * @return mode, null if entry does not exist
+   */
+  public Mode getExpectedModeForServiceLeg(ServiceLeg serviceLeg){
+    return serviceLegToModeMapping.get(serviceLeg);
+  }
+
 
   /**
    * Collect PLANit mode if it is known as being activated, otherwise return null
@@ -120,8 +153,29 @@ public class GtfsServicesAndZoningIntegratorData {
    * @param gtfsMode to check for
    * @return PLANit mode
    */
-  public Mode getPlanitModeIfActivated(RouteType gtfsMode){
-    return modeMappingData.getPlanitModeIfActivated(gtfsMode);
+  public Mode getPrimaryPlanitModeIfActivated(RouteType gtfsMode){
+    return modeMappingData.getPrimaryPlanitModeIfActivated(gtfsMode);
+  }
+
+  /**
+   * Collect PLANit modes if it is known as being activated and compatible, otherwise return null
+   *
+   * @param gtfsMode to check for
+   * @return all compatible PLANit modes in order from primary compatible to alternatives that one might consider, null if not present
+   */
+  public List<Mode> getCompatiblePlanitModesIfActivated(RouteType gtfsMode){
+    return modeMappingData.getCompatiblePlanitModesIfActivated(gtfsMode);
+  }
+
+  /**
+   * Collect compatible PLANit modes from a given PLANit mode (if any). These only exist if a GTFS mode listed more than one
+   * mapped PLANit mode, e.g. lightrail and tram, in which case lightrail would return tram and vice versa.
+   *
+   * @param planitMode to check for
+   * @return all compatible PLANit modes
+   */
+  public Set<Mode> getCompatiblePlanitModesIfActivated(Mode planitMode){
+    return modeMappingData.getCompatiblePlanitModesIfActivated(planitMode);
   }
 
   public GtfsIntermodalReaderSettings getSettings() {
@@ -132,6 +186,13 @@ public class GtfsServicesAndZoningIntegratorData {
     return connectoidsByAccessZone.get(transferZone);
   }
 
+  /**
+   * Shortest path algorithm by mode initialised with the costs for that mode per link segment,
+   * requires {@link #initialise()} to be invoked beforehand
+   *
+   * @param mode to get shortest path algorithm for
+   * @return algo
+   */
   public ShortestPathAStar getShortestPathAlgoByMode(Mode mode) {
     return shortestPathAlgoByMode.get(mode);
   }

@@ -10,6 +10,7 @@ import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.misc.CustomIndexTracker;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.service.routed.RoutedServices;
@@ -60,6 +61,12 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
   /** index routed services by mode */
   Map<Mode, RoutedServicesLayer> routedServiceLayerByMode;
 
+  /** in anticipation of mapping to physical link segments, we must be able to determine if a leg will be attributed to a particular mode
+   * to avoid having to split legs between adjacent stops servicing multiple modes (and requiring a different physical mapping). This is where
+   * we track this
+   */
+  Map<ServiceLeg, Mode> serviceLegMapMapping;
+
   // TO POPULATE
 
   /** routed service to populate (indirectly via mode indexed {@link #routedServiceLayerByMode}) */
@@ -77,9 +84,10 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
     /* lay indices by mode -> routedServicesLayer */
     routedServiceLayerByMode = routedServices.getLayers().indexLayersByMode();
 
+    serviceLegMapMapping = new HashMap<>();
     activeGtfsServiceIdCalendars = new HashMap<>();
-    customIndexTracker = new CustomIndexTracker();
 
+    customIndexTracker = new CustomIndexTracker();
     /* track routed service entries by external id (GTFS ROUTE_ID) */
     customIndexTracker.initialiseEntityContainer(RoutedService.class, (routedService) -> routedService.getExternalId());
     /* track GTFS trip entries by trip id (GTFS TRIP_ID) */
@@ -173,6 +181,24 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
    */
   public boolean isGtfsTripDiscarded(String gtfsTripId){
     return this.discardedTrips.entrySet().stream().filter( e -> e.getValue().contains(gtfsTripId)).findFirst().isPresent();
+  }
+
+  /**
+   * Mark the service leg as compatible with the given mode, and this given mode only.
+   * @param parentLeg to attribute mode to
+   * @param serviceLegMode to use
+   */
+  public void registerServiceLegMode(ServiceLeg parentLeg, Mode serviceLegMode) {
+    serviceLegMapMapping.put(parentLeg, serviceLegMode);
+  }
+
+  /**
+   * find mode attributed to the given service leg if any
+   * @param serviceLeg to check
+   * @return mode that is attached to it, or null if not mapped (yet)
+   */
+  public Mode getServiceLegMode(ServiceLeg serviceLeg) {
+    return serviceLegMapMapping.get(serviceLeg);
   }
 
   /**
