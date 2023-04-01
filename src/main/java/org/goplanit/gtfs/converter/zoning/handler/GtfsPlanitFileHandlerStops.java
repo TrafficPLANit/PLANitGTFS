@@ -305,8 +305,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     final boolean stopLocationDirectionSpecific = !(primaryMode.getPhysicalFeatures().getTrackType() == TrackModeType.RAIL);
 
-    var compatibleAltModes = data.getCompatiblePlanitModesIfActivated(primaryMode);
-    var allEligibleModes = Stream.concat(compatibleAltModes.stream(), Stream.of(primaryMode)).collect(Collectors.toUnmodifiableSet());
+    var allEligibleModes = data.expandWithCompatibleModes(primaryMode);
     // prune transfer zones
     {
       /* remove nearby zones that are not mode compatible */
@@ -332,7 +331,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     /* identify preferred access link (segments) for GTFS stop as if there were no existing transfer zones to map to, to use for matching */
     var nearbyLinks = GtfsLinkHelper.findNearbyLinks(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data);
-    Pair<MacroscopicLink, Set<LinkSegment>> accessResult = findMostAppropriateStopLocationLinkForGtfsStop(gtfsStop, compatibleAltModes, nearbyLinks);
+    Pair<MacroscopicLink, Set<LinkSegment>> accessResult = findMostAppropriateStopLocationLinkForGtfsStop(gtfsStop, allEligibleModes, nearbyLinks);
     if(accessResult == null){
       // todo -> when close to bounding box this might happen (and we either should include this link partly, or not log this warning warning (or both)
       LOGGER.severe(String.format("No appropriate stop location on the network could be found for GTFS stop %s",gtfsStop.getStopId()));
@@ -395,10 +394,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     TransferZone newTransferZone = null;
     /* for each mode obtain the necessary information to create connectoid (if deemed valid) */
     for(var gtfsStopMode : primaryGtfsStopModes){
-
-      /* make sure we consider all elligble modes compatible with the primary GTFS stop mode when identifying possible stop locations */
-      var compatibleAltModes = data.getCompatiblePlanitModesIfActivated(gtfsStopMode);
-      var allEligibleModes = Stream.concat(compatibleAltModes.stream(), Stream.of(gtfsStopMode)).collect(Collectors.toUnmodifiableSet());
+      /* make sure we consider all eligible modes compatible with the primary GTFS stop mode when identifying possible stop locations */
+      var allEligibleModes = data.expandWithCompatibleModes(gtfsStopMode);
 
       /* preferred access link segment for GTFS stop-mode combination */
       var accessResult = findMostAppropriateStopLocationLinkForGtfsStop(gtfsStop, allEligibleModes, nearbyLinks);
@@ -526,9 +523,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       // todo --> move to separate method ugly now but needed to make sure that we add all compatible modes
       for(var connectoid : data.getTransferZoneConnectoids(theTransferZone)){
         for(var primaryMode : primaryGtfsStopModes) {
-          var compatibleAltModes = data.getCompatiblePlanitModesIfActivated(primaryMode);
-          var allEligibleModes = Stream.concat(compatibleAltModes.stream(), Stream.of(primaryMode)).collect(Collectors.toUnmodifiableSet());
-
+          var allEligibleModes = data.expandWithCompatibleModes(primaryMode);
+          // todo --> place breakpoint here and see that first hit results in lightrail/tram situation where
+          // todo     the tram mode would be added but the link segment's type does not allow tram, only lightrail --> yet
+          // todo     looking at the network this should also support tram (it is more tram than lightrail
+          // todo     Figure out if we need to adjust the OSM reader + GTFS reader to adjust link segment types in both
+          // todo     in GTFS reader, likely we need to update the link segment types based on the compatible modes during configuration and log this to user!!
           allEligibleModes.removeIf(m -> !connectoid.getAccessLinkSegment().isModeAllowed(m));
           connectoid.addAllowedModes(theTransferZone, allEligibleModes);
           data.registerTransferZoneToConnectoidModes(theTransferZone, connectoid, allEligibleModes);

@@ -167,7 +167,7 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
         e -> !startTimeWithinDay.isBefore(e.first()) && !startTimeWithinDay.isAfter(e.second()) ||
         !endTimeWithinDay.isBefore(e.first()) && !endTimeWithinDay.isAfter(e.second()));
     if(overlap){
-      LOGGER.warning(String.format("Cannot register overlapping time period filter, revise ignored filter (%s to %s)",
+      LOGGER.warning(String.format("[DISCARD] overlapping time period filter, consider revising filter (%s to %s)",
           startTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME), endTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME)));
       return;
     }

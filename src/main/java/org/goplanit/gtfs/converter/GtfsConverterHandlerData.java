@@ -1,12 +1,17 @@
 package org.goplanit.gtfs.converter;
 
+import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.utils.containers.ContainerUtils;
+import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.goplanit.gtfs.util.GtfsConverterReaderHelper.createCombinedActivatedPlanitModes;
 
@@ -51,18 +56,20 @@ public class GtfsConverterHandlerData {
 
     /* populate the compatible mode mappings */
     {
-      List<Pair<Mode,Mode>> temp = new ArrayList<>();
+      secondaryModeCompatibility = new HashMap<>();
       // create all permutations of pairs that exist (including with itself)
-      activatedPlanitModesByGtfsMode.values().forEach(l -> l.forEach(m1 -> l.forEach( m2 -> temp.add(Pair.of(m1,m2)))));
-      // now construct all genuine compatible pairs
-      for(var entry : temp){
-        if(entry.different()) {
-          var compatibleModes = secondaryModeCompatibility.get(entry.first());
-          if(compatibleModes == null){
-            compatibleModes = new HashSet<>(1);
-            secondaryModeCompatibility.put(entry.first(), compatibleModes);
-          }
-          compatibleModes.add(entry.second());
+      for(var planitModesForGtfsMode : activatedPlanitModesByGtfsMode.values()){
+        if(planitModesForGtfsMode.size()<=1){
+          continue;
+        }
+        /* if the permutations exist for any gtfs mode, then we allow it for all (assuming this is done consistently, but
+         * avoiding being too strict, e.g., if one gtfs mode maps to planit mode 2 and 3, and another to 3 and 4, we assume 2,3, and 4
+         * are all compatible */
+        var currModePairPermutations = ListUtils.getPairPermutations(planitModesForGtfsMode, false);
+        for(var entry : currModePairPermutations){
+          var result = secondaryModeCompatibility.getOrDefault(entry.first(), new HashSet<>());
+          result.add(entry.second());
+          secondaryModeCompatibility.put(entry.first(), result);
         }
       }
     }
@@ -97,13 +104,13 @@ public class GtfsConverterHandlerData {
   }
 
   /**
-   * Collect PLANit modes if it is known as being activated and compatible, otherwise return null
+   * Collect PLANit modes if it is known as being activated and compatible (unmodifiable), otherwise return null
    *
    * @param gtfsMode to check for
    * @return all compatible PLANit modes in order from primary compatible to alternatives that one might consider, null if not present
    */
   public List<Mode> getCompatiblePlanitModesIfActivated(RouteType gtfsMode){
-    return Collections.unmodifiableList(activatedPlanitModesByGtfsMode.get(gtfsMode));
+    return ContainerUtils.wrapInUnmodifiableListUnlessNull(activatedPlanitModesByGtfsMode.get(gtfsMode));
   }
 
   /**
@@ -111,11 +118,26 @@ public class GtfsConverterHandlerData {
    * mapped PLANit mode, e.g. lightrail and tram, in which case lightrail would return tram and vice versa.
    *
    * @param planitMode to check for
-   * @return all compatible PLANit modes
+   * @return all compatible PLANit modes (unmodifiable)
    */
   public Set<Mode> getCompatiblePlanitModesIfActivated(Mode planitMode){
-    return Collections.unmodifiableSet(secondaryModeCompatibility.get(planitMode));
+    return ContainerUtils.wrapInUnmodifiableSetUnlessNull(secondaryModeCompatibility.get(planitMode));
   }
+
+  /**
+   * Expand the mode to all compatible modes (if any) including the mode itself
+   *
+   * @param planitMode to expand
+   * @return original mode supplemented with any compatible modes
+   */
+  public Set<Mode> expandWithCompatibleModes(Mode planitMode){
+    var compatibleAltModes = secondaryModeCompatibility.get(planitMode);
+    if(compatibleAltModes == null){
+      return new HashSet<>(Collections.singleton(planitMode));
+    }
+    return Stream.concat(compatibleAltModes.stream(), Stream.of(planitMode)).collect(Collectors.toSet());
+  }
+
 
   /**
    * Access to GTFS zoning reader settings

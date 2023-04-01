@@ -178,6 +178,16 @@ public class GtfsServicesAndZoningIntegratorData {
     return modeMappingData.getCompatiblePlanitModesIfActivated(planitMode);
   }
 
+  /**
+   * Expand the mode to all compatible modes (if any) including the mode itself
+   *
+   * @param planitMode to expand
+   * @return original mode supplemented with any compatible modes
+   */
+  public Set<Mode> expandWithCompatibleModes(Mode planitMode){
+    return modeMappingData.expandWithCompatibleModes(planitMode);
+  }
+
   public GtfsIntermodalReaderSettings getSettings() {
     return settings;
   }
