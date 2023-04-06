@@ -295,6 +295,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    *
    * @param gtfsStop      to create new TransferZone for
    * @param primaryMode PLANit mode associated with GTFS stop
+   * @param nearbyTransferZones to consider, note this container will be pruned if zones are not eligible
    * @return found match (not attached yet), null if no match is found, the mode can be the primary mode initially provided, or a compatible alternative mode
    *          that is deemed a valid alternative. If the latter is the case, the found transfer zone is not compatible with the primary mode
    */
@@ -497,22 +498,26 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private void handleStopPlatform(final GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
+    if(gtfsStop.getStopId().equals("49024")){
+      int bla = 4;
+    }
+
     Collection<TransferZone> nearbyTransferZones = GtfsTransferZoneHelper.findNearbyTransferZones(
         gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
 
     TransferZone theTransferZone = null;
-    for(var primaryMode : primaryGtfsStopModes) {
-      if (!nearbyTransferZones.isEmpty()) {
-        var modeTransferZone = findMatchingExistingTransferZone(gtfsStop, primaryMode, nearbyTransferZones);
-
-        if (modeTransferZone == null) {
-          LOGGER.warning(String.format("GTFS stop %s %s (location %s) has nearby existing transfer zones but no appropriate mapping could be found, verify correctness", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
-          continue;
-        }
-        if(theTransferZone!=null && theTransferZone != modeTransferZone){
-          throw new PlanItRunTimeException("GTFS stop %s %s (location %s) supports multiple modes, but could not map those to a single transfer zone, this shouldn't happen, verify correctness", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
-        }
-        theTransferZone = modeTransferZone;
+    if (!nearbyTransferZones.isEmpty()) {
+      for (var primaryMode : primaryGtfsStopModes) {
+          var modeTransferZone = findMatchingExistingTransferZone(gtfsStop, primaryMode, nearbyTransferZones);
+          if (theTransferZone != null && theTransferZone != modeTransferZone) {
+            throw new PlanItRunTimeException("GTFS stop %s %s (location %s) supports multiple modes, but could not map those to a single transfer zone, this shouldn't happen, verify correctness", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
+          }
+          theTransferZone = modeTransferZone;
+      }
+      if (theTransferZone == null) {
+        LOGGER.warning(String.format(
+            "GTFS stop %s %s (location %s) [mode(s): %s] has nearby existing transfer zones but no appropriate mapping could be found, verify correctness", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), primaryGtfsStopModes.stream().map(e -> e.getName()).collect(Collectors.joining())));
+        return;
       }
     }
 

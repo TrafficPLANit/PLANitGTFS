@@ -118,7 +118,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   private ServiceNode collectOrRegisterServiceNode(ServiceNetworkLayer layer, GtfsStopTime gtfsStopTime) {
     var currServiceNode = data.getServiceNodeByExternalId(gtfsStopTime.getStopId());
     if(currServiceNode == null){
-      currServiceNode = layer.getServiceNodes().getFactory().registerNew(null);
+      currServiceNode = layer.getServiceNodes().getFactory().registerNew();
 
       /* XML id -> PLANit id */
       currServiceNode.setXmlId(currServiceNode.getId());

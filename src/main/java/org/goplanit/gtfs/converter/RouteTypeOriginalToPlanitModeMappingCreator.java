@@ -3,6 +3,8 @@ package org.goplanit.gtfs.converter;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.utils.mode.PredefinedModeType;
 
+import java.util.List;
+
 /**
  * Each GTFS default Route type is mapped to a PLANit mode through this dedicated mapping class so that the memory model's modes
  * are user configurable yet linked to the original format. Note that when the reader is used
@@ -37,7 +39,7 @@ public class RouteTypeOriginalToPlanitModeMappingCreator extends RouteTypeToPlan
 
     /* add default mapping for default route types */
     {
-      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.TRAM_LIGHTRAIL, PredefinedModeType.LIGHTRAIL);
+      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.TRAM_LIGHTRAIL, List.of(PredefinedModeType.LIGHTRAIL, PredefinedModeType.TRAM));
       settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.SUBWAY_METRO, PredefinedModeType.SUBWAY);
       settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.RAIL, PredefinedModeType.TRAIN);
       settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.BUS, PredefinedModeType.BUS);

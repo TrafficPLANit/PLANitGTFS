@@ -66,11 +66,11 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     /* When GTFS stop has been linked to a service node which in turn has already been mapped to a physical node, then we must limit the connectoids we consider to
      * access nodes matching the physical node that is related to this service node */
-    if(gtfsStopServiceNode.hasPhysicalParentNode()){
-      resultByAccessNode.entrySet().removeIf( e -> e.getKey() != gtfsStopServiceNode.getPhysicalParentNode());
+    if(gtfsStopServiceNode.hasPhysicalParentNodes()){
+      resultByAccessNode.entrySet().removeIf( e -> !gtfsStopServiceNode.isMappedToPhysicalParentNode(e.getKey()));
     }
 
-    if(resultByAccessNode.isEmpty() && gtfsStopServiceNode.hasPhysicalParentNode()){
+    if(resultByAccessNode.isEmpty() && gtfsStopServiceNode.hasPhysicalParentNodes()){
       LOGGER.severe(String.format("Unable to find available transfer zone access nodes for leg segment, likely GTFS stop %s mapped to incorrect physical access node upon earlier path search", gtfsStopId));
     }
     return resultByAccessNode;
@@ -97,11 +97,11 @@ public class GtfsServicesAndZoningReaderIntegrator {
       return null;
     }
 
-    if(gtfsStopIdDownstream.equals("4192") | gtfsStopIdUpstream.equals("4192")){
+    if(gtfsStopIdDownstream.equals("49024") | gtfsStopIdUpstream.equals("49024")){
       int bla = 4;
     }
 
-    /* link service node to transfer zone access node (which is a physical node) */
+    /* link service node to transfer zone access nodes (which are physical nodes) */
     var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream, serviceLegSegment.getUpstreamServiceNode());
     var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdDownstream, transferZoneDownstream, serviceLegSegment.getDownstreamServiceNode());
     if(upstreamConnectoidsByAccessNode.isEmpty() || downstreamConnectoidsByAccessNode.isEmpty()){
@@ -128,7 +128,13 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     Set<SimpleDirectedPath> allLegSegmentPathOptions = new HashSet<>();
     for (var upstreamAccessNodeConnectoidsEntry : upstreamConnectoidsByAccessNode.entrySet()) {
+      if(upstreamAccessNodeConnectoidsEntry.getValue().isEmpty()){
+        continue;
+      }
       for (var downstreamAccessNodeConnectoidsEntry : downstreamConnectoidsByAccessNode.entrySet()) {
+        if(downstreamAccessNodeConnectoidsEntry.getValue().isEmpty()){
+          continue;
+        }
 
         // find eligible paths between upstream access node and downstream access node(s).
         Set<SimpleDirectedPath> accessNodePathOptions =
@@ -263,35 +269,10 @@ public class GtfsServicesAndZoningReaderIntegrator {
     Mode expectedMode = data.getExpectedModeForServiceLeg(legSegment.getParent());
     var chosenPath = findMostLikelyPathBetweenGtfsStopServiceNodes(layer, legSegment, expectedMode);
     if(chosenPath != null) {
-      // now attach service nodes to physical network nodes
-      // todo service nodes no longer require physical node as they may services multiple modes with various physical link mappings
-      // not ending in the same location but do utilise the same service node!
-      integrateServiceNode(legSegment.getUpstreamServiceNode(), (Node) chosenPath.getFirstSegment().getUpstreamVertex());
-      integrateServiceNode(legSegment.getDownstreamServiceNode(), (Node) chosenPath.getLastSegment().getDownstreamVertex());
-
       /* now attach the link segments to the service leg segment based on the found path */
       legSegment.setPhysicalParentSegments(IterableUtils.toTypeCastList(chosenPath));
       return;
     }
-
-    /* check if we should provide a warning in case we expected a path, e.g., service nodes are mapped to physical network indicating it
-     * (roughly) falls within the network's bounding box (otherwise these would not have been mapped to a physical network node either in which case it is logical
-     * no match is found and no warning is given */
-    if(legSegment.getUpstreamServiceNode().hasPhysicalParentNode() && legSegment.getDownstreamServiceNode().hasPhysicalParentNode()) {
-      LOGGER.warning(String.format("Unable to find physical path between GTFS stop %s and GTFS stop %s on underlying PLANit network",
-          serviceNodeToGtfsStopIdMapping.apply(legSegment.getUpstreamServiceNode()), serviceNodeToGtfsStopIdMapping.apply(legSegment.getDownstreamServiceNode())));
-    }
-  }
-
-  /**
-   * Given a service node and physical network node, connect the two such that mapping between physical and service network is made
-   * appropriately
-   *
-   * @param serviceNode to relate to physicalNetworkNode when appropriate
-   * @param physicalNetworkNode to attach to service node when appropriate
-   */
-  private void integrateServiceNode(ServiceNode serviceNode, Node physicalNetworkNode) {
-    serviceNode.setPhysicalParentNode(physicalNetworkNode);
   }
 
   /**
