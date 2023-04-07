@@ -5,9 +5,11 @@ import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.locationtech.jts.geom.Coordinate;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,6 +46,12 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   private final Map<String, String> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
 
+  /**
+   * Provide explicit mapping from GTFS stop (by GTFS stop id) to a geo-location.
+   * This overrides the oiginal geo location of the stop.
+   */
+  private final Map<String, Coordinate> overwriteGtfsStopLocationMapping = new HashMap<>();
+
   /** flag to indicate if transfer zones that have no services stopping after parsing is complete, are to be removed or not */
   private boolean removeUnusedTransferZones = DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES;
 
@@ -74,7 +82,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple candidates via this buffer, we can then use more sophisticated ways than proximity
    * to determine the best candidate
    */
-  public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 5;
+  public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 8;
 
   /** Copy constructor creating a shallow copy of the underlying mode mapping so it is synced with the provided settings. Useful when both settings are used
    *  in conjunction and we want to avoid having to sync information
@@ -157,6 +165,37 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   public String getOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
     return overwriteGtfsStopTransferZoneExternalIdMapping.get(gtfsStopId);
+  }
+
+  /**
+   * Provide explicit mapping for GTFS stop id to an alternative location. USeful in case the original location is slightly off compared
+   * to underlying network making finding an automated mapping to the network problematic. Often, moving the location slghty further away from the road
+   * will solve this problem.
+   *
+   * @param gtfsStopId id of stop location
+   * @param latitude new latitude
+   * @param latitude new longitude
+   */
+  public void setOverwriteGtfsStopLocation(final String gtfsStopId, double latitude, double longitude) {
+    overwriteGtfsStopLocationMapping.put(gtfsStopId, new Coordinate(longitude /*x*/, latitude/*y*/));
+  }
+
+  /** Verify if stop id is marked for overwritten location
+   *
+   * @param gtfsStopId to verify
+   * @return true when present, false otherwise
+   */
+  public boolean isOverwrittenGtfsStopLocationMapping(final String gtfsStopId) {
+    return overwriteGtfsStopLocationMapping.containsKey(gtfsStopId);
+  }
+
+  /** get explicitly mapped location for given GTFS stop id  (if any))
+   *
+   * @param gtfsStopId to collect for
+   * @return mapped transfer zone (null if none is mapped)
+   */
+  public Coordinate getOverwrittenGtfsStopLocation(final String gtfsStopId) {
+    return overwriteGtfsStopLocationMapping.get(gtfsStopId);
   }
 
   /**

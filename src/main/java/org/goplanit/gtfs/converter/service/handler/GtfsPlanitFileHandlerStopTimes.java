@@ -214,7 +214,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   @Override
   public void handle(GtfsStopTime gtfsStopTime) {
 
-    if(data.isGtfsTripDiscarded(gtfsStopTime.getTripId())) {
+    if(data.isGtfsTripRemoved(gtfsStopTime.getTripId())) {
       return;
     }
 
@@ -248,7 +248,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     if(isTripDepartureTime && !data.isDepartureTimeOfServiceIdWithinEligibleTimePeriod(gtfsTrip.getServiceId(), departureTime)){
       /* outside time period of interest for any day the trip runs, do not parse, unless maybe later stops fall in time windows and we want to check that */
       if(!data.getSettings().isIncludePartialGtfsTripsIfStopsInTimePeriod()) {
-        data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.TIME_PERIOD_DISCARDED);
+        data.registeredRemovedGtfsTrip(gtfsTrip, GtfsServicesHandlerData.TripRemovalType.TIME_PERIOD_DISCARDED);
       }
       return;
     }

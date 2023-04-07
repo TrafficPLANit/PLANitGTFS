@@ -73,9 +73,11 @@ public class GtfsTransferZoneHelper {
    * @param gtfsStop to verify
    * @param transferZone to verify against
    * @param data containing state
+   * @param allConnectoidsMustMatch flag indicating whether we require all connectoids to be on the correct side of the road (true), or not (false)
    * @return true when on correct side of the road, false otherwise
    */
-  public static boolean isGtfsStopOnCorrectSideOfTransferZoneAccessLinkSegments(GtfsStop gtfsStop, Mode gtfsMode, TransferZone transferZone, GtfsZoningHandlerData data) {
+  public static boolean isGtfsStopOnCorrectSideOfTransferZoneAccessLinkSegments(
+      GtfsStop gtfsStop, Mode gtfsMode, TransferZone transferZone, GtfsZoningHandlerData data, boolean allConnectoidsMustMatch) {
     boolean leftHandDrive = isLeftHandDrive(data.getSettings().getCountryName());
     var connectoids = data.getTransferZoneConnectoids(transferZone);
     if(connectoids== null || connectoids.isEmpty()){
@@ -89,18 +91,17 @@ public class GtfsTransferZoneHelper {
       return false;
     }
 
+    boolean success = false;
     for (var connectoid : connectoids) {
       var accessSegment = connectoid.getAccessLinkSegment();
       var localProjection = PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
-      if(localProjection==null){
-        return false;
-      }
-      if(!GtfsLinkSegmentHelper.isGeometryOnCorrectSideOfLinkSegment(localProjection, accessSegment, leftHandDrive, data.getGeoTools())){
-        /* not compatible for one of its access link segments, */
-        return false;
+      success = success ||
+          localProjection!=null && GtfsLinkSegmentHelper.isGeometryOnCorrectSideOfLinkSegment(localProjection, accessSegment, leftHandDrive, data.getGeoTools());
+      if(allConnectoidsMustMatch && !success) {
+        break;
       }
     }
-    return true;
+    return success;
   }
 
   /**

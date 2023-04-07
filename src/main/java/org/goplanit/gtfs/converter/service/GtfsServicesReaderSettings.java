@@ -1,17 +1,13 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.ConverterReaderSettings;
-import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsImpl;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.RouteTypeExtendedToPredefinedPlanitModeMappingCreator;
 import org.goplanit.gtfs.converter.RouteTypeOriginalToPlanitModeMappingCreator;
-import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.ComparablePair;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
 import java.time.DayOfWeek;
@@ -49,6 +45,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
 
   /** configured activated time periods, if empty, all are supported implicitly*/
   private final Set<ComparablePair<LocalTime, LocalTime>> timePeriodFilters;
+
+  /** when non-empty we exclude ALL GTFS routes except the ones registered */
+  private final Set<String> exceptionsToBlanketBlackListByShortName;
 
   /** flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
    * falling outside this window */
@@ -125,7 +124,29 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     super(inputSource, countryName, routeTypeChoice);
     this.dayOfWeek = dayOfWeekFilter;
     this.timePeriodFilters = new TreeSet<>();
+    this.exceptionsToBlanketBlackListByShortName = new TreeSet<>();
   }
+
+  /**
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * listing is considered
+   *
+   * @param gtfsShortNames the only routes not to exclude
+   */
+  public void excludeAllGtfsRoutesExceptByShortName(String... gtfsShortNames){
+    exceptionsToBlanketBlackListByShortName.addAll(Arrays.asList(gtfsShortNames));
+  }
+
+  /**
+   * Verify if a GTFS route is excluded
+   *
+   * @param gtfsShortName to verify
+   * @return
+   */
+  public boolean isGtfsRouteIncludedByShortName(String gtfsShortName){
+    return exceptionsToBlanketBlackListByShortName.isEmpty() || exceptionsToBlanketBlackListByShortName.contains(gtfsShortName);
+  }
+
 
   /**
    * Activate tracking of information for a given GTFS route by its short name
@@ -222,12 +243,16 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     if(hasTimePeriodFilters()) {
       LOGGER.info("Activated time periods:");
       getTimePeriodFilters().forEach( e -> LOGGER.info(
-          String.format("start-time: %s end-time: %s",
+          String.format("Start-time: %s End-time: %s",
               e.first().format(DateTimeFormatter.ISO_LOCAL_TIME),
               e.second().format(DateTimeFormatter.ISO_LOCAL_TIME))));
 
     }else{
-      LOGGER.info("activate time periods: NO FILTER");
+      LOGGER.info("Activated time periods: ALL - NO FILTER");
+    }
+
+    if(!exceptionsToBlanketBlackListByShortName.isEmpty()){
+      LOGGER.info(String.format("Filtering GTFS routes to only include: %s", exceptionsToBlanketBlackListByShortName.stream().collect(Collectors.joining())));
     }
 
     LOGGER.info(String.format("Consolidate identical GTFS trips: %s ", String.valueOf(isGroupIdenticalGtfsTrips())));

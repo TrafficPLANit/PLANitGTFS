@@ -106,6 +106,16 @@ public class GtfsStop extends GtfsObject {
   }
 
   /**
+   * update long (x), lat (y) based on JTS coordinate
+   *
+   * @param locationAsCoord to use
+   */
+  public void setLocationAsCoord(Coordinate locationAsCoord) {
+    put(GtfsKeyType.STOP_LON, String.valueOf(locationAsCoord.x));
+    put(GtfsKeyType.STOP_LAT, String.valueOf(locationAsCoord.y));
+  }
+
+  /**
    * Collect long (x), lat (y) as JTS Point
    *
    * @return point

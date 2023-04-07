@@ -97,7 +97,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
       return null;
     }
 
-    if(gtfsStopIdDownstream.equals("49024") | gtfsStopIdUpstream.equals("49024")){
+    if(gtfsStopIdDownstream.equals("7273") | gtfsStopIdUpstream.equals("7273")){
       int bla = 4;
     }
 
@@ -122,7 +122,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
     // proceed when both connectoids support the mode on any of its access nodes
     if (!upstreamConnectoidsByAccessNode.values().stream().flatMap(e -> e.stream()).findFirst().isPresent() &&
         !downstreamConnectoidsByAccessNode.values().stream().flatMap(e -> e.stream()).findFirst().isPresent()) {
-      LOGGER.severe(String.format("No mode compatible connectoid combination exists for service leg segment [mode (%s)], the service leg is attributed to, this shouldn't happen", mode.getName()));
+      LOGGER.severe(String.format("Service leg segment connecting GTFS stop pair [%s (%s), %s (%s)] not mode compatible [mode (%s)] with PLANit mapped stops (connectoids), this shouldn't happen",
+          gtfsStopIdUpstream, transferZoneUpstream.getName(), gtfsStopIdDownstream, transferZoneDownstream.getName(), mode.getName()));
       return null;
     }
 
@@ -151,7 +152,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     // when no options are found but connectoids support current mode, issue a warning
     if (allLegSegmentPathOptions.isEmpty()) {
-      LOGGER.severe(String.format("Mode compatible connectoid combination exists for service leg segment [mode (%s)], but no eligible physical path found, this shouldn't happen", mode.getName()));
+      LOGGER.severe(String.format("Valid service leg segment [mode (%s)] connects GTFS stop pair [%s (%s), %s (%s)], but no eligible physical path found, this shouldn't happen",
+          mode.getName(), gtfsStopIdUpstream, transferZoneUpstream.getName(), gtfsStopIdDownstream, transferZoneDownstream.getName()));
       return null;
     }
 

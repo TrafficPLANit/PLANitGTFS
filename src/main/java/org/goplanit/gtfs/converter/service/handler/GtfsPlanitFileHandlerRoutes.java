@@ -41,10 +41,15 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
    */
   @Override
   public void handle(GtfsRoute gtfsRoute) {
+    if(!data.getSettings().isGtfsRouteIncludedByShortName(gtfsRoute.getShortName())){
+      data.registeredRemovedRoute(gtfsRoute, GtfsServicesHandlerData.RouteRemovalType.SETTINGS_EXCLUDED);
+      return;
+    }
+
     RouteType routeType = gtfsRoute.getRouteType();
     Mode planitMode = data.getPrimaryPlanitModeIfActivated(routeType);
     if(planitMode == null){
-      data.registeredDiscardedRoute(gtfsRoute);
+      data.registeredRemovedRoute(gtfsRoute, GtfsServicesHandlerData.RouteRemovalType.MODE_INCOMPATIBLE);
       return;
     }
 

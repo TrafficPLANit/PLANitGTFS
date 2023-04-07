@@ -24,6 +24,34 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
   private final GtfsServicesHandlerData data;
 
   /**
+   * When a GTFS route has not bene converted into a PLANit route, it is missing for a valid reason. Here, we identify this
+   * reason and mark the trip as rmeoved accordingly based on this reason. If the reason cannot be found, an error or wraning is logged
+   *
+   * @param gtfsTrip for which a Gtfs route does not exist in the PLANit memory model
+   */
+  private void processMissingRoute(GtfsTrip gtfsTrip) {
+    /* a route can be removed based on an earlier check */
+    if(!data.isGtfsRouteRemoved(gtfsTrip.getRouteId())) {
+      LOGGER.severe(String.format("Unable to find GTFS route %s in PLANit memory model corresponding to GTFS trip %s, GTFS trip ignored", gtfsTrip.getRouteId(), gtfsTrip.getTripId()));
+      data.registeredRemovedGtfsTrip(gtfsTrip, GtfsServicesHandlerData.TripRemovalType.UNKNOWN);
+      return;
+    }
+
+    var removalReason = data.getGtfsRemovedRouteRemovalType(gtfsTrip.getRouteId());
+    switch (removalReason) {
+      case MODE_INCOMPATIBLE:
+        data.registeredRemovedGtfsTrip(gtfsTrip, GtfsServicesHandlerData.TripRemovalType.ROUTE_MODE_INCOMPATIBLE);
+        return;
+      case SETTINGS_EXCLUDED:
+        data.registeredRemovedGtfsTrip(gtfsTrip, GtfsServicesHandlerData.TripRemovalType.ROUTE_EXCLUDED);
+        return;
+      default:
+        LOGGER.severe(String.format("Unable to find GTFS route removal reason for GTFS trip %s, this should not happen, GTFS trip ignored", gtfsTrip.getRouteId(), gtfsTrip.getTripId()));
+        data.registeredRemovedGtfsTrip(gtfsTrip, GtfsServicesHandlerData.TripRemovalType.UNKNOWN);
+    }
+  }
+
+  /**
    * Constructor
    *
    * @param gtfsServicesHandlerData      containing all data to track and resources needed to perform the processing
@@ -44,20 +72,15 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
    */
   @Override
   public void handle(GtfsTrip gtfsTrip) {
-
-    var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
-    if(planitRoutedService == null){
-      if(data.isGtfsRouteDiscarded(gtfsTrip.getRouteId())){
-        data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.ROUTE_DISCARDED);
-        return;
-      }
-      LOGGER.severe(String.format("Unable to find GTFS route %s in PLANit memory model corresponding to GTFS trip %s, GTFS trip ignored", gtfsTrip.getRouteId(), gtfsTrip.getTripId()));
+    if(!data.isServiceIdActivated(gtfsTrip.getServiceId())){
+      /* trip runs on day that is not selected to be parsed at all, discard */
+      data.registeredRemovedGtfsTrip(gtfsTrip, GtfsServicesHandlerData.TripRemovalType.SERVICE_ID_DISCARDED);
       return;
     }
 
-    if(!data.isServiceIdActivated(gtfsTrip.getServiceId())){
-      /* trip runs on day that is not selected to be parsed at all, discard */
-      data.registeredDiscardedTrip(gtfsTrip, GtfsServicesHandlerData.TripDiscardType.SERVICE_ID_DISCARDED);
+    var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
+    if(planitRoutedService == null){
+      processMissingRoute(gtfsTrip);
       return;
     }
 
@@ -66,5 +89,7 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
     // created while parsing stop_times (schedule based trip) and/or frequencies (frequency based trip)
     data.indexByGtfsTripId(gtfsTrip);
   }
+
+
 
 }
