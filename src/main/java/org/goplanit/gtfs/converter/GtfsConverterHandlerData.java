@@ -33,7 +33,7 @@ public class GtfsConverterHandlerData {
    * on the primary mapped mode, in which case we can try the other modes, as the infrastructure (stops) might be sourced from elsewhere
    * with a slightly different mode mapping
    */
-  private Map<Mode,Set<Mode>> secondaryModeCompatibility;
+  private Map<Mode,SortedSet<Mode>> secondaryModeCompatibility;
 
   /** service network to utilise */
   final ServiceNetwork serviceNetwork;
@@ -67,7 +67,7 @@ public class GtfsConverterHandlerData {
          * are all compatible */
         var currModePairPermutations = ListUtils.getPairPermutations(planitModesForGtfsMode, false);
         for(var entry : currModePairPermutations){
-          var result = secondaryModeCompatibility.getOrDefault(entry.first(), new HashSet<>());
+          var result = secondaryModeCompatibility.getOrDefault(entry.first(), new TreeSet<>());
           result.add(entry.second());
           secondaryModeCompatibility.put(entry.first(), result);
         }
@@ -120,8 +120,8 @@ public class GtfsConverterHandlerData {
    * @param planitMode to check for
    * @return all compatible PLANit modes (unmodifiable)
    */
-  public Set<Mode> getCompatiblePlanitModesIfActivated(Mode planitMode){
-    return ContainerUtils.wrapInUnmodifiableSetUnlessNull(secondaryModeCompatibility.get(planitMode));
+  public SortedSet<Mode> getCompatiblePlanitModesIfActivated(Mode planitMode){
+    return ContainerUtils.wrapInUnmodifiableSortedSetUnlessNull(secondaryModeCompatibility.get(planitMode));
   }
 
   /**
@@ -130,12 +130,13 @@ public class GtfsConverterHandlerData {
    * @param planitMode to expand
    * @return original mode supplemented with any compatible modes
    */
-  public Set<Mode> expandWithCompatibleModes(Mode planitMode){
+  public SortedSet<Mode> expandWithCompatibleModes(Mode planitMode){
     var compatibleAltModes = secondaryModeCompatibility.get(planitMode);
     if(compatibleAltModes == null){
-      return new HashSet<>(Collections.singleton(planitMode));
+      return new TreeSet<>(Collections.singleton(planitMode));
     }
-    return Stream.concat(compatibleAltModes.stream(), Stream.of(planitMode)).collect(Collectors.toSet());
+    return Stream.concat(
+        compatibleAltModes.stream(), Stream.of(planitMode)).collect(Collectors.toCollection(TreeSet::new));
   }
 
 

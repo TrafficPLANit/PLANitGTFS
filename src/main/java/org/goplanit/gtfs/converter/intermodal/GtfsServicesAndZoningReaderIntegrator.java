@@ -97,9 +97,9 @@ public class GtfsServicesAndZoningReaderIntegrator {
       return null;
     }
 
-    if(gtfsStopIdDownstream.equals("7273") | gtfsStopIdUpstream.equals("7273")){
-      int bla = 4;
-    }
+//    if(gtfsStopIdDownstream.equals("2000404") && gtfsStopIdUpstream.equals("2000393")){
+//      int bla = 4;
+//    }
 
     /* link service node to transfer zone access nodes (which are physical nodes) */
     var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(gtfsStopIdUpstream, transferZoneUpstream, serviceLegSegment.getUpstreamServiceNode());

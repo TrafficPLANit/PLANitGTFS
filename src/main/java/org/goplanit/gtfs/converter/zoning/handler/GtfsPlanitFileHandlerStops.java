@@ -63,6 +63,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     Set<LinkSegment> accessLinkSegments = new HashSet<>(2);
     for(var currAccessLink : eligibleLinks) {
       for(var accessMode : eligibleAccessModes) {
+        boolean mustAvoidCrossingTraffic = !accessMode.getPhysicalFeatures().getTrackType().equals(TrackModeType.RAIL);
         var currAccessLinkSegments = ZoningConverterUtils.findAccessLinkSegmentsForWaitingArea(
             gtfsStop.getStopId(),
             projectedGtfsStopLocation,
@@ -70,7 +71,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
             linkToSourceId.apply(currAccessLink),
             accessMode,
             data.getSettings().getCountryName(),
-            true, null, null, data.getGeoTools());
+            mustAvoidCrossingTraffic, null, null, data.getGeoTools());
         if (currAccessLinkSegments != null && !currAccessLinkSegments.isEmpty()) {
           accessLinkSegments.addAll(currAccessLinkSegments);
         }
@@ -396,21 +397,26 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       return null;
     }
 
-    final var nearbyLinks = GtfsLinkHelper.findNearbyLinks(
-        gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data);
-    if(nearbyLinks.isEmpty() || nearbyLinks == null){
-      return null;
+    if(gtfsStop.getStopId().equals("2000393") || gtfsStop.getStopId().equals("2000404")){
+      int bla = 4;
     }
 
-    if(gtfsStop.getStopId().equals("4312")){
-      int bla = 4;
+    SortedMap<Mode, SortedSet<Mode>> mode2EligibleModesMapping = new TreeMap<>();
+    primaryGtfsStopModes.forEach( m -> mode2EligibleModesMapping.put(m, data.expandWithCompatibleModes(m)));
+
+    // nearby links that are mode compatible with any of the eligible modes across all primary modes
+    final var nearbyLinks = GtfsLinkHelper.findNearbyLinks(
+        gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data);
+    nearbyLinks.removeIf( l -> !mode2EligibleModesMapping.values().stream().flatMap(v -> v.stream()).anyMatch( m -> l.isModeAllowedOnAnySegment(m)));
+    if(nearbyLinks.isEmpty() || nearbyLinks == null){
+      return null;
     }
 
     TransferZone newTransferZone = null;
     /* for each mode obtain the necessary information to create connectoid (if deemed valid) */
     for(var gtfsStopMode : primaryGtfsStopModes){
       /* make sure we consider all eligible modes compatible with the primary GTFS stop mode when identifying possible stop locations */
-      var allEligibleModes = data.expandWithCompatibleModes(gtfsStopMode);
+      SortedSet<Mode> allEligibleModes = mode2EligibleModesMapping.get(gtfsStopMode);
 
       /* preferred access link segment for GTFS stop-mode combination */
       var accessResult = findMostAppropriateStopLocationLinkForGtfsStop(gtfsStop, allEligibleModes, nearbyLinks);
@@ -481,7 +487,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     final double maxDistanceFromBoundingBoxForDebugMessage = 100; //meters
     if(newTransferZone==null && !data.getGeoTools().isGeometryNearBoundingBox(projectedGtfsStopLocation, data.getReferenceNetworkBoundingBox(), maxDistanceFromBoundingBoxForDebugMessage)) {
-      LOGGER.severe(String.format("DISCARD: nearby links deemed geo and/or mode incompatible with GTFS stop %s %s at location %s, verify for possible geo tagging mismatch where GTFS stop resides on wrong side of PLANit network's road network", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord()));
+      LOGGER.warning(String.format("DISCARD: All nearby links deemed incompatible with GTFS stop %s %s location %s [mode(s) %s] - GTFS stop resides near bonding box, or possible tagging mismatch, verify GTFS stop does not reside on wrong side of underlying road network",
+          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), primaryGtfsStopModes.stream().map(m -> m.toString()).collect(Collectors.joining(","))));
     }
 
     return newTransferZone;
@@ -544,7 +551,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private void handleStopPlatform(final GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
-    if(gtfsStop.getStopId().equals("3979" /*"7273"*/)){
+    if(gtfsStop.getStopId().equals("2000157")){
       int bla = 4;
     }
 
@@ -620,10 +627,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    */
   @Override
   public void handle(GtfsStop gtfsStop) {
-
-//    if(gtfsStop.getStopId().equals("4192")){
-//      int bla = 4;
-//    }
 
     /* GTFS mode compatibility */
     final List<Mode> gtfsStopModes = data.getSupportedPtModes(gtfsStop);
