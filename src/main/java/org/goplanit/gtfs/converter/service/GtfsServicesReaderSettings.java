@@ -141,7 +141,7 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * Verify if a GTFS route is excluded
    *
    * @param gtfsShortName to verify
-   * @return
+   * @return true when included, false otherwise
    */
   public boolean isGtfsRouteIncludedByShortName(String gtfsShortName){
     return exceptionsToBlanketBlackListByShortName.isEmpty() || exceptionsToBlanketBlackListByShortName.contains(gtfsShortName);

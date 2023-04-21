@@ -174,7 +174,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    *
    * @param gtfsStopId id of stop location
    * @param latitude new latitude
-   * @param latitude new longitude
+   * @param longitude new longitude
    */
   public void setOverwriteGtfsStopLocation(final String gtfsStopId, double latitude, double longitude) {
     overwriteGtfsStopLocationMapping.put(gtfsStopId, new Coordinate(longitude /*x*/, latitude/*y*/));

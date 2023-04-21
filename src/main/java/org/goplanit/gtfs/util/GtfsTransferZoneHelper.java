@@ -71,6 +71,7 @@ public class GtfsTransferZoneHelper {
    * not rail and connectoids being available for the provided transfer zone to extract this information
    *
    * @param gtfsStop to verify
+   * @param gtfsMode used
    * @param transferZone to verify against
    * @param data containing state
    * @param allConnectoidsMustMatch flag indicating whether we require all connectoids to be on the correct side of the road (true), or not (false)

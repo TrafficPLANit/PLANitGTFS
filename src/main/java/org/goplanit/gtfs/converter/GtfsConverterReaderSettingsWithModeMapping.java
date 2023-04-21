@@ -220,6 +220,7 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   /**
    * Find the currently mapped PLANit predefined modes for a given gtfsMode
    *
+   * @param gtfsMode to find modes for
    * @return found mapped PLANit modes starting with primary mapping (if GTFS mode is activated), otherwise null
    */
   public List<PredefinedModeType> getAcivatedPlanitPredefinedModes(RouteType gtfsMode) {

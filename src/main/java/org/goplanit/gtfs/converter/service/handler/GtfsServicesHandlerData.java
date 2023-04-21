@@ -155,6 +155,7 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
    * ignore it from further processing.
    *
    * @param gtfsRoute to mark as discarded
+   * @param reason reason for removal
    */
   public void registeredRemovedRoute(GtfsRoute gtfsRoute, RouteRemovalType reason){
     this.removedRoutes.put(gtfsRoute.getRouteId(), Pair.of(gtfsRoute.getRouteType() /*=mode*/, reason));
