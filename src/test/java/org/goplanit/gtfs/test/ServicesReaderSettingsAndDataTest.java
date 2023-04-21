@@ -12,16 +12,14 @@ import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test services reader settings
@@ -36,7 +34,7 @@ public class ServicesReaderSettingsAndDataTest {
   ServiceNetwork serviceNetwork;
   RoutedServices routedServices;
 
-  @Before
+  @BeforeEach
   public void before(){
 
     /* parent network with modes train and bus on single layer */
@@ -55,19 +53,19 @@ public class ServicesReaderSettingsAndDataTest {
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
 
     /* mapping for already present modes */
-    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
-    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.TROLLEY_BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
-    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.RAIL), is(parentNetwork.getModes().get((PredefinedModeType.TRAIN))));
+    assertEquals(data.getPrimaryPlanitModeIfActivated(RouteType.BUS), parentNetwork.getModes().get((PredefinedModeType.BUS)));
+    assertEquals(data.getPrimaryPlanitModeIfActivated(RouteType.TROLLEY_BUS), parentNetwork.getModes().get((PredefinedModeType.BUS)));
+    assertEquals(data.getPrimaryPlanitModeIfActivated(RouteType.RAIL), parentNetwork.getModes().get((PredefinedModeType.TRAIN)));
 
     /* other mappings should have been added as well */
-    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.SUBWAY_METRO), is(parentNetwork.getModes().get((PredefinedModeType.SUBWAY))));
+    assertEquals(data.getPrimaryPlanitModeIfActivated(RouteType.SUBWAY_METRO), parentNetwork.getModes().get((PredefinedModeType.SUBWAY)));
 
     /* remove all mappings except one */
     settings.deactivateAllModesExcept(List.of(RouteType.BUS,RouteType.TROLLEY_BUS));
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
 
-    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
-    assertThat(data.getPrimaryPlanitModeIfActivated(RouteType.TROLLEY_BUS), is(parentNetwork.getModes().get((PredefinedModeType.BUS))));
+    assertEquals(data.getPrimaryPlanitModeIfActivated(RouteType.BUS), parentNetwork.getModes().get((PredefinedModeType.BUS)));
+    assertEquals(data.getPrimaryPlanitModeIfActivated(RouteType.TROLLEY_BUS), parentNetwork.getModes().get((PredefinedModeType.BUS)));
     assert(data.getPrimaryPlanitModeIfActivated(RouteType.RAIL)==null);
     assert(data.getPrimaryPlanitModeIfActivated(RouteType.SUBWAY_METRO)==null);
 
@@ -77,23 +75,23 @@ public class ServicesReaderSettingsAndDataTest {
   public void timePeriodSettingsTest(){
 
     /* time period filters */
-    assertThat(settings.hasTimePeriodFilters(), is(false));
+    assertFalse(settings.hasTimePeriodFilters());
 
     settings.setDayOfWeek(DayOfWeek.TUESDAY);
-    assertThat(settings.getDayOfWeek(), is(DayOfWeek.TUESDAY));
+    assertEquals(settings.getDayOfWeek(), DayOfWeek.TUESDAY);
 
     settings.addTimePeriodFilter(LocalTime.of(6,0,0), LocalTime.of(9,0,0));
 
-    assertThat(settings.hasTimePeriodFilters(), is(true));
+    assertTrue(settings.hasTimePeriodFilters());
 
     var pmPeriod = Pair.of(LocalTime.of(17,0,0), LocalTime.of(19,0,0));
     settings.addTimePeriodFilter(pmPeriod.first(), pmPeriod.second());
 
-    assertThat(settings.getTimePeriodFilters().size(), is(2));
+    assertEquals(settings.getTimePeriodFilters().size(), 2);
 
     /* add to same filter, since time period is the same, it should be ignored and warning should be logged*/
     settings.addTimePeriodFilter(pmPeriod.first(), pmPeriod.second());
-    assertThat(settings.getTimePeriodFilters().size(), is(2));
+    assertEquals(settings.getTimePeriodFilters().size(), 2);
 
   }
 }

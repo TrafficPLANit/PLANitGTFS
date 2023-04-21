@@ -1,7 +1,5 @@
 package org.goplanit.gtfs.test;
 
-import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
-import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.handler.*;
@@ -11,21 +9,18 @@ import org.goplanit.gtfs.reader.GtfsReader;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.gtfs.test.handler.GtfsFileHandlerTripsTest;
-import org.goplanit.io.converter.intermodal.PlanitIntermodalReader;
-import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderFactory;
-import org.goplanit.io.converter.intermodal.PlanitIntermodalReaderSettings;
 import org.goplanit.logging.Logging;
 import org.goplanit.utils.id.IdGenerator;
-import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.resource.ResourceUtils;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for Gtfs's API basic functionality
@@ -39,14 +34,14 @@ public class BasicGtfsTest {
 
   public static final Path GTFS_SEQ_ALL = Path.of(ResourceUtils.getResourceUri(Path.of("GTFS","SEQ","SEQGTFS.zip").toString()));
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(BasicGtfsTest.class);
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     Logging.closeLogger(LOGGER);
     IdGenerator.reset();
@@ -84,10 +79,12 @@ public class BasicGtfsTest {
       /* should be able to parse all data (without doing anything) */
       gtfsReader.read(StandardCharsets.UTF_8);
 
+      //todo add assertions
+
       System.gc();
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      Assert.fail();
+      fail("testDefaultGtfsReader");
     }    
   }
   
@@ -113,7 +110,7 @@ public class BasicGtfsTest {
       
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      Assert.fail();
+      fail("testExcludingTripsColumns");
     }
 
     System.gc();

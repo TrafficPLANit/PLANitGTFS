@@ -17,7 +17,7 @@ import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.nio.file.Path;
 import java.time.DayOfWeek;
@@ -25,8 +25,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.goplanit.utils.mode.PredefinedModeType.*;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Unit tests for Gtfs's API basic functionality
@@ -46,7 +46,7 @@ public class GtfsToPlanitTest {
 
   public static Zoning zoning;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(GtfsToPlanitTest.class);
@@ -65,13 +65,13 @@ public class GtfsToPlanitTest {
     LOGGER.setLevel(Level.INFO);
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     Logging.closeLogger(LOGGER);
     IdGenerator.reset();
   }
 
-  @Before
+  @BeforeEach
   public void before() throws PlanItException {
     LOGGER.setLevel(Level.SEVERE);
     //Prep PLANit memory model
@@ -86,7 +86,7 @@ public class GtfsToPlanitTest {
     LOGGER.setLevel(Level.INFO);
   }
 
-  @After
+  @AfterEach
   public void after() {
     IdGenerator.reset();
   }
@@ -108,28 +108,28 @@ public class GtfsToPlanitTest {
 
       var serviceNetwork = servicesPair.first();
       var routedServices = servicesPair.second();
-      assertThat(serviceNetwork.getTransportLayers().size(),equalTo(1));
+      assertEquals(serviceNetwork.getTransportLayers().size(),1);
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
 
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
       // and a conscious choice has to be made whether this is better or not before changing the below results
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(58181));
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(92198));
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(92198));
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),58181);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),92198);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),92198);
 
-      assertThat(routedServices.getLayers().size(),equalTo(1));
+      assertEquals(routedServices.getLayers().size(),1);
       Modes modes = macroscopicNetwork.getModes();
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),equalTo(7903));
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(5));
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(39));
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(0));
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),7903);
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),5);
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),39);
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),0);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       e.printStackTrace();
-      Assert.fail();
+      fail("testGtfsRoutedServicesReader");
     }
 
     System.gc();
@@ -165,36 +165,36 @@ public class GtfsToPlanitTest {
 
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
       // and a conscious choice has to be made whether this is better or not before changing the below results
-      assertThat(network.getTransportLayers().size(),equalTo(1));
-      assertThat(network.getTransportLayers().getFirst().getLinks().size(),equalTo(1340));
-      assertThat(network.getTransportLayers().getFirst().getNodes().size(),equalTo(1122));
-      assertThat(network.getTransportLayers().getFirst().getLinkSegments().size(),equalTo(2649));
-      assertThat(network.getTransportLayers().getFirst().getLinkSegmentTypes().size(),equalTo(50));
+      assertEquals(network.getTransportLayers().size(),1);
+      assertEquals(network.getTransportLayers().getFirst().getLinks().size(),1340);
+      assertEquals(network.getTransportLayers().getFirst().getNodes().size(),1122);
+      assertEquals(network.getTransportLayers().getFirst().getLinkSegments().size(),2649);
+      assertEquals(network.getTransportLayers().getFirst().getLinkSegmentTypes().size(),50);
 
-      assertThat(zoning.getOdZones().size(),equalTo(0));
-      assertThat(zoning.getTransferZones().size(),equalTo(106));
-      assertThat(zoning.getOdConnectoids().size(),equalTo(0));
-      assertThat(zoning.getTransferConnectoids().size(),equalTo(133));
+      assertEquals(zoning.getOdZones().size(),0);
+      assertEquals(zoning.getTransferZones().size(),106);
+      assertEquals(zoning.getOdConnectoids().size(),0);
+      assertEquals(zoning.getTransferConnectoids().size(),133);
 
-      assertThat(serviceNetwork.getTransportLayers().size(),equalTo(1));
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(85));
+      assertEquals(serviceNetwork.getTransportLayers().size(),1);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),85);
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(67));
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(67));
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),67);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),67);
 
-      assertThat(routedServices.getLayers().size(),equalTo(1));
+      assertEquals(routedServices.getLayers().size(),1);
       Modes modes = macroscopicNetwork.getModes();
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),equalTo(67)); //todo: was 85 something is wrong
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(2));
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(8));
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(0));
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),67); //todo: was 85 something is wrong
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),2);
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),8);
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),0);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       e.printStackTrace();
-      Assert.fail();
+      fail("testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones");
     }
 
     System.gc();
@@ -229,36 +229,36 @@ public class GtfsToPlanitTest {
 
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
       // and a conscious choice has to be amde whether this is better or not before changing the below results
-      assertThat(network.getTransportLayers().size(),equalTo(1));
-      assertThat(network.getTransportLayers().getFirst().getLinks().size(),equalTo(1306));
-      assertThat(network.getTransportLayers().getFirst().getNodes().size(),equalTo(1088));
-      assertThat(network.getTransportLayers().getFirst().getLinkSegments().size(),equalTo(2581));
-      assertThat(network.getTransportLayers().getFirst().getLinkSegmentTypes().size(),equalTo(50));
+      assertEquals(network.getTransportLayers().size(),1);
+      assertEquals(network.getTransportLayers().getFirst().getLinks().size(),1306);
+      assertEquals(network.getTransportLayers().getFirst().getNodes().size(),1088);
+      assertEquals(network.getTransportLayers().getFirst().getLinkSegments().size(),2581);
+      assertEquals(network.getTransportLayers().getFirst().getLinkSegmentTypes().size(),50);
 
-      assertThat(zoning.getOdZones().size(),equalTo(0));
-      assertThat(zoning.getTransferZones().size(),equalTo(113));
-      assertThat(zoning.getOdConnectoids().size(),equalTo(0));
-      assertThat(zoning.getTransferConnectoids().size(),equalTo(146));
+      assertEquals(zoning.getOdZones().size(),0);
+      assertEquals(zoning.getTransferZones().size(),113);
+      assertEquals(zoning.getOdConnectoids().size(),0);
+      assertEquals(zoning.getTransferConnectoids().size(),146);
 
-      assertThat(serviceNetwork.getTransportLayers().size(),equalTo(1));
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),equalTo(87));
+      assertEquals(serviceNetwork.getTransportLayers().size(),1);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),87);
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),equalTo(72));
-      assertThat(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),equalTo(72));
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),72);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),72);
 
-      assertThat(routedServices.getLayers().size(),equalTo(1));
+      assertEquals(routedServices.getLayers().size(),1);
       Modes modes = macroscopicNetwork.getModes();
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),equalTo(67)); //todo: was 85 something is wrong
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),equalTo(2));
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),equalTo(8));
-      assertThat(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),equalTo(0));
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),67); //todo: was 85 something is wrong
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),2);
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),8);
+      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),0);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       e.printStackTrace();
-      Assert.fail();
+      fail("testGtfsIntermodalReaderWithPreExistingPlanitTransferZones");
     }
 
     System.gc();
