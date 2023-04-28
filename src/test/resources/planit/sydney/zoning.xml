@@ -659,10 +659,10 @@
             <connectoid tzrefs="68" lsref="2416" id="31" modes="light_rail">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="0" lsref="448" id="32" modes="bus">
+            <connectoid tzrefs="0" lsref="2417" id="32" modes="bus">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="1" lsref="432" id="33" modes="bus">
+            <connectoid tzrefs="1" lsref="2418" id="33" modes="bus">
                 <length>0.0</length>
             </connectoid>
             <connectoid tzrefs="2" lsref="2421" id="34" modes="bus">

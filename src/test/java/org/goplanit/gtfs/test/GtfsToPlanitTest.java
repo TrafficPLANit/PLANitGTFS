@@ -230,30 +230,30 @@ public class GtfsToPlanitTest {
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
       // and a conscious choice has to be amde whether this is better or not before changing the below results
       assertEquals(network.getTransportLayers().size(),1);
-      assertEquals(network.getTransportLayers().getFirst().getLinks().size(),1306);
-      assertEquals(network.getTransportLayers().getFirst().getNodes().size(),1088);
-      assertEquals(network.getTransportLayers().getFirst().getLinkSegments().size(),2581);
-      assertEquals(network.getTransportLayers().getFirst().getLinkSegmentTypes().size(),50);
+      assertEquals(1307, network.getTransportLayers().getFirst().getLinks().size());
+      assertEquals(1089, network.getTransportLayers().getFirst().getNodes().size());
+      assertEquals(2583, network.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(50, network.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
-      assertEquals(zoning.getOdZones().size(),0);
-      assertEquals(zoning.getTransferZones().size(),113);
-      assertEquals(zoning.getOdConnectoids().size(),0);
-      assertEquals(zoning.getTransferConnectoids().size(),146);
+      assertEquals(0, zoning.getOdZones().size());
+      assertEquals(114, zoning.getTransferZones().size());
+      assertEquals(0, zoning.getOdConnectoids().size());
+      assertEquals(147, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),87);
+      assertEquals(87, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),72);
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),72);
+      assertEquals(72, serviceNetwork.getTransportLayers().getFirst().getLegSegments().size());
+      assertEquals(72, serviceNetwork.getTransportLayers().getFirst().getLegs().size());
 
       assertEquals(routedServices.getLayers().size(),1);
       Modes modes = macroscopicNetwork.getModes();
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size(),67); //todo: was 85 something is wrong
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size(),2);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size(),8);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size(),0);
+      assertEquals(67, routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size()); //todo: was 85 something is wrong
+      assertEquals(2, routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size());
+      assertEquals(8, routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size());
+      assertEquals(0, routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size());
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());

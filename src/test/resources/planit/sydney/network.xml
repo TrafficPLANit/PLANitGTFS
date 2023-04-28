@@ -874,9 +874,9 @@
                         <gml:pos>1578901.335931373 -3922367.127805369</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="1006" externalid="3910267751">
+                <node id="1006" externalid="3910190219">
                     <gml:Point>
-                        <gml:pos>1579319.8169015383 -3922159.2492078636</gml:pos>
+                        <gml:pos>1579348.1359119245 -3922182.387115668</gml:pos>
                     </gml:Point>
                 </node>
                 <node id="1007" externalid="10188047867">
@@ -9570,18 +9570,18 @@
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="1224" externalid="151426020" nodearef="1006" nodebref="79">
-                    <name>Cahill Expressway</name>
+                <link id="1224" externalid="151559214" nodearef="1006" nodebref="353">
+                    <name>Alfred Street</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579319.81690154,-3922159.24920786 1579156.48830092,-3922120.01147901 1579099.26928988,-3922105.38818791 1578999.98941922,-3922081.10469595</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579348.13591192,-3922182.38711567 1579303.94489005,-3922171.12872875</gml:coordinates>
                     </gml:LineString>
-                    <linksegment id="2417" dir="a_b" typeref="7">
-                        <numberoflanes>2</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
+                    <linksegment id="2417" dir="a_b" typeref="1">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
                     </linksegment>
-                    <linksegment id="2418" dir="b_a" typeref="7">
-                        <numberoflanes>2</numberoflanes>
-                        <maxspeed>70.0</maxspeed>
+                    <linksegment id="2418" dir="b_a" typeref="1">
+                        <numberoflanes>1</numberoflanes>
+                        <maxspeed>40.0</maxspeed>
                     </linksegment>
                 </link>
                 <link id="1225" externalid="129820126" nodearef="1007" nodebref="279">
@@ -11634,10 +11634,10 @@
                         <maxspeed>50.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="216" externalid="151426020" nodearef="338" nodebref="1006">
+                <link id="216" externalid="151426020" nodearef="338" nodebref="79">
                     <name>Cahill Expressway</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579403.11833263,-3922179.66265788 1579319.81690154,-3922159.24920786</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579403.11833263,-3922179.66265788 1579319.81690154,-3922159.24920786 1579156.48830092,-3922120.01147901 1579099.26928988,-3922105.38818791 1578999.98941922,-3922081.10469595</gml:coordinates>
                     </gml:LineString>
                     <linksegment id="432" dir="a_b" typeref="7">
                         <numberoflanes>2</numberoflanes>
@@ -11757,10 +11757,10 @@
                         <maxspeed>30.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="224" externalid="151559214" nodearef="352" nodebref="353">
+                <link id="224" externalid="151559214" nodearef="352" nodebref="1006">
                     <name>Alfred Street</name>
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579358.55506697,-3922191.3299837 1579357.32842248,-3922188.43216698 1579355.2877839,-3922185.91222493 1579352.11709914,-3922183.7711496 1579348.13591192,-3922182.38711567 1579303.94489005,-3922171.12872875</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579358.55506697,-3922191.3299837 1579357.32842248,-3922188.43216698 1579355.2877839,-3922185.91222493 1579352.11709914,-3922183.7711496 1579348.13591192,-3922182.38711567</gml:coordinates>
                     </gml:LineString>
                     <linksegment id="448" dir="a_b" typeref="1">
                         <numberoflanes>1</numberoflanes>
