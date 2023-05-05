@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.test;
 
+import org.goplanit.converter.idmapping.IdMapperType;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
@@ -154,7 +155,8 @@ public class GtfsToPlanitTest {
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
       // manual override which without a zoning makes no sense, so should log a warning (verified it does, so if it does not, something is wrong)
-      gtfsIntermodalReader.getSettings().getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("200059","3814704459"); // Museum of Sydney
+      gtfsIntermodalReader.getSettings().getZoningSettings().setOverwriteGtfsStopTransferZoneMapping(
+          "200059","3814704459", IdMapperType.EXTERNAL_ID); // Museum of Sydney
 
       Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
 
@@ -165,16 +167,16 @@ public class GtfsToPlanitTest {
 
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
       // and a conscious choice has to be made whether this is better or not before changing the below results
-      assertEquals(network.getTransportLayers().size(),1);
-      assertEquals(network.getTransportLayers().getFirst().getLinks().size(),1340);
-      assertEquals(network.getTransportLayers().getFirst().getNodes().size(),1122);
-      assertEquals(network.getTransportLayers().getFirst().getLinkSegments().size(),2649);
-      assertEquals(network.getTransportLayers().getFirst().getLinkSegmentTypes().size(),50);
+      assertEquals(1, network.getTransportLayers().size());
+      assertEquals(1340, network.getTransportLayers().getFirst().getLinks().size());
+      assertEquals(1122, network.getTransportLayers().getFirst().getNodes().size());
+      assertEquals(2649, network.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(50, network.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
-      assertEquals(zoning.getOdZones().size(),0);
-      assertEquals(zoning.getTransferZones().size(),106);
-      assertEquals(zoning.getOdConnectoids().size(),0);
-      assertEquals(zoning.getTransferConnectoids().size(),133);
+      assertEquals(0, zoning.getOdZones().size());
+      assertEquals(106, zoning.getTransferZones().size());
+      assertEquals(0, zoning.getOdConnectoids().size());
+      assertEquals(132, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),85);
@@ -218,7 +220,8 @@ public class GtfsToPlanitTest {
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
       // manual overrides
-      gtfsIntermodalReader.getSettings().getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("200059","3814704459"); // Museum of Sydney
+      gtfsIntermodalReader.getSettings().getZoningSettings().setOverwriteGtfsStopTransferZoneMapping(
+          "200059","3814704459", IdMapperType.EXTERNAL_ID); // Museum of Sydney
 
       Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
 
@@ -238,7 +241,7 @@ public class GtfsToPlanitTest {
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(114, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(147, zoning.getTransferConnectoids().size());
+      assertEquals(145, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(87, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());

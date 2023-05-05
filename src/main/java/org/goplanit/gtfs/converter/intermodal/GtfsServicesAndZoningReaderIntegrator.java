@@ -8,6 +8,8 @@ import org.goplanit.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.path.SimpleDirectedPathImpl;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.mode.Mode;
@@ -97,7 +99,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
       return null;
     }
 
-    if(gtfsStopIdDownstream.equals("2000455") && gtfsStopIdUpstream.equals("2000457")){
+    if(gtfsStopIdDownstream.equals("200018")){
       int bla = 4;
     }
 
@@ -152,7 +154,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     // when no options are found but connectoids support current mode, issue a warning
     if (allLegSegmentPathOptions.isEmpty()) {
-      LOGGER.severe(String.format("Valid service leg segment [mode (%s)] connects GTFS stop pair [%s (%s), %s (%s)], but no eligible physical path found, this shouldn't happen",
+      LOGGER.warning(String.format("Valid service leg segment [mode (%s)] connects GTFS stops [%s (%s), %s (%s)], but no eligible physical path found, verify expected path (partly) exits parsed bounding box",
           mode.getName(), gtfsStopIdUpstream, transferZoneUpstream.getName(), gtfsStopIdDownstream, transferZoneDownstream.getName()));
       return null;
     }
