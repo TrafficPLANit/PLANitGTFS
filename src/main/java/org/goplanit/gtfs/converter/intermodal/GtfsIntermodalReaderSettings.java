@@ -65,8 +65,17 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
   public void reset() {
     getServiceSettings().reset();
     getZoningSettings().reset();
-  }   
-  
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logSettings() {
+    getServiceSettings().logSettings();
+    getZoningSettings().logSettings();
+  }
+
   /** provide access to the service reader settings
    * @return network reader settings
    */
