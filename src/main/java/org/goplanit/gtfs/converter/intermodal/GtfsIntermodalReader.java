@@ -16,12 +16,14 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
+import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 import org.goplanit.zoning.Zoning;
 import org.hsqldb.persist.Log;
 
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * GTFS intermodal reader. Supplements an already populated network and (partially populated) zoning with GTFS services resulting in

@@ -44,6 +44,7 @@ public class RouteTypeOriginalToPlanitModeMappingCreator extends RouteTypeToPlan
       settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.RAIL, PredefinedModeType.TRAIN);
       settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.BUS, PredefinedModeType.BUS);
       settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.TROLLEY_BUS, PredefinedModeType.BUS);
+      settings.setDefaultGtfs2PredefinedModeTypeMapping(RouteType.FERRY, PredefinedModeType.FERRY);
     }
 
     /* activate all mapped defaults initially*/
@@ -53,6 +54,7 @@ public class RouteTypeOriginalToPlanitModeMappingCreator extends RouteTypeToPlan
       settings.activateGtfsRouteTypeMode(RouteType.RAIL);
       settings.activateGtfsRouteTypeMode(RouteType.BUS);
       settings.activateGtfsRouteTypeMode(RouteType.TROLLEY_BUS);
+      settings.activateGtfsRouteTypeMode(RouteType.FERRY);
     }
   }
 }

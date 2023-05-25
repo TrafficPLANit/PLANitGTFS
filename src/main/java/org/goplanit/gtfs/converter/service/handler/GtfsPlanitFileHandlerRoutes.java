@@ -55,6 +55,10 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
 
     /* obtain correct routed services layer and its current known services for our mode */
     var layer = data.getRoutedServicesLayer(planitMode);
+    if(layer == null){
+      LOGGER.severe(String.format("DISCARD: No PLANit layer available for PLANit mode %s that was activated and mapped from GTFS route type %s for GTFS Route %s", planitMode, gtfsRoute.getRouteType(), gtfsRoute.getRouteId()));
+      return;
+    }
     var servicesPerMode = layer.getServicesByMode(planitMode);
     RoutedService planitRoutedService = servicesPerMode.getFactory().registerNew();
 

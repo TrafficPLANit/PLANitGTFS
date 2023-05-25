@@ -4,19 +4,11 @@ import org.goplanit.converter.idmapping.IdMapperType;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
-import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Coordinate;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -46,13 +38,30 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * Provide explicit mapping from GTFS stop (by GTFS stop id) to and existing PLANit transfer zone based on an id (XML or external id (third party source ide.g., OSM id)),
    * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
    */
-  private final Map<String, Pair<String, IdMapperType>> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
+  private final Map<String, Pair<Object, IdMapperType>> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
 
   /**
    * Provide explicit mapping from GTFS stop (by GTFS stop id) to a geo-location.
    * This overrides the oiginal geo location of the stop.
    */
   private final Map<String, Coordinate> overwriteGtfsStopLocationMapping = new HashMap<>();
+
+  /**
+   * Indicate disallowing certain GTFS stops to be jointly mapped to the same transfer zone. In such cases, new (disjoint) transfer zones
+   * will be created
+   */
+  private final Set<String> disallowGtfsTop2TransferZoneJointMapping = new HashSet<>();
+
+  /**
+   * Indicate to not match a GTFS stop to any existing transfer zones in PLANit network, but instead always create a new transfer zone
+   */
+  private final Set<String> forceCreateNewTransferZoneForGtfsStops = new HashSet<>();
+
+  /** track used excluded GTFS stop ids */
+  private final Set<String> excludeGtfsStopsById = new HashSet<>();
+
+  /** track overwritten link mappings for GTFS stop ids */
+  private final Map<String, Pair<Object, IdMapperType>> overwriteGtfsStop2LinkMapping = new HashMap<>();
 
   /** flag to indicate if transfer zones that have no services stopping after parsing is complete, are to be removed or not */
   private boolean removeUnusedTransferZones = DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES;
@@ -69,8 +78,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   /** default search radius for mapping GTFS stops to PLANit transfer zones */
   public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40.0;
 
-  /** default search radius for mapping GTFS stops to PLANit links */
-  public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS/2.0;
+  /** default search radius for mapping GTFS stops to PLANit links for determining stop locations on road/rail/water */
+  public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = 40.0;
 
   /** default setting for logging mappings between GTFS zones and existing PLANit transfer zones */
   public static final boolean DEFAULT_LOG_MAPPED_GTFS_ZONES = false;
@@ -146,9 +155,9 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    *
    * @param gtfsStopId id of stop location
    * @param transferZoneId Id of waiting area (platform, pole, etc.) (int or long)
-   * @param idType which id of the transfer zone (XML which is in the persisted PLANit file, or external (likley for example the original OSM id)
+   * @param idType which id of the transfer zone (XML which is in the persisted PLANit file, or external (likely for example the original OSM id)
    */
-  public void setOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final String transferZoneId, final IdMapperType idType) {
+  public void setOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final Object transferZoneId, final IdMapperType idType) {
     overwriteGtfsStopTransferZoneExternalIdMapping.put(gtfsStopId, Pair.of(transferZoneId, idType));
   }
 
@@ -166,7 +175,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param gtfsStopId to collect for
    * @return mapped transfer zone id and the type (null if none is mapped)
    */
-  public Pair<String,IdMapperType> getOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
+  public Pair<Object,IdMapperType> getOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
     return overwriteGtfsStopTransferZoneExternalIdMapping.get(gtfsStopId);
   }
 
@@ -262,6 +271,120 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
     setGtfsStopToTransferZoneSearchRadiusMeters(DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS);
     setGtfsStopToLinkSearchRadiusMeters(DEFAULT_GTFSSTOP_LINK_SEARCH_METERS);
     setRemoveUnusedTransferZones(DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES);
+    excludeGtfsStopsById.clear();
+    overwriteGtfsStop2LinkMapping.clear();
+    disallowGtfsTop2TransferZoneJointMapping.clear();
+    forceCreateNewTransferZoneForGtfsStops.clear();
+  }
+
+  /** Provide GTFS stop ids that we are not to parse as public transport infrastructure, for example
+   * when we know the stop is problematic and we want to avoid any warnings in our output
+   *
+   * @param gtfsStopIds to exclude (int or long)
+   */
+  public void excludeGtfsStopsById(final String... gtfsStopIds) {
+    excludeGtfsStopsById(Arrays.asList(gtfsStopIds));
+  }
+
+  /** Provide OSM ids of nodes that we are not to parse as public transport infrastructure, for example
+   * when we know the stop is problematic and we want to avoid any warnings in our output
+   *
+   * @param osmIds to exclude (int or long)
+   */
+  public void excludeGtfsStopsById(final Collection<String> osmIds) {
+    osmIds.forEach( osmId -> excludeGtfsStopById(osmId));
+  }
+
+  /** Provide id of GTFS stop that we are not to parse as public transport infrastructure, for example
+   * when we know the stop is problematic and we want to avoid any warnings in our output
+   *
+   * @param gtfsStopId to exclude
+   */
+  public void excludeGtfsStopById(final String gtfsStopId) {
+    excludeGtfsStopsById.add(gtfsStopId);
+  }
+
+  /** Verify if GTFS stop is marked for exclusion during parsing
+   *
+   * @param gtfsStopId to verify
+   * @return true when excluded false otherwise
+   */
+  public boolean isExcludedGtfsStop(String gtfsStopId) {
+    return excludeGtfsStopsById.contains(gtfsStopId);
+  }
+
+  /**
+   * Provide explicit mapping for GtfsStop id (platform, bus_stop, pole, station) to a link by one of its id's
+   * This forces the parser to use the nominated link as the access link for the GTFS stop.
+   * <p>
+   *   This  is only considered for GTFS stops that could not be matched to existing transfer zones already present in
+   *   the network since it is assumed existing transfer zones have a correct mapping to the network already
+   * </p>
+   *
+   * @param gtfsStopId GTFS stop id to provide link mapping for
+   * @param linkId link id to map to
+   * @param idMapperType which id of the link to use
+   */
+  public void overwriteGtfsStopToLinkMapping(final String gtfsStopId, final Object linkId, final IdMapperType idMapperType) {
+    overwriteGtfsStop2LinkMapping.put(gtfsStopId, Pair.of(linkId, idMapperType));
+  }
+
+  /** Verify if GTFS stop id is marked for overwritten link mapping
+   *
+   * @param gtfsStopId GTFS stop id to verify
+   * @return true when present, false otherwise
+   */
+  public boolean hasOverwrittenGtfsStopToLinkMapping(final String gtfsStopId) {
+    return overwriteGtfsStop2LinkMapping.containsKey(gtfsStopId);
+  }
+
+  /** Collect overwritten link id information for GTFS stop id (if present)
+   *
+   * @param gtfsStopId GTFS stop id to get mapping for
+   * @return true when present, false otherwise
+   */
+  public Pair<Object, IdMapperType> getOverwrittenGtfsStopToLinkMapping(final String gtfsStopId) {
+    return overwriteGtfsStop2LinkMapping.get(gtfsStopId);
+  }
+
+  /**
+   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop. If such a situation
+   * is identified, instead a new transfer zone is created instead
+   *
+   * @param gtfsStopIds GTFS stop id to provide link mapping for
+   */
+  public void disallowGtfsStopToTransferZoneJointMapping(final String... gtfsStopIds) {
+    Arrays.stream(gtfsStopIds).forEach( e -> disallowGtfsTop2TransferZoneJointMapping.add(e));
+  }
+
+
+  /** Verify if GTFS stop id is marked for overwritten link mapping
+   *
+   * @param gtfsStopId GTFS stop id to verify
+   * @return true when present, false otherwise
+   */
+  public boolean isDisallowGtfsStopToTransferZoneJointMapping(final String gtfsStopId) {
+    return disallowGtfsTop2TransferZoneJointMapping.contains(gtfsStopId);
+  }
+
+  /**
+   * Flag that given GTFS stop must trigger creation of a new transfer zone, so do not attempt to map it to any
+   * existing transfer zones.
+   *
+   * @param gtfsStopIds GTFS stop id to provide link mapping for
+   */
+  public void forceCreateNewTransferZoneForGtfsStops(final String... gtfsStopIds) {
+    Arrays.stream(gtfsStopIds).forEach( e -> forceCreateNewTransferZoneForGtfsStops.add(e));
+  }
+
+
+  /** Verify if GTFS stop id is marked for overwritten link mapping
+   *
+   * @param gtfsStopId GTFS stop id to verify
+   * @return true when present, false otherwise
+   */
+  public boolean isForceCreateNewTransferZoneForGtfsStops(final String gtfsStopId) {
+    return forceCreateNewTransferZoneForGtfsStops.contains(gtfsStopId);
   }
 
 }

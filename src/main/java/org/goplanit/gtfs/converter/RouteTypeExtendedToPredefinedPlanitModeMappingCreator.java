@@ -21,7 +21,7 @@ import java.util.Set;
  *   <li>100-117, 400-405 - Railway Service types to TrainMode</li>
  *   <li>200-209,700-716,800 	- Bus Service types to BusMode </li>
  *   <li>900-906 	- Tram Service types to LightrailMode</li>
- *   <li>1000,1200 	- Water/Ferry Service types to N/A </li>
+ *   <li>1000,1200 	- Water/Ferry Service types to Ferry </li>
  *   <li>1100 	- Air Service types to N/A</li>
  *   <li>1300,1400 	- Aerial/funicular Service types to N/A</li>
  *   <li>1500-1507 	- Taxi Service types to N/A</li>
@@ -68,6 +68,10 @@ public class RouteTypeExtendedToPredefinedPlanitModeMappingCreator extends Route
       var tramLightRailTypes = RouteType.getInValueRange((short)900,(short)906);
       modeMappings.put(PredefinedModeType.LIGHTRAIL, tramLightRailTypes);
       tramLightRailTypes.forEach( gtfsModeType -> gtfs2PlanitModeMappings.put(gtfsModeType, List.of(PredefinedModeType.TRAM,PredefinedModeType.LIGHTRAIL)));
+
+      /* ferry/water types */
+      var ferryWaterTypes = Set.of(RouteType.WATER_TAXI_SERVICE, RouteType.WATER_TRANSPORT_SERVICE, RouteType.FERRY_SERVICE);
+      ferryWaterTypes.forEach( gtfsModeType -> gtfs2PlanitModeMappings.put(gtfsModeType, List.of(PredefinedModeType.FERRY)));
     }
     gtfs2PlanitModeMappings.entrySet().forEach(e-> settings.setDefaultGtfs2PredefinedModeTypeMapping(e.getKey(), e.getValue()));
 
