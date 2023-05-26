@@ -24,8 +24,8 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
   private final GtfsServicesHandlerData data;
 
   /**
-   * When a GTFS route has not bene converted into a PLANit route, it is missing for a valid reason. Here, we identify this
-   * reason and mark the trip as rmeoved accordingly based on this reason. If the reason cannot be found, an error or wraning is logged
+   * When a GTFS route has not been converted into a PLANit route, it is missing for a valid reason. Here, we identify this
+   * reason and mark the trip as removed accordingly based on this reason. If the reason cannot be found, an error or wraning is logged
    *
    * @param gtfsTrip for which a Gtfs route does not exist in the PLANit memory model
    */

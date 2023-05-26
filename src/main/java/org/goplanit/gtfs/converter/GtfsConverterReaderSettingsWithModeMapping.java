@@ -150,72 +150,72 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
     this.defaultGtfsMode2PrefinedModeTypeMap = other.defaultGtfsMode2PrefinedModeTypeMap;
   }
 
-    /* modes */
+  /* modes */
 
-    /** Deactivate an OSM mode. This means that the osmMode will not be added to the PLANit network
-     * You can only remove a mode when it is already added.
-     *
-     * @param gtfsMode to remove
-     */
-    public void deactivateGtfsMode(RouteType gtfsMode) {
-      if(gtfsMode == null) {
-        LOGGER.warning("GTFS mode is null, cannot deactivate it, ignored");
-        return;
-      }
-      LOGGER.fine(String.format("GTFS mode %s deactivated", gtfsMode));
-      activatedGtfsModes.remove(gtfsMode);
+  /** Deactivate an OSM mode. This means that the osmMode will not be added to the PLANit network
+   * You can only remove a mode when it is already added.
+   *
+   * @param gtfsMode to remove
+   */
+  public void deactivateGtfsMode(RouteType gtfsMode) {
+    if(gtfsMode == null) {
+      LOGGER.warning("GTFS mode is null, cannot deactivate it, ignored");
+      return;
     }
+    LOGGER.fine(String.format("GTFS mode %s deactivated", gtfsMode));
+    activatedGtfsModes.remove(gtfsMode);
+  }
 
-    /**
-     * Verify if Gtfs Mode has been activated or not
-     *
-     * @param gtfsMode to verify
-     * @return true when activate, false otherwise
-     */
-    public boolean isGtfsModeActivated(RouteType gtfsMode){
-      return activatedGtfsModes.contains(gtfsMode);
-    }
+  /**
+   * Verify if Gtfs Mode has been activated or not
+   *
+   * @param gtfsMode to verify
+   * @return true when activate, false otherwise
+   */
+  public boolean isGtfsModeActivated(RouteType gtfsMode){
+    return activatedGtfsModes.contains(gtfsMode);
+  }
 
-    /**Remove all provided GTFS modes from active mapping
-     *
-     * @param GtfsModes to deactivate
-     */
-    public void deactivateGtfsModes(Collection<RouteType> GtfsModes) {
-      for(RouteType gtfsMode : GtfsModes) {
-        deactivateGtfsMode(gtfsMode);
-      }
+  /**Remove all provided GTFS modes from active mapping
+   *
+   * @param GtfsModes to deactivate
+   */
+  public void deactivateGtfsModes(Collection<RouteType> GtfsModes) {
+    for(RouteType gtfsMode : GtfsModes) {
+      deactivateGtfsMode(gtfsMode);
     }
+  }
 
-    /** remove all GTFS modes from mapping except for the passed in ones
-     *
-     * @param remainingGtfsModes to explicitly keep from the GTFSModesToRemove
-     */
-    public void deactivateAllModesExcept(final List<RouteType> remainingGtfsModes) {
-      Collection<RouteType> toBeRemovedModes = List.of(RouteType.values());
-      Collection<RouteType> remainingRoadModes = remainingGtfsModes==null ? new ArrayList<>() : remainingGtfsModes;
-      var finalToBeRemovedModes = new TreeSet<>(toBeRemovedModes);
-      finalToBeRemovedModes.removeAll(remainingRoadModes);
-      deactivateGtfsModes(finalToBeRemovedModes);
-    }
+  /** remove all GTFS modes from mapping except for the passed in ones
+   *
+   * @param remainingGtfsModes to explicitly keep from the GTFSModesToRemove
+   */
+  public void deactivateAllModesExcept(final List<RouteType> remainingGtfsModes) {
+    Collection<RouteType> toBeRemovedModes = List.of(RouteType.values());
+    Collection<RouteType> remainingRoadModes = remainingGtfsModes==null ? new ArrayList<>() : remainingGtfsModes;
+    var finalToBeRemovedModes = new TreeSet<>(toBeRemovedModes);
+    finalToBeRemovedModes.removeAll(remainingRoadModes);
+    deactivateGtfsModes(finalToBeRemovedModes);
+  }
 
-    /** Convenience method that provides access to all the currently active GTFS modes (unmodifiable)
-     *
-     * @return mapped GTFS modes, if not available (due to lack of mapping or inactive parser) empty collection is returned
-     */
-    public Collection<RouteType> getAcivatedGtfsModes() {
-      return Collections.unmodifiableCollection(activatedGtfsModes);
-    }
+  /** Convenience method that provides access to all the currently active GTFS modes (unmodifiable)
+   *
+   * @return mapped GTFS modes, if not available (due to lack of mapping or inactive parser) empty collection is returned
+   */
+  public Collection<RouteType> getAcivatedGtfsModes() {
+    return Collections.unmodifiableCollection(activatedGtfsModes);
+  }
 
-    /**
-     * Currently activated mapped PLANit modes as a new set, i.e., modifying this set does not impact the configuration
-     *
-     * @return activated, i.e., mapped PLANit predefined mode types
-     */
-    public Set<PredefinedModeType> getAcivatedPlanitPredefinedModes() {
-      return activatedGtfsModes.stream().flatMap(
-          gtfsMode -> defaultGtfsMode2PrefinedModeTypeMap.getOrDefault(
-              gtfsMode, Collections.emptyList()).stream()).filter( e -> e != null).collect(Collectors.toSet());
-    }
+  /**
+   * Currently activated mapped PLANit modes as a new set, i.e., modifying this set does not impact the configuration
+   *
+   * @return activated, i.e., mapped PLANit predefined mode types
+   */
+  public Set<PredefinedModeType> getAcivatedPlanitPredefinedModes() {
+    return activatedGtfsModes.stream().flatMap(
+        gtfsMode -> defaultGtfsMode2PrefinedModeTypeMap.getOrDefault(
+            gtfsMode, Collections.emptyList()).stream()).filter( e -> e != null).collect(Collectors.toSet());
+  }
 
   /**
    * Find the currently mapped PLANit predefined modes for a given gtfsMode
@@ -230,51 +230,66 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
     return defaultGtfsMode2PrefinedModeTypeMap.get(gtfsMode);
   }
 
+  /**
+   * Find the currently mapped GTFS modes for a given PLANit predefined mode type
+   *
+   * @param planitModeType to find modes for
+   * @return found mapped GTFS modes (may be empty)
+   */
+  public List<RouteType> getAcivatedGtfsModes(PredefinedModeType planitModeType) {
+    /* find gtfs modes for the give planit mode */
+    var mappedGtfsModes = defaultGtfsMode2PrefinedModeTypeMap.entrySet().stream().filter( e ->
+        e.getValue().contains(planitModeType)).map( e-> e.getKey()).collect(Collectors.toSet());
 
-    /**
-     * Find the GTFS mode that is mapped to the given predefined PLANit mode
-     * @param predefinedModeType to collect Gtfs route types for
-     * @return found mappings
-     */
-    public Set<RouteType> findGtfsModesFor(PredefinedModeType predefinedModeType) {
-      return findGtfsModesFor(defaultGtfsMode2PrefinedModeTypeMap, predefinedModeType);
-    }
+    /* prune by active ones */
+    return mappedGtfsModes.stream().filter(activatedGtfsModes::contains).distinct().collect(Collectors.toList());
+  }
 
-    /**
-     * The route type choice used for identifying the GTFS route modes and mapping them to PLANit modes
-     * @return chosen route type choice
-     */
-    public RouteTypeChoice getRouteTypeChoice(){
-      return this.routeTypeChoice;
-    }
 
-    /**
-     * Log settings used
-     */
-    public void logSettings() {
-      super.logSettings();
+  /**
+   * Find the GTFS mode that is mapped to the given predefined PLANit mode
+   * @param predefinedModeType to collect Gtfs route types for
+   * @return found mappings
+   */
+  public Set<RouteType> findGtfsModesFor(PredefinedModeType predefinedModeType) {
+    return findGtfsModesFor(defaultGtfsMode2PrefinedModeTypeMap, predefinedModeType);
+  }
 
-      LOGGER.info(String.format("Route type choice set to: %s ", this.routeTypeChoice));
+  /**
+   * The route type choice used for identifying the GTFS route modes and mapping them to PLANit modes
+   * @return chosen route type choice
+   */
+  public RouteTypeChoice getRouteTypeChoice(){
+    return this.routeTypeChoice;
+  }
 
-      /* mode mappings GTFS -> PLANit */
-      for(var entry : defaultGtfsMode2PrefinedModeTypeMap.entrySet()){
-        if(activatedGtfsModes.contains(entry.getKey())){
-          LOGGER.info(
-              String.format("[ACTIVATED] %s --> %s",
-                  entry.getKey(), entry.getValue().stream().map(e -> e.toString()).collect(Collectors.joining(","))));
-        }else{
-          LOGGER.info(String.format("[DEACTIVATED] %s", entry.getKey()));
-        }
+  /**
+   * Log settings used
+   */
+  public void logSettings() {
+    super.logSettings();
+
+    LOGGER.info(String.format("Route type choice set to: %s ", this.routeTypeChoice));
+
+    /* mode mappings GTFS -> PLANit */
+    for(var entry : defaultGtfsMode2PrefinedModeTypeMap.entrySet()){
+      if(activatedGtfsModes.contains(entry.getKey())){
+        LOGGER.info(
+            String.format("[ACTIVATED] %s --> %s",
+                entry.getKey(), entry.getValue().stream().map(e -> e.toString()).collect(Collectors.joining(","))));
+      }else{
+        LOGGER.info(String.format("[DEACTIVATED] %s", entry.getKey()));
       }
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void reset() {
-      super.reset();
-      // todo reset mode mapping
-    }
-
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+    // todo reset mode mapping
+  }
+
+}

@@ -14,6 +14,9 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.zoning.Zoning;
 
 import java.time.DayOfWeek;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -111,4 +114,5 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
   public String getStopToStopPathSearchPhysicalCostApproach() {
     return stopToStopPathSearchPhysicalCostApproach;
   }
+
 }

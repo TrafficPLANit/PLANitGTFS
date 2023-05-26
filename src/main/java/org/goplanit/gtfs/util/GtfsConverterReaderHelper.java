@@ -3,10 +3,15 @@ package org.goplanit.gtfs.util;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.Modes;
+import org.goplanit.mode.ModeFactoryImpl;
+import org.goplanit.mode.ModesImpl;
+import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -69,12 +74,37 @@ public class GtfsConverterReaderHelper {
 
   /**
    * Use when it is the time to make sure that the mapped predefined PLANit modes exist as actual mode instances, so supplement the provides
-   * modes container where needed based on the configuration
+   * modes container where needed based on the configuration.
+   * <p>
+   *   Also check based on the type of mode (track type, e.g., water/rail,road) that we only do so, if at least one mode exists
+   *   of the same track type. If not log a warning. For example, if we have activate tram, but no rail based mode layers exist
+   *   in the network, there is no point in activating, instead log a warning and deactivate on the GTFS settings instead
+   * </p>
    *
    * @param settings to base modes configuration on
-   * @param modes to adjust
+   * @param network to adjust modes for
    */
-  public static void addActivatedPlanitPredefinedModesBeforeParsing(GtfsServicesReaderSettings settings, Modes modes) {
-    settings.getAcivatedPlanitPredefinedModes().forEach( modeType -> modes.getFactory().registerNew(modeType));
+  public static void syncActivatedPlanitPredefinedModesBeforeParsing(GtfsServicesReaderSettings settings, MacroscopicNetwork network) {
+    /* create temporary mode instances of each mode type */
+    var token = IdGroupingToken.create("temp");
+    var gtfsActivatedModes = new ModesImpl(token);
+    settings.getAcivatedPlanitPredefinedModes().stream().forEach(mt -> gtfsActivatedModes.getFactory().registerNew(mt));
+
+    /* find track types that are supported */
+    var supportedTrackTypes = network.getModes().stream().filter( m -> m.hasPhysicalFeatures()).map(m -> m.getPhysicalFeatures().getTrackType()).collect(Collectors.toSet());
+
+    for(var gtfsActivatedMode : gtfsActivatedModes){
+      if(supportedTrackTypes.contains(gtfsActivatedMode.getPhysicalFeatures().getTrackType())) {
+        network.getModes().getFactory().registerNew(gtfsActivatedMode.getPredefinedModeType());
+      }else{
+        LOGGER.warning(String.format(
+            "DISCARD: Deactivating GTFS mode %s because its track type %s is not present on any mode [%s] in the physical network",
+            gtfsActivatedMode.getPredefinedModeType(), gtfsActivatedMode.getPhysicalFeatures().getTrackType(), network.getModes().stream().map(m -> m.getName()).collect(Collectors.joining(","))));
+        var gtfsRouteTypesToDeactivate = settings.getAcivatedGtfsModes(gtfsActivatedMode.getPredefinedModeType());
+        settings.deactivateGtfsModes(gtfsRouteTypesToDeactivate);
+      }
+    }
+
+    IdGenerator.reset(token);
   }
 }

@@ -47,7 +47,10 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   private final Set<ComparablePair<LocalTime, LocalTime>> timePeriodFilters;
 
   /** when non-empty we exclude ALL GTFS routes except the ones registered */
-  private final Set<String> exceptionsToBlanketBlackListByShortName;
+  private final Set<String> exceptionsToBlanketBlackListByShortName = new TreeSet<>();
+
+  /** when non-empty we exclude the provided GTFS routes from parsing */
+  private final Set<String> excludeGtfsRoutesByShortName = new HashSet<>();
 
   /** flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
    * falling outside this window */
@@ -55,6 +58,11 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
 
   /** allow explicit logging of all trips of a GTFS route by means of its short name */
   private Set<String> logGtfsRouteInformationByShortName = new HashSet<>();
+
+  /**
+   * Log the routes found to use the GTFS stop (for the time periods that are chosen)
+   */
+  private final Set<String> logGtfsStopRoutes = new HashSet<>();
 
   /**
    * Conduct general initialisation for any instance of this class
@@ -124,7 +132,6 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     super(inputSource, countryName, routeTypeChoice);
     this.dayOfWeek = dayOfWeekFilter;
     this.timePeriodFilters = new TreeSet<>();
-    this.exceptionsToBlanketBlackListByShortName = new TreeSet<>();
   }
 
   /**
@@ -138,13 +145,24 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   }
 
   /**
-   * Verify if a GTFS route is excluded
+   * Verify if a GTFS route is included
    *
    * @param gtfsShortName to verify
    * @return true when included, false otherwise
    */
   public boolean isGtfsRouteIncludedByShortName(String gtfsShortName){
-    return exceptionsToBlanketBlackListByShortName.isEmpty() || exceptionsToBlanketBlackListByShortName.contains(gtfsShortName);
+    return !excludeGtfsRoutesByShortName.contains(gtfsShortName) &&
+        (exceptionsToBlanketBlackListByShortName.isEmpty() || exceptionsToBlanketBlackListByShortName.contains(gtfsShortName));
+  }
+
+  /**
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * listing is considered
+   *
+   * @param gtfsShortNames the only routes not to exclude
+   */
+  public void excludeGtfsRouteByShortName(String... gtfsShortNames){
+    excludeGtfsRoutesByShortName.addAll(Arrays.asList(gtfsShortNames));
   }
 
 
@@ -298,6 +316,25 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   }
 
   /**
+   * Indicate to log the routes that stop at the given GTFS stops (within selected time period(s). Can be useful
+   * for debugging purposes.
+   *
+   * @param gtfsStopIds GTFS stop id to provide stopping GTFS routes for
+   */
+  public void addLogGtfsStopRoutes(final String... gtfsStopIds) {
+    Arrays.stream(gtfsStopIds).forEach(e -> logGtfsStopRoutes.add(e));
+  }
+
+  /** Verify if GTFS stop id is marked for logging the stopping GTFS routes for
+   *
+   * @param gtfsStopId GTFS stop id to verify
+   * @return true when present, false otherwise
+   */
+  public boolean isLogGtfsStopRoutes(final String gtfsStopId) {
+    return logGtfsStopRoutes.contains(gtfsStopId);
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -305,6 +342,9 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     super.reset();
     this.timePeriodFilters.clear();
     this.dayOfWeek = null;
+    this.logGtfsStopRoutes.clear();
+    this.excludeGtfsRoutesByShortName.clear();
+    this.exceptionsToBlanketBlackListByShortName.clear();
   }
 
 }

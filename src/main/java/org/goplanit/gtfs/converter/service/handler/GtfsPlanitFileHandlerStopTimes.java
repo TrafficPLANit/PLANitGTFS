@@ -14,8 +14,7 @@ import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.time.ExtendedLocalTime;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -44,6 +43,9 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
   /** set of tracked GTFS route short names to log information on while parsing */
   private final Set<String> activatedLoggingForGtfsRoutesByShortName;
+
+  /** track found GTFS routes for stop, if stop is indicated to be tracked for passing routes */
+  private final Map<String, Set<String>> uniqueRoutesForStopsIfLoggingRequired = new HashMap<>();
 
   /** track previous entry's related GTFS trip - as for now we assume they will only be provided in consecutive order within the file,
    * If for a given GTFS file this is violated, we will need to have a more sophisticated way: either first parse all entries and then process in order
@@ -291,6 +293,10 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       LOGGER.info(String.format("[TRACK] stop: %s, trip: %s, route: %s (%s), arrival--departure: %s -- %s",
           gtfsStopTime.getStopId(), planitTrip.getExternalId(), planitRoutedService.getName(), planitRoutedService.getNameDescription(), arrivalTime, departureTime));
     }
+    if(data.getSettings().isLogGtfsStopRoutes(gtfsStopTime.getStopId())){
+      uniqueRoutesForStopsIfLoggingRequired.putIfAbsent(gtfsStopTime.getStopId(), new TreeSet<>());
+      uniqueRoutesForStopsIfLoggingRequired.get(gtfsStopTime.getStopId()).add("(name: " + planitRoutedService.getName()+" id: " + gtfsTrip.getRouteId()+")");
+    }
 
     data.getProfiler().incrementTripStopTimeCount();
 
@@ -305,6 +311,16 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   public void reset(){
     prevSameTripStopTime = null;
     prevStopTimeTrip = null;
+    uniqueRoutesForStopsIfLoggingRequired.clear();
+  }
+
+  /**
+   * All GTFS routes per tracked stop that were found to require user logging
+   *
+   * @return result
+   */
+  public Map<String, Set<String>> getUniqueRoutesForTrackedGtfsStops(){
+    return uniqueRoutesForStopsIfLoggingRequired;
   }
 
 }

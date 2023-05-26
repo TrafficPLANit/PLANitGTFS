@@ -13,6 +13,7 @@ import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
@@ -99,7 +100,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
       return null;
     }
 
-    if(gtfsStopIdDownstream.equals("200018")){
+    if(gtfsStopIdUpstream.equals("2000449") && gtfsStopIdDownstream.equals("2000453")){
       int bla = 4;
     }
 
@@ -197,10 +198,12 @@ public class GtfsServicesAndZoningReaderIntegrator {
            we then supplement the found path with the two access link segments which we know are mode compatible */
         try {
 
-          /* ban direct u-turn around access link segments as option */
+          /* ban direct u-turn around access link segments, unless it is a water/rail mode where this can be acceptable */
+          boolean banInitialUTurn = !(mode.hasPhysicalFeatures() && mode.getPhysicalFeatures().getTrackType() != TrackModeType.ROAD);
+
           // todo if ever we support turn bans, then we must make the below more sophisticated
           Set<EdgeSegment> bannedLinkSegments = new HashSet<>();
-          if(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment() != null){
+          if(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment() != null && banInitialUTurn){
             bannedLinkSegments.add(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment());
           }
           if( downstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment() != null){

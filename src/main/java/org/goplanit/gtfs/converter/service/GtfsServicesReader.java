@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of a GTFS services reader from GTFS files. This reads the following GTFS files:
@@ -61,7 +62,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     PlanItRunTimeException.throwIf(!routedServices.getLayers().isEmpty() && routedServices.getLayers().isEachLayerEmpty(), "Routed services layers are expected to have been initialised empty when populating with GTFS routes");
 
     /* sync the PLANit modes to the configured modes in the settings if needed */
-    GtfsConverterReaderHelper.addActivatedPlanitPredefinedModesBeforeParsing(getSettings(), serviceNetwork.getParentNetwork().getModes());
+    GtfsConverterReaderHelper.syncActivatedPlanitPredefinedModesBeforeParsing(getSettings(), serviceNetwork.getParentNetwork());
 
     /* create a new service network layer for each physical layer that is present */
     this.referenceNetwork.getTransportLayers().forEach(parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
@@ -111,6 +112,10 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /** execute */
     stopTimeFileReader.read(StandardCharsets.UTF_8);
+
+    /* logging in case user required bespoke tracking of GTFS stop frequented GTFS routes */
+    tripStopTimeHandler.getUniqueRoutesForTrackedGtfsStops().entrySet().stream().forEach(
+        e -> LOGGER.info(String.format("GTFS stop %s is visited by GTFS routes [%s]", e.getKey(), e.getValue().stream().collect(Collectors.joining(",")))));
   }
 
   /**
