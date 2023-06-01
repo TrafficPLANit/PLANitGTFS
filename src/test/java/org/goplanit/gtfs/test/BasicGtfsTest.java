@@ -32,7 +32,12 @@ public class BasicGtfsTest {
 
   private static Logger LOGGER;
 
-  public static final Path GTFS_SEQ_ALL = Path.of(ResourceUtils.getResourceUri(Path.of("GTFS","SEQ","SEQGTFS.zip").toString()));
+  private static final Path RESOURCES_GTFS = Path.of("src","test","resources","GTFS");
+
+  //public static final Path GTFS_SEQ_ALL = Path.of(ResourceUtils.getResourceUri(Path.of("GTFS","SEQ","SEQGTFS.zip").toString()));
+  public static final Path GTFS_SEQ_ALL = Path.of(RESOURCES_GTFS.toString(),"SEQ","SEQGTFS.zip");
+
+
 
   @BeforeAll
   public static void setUp() throws Exception {
