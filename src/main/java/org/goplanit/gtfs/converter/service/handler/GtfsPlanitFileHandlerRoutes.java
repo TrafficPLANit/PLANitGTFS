@@ -43,6 +43,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
   public void handle(GtfsRoute gtfsRoute) {
     if(!data.getSettings().isGtfsRouteIncludedByShortName(gtfsRoute.getShortName())){
       data.registeredRemovedRoute(gtfsRoute, GtfsServicesHandlerData.RouteRemovalType.SETTINGS_EXCLUDED);
+      LOGGER.info(String.format("ROUTE %s marked for exclusion?", gtfsRoute.getRouteId()));
       return;
     }
 
@@ -50,6 +51,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     Mode planitMode = data.getPrimaryPlanitModeIfActivated(routeType);
     if(planitMode == null){
       data.registeredRemovedRoute(gtfsRoute, GtfsServicesHandlerData.RouteRemovalType.MODE_INCOMPATIBLE);
+      LOGGER.info(String.format("ROUTE %s removed based on mode incompatibility? for mode %s", gtfsRoute.getRouteId(),routeType));
       return;
     }
 
@@ -87,6 +89,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     /* indexed by GTFS route_id */
     data.indexByExternalId(planitRoutedService);
     data.getProfiler().incrementRouteCount(gtfsRoute.getRouteType());
+    LOGGER.info(String.format("ROUTE %s added", gtfsRoute.getRouteId(),routeType));
   }
 
 }
