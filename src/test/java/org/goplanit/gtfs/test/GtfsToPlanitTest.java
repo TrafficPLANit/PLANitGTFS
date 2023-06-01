@@ -152,7 +152,7 @@ public class GtfsToPlanitTest {
    */
   @Disabled
   @Test
-  public void testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones() {
+  public void testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones() { 
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
