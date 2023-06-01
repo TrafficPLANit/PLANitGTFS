@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -105,8 +106,10 @@ public abstract class GtfsFileReaderBase {
    * 
    * @param csvParser to use
    * @param columnsToParse to use
+   * @return numberOfParsedRecords
    */
-  private void parseGtfsRecords(final CSVParser csvParser, final Map<String, GtfsKeyType> columnsToParse) {
+  private long parseGtfsRecords(final CSVParser csvParser, final Map<String, GtfsKeyType> columnsToParse) {
+    LongAdder numRecords = new LongAdder();
     Iterator<CSVRecord> entryIterator = csvParser.iterator();
     while(entryIterator.hasNext()) {
       
@@ -124,12 +127,16 @@ public abstract class GtfsFileReaderBase {
       for(GtfsFileHandler<? extends GtfsObject> handler : handlers) {
         handler.handleRaw(gtfsObject);
       }
+
+      numRecords.increment();
     }
 
     /* delegate to handler to finalise */
     for(GtfsFileHandler<? extends GtfsObject> handler : handlers) {
       handler.handleComplete();
     }
+
+    return numRecords.longValue();
   }
 
   /** Explicitly indicate the expectations regarding the presence of this file. When marked as optional no warnings will be logged
@@ -181,21 +188,21 @@ public abstract class GtfsFileReaderBase {
     }
   }
 
-  /** Constructor
+  /** Constructor which enforces the file to be present
    * 
    * @param fileScheme the file scheme this file reader is based on
    * @param gtfsLocation to base file location to parse from on (dir or zip file)
    * @param settings to use
    */
   protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation, GtfsFileReaderSettings settings) {
-    this(fileScheme, gtfsLocation, null, settings);
+    this(fileScheme, gtfsLocation, GtfsFileConditions.required(), settings);
   }
 
   /** Constructor
    *
    * @param fileScheme the file scheme this file reader is based on
    * @param gtfsLocation to base file location to parse from on (dir or zip file)
-   * @param filePresenceCondition to enforce
+   * @param filePresenceCondition to apply (optional, required, conditionally required etc.)
    * @param settings to use
    */
   protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation, GtfsFileConditions filePresenceCondition, GtfsFileReaderSettings settings) {
@@ -234,8 +241,11 @@ public abstract class GtfsFileReaderBase {
         }
 
         // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
-        parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerWithBom)));
-    
+        long numRecords = parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerWithBom)));
+        if(settings.isLogGtfsFileInputStreamInfo()){
+          LOGGER.info(String.format("Processed %d records from input stream", numRecords));
+        }
+
         csvParser.close();
         gtfsInputReader.close();
         gtfsInputStream.close();
