@@ -1,13 +1,14 @@
 package org.goplanit.gtfs.reader;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import org.goplanit.gtfs.enums.GtfsColumnType;
-import org.goplanit.gtfs.enums.GtfsFileTypePresence;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.utils.misc.UrlUtils;
+import org.goplanit.utils.resource.ResourceUtils;
 
 /**
  * top level class to get things started. Based on location (dir or zip file) and scheme (type of GTFS file), create a single stand-alone
@@ -23,7 +24,7 @@ public class GtfsReaderFactory {
 
   /** Factory method to create a GTFS reader supporting one or more file readers where  all columns will be parsed by default
    *
-   * @param gtfsLocation to use to extract GTFS file(s) from
+   * @param gtfsLocation to use to extract GTFS file(s) from (expected to be local file path or resource)
    * @return created reader
    */
   public static GtfsReader createDefaultReader(URL gtfsLocation) {
@@ -35,11 +36,11 @@ public class GtfsReaderFactory {
    * a path to gtfs file and setting initially all columns to be parsed
    *
    * @param fileScheme to apply
-   * @param gtfsLocation to use
+   * @param gtfsLocation to use (expected to be local file path)
    * @return created file reader based on scheme
    */
   public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, String gtfsLocation) {
-    return createFileReader(fileScheme,  UrlUtils.createFromPath(gtfsLocation));
+      return createFileReader(fileScheme, UrlUtils.createFromLocalPathOrResource(gtfsLocation));
   }
 
   /**
@@ -47,18 +48,18 @@ public class GtfsReaderFactory {
    * a path to gtfs file
    *
    * @param fileScheme to apply
-   * @param gtfsLocation to use
+   * @param gtfsLocation to use (expected to be local file path or resource)
    * @param columnType the way we configure the initial included columns across all GTFS files
    * @return created file reader based on scheme
    */
   public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, String gtfsLocation, GtfsColumnType columnType) {
-    return createFileReader(fileScheme, UrlUtils.createFromPath(gtfsLocation), columnType);
+    return createFileReader(fileScheme, UrlUtils.createFromLocalPathOrResource(gtfsLocation), columnType);
   }
 
   /** Factory method to create a GTFS file specific reader with all columns initially included enforcing the file is present (otherwise why other having a reader)
    *
    * @param fileScheme to create reader for
-   * @param gtfsLocation to use to extract GTFS file from
+   * @param gtfsLocation URL to use to extract GTFS file from, URL based so more versatile than a local String based file (jar, resources, etc)
    * @return created file reader
    */
   public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, URL gtfsLocation) {

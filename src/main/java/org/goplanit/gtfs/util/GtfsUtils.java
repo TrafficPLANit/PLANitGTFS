@@ -17,7 +17,9 @@ import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.entity.GtfsObjectFactory;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 import org.goplanit.utils.misc.StringUtils;
+import org.goplanit.utils.misc.UriUtils;
 import org.goplanit.utils.misc.UrlUtils;
+import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.utils.time.ExtendedLocalTime;
 import org.goplanit.utils.zip.ZipUtils;
 
@@ -77,8 +79,14 @@ public class GtfsUtils {
       return null;
     }
 
+
     try {
-      if(UrlUtils.isLocalDirectory(gtfsLocation)) {
+
+      if(UriUtils.isInJar(gtfsLocation.toURI())) {
+        /* input stream */
+        if(logInfo) LOGGER.info(String.format("IN JAR %s", gtfsLocation));
+        return null;
+      }else if(UrlUtils.isLocalDirectory(gtfsLocation)) {
         URL gtfsFileUrl = UrlUtils.appendRelativePathToURL(gtfsLocation, fileScheme.getFileType().value());
         if(logInfo) LOGGER.info(String.format("Creating input stream for local directory: %s, as URL: %s", gtfsLocation, gtfsFileUrl.toString()));
         return createFileInputStream(new File(gtfsFileUrl.toURI()), filePresenceCondition);

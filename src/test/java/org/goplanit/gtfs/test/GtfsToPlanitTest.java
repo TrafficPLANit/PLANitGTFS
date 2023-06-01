@@ -23,6 +23,7 @@ import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.*;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -47,8 +48,8 @@ public class GtfsToPlanitTest {
 
   private static final Path RESOURCES_GTFS = Path.of("src","test","resources","GTFS");
 
-  //public static final String GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greatersydneygtfsstaticnoshapes.zip").toString();
-  public static final String GTFS_NSW_NO_SHAPES = Path.of(RESOURCES_GTFS.toString(),"NSW","greatersydneygtfsstaticnoshapes.zip").toString();
+  public static final Path GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greatersydneygtfsstaticnoshapes.zip");
+  //public static final String GTFS_NSW_NO_SHAPES = Path.of(RESOURCES_GTFS.toString(),"NSW","greatersydneygtfsstaticnoshapes.zip").toString();
 
   public static MacroscopicNetwork macroscopicNetwork;
 
@@ -108,7 +109,7 @@ public class GtfsToPlanitTest {
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
-      String GTFS_FILES_DIR = Path.of(GTFS_NSW_NO_SHAPES).toAbsolutePath().toString();
+      String GTFS_FILES_DIR = GTFS_NSW_NO_SHAPES.toString();
 
       var networkCopy = macroscopicNetwork.deepClone();
       GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(
@@ -153,7 +154,7 @@ public class GtfsToPlanitTest {
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
-      String GTFS_FILES_DIR = Path.of(GTFS_NSW_NO_SHAPES).toAbsolutePath().toString();
+      var GTFS_FILES_DIR = GTFS_NSW_NO_SHAPES.toString();
 
       /* construct intermodal reader without pre-existing zoning */
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(
@@ -224,10 +225,11 @@ public class GtfsToPlanitTest {
   public void testGtfsIntermodalReaderWithPreExistingPlanitTransferZones() {
 
     try {
-      //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
+      //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES.toString())).toAbsolutePath().toString();
+      var GTFS_FILES_DIR = GTFS_NSW_NO_SHAPES.toString();
 
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(
-          GTFS_NSW_NO_SHAPES, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, macroscopicNetwork, zoning, RouteTypeChoice.EXTENDED);
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, macroscopicNetwork, zoning, RouteTypeChoice.EXTENDED);
 
       /* 6-10 in the morning as time period filter */
       gtfsIntermodalReader.getSettings().getServiceSettings().addTimePeriodFilter(
