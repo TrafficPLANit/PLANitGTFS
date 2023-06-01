@@ -219,7 +219,8 @@ public abstract class GtfsFileReaderBase {
    */
   public void read(Charset charSetToUse) {
             
-    try (InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition)){
+    try (InputStream gtfsInputStream =
+             GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition, settings.isLogGtfsFileInputStreamInfo())){
       if(gtfsInputStream!=null) {
         Reader gtfsInputReader = new InputStreamReader(gtfsInputStream, charSetToUse);
         CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());

@@ -17,6 +17,9 @@ public class GtfsFileReaderSettings {
   /** track explicitly excluded columns from parsing */
   private final Set<GtfsKeyType> excludedColumns = new HashSet<>();
 
+  /** log information regarding creating file input streams for individual GTFS files while parsing (useful for debugging) */
+  private boolean logFileInputStreamInformation = false;
+
   
   /** Exclude one or more columns from in memory object to for example reduce the memory footprint
    * 
@@ -49,6 +52,24 @@ public class GtfsFileReaderSettings {
    */
   public boolean isExcludedColumn(GtfsKeyType column) {
     return excludedColumns.contains(column);
+  }
+
+  /**
+   * Set the flag for logging input stream creation logging during execution
+   *
+   * @param flag to set
+   */
+  public void setLogGtfsFileInputStreamInfo(boolean flag){
+    logFileInputStreamInformation = flag;
+  }
+
+  /**
+   * Collect the flag for logging input stream creation logging during execution
+   *
+   * @return flag as it is set
+   */
+  public boolean isLogGtfsFileInputStreamInfo(){
+    return logFileInputStreamInformation;
   }
 
 }
