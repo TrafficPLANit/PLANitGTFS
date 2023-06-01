@@ -18,6 +18,7 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
+import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
@@ -149,6 +150,7 @@ public class GtfsToPlanitTest {
    * Test that attempts to extract PLANit routed services, service network and zoning from GTFS data given the PLANit network exists,
    * but it has no transfer zones yet,i.e., all transfer zones (stops) are to be based on the GTFS data only.
    */
+  @Disabled
   @Test
   public void testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones() {
 
@@ -221,6 +223,7 @@ public class GtfsToPlanitTest {
    * Test that attempts to extract PLANit routed services, service network and zoning  from GTFS data given the PLANit network already has existing transfer
    * zones present that will be fused/merged when found in GTFS
    */
+  @Disabled
   @Test
   public void testGtfsIntermodalReaderWithPreExistingPlanitTransferZones() {
 

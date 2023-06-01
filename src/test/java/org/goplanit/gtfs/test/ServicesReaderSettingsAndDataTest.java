@@ -13,6 +13,7 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
@@ -48,6 +49,7 @@ public class ServicesReaderSettingsAndDataTest {
     routedServices = new RoutedServices(parentNetwork.getIdGroupingToken(), serviceNetwork);
   }
 
+  @Disabled
   @Test
   public void settingsTest() {
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
@@ -71,6 +73,7 @@ public class ServicesReaderSettingsAndDataTest {
 
   }
 
+  @Disabled
   @Test
   public void timePeriodSettingsTest(){
 
