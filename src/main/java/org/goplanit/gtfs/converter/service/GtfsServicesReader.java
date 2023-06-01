@@ -4,9 +4,11 @@ import org.goplanit.converter.PairConverterReader;
 import org.goplanit.gtfs.converter.service.handler.*;
 import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsFileType;
+import org.goplanit.gtfs.enums.GtfsFileTypePresence;
 import org.goplanit.gtfs.reader.*;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
+import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.gtfs.util.GtfsRoutedServicesModifierUtils;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
@@ -94,7 +96,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
-   * Process GTFS stop times of routes/trips fr usage in PLANit
+   * Process GTFS stop times of routes/trips for usage in PLANit
    *
    * @param fileHandlerData to use
    */
@@ -139,7 +141,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
-   * Process GTFS calendars. Capture all service ids that fall within the selected day/time period so we can filter trips appropriately
+   * Process GTFS calendars. Capture all service ids that fall within the selected day/time period, so we can filter trips appropriately
    *
    * @param fileHandlerData containing all data to track and resources needed to perform the processing
    */

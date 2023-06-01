@@ -38,7 +38,6 @@ public class BasicGtfsTest {
   public static final Path GTFS_SEQ_ALL = Path.of(RESOURCES_GTFS.toString(),"SEQ","SEQGTFS.zip");
 
 
-
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {

@@ -5,6 +5,7 @@ import java.net.URL;
 import org.goplanit.gtfs.enums.GtfsColumnType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.scheme.GtfsRoutesScheme;
+import org.goplanit.gtfs.util.GtfsFileConditions;
 
 /**
  * A GTFS file reader for parsing GTFS routes. When Column type configuration is set to PLANIT_REQUIRED_COLUMNS we exclude the following columns:
@@ -27,9 +28,10 @@ public class GtfsFileReaderRoutes extends GtfsFileReaderBase {
    * Constructor
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
+   * @param filePresenceCondition on being present
    */
-  protected GtfsFileReaderRoutes(URL gtfsLocation) {
-    super(new GtfsRoutesScheme(), gtfsLocation);
+  protected GtfsFileReaderRoutes(URL gtfsLocation, GtfsFileConditions filePresenceCondition) {
+    super(new GtfsRoutesScheme(), gtfsLocation, filePresenceCondition);
   }
 
   /**

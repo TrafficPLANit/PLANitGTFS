@@ -4,7 +4,9 @@ import java.net.URL;
 import java.util.logging.Logger;
 
 import org.goplanit.gtfs.enums.GtfsColumnType;
+import org.goplanit.gtfs.enums.GtfsFileTypePresence;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
+import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.utils.misc.UrlUtils;
 
 /**
@@ -53,7 +55,7 @@ public class GtfsReaderFactory {
     return createFileReader(fileScheme, UrlUtils.createFromPath(gtfsLocation), columnType);
   }
 
-  /** Factory method to create a GTFS file specific reader with all columns initially included
+  /** Factory method to create a GTFS file specific reader with all columns initially included enforcing the file is present (otherwise why other having a reader)
    *
    * @param fileScheme to create reader for
    * @param gtfsLocation to use to extract GTFS file from
@@ -63,69 +65,83 @@ public class GtfsReaderFactory {
     return createFileReader(fileScheme, gtfsLocation, GtfsColumnType.ALL_COLUMNS);
   }
 
-  /** Factory method to create a GTFS file specific reader
-   * 
+  /** Factory method to create a GTFS file specific reader enforcing the file is present (otherwise why other having a reader)
+   *
    * @param fileScheme to create reader for
    * @param gtfsLocation to use to extract GTFS file from
    * @param columnType the way we configure the initial included columns across all GTFS files
    * @return created file reader
    */
-  public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, URL gtfsLocation, GtfsColumnType columnType) {
+  public static GtfsFileReaderBase createFileReader(
+      GtfsFileScheme fileScheme, URL gtfsLocation, GtfsColumnType columnType) {
+    return createFileReader(fileScheme, gtfsLocation, columnType, GtfsFileConditions.required());
+  }
+
+  /** Factory method to create a GTFS file specific reader
+   * 
+   * @param fileScheme to create reader for
+   * @param gtfsLocation to use to extract GTFS file from
+   * @param columnType the way we configure the initial included columns across all GTFS files
+   * @param conditions to apply regarding presence
+   * @return created file reader
+   */
+  public static GtfsFileReaderBase createFileReader(
+      GtfsFileScheme fileScheme, URL gtfsLocation, GtfsColumnType columnType, GtfsFileConditions conditions) {
     GtfsFileReaderBase createdReader = null;
     switch (fileScheme.getFileType()) {
       case AGENCIES:
-        createdReader = new GtfsFileReaderAgencies(gtfsLocation);
+        createdReader = new GtfsFileReaderAgencies(gtfsLocation, conditions);
         break;
       case ATTRIBUTIONS:
-        createdReader = new GtfsFileReaderAttributions(gtfsLocation);
+        createdReader = new GtfsFileReaderAttributions(gtfsLocation, conditions);
         break;
       case CALENDARS:
-        createdReader = new GtfsFileReaderCalendars(gtfsLocation);
+        createdReader = new GtfsFileReaderCalendars(gtfsLocation, conditions);
         break;
       case CALENDAR_DATES:
-        createdReader = new GtfsFileReaderCalendarDates(gtfsLocation);
+        createdReader = new GtfsFileReaderCalendarDates(gtfsLocation, conditions);
         break;
       case FARE_ATTRIBUTES:
-        createdReader = new GtfsFileReaderFareAttributes(gtfsLocation);
+        createdReader = new GtfsFileReaderFareAttributes(gtfsLocation, conditions);
         break;
       case FARE_RULES:
-        createdReader = new GtfsFileReaderFareRules(gtfsLocation);
+        createdReader = new GtfsFileReaderFareRules(gtfsLocation, conditions);
         break;
       case FEED_INFO:
-        createdReader = new GtfsFileReaderFeedInfo(gtfsLocation);
+        createdReader = new GtfsFileReaderFeedInfo(gtfsLocation, conditions);
         break;
       case FREQUENCIES:
-        createdReader = new GtfsFileReaderFrequencies(gtfsLocation);
+        createdReader = new GtfsFileReaderFrequencies(gtfsLocation, conditions);
         break;
       case LEVELS:
-        createdReader = new GtfsFileReaderLevels(gtfsLocation);
+        createdReader = new GtfsFileReaderLevels(gtfsLocation, conditions);
         break;
       case PATHWAYS:
-        createdReader = new GtfsFileReaderPathways(gtfsLocation);
+        createdReader = new GtfsFileReaderPathways(gtfsLocation, conditions);
         break;
       case ROUTES:
-        createdReader = new GtfsFileReaderRoutes(gtfsLocation);
+        createdReader = new GtfsFileReaderRoutes(gtfsLocation, conditions);
         break;
       case SHAPES:
-        createdReader = new GtfsFileReaderShapes(gtfsLocation);
+        createdReader = new GtfsFileReaderShapes(gtfsLocation, conditions);
         break;
       case TRANSFERS:
-        createdReader = new GtfsFileReaderTransfers(gtfsLocation);
+        createdReader = new GtfsFileReaderTransfers(gtfsLocation, conditions);
         break;
       case TRANSLATIONS:
-        createdReader = new GtfsFileReaderTranslations(gtfsLocation);
+        createdReader = new GtfsFileReaderTranslations(gtfsLocation, conditions);
         break;
       case TRIPS:
-        createdReader = new GtfsFileReaderTrips(gtfsLocation);
+        createdReader = new GtfsFileReaderTrips(gtfsLocation, conditions);
         break;
       case STOP_TIMES:
-        createdReader = new GtfsFileReaderStopTimes(gtfsLocation);
+        createdReader = new GtfsFileReaderStopTimes(gtfsLocation, conditions);
         break;
       case STOPS:
-        createdReader = new GtfsFileReaderStops(gtfsLocation);
+        createdReader = new GtfsFileReaderStops(gtfsLocation, conditions);
         break;
       default:
-        LOGGER.warning(String.format("Unable to create GTFS file reader for given scheme %s", fileScheme.toString()));
+        LOGGER.warning(String.format("Unable to create GTFS file reader for given scheme %s", fileScheme));
         return null;
     }
 

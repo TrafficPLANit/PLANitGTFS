@@ -60,7 +60,7 @@ public class GtfsFileConditions {
    * @param otherFileType when present this is also required to be present
    * @return created file condition
    */  
-  public static GtfsFileConditions requiredinPresenceOf(GtfsFileType otherFileType) {
+  public static GtfsFileConditions requiredInPresenceOf(GtfsFileType otherFileType) {
     return new GtfsFileConditions(GtfsFileTypePresence.CONDITIONALLY_REQUIRED, null, otherFileType);
   }
   

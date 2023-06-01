@@ -5,6 +5,7 @@ import java.net.URL;
 import org.goplanit.gtfs.enums.GtfsColumnType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.scheme.GtfsStopTimesScheme;
+import org.goplanit.gtfs.util.GtfsFileConditions;
 
 /**
  * A GTFS file reader for parsing GTFS stop times. When Column type configuration is set to PLANIT_REQUIRED_COLUMNS we exclude the following columns:
@@ -21,9 +22,10 @@ public class GtfsFileReaderStopTimes extends GtfsFileReaderBase {
    * Constructor
    * 
    * @param gtfsLocation to extract file to parse from (dir or zip file)
+   * @param filePresenceCondition on being present
    */
-  protected GtfsFileReaderStopTimes(URL gtfsLocation) {
-    super(new GtfsStopTimesScheme(), gtfsLocation);
+  protected GtfsFileReaderStopTimes(URL gtfsLocation, GtfsFileConditions filePresenceCondition) {
+    super(new GtfsStopTimesScheme(), gtfsLocation, filePresenceCondition);
   }
 
   /**

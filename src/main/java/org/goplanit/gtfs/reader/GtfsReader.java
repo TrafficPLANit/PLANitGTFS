@@ -2,7 +2,6 @@ package org.goplanit.gtfs.reader;
 
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -96,7 +95,7 @@ public class GtfsReader {
     read(GtfsFileType.TRANSFERS,      GtfsFileConditions.optional(), charSet);
     read(GtfsFileType.PATHWAYS,       GtfsFileConditions.optional(), charSet);
     read(GtfsFileType.LEVELS,         GtfsFileConditions.optional(), charSet);
-    read(GtfsFileType.FEED_INFO,      GtfsFileConditions.requiredinPresenceOf(GtfsFileType.TRANSLATIONS), charSet);
+    read(GtfsFileType.FEED_INFO,      GtfsFileConditions.requiredInPresenceOf(GtfsFileType.TRANSLATIONS), charSet);
     read(GtfsFileType.TRANSLATIONS,   GtfsFileConditions.optional(), charSet);
     read(GtfsFileType.ATTRIBUTIONS,   GtfsFileConditions.optional(), charSet);
     

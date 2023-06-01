@@ -134,19 +134,29 @@ public abstract class GtfsFileReaderBase {
 
   /** Explicitly indicate the expectations regarding the presence of this file. When marked as optional no warnings will be logged
    * when it is not present.
-   *  
+   *
    * @param filePresenceCondition to use
    */
-  protected void setPresenceCondition(GtfsFileConditions filePresenceCondition) {
+  public void setPresenceCondition(GtfsFileConditions filePresenceCondition) {
     this.filePresenceCondition = filePresenceCondition;
   }
-  
+
   /** Constructor using default gtfs reader settings
    * 
    * @param fileScheme the file scheme this file reader is based on
    * @param gtfsLocation to base file location to parse from on (dir or zip file)
    */
   protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation) {
+    this(fileScheme, gtfsLocation, new GtfsFileReaderSettings());
+  }
+
+  /** Constructor using default gtfs reader settings
+   *
+   * @param fileScheme the file scheme this file reader is based on
+   * @param gtfsLocation to base file location to parse from on (dir or zip file)
+   * @param filePresenceCondition to enforce
+   */
+  protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation, GtfsFileConditions filePresenceCondition) {
     this(fileScheme, gtfsLocation, new GtfsFileReaderSettings());
   }
 
@@ -178,17 +188,28 @@ public abstract class GtfsFileReaderBase {
    * @param settings to use
    */
   protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation, GtfsFileReaderSettings settings) {
+    this(fileScheme, gtfsLocation, null, settings);
+  }
+
+  /** Constructor
+   *
+   * @param fileScheme the file scheme this file reader is based on
+   * @param gtfsLocation to base file location to parse from on (dir or zip file)
+   * @param filePresenceCondition to enforce
+   * @param settings to use
+   */
+  protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation, GtfsFileConditions filePresenceCondition, GtfsFileReaderSettings settings) {
     this.fileScheme = fileScheme;
     this.settings = settings;
-    this.filePresenceCondition = null;    
-    
+    this.filePresenceCondition = filePresenceCondition;
+
     this.handlers = new HashSet<>();
-    
-    boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);    
-    this.gtfsLocation = validGtfsLocation ? gtfsLocation : null; 
+
+    boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);
+    this.gtfsLocation = validGtfsLocation ? gtfsLocation : null;
     if(!validGtfsLocation){
       LOGGER.warning(String.format("Provided GTFS location (%s)is neither a directory nor a zip file, unable to instantiate file reader", gtfsLocation));
-    }    
+    }
   }
   
   /**
@@ -198,7 +219,7 @@ public abstract class GtfsFileReaderBase {
    */
   public void read(Charset charSetToUse) {
             
-    try (InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition);){
+    try (InputStream gtfsInputStream = GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition)){
       if(gtfsInputStream!=null) {
         Reader gtfsInputReader = new InputStreamReader(gtfsInputStream, charSetToUse);
         CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());
@@ -217,7 +238,9 @@ public abstract class GtfsFileReaderBase {
         csvParser.close();
         gtfsInputReader.close();
         gtfsInputStream.close();
-      }      
+      }else{
+        LOGGER.warning(String.format("Empty input stream for (location: %s, scheme: %s", gtfsLocation.toString(), fileScheme));
+      }
     }catch(Exception e) {
       LOGGER.severe(String.format("Error during parsing of GTFS file (%s - %s)",gtfsLocation.toString(), fileScheme.getFileType().value()));
       throw new PlanItRunTimeException(e.getMessage(), e);

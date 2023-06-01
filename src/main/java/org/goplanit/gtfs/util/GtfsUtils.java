@@ -64,29 +64,46 @@ public class GtfsUtils {
 
   /** Based on passed in location and the file scheme create an input stream to the appropriate file, log warnings if not present but conditions
    * require otherwise.
+   *
+   * @param gtfsLocation to use (dir or zip)
+   * @param fileScheme to use to extract correct file name from
+   * @param filePresenceCondition indicates if the file should be present or not.
+   * @param logInfo when true log extensive information on the type and how to input stream is being created
+   * @return input stream to GTFS file
+   */
+  public static InputStream createInputStream(
+      URL gtfsLocation, GtfsFileScheme fileScheme, GtfsFileConditions filePresenceCondition, boolean logInfo) {
+    if(gtfsLocation==null || fileScheme==null || !isValidGtfsLocation(gtfsLocation)) {
+      return null;
+    }
+
+    try {
+      if(UrlUtils.isLocalDirectory(gtfsLocation)) {
+        URL gtfsFileUrl = UrlUtils.appendRelativePathToURL(gtfsLocation, fileScheme.getFileType().value());
+        if(logInfo) LOGGER.info(String.format("Creating input stream for local directory: %s, as URL: %s", gtfsLocation, gtfsFileUrl.toString()));
+        return createFileInputStream(new File(gtfsFileUrl.toURI()), filePresenceCondition);
+      }else if(UrlUtils.isLocalZipFile(gtfsLocation)) {
+        if(logInfo) LOGGER.info(String.format("Creating input stream for local zip file: %s, for internal file: %s", gtfsLocation, fileScheme.getFileType().value()));
+        return createZipEntryInputStream(gtfsLocation,  fileScheme.getFileType().value(), filePresenceCondition);
+      }
+    } catch (URISyntaxException e) {
+      LOGGER.warning(String.format("Invalid URL/file scheme provided (%s - %s) to create GTFS input stream for",gtfsLocation.toString(), fileScheme.getFileType().value()));
+    }
+
+    return null;
+  }
+
+  /** Based on passed in location and the file scheme create an input stream to the appropriate file, log warnings if not present but conditions
+   * require otherwise.
    * 
    * @param gtfsLocation to use (dir or zip)
    * @param fileScheme to use to extract correct file name from
    * @param filePresenceCondition indicates if the file should be present or not. If 
    * @return input stream to GTFS file
    */
-  public static InputStream createInputStream(URL gtfsLocation, GtfsFileScheme fileScheme, GtfsFileConditions filePresenceCondition) {
-    if(gtfsLocation==null || fileScheme==null || !isValidGtfsLocation(gtfsLocation)) {
-      return null;
-    }
-    
-    try {
-      if(UrlUtils.isLocalDirectory(gtfsLocation)) {
-        URL gtfsFileUrl = UrlUtils.appendRelativePathToURL(gtfsLocation, fileScheme.getFileType().value());
-        return createFileInputStream(new File(gtfsFileUrl.toURI()), filePresenceCondition);
-      }else if(UrlUtils.isLocalZipFile(gtfsLocation)) {                
-        return createZipEntryInputStream(gtfsLocation,  fileScheme.getFileType().value(), filePresenceCondition); 
-      }
-    } catch (URISyntaxException e) {
-      LOGGER.warning(String.format("Invalid URL/file scheme provided (%s - %s) to create GTFS input stream for",gtfsLocation.toString(), fileScheme.getFileType().value()));
-    }
-    
-    return null;
+  public static InputStream createInputStream(
+      URL gtfsLocation, GtfsFileScheme fileScheme, GtfsFileConditions filePresenceCondition) {
+    return createInputStream(gtfsLocation, fileScheme, filePresenceCondition, false);
   }
 
   /** Create a zip based input stream for given zip internal file location and issue warnings dependent on the  presence conditions imposed if it is not present
