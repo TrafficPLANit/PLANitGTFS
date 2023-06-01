@@ -110,7 +110,7 @@ public class GtfsToPlanitTest {
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
-      String GTFS_FILES_DIR = UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES).toString();
+      String GTFS_FILES_DIR = UrlUtils.asLocalPath(UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
       var networkCopy = macroscopicNetwork.deepClone();
       GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(
