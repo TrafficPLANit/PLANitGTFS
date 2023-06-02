@@ -130,7 +130,7 @@ public class GtfsUtils {
       LOGGER.warning(String.format("Zip file %s not found",gtfsLocation.toString()));
       return null;
     } catch( IOException ioe) {
-      LOGGER.warning(String.format("Unable to close Zip file %s after opening",gtfsLocation.toString()));
+      LOGGER.warning(String.format("IO exception upon creating zip file input stream for %s (message: %s)",gtfsLocation.toString(), ioe.getMessage()));
       return null;
     }
     

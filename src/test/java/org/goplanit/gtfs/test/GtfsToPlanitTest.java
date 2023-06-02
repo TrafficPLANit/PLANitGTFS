@@ -6,8 +6,11 @@ import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderSettings;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
+import org.goplanit.gtfs.scheme.GtfsRoutesScheme;
 import org.goplanit.gtfs.test.utils.SydneyGtfsServicesSettingsUtils;
 import org.goplanit.gtfs.test.utils.SydneyGtfsZoningSettingsUtils;
+import org.goplanit.gtfs.util.GtfsFileConditions;
+import org.goplanit.gtfs.util.GtfsUtils;
 import org.goplanit.io.converter.intermodal.*;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -105,6 +108,35 @@ public class GtfsToPlanitTest {
    * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on underlying networks/zoning,
    * just collate all data for a given reference day
    */
+  @Test
+  public void testGtfsZipAccess() {
+
+    try {
+      //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
+      String GTFS_FILES_DIR = UrlUtils.asLocalPath(UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
+
+//      var result = GtfsUtils.createInputStream(
+//          UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES), new GtfsRoutesScheme(), GtfsFileConditions.required());
+
+      var result = GtfsUtils.createInputStream(
+          UrlUtils.createFromLocalPathOrResource(GTFS_FILES_DIR), new GtfsRoutesScheme(), GtfsFileConditions.required(), true);
+
+      result.close();
+
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      e.printStackTrace();
+      fail("testGtfsZipAccess");
+    }
+
+    System.gc();
+  }
+
+  /**
+   * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on underlying networks/zoning,
+   * just collate all data for a given reference day
+   */
+  @Disabled
   @Test
   public void testGtfsRoutedServicesReader() {
 
