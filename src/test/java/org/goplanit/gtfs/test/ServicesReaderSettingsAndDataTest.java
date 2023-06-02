@@ -49,7 +49,6 @@ public class ServicesReaderSettingsAndDataTest {
     routedServices = new RoutedServices(parentNetwork.getIdGroupingToken(), serviceNetwork);
   }
 
-  @Disabled
   @Test
   public void settingsTest() {
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
@@ -73,7 +72,6 @@ public class ServicesReaderSettingsAndDataTest {
 
   }
 
-  @Disabled
   @Test
   public void timePeriodSettingsTest(){
 

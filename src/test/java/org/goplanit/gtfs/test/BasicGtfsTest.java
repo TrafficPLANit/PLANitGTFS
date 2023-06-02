@@ -55,7 +55,6 @@ public class BasicGtfsTest {
   /**
    * Test if umbrella reader with all file types activated runs properly
    */
-  @Disabled
   @Test
   public void testDefaultGtfsReader() {
            
@@ -97,7 +96,6 @@ public class BasicGtfsTest {
   /**
    * Test number of trips is parsed correctly as well as excluding columns works
    */
-  @Disabled
   @Test
   public void testExcludingTripsColumns() {
     
