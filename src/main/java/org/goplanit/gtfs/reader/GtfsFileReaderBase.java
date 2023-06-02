@@ -164,7 +164,7 @@ public abstract class GtfsFileReaderBase {
    * @param filePresenceCondition to enforce
    */
   protected GtfsFileReaderBase(final GtfsFileScheme fileScheme, URL gtfsLocation, GtfsFileConditions filePresenceCondition) {
-    this(fileScheme, gtfsLocation, new GtfsFileReaderSettings());
+    this(fileScheme, gtfsLocation, filePresenceCondition, new GtfsFileReaderSettings());
   }
 
   /**
