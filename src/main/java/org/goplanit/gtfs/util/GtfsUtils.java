@@ -79,12 +79,11 @@ public class GtfsUtils {
       return null;
     }
 
-
     try {
 
       if(UriUtils.isInJar(gtfsLocation.toURI())) {
         /* input stream */
-        if(logInfo) LOGGER.info(String.format("IN JAR %s", gtfsLocation));
+        if(logInfo) LOGGER.info(String.format("IN JAR %s (not yet supported)", gtfsLocation));
         return null;
       }else if(UrlUtils.isLocalDirectory(gtfsLocation)) {
         URL gtfsFileUrl = UrlUtils.appendRelativePathToURL(gtfsLocation, fileScheme.getFileType().value());
@@ -92,7 +91,7 @@ public class GtfsUtils {
         return createFileInputStream(new File(gtfsFileUrl.toURI()), filePresenceCondition);
       }else if(UrlUtils.isLocalZipFile(gtfsLocation)) {
         if(logInfo) LOGGER.info(String.format("Creating input stream for local zip file: %s, for internal file: %s", gtfsLocation, fileScheme.getFileType().value()));
-        return createZipEntryInputStream(gtfsLocation,  fileScheme.getFileType().value(), filePresenceCondition);
+        return createZipEntryInputStream(gtfsLocation,  fileScheme.getFileType().value(), filePresenceCondition, logInfo);
       }
     } catch (URISyntaxException e) {
       LOGGER.warning(String.format("Invalid URL/file scheme provided (%s - %s) to create GTFS input stream for",gtfsLocation.toString(), fileScheme.getFileType().value()));
@@ -106,7 +105,7 @@ public class GtfsUtils {
    * 
    * @param gtfsLocation to use (dir or zip)
    * @param fileScheme to use to extract correct file name from
-   * @param filePresenceCondition indicates if the file should be present or not. If 
+   * @param filePresenceCondition indicates if the file should be present or not. If
    * @return input stream to GTFS file
    */
   public static InputStream createInputStream(
@@ -119,13 +118,15 @@ public class GtfsUtils {
    * @param gtfsLocation zip file to create input stream for
    * @param zipInternalFileName file internal to zip file to create stream for
    * @param filePresenceCondition for this file
+   * @param logInfo log extensive info on creating zip entry stream for debugging
    * @return created input stream, null if not available
    * @throws URISyntaxException when URL cannot be converted to URI to append internal file name
    */  
-  public static InputStream createZipEntryInputStream(URL gtfsLocation, String zipInternalFileName, GtfsFileConditions filePresenceCondition) throws URISyntaxException {                
+  public static InputStream createZipEntryInputStream(
+      URL gtfsLocation, String zipInternalFileName, GtfsFileConditions filePresenceCondition, boolean logInfo) throws URISyntaxException {
     InputStream zis = null;
     try {
-      zis = ZipUtils.createZipEntryInputStream(gtfsLocation, zipInternalFileName);
+      zis = ZipUtils.createZipEntryInputStream(gtfsLocation, zipInternalFileName, logInfo);
     } catch (FileNotFoundException fnfe) {
       LOGGER.warning(String.format("Zip file %s not found",gtfsLocation.toString()));
       return null;

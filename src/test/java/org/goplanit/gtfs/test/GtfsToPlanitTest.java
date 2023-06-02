@@ -108,7 +108,6 @@ public class GtfsToPlanitTest {
    * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on underlying networks/zoning,
    * just collate all data for a given reference day
    */
-  @Disabled
   @Test
   public void testGtfsRoutedServicesReader() {
 
