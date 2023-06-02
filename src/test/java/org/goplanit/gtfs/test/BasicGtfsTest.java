@@ -64,28 +64,26 @@ public class BasicGtfsTest {
       /* register all possible handlers where we note that reader is returned when handler is registered*/
       @SuppressWarnings("unused")
       GtfsFileReaderAgencies agencyFileReader = (GtfsFileReaderAgencies) gtfsReader.addFileHandler(new GtfsFileHandlerAgency());
-      gtfsReader.addFileHandler(new GtfsFileHandlerAttributions());
-      gtfsReader.addFileHandler(new GtfsFileHandlerCalendarDates());
-      gtfsReader.addFileHandler(new GtfsFileHandlerCalendars());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFareAttributes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFareRules());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFeedInfo());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFrequencies());
-      gtfsReader.addFileHandler(new GtfsFileHandlerLevels());
-      gtfsReader.addFileHandler(new GtfsFileHandlerPathways());
-      gtfsReader.addFileHandler(new GtfsFileHandlerRoutes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerShapes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerStops());
-      gtfsReader.addFileHandler(new GtfsFileHandlerStopTimes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerTransfers());
-      gtfsReader.addFileHandler(new GtfsFileHandlerTranslations());
-      gtfsReader.addFileHandler(new GtfsFileHandlerTrips());
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerAttributions())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerCalendarDates())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerCalendars())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFareAttributes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFareRules())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFeedInfo())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFrequencies())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerLevels())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerPathways())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerRoutes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerShapes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerStops())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerStopTimes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerTransfers())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerTranslations())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerTrips())!=null);
       
       /* should be able to parse all data (without doing anything) */
       gtfsReader.read(StandardCharsets.UTF_8);
-
-      //todo add assertions
-
+      
       System.gc();
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
