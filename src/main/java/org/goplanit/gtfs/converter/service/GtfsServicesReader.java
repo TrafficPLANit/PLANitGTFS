@@ -112,8 +112,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
         GtfsFileSchemeFactory.create(GtfsFileType.STOP_TIMES), getSettings().getInputDirectory());
     stopTimeFileReader.addHandler(tripStopTimeHandler);
 
-    stopTimeFileReader.getSettings().setLogGtfsFileInputStreamInfo(true);
-
     /** execute */
     stopTimeFileReader.read(StandardCharsets.UTF_8);
 
@@ -137,8 +135,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     GtfsFileReaderTrips tripsFileReader = (GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
         GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), getSettings().getInputDirectory());
     tripsFileReader.addHandler(tripsHandler);
-
-    tripsFileReader.getSettings().setLogGtfsFileInputStreamInfo(true);
 
     /** execute */
     tripsFileReader.read(StandardCharsets.UTF_8);
@@ -165,8 +161,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
         GtfsFileSchemeFactory.create(GtfsFileType.CALENDARS), getSettings().getInputDirectory());
     calendarFileReader.addHandler(calendarHandler);
 
-    calendarFileReader.getSettings().setLogGtfsFileInputStreamInfo(true);
-
     /** execute */
     calendarFileReader.read(StandardCharsets.UTF_8);
   }
@@ -187,8 +181,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     GtfsFileReaderRoutes routesFileReader = (GtfsFileReaderRoutes) GtfsReaderFactory.createFileReader(
         GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputDirectory());
     routesFileReader.addHandler(routesHandler);
-
-    routesFileReader.getSettings().setLogGtfsFileInputStreamInfo(true);
 
     /** execute */
     routesFileReader.read(StandardCharsets.UTF_8);

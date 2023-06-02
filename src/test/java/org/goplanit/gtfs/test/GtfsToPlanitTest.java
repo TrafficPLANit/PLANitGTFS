@@ -153,7 +153,6 @@ public class GtfsToPlanitTest {
    * Test that attempts to extract PLANit routed services, service network and zoning from GTFS data given the PLANit network exists,
    * but it has no transfer zones yet,i.e., all transfer zones (stops) are to be based on the GTFS data only.
    */
-  @Disabled
   @Test
   public void testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones() {
 
@@ -226,7 +225,6 @@ public class GtfsToPlanitTest {
    * Test that attempts to extract PLANit routed services, service network and zoning  from GTFS data given the PLANit network already has existing transfer
    * zones present that will be fused/merged when found in GTFS
    */
-  @Disabled
   @Test
   public void testGtfsIntermodalReaderWithPreExistingPlanitTransferZones() {
 

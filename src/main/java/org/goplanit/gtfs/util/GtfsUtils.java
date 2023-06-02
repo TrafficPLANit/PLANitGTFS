@@ -124,7 +124,7 @@ public class GtfsUtils {
    */  
   public static InputStream createZipEntryInputStream(
       URL gtfsLocation, String zipInternalFileName, GtfsFileConditions filePresenceCondition, boolean logInfo) throws URISyntaxException {
-    InputStream zis = null; 
+    InputStream zis = null;
     try {
       zis = ZipUtils.createZipEntryInputStream(gtfsLocation, zipInternalFileName, logInfo);
     } catch (FileNotFoundException fnfe) {
