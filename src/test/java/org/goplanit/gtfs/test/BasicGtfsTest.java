@@ -83,7 +83,7 @@ public class BasicGtfsTest {
       
       /* should be able to parse all data (without doing anything) */
       gtfsReader.read(StandardCharsets.UTF_8);
-      
+
       System.gc();
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());

@@ -194,7 +194,7 @@ public class GtfsToPlanitTest {
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(118, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(148, zoning.getTransferConnectoids().size());
+      assertEquals(149, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),97);
@@ -269,7 +269,7 @@ public class GtfsToPlanitTest {
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(143, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(181, zoning.getTransferConnectoids().size());
+      assertEquals(182, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(100, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());

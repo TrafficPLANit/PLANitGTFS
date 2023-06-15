@@ -568,9 +568,13 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       Point connectoidLocation = null;
       for(var currEligibleMode : allEligibleModes) {
         connectoidLocation = ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLink(
-            gtfsStop.getStopId(), projectedGtfsStopLocation, accessResult.first() /* access link*/, accessResult.first().getExternalId(),
+            gtfsStop.getStopId(),
+            projectedGtfsStopLocation,
+            accessResult.first() /* access link*/,
+            accessResult.first().getExternalId(),
             currEligibleMode,
-            data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),null, null, null,
+            data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
+            null, null, null,
             data.getSettings().getCountryName(), data.getGeoTools());
         if (connectoidLocation != null) {
           break;
@@ -593,11 +597,29 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       var accessNodeResult = GtfsLinkHelper.extractNodeByLinkGeometryLocation(connectoidLocation, accessResult.first() /* access link */, networkLayer, data);
       Node accessNode = accessNodeResult.first();
 
-      /* with access node known, now find all access segments that are eligible */
-      final boolean mustAvoidCrossingTraffic =  ZoningConverterUtils.isAvoidCrossTrafficForAccessMode(gtfsStopMode);
+      /* when we choose an existing node on the closest link as access node --> then the access result identified link segments remain viable, except that
+       * they may be exiting the access node rather than entering it (and are therefore not considered). In that case,
+       * ALL entry segments of other links are viable without restriction because they can be used to reach the exit link segment on which the stop actually resides.
+       * In that case, identified here, we  lift the restriction regarding avoiding cross traffic on those non-closest links and proceed (otherwise
+       * we might exclude entry segments that are used by a bus if they come in at an unexpected angle while still passing the stop)
+       */
+      boolean preExistingNode = !accessNodeResult.second();
       Collection<LinkSegment> accessLinkSegments = null;
+      boolean enforceCrossTrafficRestrictionOnNonClosestLinks = true;
+      if(preExistingNode && !chosenNonClosestLink){
+        final boolean closestEligbleEdgeSegmentsAreAllExitingAccessNode = accessNode.hasExitEdgeSegments() &&
+            accessResult.second().stream().allMatch(ls -> accessNode.hasExitSegment(ls));
+        enforceCrossTrafficRestrictionOnNonClosestLinks = !closestEligbleEdgeSegmentsAreAllExitingAccessNode;
+      }
+
+      /* with access node known, now find all access segments that are eligible */
       for(MacroscopicLink link : accessNode.<MacroscopicLink>getLinks()) {
-        Collection<LinkSegment> linkAccessLinkSegments = ZoningConverterUtils.findAccessLinkSegmentsForWaitingArea(
+        boolean mustAvoidCrossingTraffic =  ZoningConverterUtils.isAvoidCrossTrafficForAccessMode(gtfsStopMode);
+        if(!link.equals(closestOfNearbyLinks) && !enforceCrossTrafficRestrictionOnNonClosestLinks){
+          mustAvoidCrossingTraffic = false;
+        }
+
+        Collection<LinkSegment> linkAccessLinkSegments = ZoningConverterUtils.findAccessEntryLinkSegmentsForWaitingArea(
             gtfsStop.getStopId(),
             projectedGtfsStopLocation,
             link,
@@ -710,7 +732,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private void handleStopPlatform(final GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
-    if(gtfsStop.getStopId().equals("20002")){
+    if(gtfsStop.getStopId().equals("2000391")){
       int bla = 4;
     }
 
@@ -813,7 +835,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
     }
 
-    if(gtfsStop.getStopId().equals("2000457")){
+    if(gtfsStop.getStopId().equals("200099")){
       int bla = 4;
     }
 
