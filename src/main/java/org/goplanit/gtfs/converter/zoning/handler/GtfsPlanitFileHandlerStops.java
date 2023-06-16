@@ -13,6 +13,7 @@ import org.goplanit.gtfs.util.GtfsLinkSegmentHelper;
 import org.goplanit.gtfs.util.GtfsTransferZoneHelper;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.*;
+import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
@@ -61,6 +62,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     Collection<MacroscopicLink> nearbyLinks = null;
 
     /* USER OVERWRITTEN */
+    boolean suppressLogging = false;
     if(data.getSettings().hasOverwrittenGtfsStopToLinkMapping(gtfsStop.getStopId())){
       var linkIdMapping = data.getSettings().getOverwrittenGtfsStopToLinkMapping(gtfsStop.getStopId());
       var chosenLinkId = linkIdMapping.first();
@@ -75,6 +77,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
           if(foundLink != null){
             closestOfNearbyLinks = foundLink;
             nearbyLinks = Collections.singleton(closestOfNearbyLinks);
+            suppressLogging = true;
             break;
           }
         }
@@ -94,7 +97,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       if (nearbyLinks.isEmpty() || nearbyLinks == null) {
         return null;
       }
-      closestOfNearbyLinks = PlanitEntityGeoUtils.findPlanitEntityClosest(projectedGtfsStopLocation.getCoordinate(), nearbyLinks, data.getGeoTools()).first();
+      closestOfNearbyLinks = PlanitEntityGeoUtils.findPlanitEntityClosest(
+          projectedGtfsStopLocation.getCoordinate(), nearbyLinks, suppressLogging, data.getGeoTools()).first();
     }
 
     return Pair.of(nearbyLinks, closestOfNearbyLinks);
@@ -113,7 +117,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       GtfsStop gtfsStop, final Collection<Mode> eligibleAccessModes, final Collection<MacroscopicLink> eligibleLinks) {
     final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
 
-    Function<MacroscopicLink, String> linkToSourceId = l -> l.getExternalId(); // make configurable as used for overwrites
+    Function<MacroscopicLink, String> linkToSourceId = MacroscopicLink::getExternalId; // make configurable as used for overwrites
 
     /* 1) reduce candidates to access links related to access link segments that are deemed valid in terms of mode and location (closest already complies as per above) */
     Set<LinkSegment> accessLinkSegments = new HashSet<>(2);
@@ -184,14 +188,14 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
      * so, we choose the first link segment with the highest capacity found (if they differ) and then return its parent link as the candidate */
     if( eligibleAccessModes.stream().findAny().get().getPhysicalFeatures().getTrackType() == TrackModeType.ROAD &&
         filteredCandidates.size()>1 &&
-        filteredCandidates.stream().flatMap(l -> l.getLinkSegments().stream()).filter(ls -> accessLinkSegments.contains(ls)).map(
-            ls -> ls.getCapacityOrDefaultPcuHLane()).distinct().count()>1){
+        filteredCandidates.stream().flatMap(l -> l.getLinkSegments().stream()).filter(accessLinkSegments::contains).map(
+            MacroscopicLinkSegment::getCapacityOrDefaultPcuHLane).distinct().count()>1){
 
       // retain only edge segments with the maximum capacity
       var maxCapacity = accessLinkSegments.stream().map(ls -> ((MacroscopicLinkSegment)ls).getCapacityOrDefaultPcuHLane()).max(Comparator.naturalOrder());
       var lowerCapacitySegments = filteredCandidates.stream().flatMap(l -> l.getLinkSegments().stream()).filter(ls -> Precision.smaller( ls.getCapacityOrDefaultPcuHLane(), maxCapacity.get(), Precision.EPSILON_6)).collect(Collectors.toUnmodifiableSet());
       accessLinkSegments.removeAll(lowerCapacitySegments);
-      filteredCandidates.removeAll(lowerCapacitySegments.stream().map(ls -> ls .getParentLink()).collect(Collectors.toUnmodifiableSet()));
+      filteredCandidates.removeAll(lowerCapacitySegments.stream().map(MacroscopicLinkSegment::getParentLink).collect(Collectors.toUnmodifiableSet()));
     }
 
     /* now find the closest remaining*/
@@ -224,7 +228,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     for(var transferZone : transferZones){
       var platformNames = transferZone.getTransferZonePlatformNames();
       if(platformNames != null &&
-          platformNames.stream().filter( name -> name.equalsIgnoreCase(gtfsStop.getPlatformCode())).findFirst().isPresent() &&
+          platformNames.stream().anyMatch(name -> name.equalsIgnoreCase(gtfsStop.getPlatformCode())) &&
           !data.getSupportedPtModesIn(transferZone, allEligibleModes).isEmpty()){
         return transferZone;
       }
