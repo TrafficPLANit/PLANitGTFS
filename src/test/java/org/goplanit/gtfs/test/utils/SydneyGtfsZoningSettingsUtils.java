@@ -14,9 +14,9 @@ public class SydneyGtfsZoningSettingsUtils {
    * but would detract from assessing the logs.
    *
    * @param settings to apply to
+   * @param preExistingTransferZonesPresent when true there already exist transfer zones to map to, when false not
    */
-  public static void minimiseVerifiedWarnings(GtfsZoningReaderSettings settings) {
-
+  public static void minimiseVerifiedWarnings(GtfsZoningReaderSettings settings, boolean preExistingTransferZonesPresent) {
 
     /* stop area resides on edge of bounding box, it references entries outside bounding box yielding (valid but uncorrectable) warnings */
     settings.excludeGtfsStopsById(
@@ -40,11 +40,18 @@ public class SydneyGtfsZoningSettingsUtils {
      * force mapping to PLANit link based on its external (OSM) id
      */
     settings.overwriteGtfsStopToLinkMapping("200018","150290323", IdMapperType.EXTERNAL_ID);
+    settings.overwriteGtfsStopToLinkMapping("20002","151559214", IdMapperType.EXTERNAL_ID);
 
-    /** location of GTFS stop too far from OSM/PLANit stop, but it is the same stop so should be mapped to it, explicitly map */
-    settings.setOverwriteGtfsStopTransferZoneMapping("2000283", "3814715779", IdMapperType.EXTERNAL_ID);
+    if(preExistingTransferZonesPresent) {
+      // Museum of Sydney
+      settings.setOverwriteGtfsStopTransferZoneMapping(
+          "200059", "3814704459", IdMapperType.EXTERNAL_ID);
+      // Martin Place Station, Elizabeth St, Stand E too far from OSM stand E, force map
+      settings.setOverwriteGtfsStopTransferZoneMapping(
+          "2000283", "3814715779", IdMapperType.EXTERNAL_ID);
+    }
 
-    /* two very closeby GTFS stops are mapped to the same transfer zone, but this is not ideal, based on logging, we therefore
+    /* two very close by GTFS stops are mapped to the same transfer zone, but this is not ideal, based on logging, we therefore
      * indicate this should not be allowed and avoid this warning
      */
     settings.disallowGtfsStopToTransferZoneJointMapping("200081");

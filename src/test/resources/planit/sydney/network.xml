@@ -1675,11 +1675,6 @@
                         <gml:pos>1579274.1127762247 -3922883.8271829183</gml:pos>
                     </gml:Point>
                 </node>
-                <node id="1104">
-                    <gml:Point>
-                        <gml:pos>1579196.2886072788 -3922843.870598686</gml:pos>
-                    </gml:Point>
-                </node>
                 <node id="111" externalid="15405036">
                     <gml:Point>
                         <gml:pos>1579093.0398438715 -3922986.167643586</gml:pos>
@@ -11666,19 +11661,6 @@
                     <linksegment id="2620" dir="b_a" typeref="46">
                         <numberoflanes>1</numberoflanes>
                         <maxspeed>40.0</maxspeed>
-                    </linksegment>
-                </link>
-                <link id="1326" externalid="1065434005" nodearef="1104" nodebref="1042">
-                    <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579196.28860728,-3922843.87059869 1579233.86899062,-3922852.17333584</gml:coordinates>
-                    </gml:LineString>
-                    <linksegment id="2621" dir="a_b" typeref="35">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>60.0</maxspeed>
-                    </linksegment>
-                    <linksegment id="2622" dir="b_a" typeref="35">
-                        <numberoflanes>1</numberoflanes>
-                        <maxspeed>60.0</maxspeed>
                     </linksegment>
                 </link>
                 <link id="133" externalid="83240759" nodearef="227" nodebref="464">
@@ -22114,9 +22096,9 @@
                         <maxspeed>60.0</maxspeed>
                     </linksegment>
                 </link>
-                <link id="817" externalid="1065434005" nodearef="923" nodebref="1104">
+                <link id="817" externalid="1065434005" nodearef="923" nodebref="1042">
                     <gml:LineString>
-                        <gml:coordinates decimal="." cs="," ts=" ">1579046.63896673,-3922822.48347846 1579062.07717266,-3922819.61002646 1579089.49619956,-3922820.81570808 1579114.86866134,-3922825.88271874 1579196.28860728,-3922843.87059869</gml:coordinates>
+                        <gml:coordinates decimal="." cs="," ts=" ">1579046.63896673,-3922822.48347846 1579062.07717266,-3922819.61002646 1579089.49619956,-3922820.81570808 1579114.86866134,-3922825.88271874 1579233.86899062,-3922852.17333584</gml:coordinates>
                     </gml:LineString>
                     <linksegment id="1634" dir="a_b" typeref="35">
                         <numberoflanes>1</numberoflanes>

@@ -941,12 +941,6 @@
             <connectoid tzrefs="59" lsref="2620" id="130" modes="bus">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="68" lsref="1634" id="131" modes="train">
-                <length>0.0</length>
-            </connectoid>
-            <connectoid tzrefs="68" lsref="2622" id="132" modes="train">
-                <length>0.0</length>
-            </connectoid>
             <connectoid tzrefs="61" lsref="2490" id="14" modes="train">
                 <length>0.0</length>
             </connectoid>
@@ -971,10 +965,10 @@
             <connectoid tzrefs="62" lsref="2496" id="20" modes="train">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="76" lsref="2621" id="21" modes="train">
+            <connectoid tzrefs="68,76" lsref="1634" id="21" modes="train">
                 <length>0.0</length>
             </connectoid>
-            <connectoid tzrefs="76" lsref="2498" id="22" modes="train">
+            <connectoid tzrefs="68,76" lsref="2498" id="22" modes="train">
                 <length>0.0</length>
             </connectoid>
             <connectoid tzrefs="75" lsref="1290" id="23" modes="light_rail">
