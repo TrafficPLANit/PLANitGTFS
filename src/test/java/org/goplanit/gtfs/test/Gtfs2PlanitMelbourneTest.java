@@ -4,6 +4,8 @@ import org.goplanit.converter.idmapping.IdMapperType;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
+import org.goplanit.gtfs.test.utils.MelbourneGtfsServicesSettingsUtils;
+import org.goplanit.gtfs.test.utils.MelbourneGtfsZoningSettingsUtils;
 import org.goplanit.io.converter.intermodal.*;
 import org.goplanit.io.test.PlanitAssertionUtils;
 import org.goplanit.logging.Logging;
@@ -87,6 +89,9 @@ public class Gtfs2PlanitMelbourneTest {
           LocalTime.of(6,0,0),
           LocalTime.of(9, 59,59));
 
+      MelbourneGtfsServicesSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getServiceSettings());
+      MelbourneGtfsZoningSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getZoningSettings(), true);
+
       /* debugging options*/
 //      {
 //        // EXAMPLE:
@@ -94,29 +99,9 @@ public class Gtfs2PlanitMelbourneTest {
 //        // manual override due to inconsistencies flagged by parser between OSM and GTFS
 //
 //          inputSettings.getServiceSettings().excludeAllGtfsRoutesExceptByShortName("902");
-//
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("10937", "1618953575"); // based on warning --> gtfs stop not left of road while it should be
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("12495", "2818032526"); // based on warning --> gtfs stop has multiple matches, one of which is no longer in use, map to only correct one
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("18768", "2825639990"); // based on warning --> gtfs stop has multiple matches, one of which is no longer in use, map to only correct one
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("2006", "6023544791"); // based on warning --> gtfs stop has multiple matches, correct one chosen, map explicitly to avoid warning
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("21013", "1594378420"); // based on warning --> gtfs stop has multiple matches, correct one chosen, map explicitly to avoid warning
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("21014", "1594378420"); // based on warning --> gtfs stop has multiple matches, correct one chosen, map explicitly to avoid warning
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("415", "2817916744"); // based on warning --> gtfs stop not left of road while it should be
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("9106", "881883775"); // based on warning --> gtfs stop not left of road while it should be
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("7273", "881883714"); // based on warning --> gtfs stop preferred (chosen) segment indicates it is not left of road while it should be
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("9105", "2825639977"); // based on warning --> gtfs stop preferred (chosen) segment indicates it is not left of road while it should be
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopTransferZoneMapping("4343", "6228742156"); // based on warning --> gtfs stop preferred (chosen) segment indicates it is not left of road while it should be
-//
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopLocation("4312", -37.79844, 145.17845); // based on warning, here, instead of mapping to OSM transfer zone, we simply move the stop a bit, which is an alternative way of increasing likelihood of correct match
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopLocation("12515", -37.8519, 145.16961); // based on warning, here, instead of mapping to OSM transfer zone, we simply move the stop a bit, which is an alternative way of increasing likelihood of correct match
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopLocation("12518", -37.84155, 145.17126); // based on warning, here, instead of mapping to OSM transfer zone, we simply move the stop a bit, which is an alternative way of increasing likelihood of correct match
-//        inputSettings.getZoningSettings().setOverwriteGtfsStopLocation("12519", -37.83736, 145.17192); // based on warning, here, instead of mapping to OSM transfer zone, we simply move the stop a bit, which is an alternative way of increasing likelihood of correct match
 //      }
 
-      /* the GTFS reader */
-      var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(planitNetwork, planitZoning, inputSettings);
-
-      /* settings */
+      /* example settings */
       {
         // log mappings, useful for debugging if needed
         //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
@@ -125,6 +110,9 @@ public class Gtfs2PlanitMelbourneTest {
         // track and log information of certain routes by head sign in GTFS, useful for debugging
         //gtfsIntermodalReader.getSettings().getServiceSettings().activateLoggingForGtfsRouteByShortName("607X");
       }
+
+      /* the GTFS reader */
+      var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(planitNetwork, planitZoning, inputSettings);
 
       /* execute */
       Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();

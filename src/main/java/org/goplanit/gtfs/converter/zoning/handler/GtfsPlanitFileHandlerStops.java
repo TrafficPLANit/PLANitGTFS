@@ -20,6 +20,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
@@ -131,7 +132,10 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
             linkToSourceId.apply(currAccessLink),
             accessMode,
             data.getSettings().getCountryName(),
-            mustAvoidCrossingTraffic, null, null, data.getGeoTools());
+            mustAvoidCrossingTraffic,
+            null,
+            null,
+            data.getGeoTools());
         if (currAccessLinkSegments != null && !currAccessLinkSegments.isEmpty()) {
           accessLinkSegments.addAll(currAccessLinkSegments);
         }
@@ -578,7 +582,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
             accessResult.first().getExternalId(),
             currEligibleMode,
             data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
-            null, null, null,
+            null,
+            null,
+            null,
             data.getSettings().getCountryName(), data.getGeoTools());
         if (connectoidLocation != null) {
           break;
