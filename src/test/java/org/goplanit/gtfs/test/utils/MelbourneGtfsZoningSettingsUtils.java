@@ -19,16 +19,14 @@ public class MelbourneGtfsZoningSettingsUtils {
   public static void minimiseVerifiedWarnings2023(GtfsZoningReaderSettings settings , boolean preExistingTransferZonesPresent) {
 
     if(preExistingTransferZonesPresent) {
-      /* PLANit correctly inferred existing transfer zone mapping but triggered warning due to potential (link) proximity issue -
-       * suppress warning by explicitly mapping to suggest transfer zone */
-      settings.setOverwriteGtfsStopTransferZoneMapping("10251", "8019982002", IdMapperType.EXTERNAL_ID);
+
     }
 
     /* on wrong side of road, and/or too close to another road and not OSM stop to match to, causing the wrong mapping
      * overwrite location to more appropriate point to avoid this mismatch */
     settings.setOverwriteGtfsStopLocation("1122",-37.83108,144.98808);
 
-    /* same reason as above, but here, we map to non-chosen closest link explicitly as it is the correct link */
+    /* same reason as above, but here, alternatively, we map explicitly override to choose the closest link and accept it is on the wrong side */
     settings.overwriteGtfsStopToLinkMapping("1128","977507781", IdMapperType.EXTERNAL_ID);
 
   }
