@@ -44,10 +44,10 @@ public class SydneyGtfsZoningSettingsUtils {
 
     if(preExistingTransferZonesPresent) {
       // Museum of Sydney
-      settings.setOverwriteGtfsStopTransferZoneMapping(
+      settings.addOverwriteGtfsStopTransferZoneMapping(
           "200059", "3814704459", IdMapperType.EXTERNAL_ID);
       // Martin Place Station, Elizabeth St, Stand E too far from OSM stand E, force map
-      settings.setOverwriteGtfsStopTransferZoneMapping(
+      settings.addOverwriteGtfsStopTransferZoneMapping(
           "2000283", "3814715779", IdMapperType.EXTERNAL_ID);
     }
 

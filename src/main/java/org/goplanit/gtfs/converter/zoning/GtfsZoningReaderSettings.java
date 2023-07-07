@@ -42,10 +42,10 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
 
   /**
-   * Provide explicit mapping from GTFS stop (by GTFS stop id) to and existing PLANit transfer zone based on an id (XML or external id (third party source ide.g., OSM id)),
+   * Provide explicit mapping from GTFS stop (by GTFS stop id) to existing PLANit transfer zone(s) based on an id (XML or external id (third party source ide.g., OSM id)),
    * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
    */
-  private final Map<String, Pair<Object, IdMapperType>> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
+  private final Map<String, List<Pair<Object, IdMapperType>>> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
 
   /**
    * Provide explicit mapping from GTFS stop (by GTFS stop id) to a geo-location.
@@ -187,13 +187,22 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * Provide explicit mapping for GTFS stop id to an existing PLANit transfer zone, e.g., platform, pole, station, halt, stop, etc. (by its external id, e.g. OSM id)
    * This overrides the parser's mapping functionality and immediately maps the stop to this entity. Can be useful to avoid warnings or wrong mapping of
    * stop locations in case the automated behaviour does not perform as expected.
+   * <p>
+   * It also allows one to map a GTFS stop to multiple transfer zones in case the GTFS information is more aggregate than
+   * the transfer zones, e.g., if the underlying OSM data has resulted in separate platforms, but the GTFS stop reflects all platforms at once
+   * </p>
    *
    * @param gtfsStopId     id of stop location
    * @param transferZoneId Id of waiting area (platform, pole, etc.) (int or long)
    * @param idType         which id of the transfer zone (XML which is in the persisted PLANit file, or external (likely for example the original OSM id)
    */
-  public void setOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final Object transferZoneId, final IdMapperType idType) {
-    overwriteGtfsStopTransferZoneExternalIdMapping.put(gtfsStopId, Pair.of(transferZoneId, idType));
+  public void addOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final Object transferZoneId, final IdMapperType idType) {
+    var overrides = overwriteGtfsStopTransferZoneExternalIdMapping.get(gtfsStopId);
+    if(overrides == null){
+      overrides = new ArrayList<>(1);
+      overwriteGtfsStopTransferZoneExternalIdMapping.put(gtfsStopId, overrides);
+    }
+    overrides.add(Pair.of(transferZoneId, idType));
   }
 
   /**
@@ -207,12 +216,12 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * get explicitly mapped transfer zone's external id for given GTFS stop id  (if any))
+   * get explicitly mapped transfer zone(s') external id for given GTFS stop id  (if any))
    *
    * @param gtfsStopId to collect for
-   * @return mapped transfer zone id and the type (null if none is mapped)
+   * @return mapped transfer zone id(s) and the type(s) (null if none is mapped)
    */
-  public Pair<Object, IdMapperType> getOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
+  public Collection<Pair<Object, IdMapperType>> getOverwrittenGtfsStopTransferZoneMapping(final String gtfsStopId) {
     return overwriteGtfsStopTransferZoneExternalIdMapping.get(gtfsStopId);
   }
 
