@@ -33,7 +33,8 @@ public class SydneyGtfsZoningSettingsUtils {
         "2000140",               /* near bounding box, correct road not available in PLANit, matched to wrong road */
 
         "200043",                /* eligible road available but due to cutting off network, no route possible to next stop, exclude */
-        "200044"                /* eligible road available but due to cutting off network, no route possible to next stop, exclude */
+        "200044",                /* eligible road available but due to cutting off network, no route possible to next stop, exclude */
+        "206036"                 /* near bounding box, correct road not available in PLANit, remains unmatched with warning */
     );
 
     /* location not present as OSM stop and too close to a major overpass it does not reside on but otherwise would get mapped to,
@@ -49,6 +50,9 @@ public class SydneyGtfsZoningSettingsUtils {
       // Martin Place Station, Elizabeth St, Stand E too far from OSM stand E, force map
       settings.addOverwriteGtfsStopTransferZoneMapping(
           "2000283", "3814715779", IdMapperType.EXTERNAL_ID);
+      // stand b circular quay, correctly inferred, suppress warning */
+      settings.addOverwriteGtfsStopTransferZoneMapping(
+              "20002", "1085097099", IdMapperType.EXTERNAL_ID);
     }
 
     /* two very close by GTFS stops are mapped to the same transfer zone, but this is not ideal, based on logging, we therefore

@@ -75,7 +75,9 @@ public class MelbourneGtfsZoningSettingsUtils {
 
         settings.addOverwriteGtfsStopTransferZoneMapping("19976","45479014",IdMapperType.EXTERNAL_ID); //collingwood
         settings.addOverwriteGtfsStopTransferZoneMapping("19976","45479019",IdMapperType.EXTERNAL_ID); //collingwood
+        settings.addOverwriteGtfsStopTransferZoneMapping("19976","45479019",IdMapperType.EXTERNAL_ID); //collingwood
 
+        settings.addOverwriteGtfsStopTransferZoneMapping("925","4148845963",IdMapperType.EXTERNAL_ID);
       }
 
     }else{
@@ -95,6 +97,7 @@ public class MelbourneGtfsZoningSettingsUtils {
       settings.setOverwriteGtfsStopLocation("5918",-37.81014,144.93704);
       settings.setOverwriteGtfsStopLocation("7460",-37.79989,144.95004);
       settings.setOverwriteGtfsStopLocation("87",-37.80008,144.96391);
+      settings.setOverwriteGtfsStopLocation("925",-37.82508, 144.98852);
 
     }
 

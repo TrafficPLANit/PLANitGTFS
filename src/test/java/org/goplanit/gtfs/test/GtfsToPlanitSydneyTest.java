@@ -42,12 +42,9 @@ public class GtfsToPlanitSydneyTest {
 
   private static Logger LOGGER;
 
-  public static final String GTFS_SEQ_ALL = Path.of("GTFS","SEQ","SEQGTFS.zip").toString();
-
-  private static final Path RESOURCES_GTFS = Path.of("src","test","resources","GTFS");
+  public static final Path RESOURCE_PATH = Path.of("src", "test", "resources");
 
   public static final Path GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greatersydneygtfsstaticnoshapes.zip");
-  //public static final String GTFS_NSW_NO_SHAPES = Path.of(RESOURCES_GTFS.toString(),"NSW","greatersydneygtfsstaticnoshapes.zip").toString();
 
   public static MacroscopicNetwork macroscopicNetwork;
 
@@ -180,15 +177,15 @@ public class GtfsToPlanitSydneyTest {
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
       // and a conscious choice has to be made whether this is better or not before changing the below results
       assertEquals(1, network.getTransportLayers().size());
-      assertEquals(1379, network.getTransportLayers().getFirst().getLinks().size());
-      assertEquals(1157, network.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2727, network.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(1383, network.getTransportLayers().getFirst().getLinks().size());
+      assertEquals(1161, network.getTransportLayers().getFirst().getNodes().size());
+      assertEquals(2735, network.getTransportLayers().getFirst().getLinkSegments().size());
       assertEquals(71, network.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(119, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(150, zoning.getTransferConnectoids().size());
+      assertEquals(154, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),99);
@@ -234,9 +231,9 @@ public class GtfsToPlanitSydneyTest {
           LocalTime.of(6,0,0),
           LocalTime.of(9, 59,59));
 
-      // log mappings, useful for debugging if needed
-      //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
-      //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
+      /* log mappings, useful for debugging if needed */
+//    gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
+//    gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
       SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getZoningSettings(), true);
       SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getServiceSettings());
@@ -247,6 +244,13 @@ public class GtfsToPlanitSydneyTest {
       var zoning = result.second();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
+
+      /* PLANit intermodal writer --> to supply file based outputs if needed (example) */
+      final String PLANIT_OUTPUT_DIR = Path.of(RESOURCE_PATH.toString(),"testcases","sydney").toAbsolutePath().toString();
+      PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
+      planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
+      planitIntermodalWriter.getSettings().setOutputDirectory(PLANIT_OUTPUT_DIR);
+      planitIntermodalWriter.writeWithServices(network, zoning, serviceNetwork, routedServices);
 
       //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
       // and a conscious choice has to be made whether this is better or not before changing the below results
@@ -259,7 +263,7 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(143, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(180, zoning.getTransferConnectoids().size());
+      assertEquals(182, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(100, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());

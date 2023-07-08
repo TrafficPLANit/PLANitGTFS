@@ -841,7 +841,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private void handleStopPlatform(final GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
-    if(gtfsStop.getStopId().equals("1128")){
+    if(gtfsStop.getStopId().equals("206036")){
       int bla = 4;
     }
 
@@ -866,6 +866,18 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     }
 
     if(theTransferZone!= null){
+
+      if(data.getSettings().isExtendedLoggingForGtfsZoneActivated(gtfsStop.getStopId())){
+        String accessLinkIds = "unknown";
+        var connectoids = data.getTransferZoneConnectoids(theTransferZone);
+        if(connectoids != null){
+          accessLinkIds = connectoids.stream().map(c -> "(" + c.getAccessLinkSegment().getParentLink().getIdsAsString() + ")").distinct().collect(Collectors.joining(","));
+        }
+        String message = createNewTransferZone ?  "triggered creation of new transfer zone" : "matched to existing transfer zone";
+        LOGGER.info(String.format("[TRACK] GTFS stop %s %s (location %s) %s %s with access link(s): %s",
+                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), message, theTransferZone.getIdsAsString(),accessLinkIds));
+      }
+
       attachToTransferZone(gtfsStop, theTransferZone);
       if(!createNewTransferZone){
         data.getProfiler().incrementAugmentedTransferZones();
@@ -901,6 +913,11 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
                 "GTFS stop %s %s (location %s) manually attached to existing transfer zone (%s, %s), but transfer zone not found, ignored",
                 gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), transferZoneIdAndTypePair.first(), transferZoneIdAndTypePair.second()));
         continue;
+      }
+
+      if(data.getSettings().isExtendedLoggingForGtfsZoneActivated(gtfsStop.getStopId())){
+        LOGGER.info(String.format("[TRACK] GTFS stop %s %s (location %s) manually attached to existing transfer zone %s",
+                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), transferZone.getIdsAsString()));
       }
 
       updateTransferZoneConnectoidSecondaryCompatibleModes(transferZone, primaryGtfsStopModes);

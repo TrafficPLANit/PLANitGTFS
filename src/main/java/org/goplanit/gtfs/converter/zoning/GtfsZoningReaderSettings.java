@@ -94,6 +94,9 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
 
+  /** track extended logging on how particular GTFS stops are being created and/or matched to an existing PLANit transferzone */
+  private Set<String> extendedLoggingByGtfsStopId = new HashSet<>();
+
   /**
    * default flag setting whether to remove unused transfer zones after GTFS parsing is complete
    */
@@ -265,11 +268,28 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
     return logMappedGtfsZones;
   }
 
+  /** Check if extensive logging on how particular GTFS stop is being parsed is activated
+   *
+   * @param gtfsStopId to verify
+   */
+  public boolean isExtendedLoggingForGtfsZoneActivated(String gtfsStopId){
+    return extendedLoggingByGtfsStopId.contains(gtfsStopId);
+  }
+
   /**
    * @param logMappedGtfsZones when true mapped GTFS stops are logged, otherwise not
    */
   public void setLogMappedGtfsZones(boolean logMappedGtfsZones) {
     this.logMappedGtfsZones = logMappedGtfsZones;
+  }
+
+  /** Allow user to trigger extensive logging on how particular GTFS stops are being parsed and converted into a PLANit
+   * transfer zone
+   *
+   * @param gtfsStopIds to activate extended logging for
+   */
+  public void activateExtendedLoggingForGtfsZones(String... gtfsStopIds){
+    extendedLoggingByGtfsStopId.addAll(Arrays.asList(gtfsStopIds));
   }
 
   /**

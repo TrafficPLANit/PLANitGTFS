@@ -92,23 +92,16 @@ public class Gtfs2PlanitMelbourneTest {
       MelbourneGtfsServicesSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getServiceSettings());
       MelbourneGtfsZoningSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getZoningSettings(), true);
 
-      /* debugging options*/
-//      {
-//        // EXAMPLE:
-//        // NOTE: These were added when {@link #test1Osm2PlanitIntermodalNoServicesBoundingBox()} was run WITHOUT bounding box off i.c.w. the filter for the 902 line fixing its mismatches */
-//        // manual override due to inconsistencies flagged by parser between OSM and GTFS
-//
-//          inputSettings.getServiceSettings().excludeAllGtfsRoutesExceptByShortName("902");
-//      }
-
-      /* example settings */
+      /* debugging option examples*/
       {
-        // log mappings, useful for debugging if needed
-        //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
-        //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
-
-        // track and log information of certain routes by head sign in GTFS, useful for debugging
-        //gtfsIntermodalReader.getSettings().getServiceSettings().activateLoggingForGtfsRouteByShortName("607X");
+//        // EXAMPLE:
+//        inputSettings.getServiceSettings().excludeAllGtfsRoutesExceptByShortName("902");
+//        inputSettings.getZoningSettings().activateExtendedLoggingForGtfsZones("925","926");
+//
+//        gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
+//        gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
+//
+//        gtfsIntermodalReader.getSettings().getServiceSettings().activateLoggingForGtfsRouteByShortName("607X");
       }
 
       /* the GTFS reader */
