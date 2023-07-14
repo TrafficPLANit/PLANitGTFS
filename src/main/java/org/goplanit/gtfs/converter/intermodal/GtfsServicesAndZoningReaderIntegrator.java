@@ -130,28 +130,32 @@ public class GtfsServicesAndZoningReaderIntegrator {
       return null;
     }
 
-    Set<SimpleDirectedPath> allLegSegmentPathOptions = new HashSet<>();
-    for (var upstreamAccessNodeConnectoidsEntry : upstreamConnectoidsByAccessNode.entrySet()) {
-      if(upstreamAccessNodeConnectoidsEntry.getValue().isEmpty()){
-        continue;
+    final var finalDownstreamConnectoidsByAccessNode = downstreamConnectoidsByAccessNode;
+    final var allLegSegmentPathOptions = new TreeSet<SimpleDirectedPath>(Comparator.comparing(Object::hashCode));
+
+    // Do this ordered in case we have identical distance options for which we want to at least be consistent between runs
+    // Lambda so "return" is a "continue"
+    upstreamConnectoidsByAccessNode.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach( upstreamEntry  -> {
+      if(upstreamEntry.getValue().isEmpty()){
+        return;
       }
-      for (var downstreamAccessNodeConnectoidsEntry : downstreamConnectoidsByAccessNode.entrySet()) {
-        if(downstreamAccessNodeConnectoidsEntry.getValue().isEmpty()){
-          continue;
+      finalDownstreamConnectoidsByAccessNode.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach( downstreamEntry  -> {
+        if(downstreamEntry.getValue().isEmpty()){
+          return;
         }
 
         // find eligible paths between upstream access node and downstream access node(s).
         Set<SimpleDirectedPath> accessNodePathOptions =
             createShortestPathsBetweenAccessNodes(
                 mode,
-                upstreamAccessNodeConnectoidsEntry.getValue(),
+                upstreamEntry.getValue(),
                 transferZoneUpstream,
-                downstreamAccessNodeConnectoidsEntry.getValue(),
+                downstreamEntry.getValue(),
                 transferZoneDownstream,
                 shortestPathAlgo);
         allLegSegmentPathOptions.addAll(accessNodePathOptions);
-      }
-    }
+      });
+    });
 
     // when no options are found but connectoids support current mode, issue a warning
     if (allLegSegmentPathOptions.isEmpty()) {
@@ -165,7 +169,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
       //  We can have multiple paths still despite this being a call for a single leg segment. This is because it is possible that the related transfer zone of the
       //  service node may represent multiple stops (and service nodes). Therefore, we must make an educated guess how to link the leg segment (and service node) to the found
       //  which of the found paths if multiple exist. Once a choice has been made, we will then encounter another leg segment later on which will generate the same paths but now
-      //  should be matched to the remaining (other) path. This likely ONLY happens for consecutive train stations with platforms having tracks on both sides, e.g., redfern and central
+      //  should be matched to the remaining (other) path. This likely ONLY happens for consecutive train stations with platforms having tracks on both sides, e.g., redfern and central, or
+      // in case platforms are stacked on top of each other (the latter case we could improve by enforcing layer information if present, but this is not done yet)
       //  RULE --> use rule of thumb where we use the shortest path (this will eliminate crossing paths most likely (switches), we then
       //  might still choose the wrong platform/track but this is not a big issue.
       LOGGER.fine(String.format("Multiple paths possible between two GTFS stops (%s, %s) for mode %s, due to GTFS stop having multiple possible access points to physical network, e.g., train platform, choosing first", gtfsStopIdUpstream, gtfsStopIdDownstream, mode.getName()));
