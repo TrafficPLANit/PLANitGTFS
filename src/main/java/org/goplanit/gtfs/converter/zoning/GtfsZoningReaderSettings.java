@@ -271,6 +271,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   /** Check if extensive logging on how particular GTFS stop is being parsed is activated
    *
    * @param gtfsStopId to verify
+   * @return boolean indication if extended logging is activated or not
    */
   public boolean isExtendedLoggingForGtfsZoneActivated(String gtfsStopId){
     return extendedLoggingByGtfsStopId.contains(gtfsStopId);

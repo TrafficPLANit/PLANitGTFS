@@ -72,7 +72,7 @@ public class Gtfs2PlanitMelbourneTest {
     final String GTFS_FILES_INPUT_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_VIC_NO_SHAPES.toString())).toAbsolutePath().toString();
     final String PLANIT_OUTPUT_DIR = Path.of(RESOURCE_PATH.toString(),"testcases","melbourne").toAbsolutePath().toString();
     final String PLANIT_REF_DIR = Path.of(RESOURCE_PATH.toString(),"planit","melbourne","reference").toAbsolutePath().toString();
-    
+
     try {
 
       /* parse PLANit intermodal network (without services) from disk to memory */
