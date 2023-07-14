@@ -1,4 +1,4 @@
-package org.goplanit.gtfs.test.utils;
+package org.goplanit.gtfs.util.test;
 
 import org.goplanit.converter.idmapping.IdMapperType;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;

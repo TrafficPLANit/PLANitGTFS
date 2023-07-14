@@ -1,11 +1,10 @@
 package org.goplanit.gtfs.test;
 
-import org.goplanit.converter.idmapping.IdMapperType;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
-import org.goplanit.gtfs.test.utils.MelbourneGtfsServicesSettingsUtils;
-import org.goplanit.gtfs.test.utils.MelbourneGtfsZoningSettingsUtils;
+import org.goplanit.gtfs.util.test.MelbourneGtfsServicesSettingsUtils;
+import org.goplanit.gtfs.util.test.MelbourneGtfsZoningSettingsUtils;
 import org.goplanit.io.converter.intermodal.*;
 import org.goplanit.io.test.PlanitAssertionUtils;
 import org.goplanit.logging.Logging;
