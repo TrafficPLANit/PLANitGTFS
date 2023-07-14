@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsTransfer;
+import org.goplanit.gtfs.entity.GtfsTransfer;
 import org.goplanit.gtfs.scheme.GtfsTransfersScheme;
 
 /**

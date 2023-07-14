@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsObject;
+import org.goplanit.gtfs.entity.GtfsObject;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 
 /**
@@ -58,6 +58,15 @@ public abstract class GtfsFileHandler<T extends GtfsObject> {
   public final GtfsFileScheme getFileScheme() {
     return fileScheme;
   }
-  
-  
+
+
+  /**
+   * Reset the handler
+   */
+  public void reset(){}
+
+  /**
+   * Allow for callback after all records have been parsed, default empty
+   */
+  public void handleComplete() {}
 }

@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsLevel;
+import org.goplanit.gtfs.entity.GtfsLevel;
 import org.goplanit.gtfs.scheme.GtfsLevelsScheme;
 
 /**

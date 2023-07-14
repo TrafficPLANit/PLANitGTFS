@@ -1,9 +1,5 @@
 package org.goplanit.gtfs.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.handler.*;
@@ -13,9 +9,19 @@ import org.goplanit.gtfs.reader.GtfsReader;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.gtfs.test.handler.GtfsFileHandlerTripsTest;
+import org.goplanit.logging.Logging;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.resource.ResourceUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for Gtfs's API basic functionality
@@ -24,8 +30,27 @@ import org.junit.Test;
  *
  */
 public class BasicGtfsTest {
-  
-  public static final String GTFS_SEQ_DIR = "GTFS/SEQ/SEQ_GTFS.zip";
+
+  private static Logger LOGGER;
+
+  private static final Path RESOURCES_GTFS = Path.of("src","test","resources","GTFS");
+
+  //public static final Path GTFS_SEQ_ALL = Path.of(ResourceUtils.getResourceUri(Path.of("GTFS","SEQ","SEQGTFS.zip").toString()));
+  public static final Path GTFS_SEQ_ALL = Path.of(RESOURCES_GTFS.toString(),"SEQ","SEQGTFS.zip");
+
+
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(BasicGtfsTest.class);
+    }
+  }
+
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+    IdGenerator.reset();
+  }
 
   /**
    * Test if umbrella reader with all file types activated runs properly
@@ -34,32 +59,35 @@ public class BasicGtfsTest {
   public void testDefaultGtfsReader() {
            
     try {
-      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());     
+      GtfsReader gtfsReader = GtfsReaderFactory.createDefaultReader(GTFS_SEQ_ALL.toUri().toURL());
       
       /* register all possible handlers where we note that reader is returned when handler is registered*/
       @SuppressWarnings("unused")
-      GtfsFileReaderAgencies agencyFileReader = (GtfsFileReaderAgencies) gtfsReader.addFileHandler(new GtfsFileHandlerAgency());      
-      gtfsReader.addFileHandler(new GtfsFileHandlerAttributions());
-      gtfsReader.addFileHandler(new GtfsFileHandlerCalendarDates());
-      gtfsReader.addFileHandler(new GtfsFileHandlerCalendars());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFareAttributes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFareRules());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFeedInfo());
-      gtfsReader.addFileHandler(new GtfsFileHandlerFrequencies());
-      gtfsReader.addFileHandler(new GtfsFileHandlerLevels());
-      gtfsReader.addFileHandler(new GtfsFileHandlerPathways());
-      gtfsReader.addFileHandler(new GtfsFileHandlerRoutes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerShapes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerStops());
-      gtfsReader.addFileHandler(new GtfsFileHandlerStopTimes());
-      gtfsReader.addFileHandler(new GtfsFileHandlerTransfers());
-      gtfsReader.addFileHandler(new GtfsFileHandlerTranslations());
-      gtfsReader.addFileHandler(new GtfsFileHandlerTrips());
+      GtfsFileReaderAgencies agencyFileReader = (GtfsFileReaderAgencies) gtfsReader.addFileHandler(new GtfsFileHandlerAgency());
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerAttributions())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerCalendarDates())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerCalendars())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFareAttributes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFareRules())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFeedInfo())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerFrequencies())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerLevels())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerPathways())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerRoutes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerShapes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerStops())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerStopTimes())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerTransfers())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerTranslations())!=null);
+      assert(gtfsReader.addFileHandler(new GtfsFileHandlerTrips())!=null);
       
       /* should be able to parse all data (without doing anything) */
-      gtfsReader.read();
+      gtfsReader.read(StandardCharsets.UTF_8);
+
+      System.gc();
     } catch (Exception e) {
-      Assert.fail();
+      LOGGER.severe(e.getMessage());
+      fail("testDefaultGtfsReader");
     }    
   }
   
@@ -73,19 +101,23 @@ public class BasicGtfsTest {
       GtfsFileHandlerTripsTest tripsHandler = new GtfsFileHandlerTripsTest();
       
       GtfsFileReaderTrips tripsFileReader  =(GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
-          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), ResourceUtils.getResourceUri(GTFS_SEQ_DIR).toURL());      
+          GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), GTFS_SEQ_ALL.toUri().toURL());
       tripsFileReader.addHandler(tripsHandler);
       
       tripsFileReader.getSettings().excludeColumns(GtfsKeyType.TRIP_HEADSIGN);
-      tripsFileReader.read();
+      tripsFileReader.read(StandardCharsets.UTF_8);
       
       assertNotNull(tripsHandler.trips);
-      assertEquals(tripsHandler.trips.size(), 156225);
+      assertEquals(156225,tripsHandler.trips.size());
       assertFalse(tripsHandler.trips.values().iterator().next().containsKey(GtfsKeyType.TRIP_HEADSIGN));
       
     } catch (Exception e) {
-      Assert.fail();
-    }     
-    
+      LOGGER.severe(e.getMessage());
+      fail("testExcludingTripsColumns");
+    }
+
+    System.gc();
   }
+
+
 }

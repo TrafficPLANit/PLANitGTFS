@@ -1,12 +1,17 @@
 package org.goplanit.gtfs.reader;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import org.goplanit.gtfs.enums.GtfsColumnType;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
+import org.goplanit.gtfs.util.GtfsFileConditions;
+import org.goplanit.utils.misc.UrlUtils;
+import org.goplanit.utils.resource.ResourceUtils;
 
 /**
- * top level class to get things started. BAsed on location (dir or zip file) and scheme (type of GTFS file), create a single stand-alone 
+ * top level class to get things started. Based on location (dir or zip file) and scheme (type of GTFS file), create a single stand-alone
  * GTFS file reader/handler combination, or an umbrella GTFS reader that is capable of registering multiple file readers/handlers
  * 
  * @author markr
@@ -17,61 +22,132 @@ public class GtfsReaderFactory {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsReaderFactory.class.getCanonicalName());
 
-  /** Factory method to create a GTFS reader supporting one or more file readers
+  /** Factory method to create a GTFS reader supporting one or more file readers where  all columns will be parsed by default
    *
-   * @param gtfsLocation to use to extract GTFS file(s) from
+   * @param gtfsLocation to use to extract GTFS file(s) from (expected to be local file path or resource)
    * @return created reader
    */
   public static GtfsReader createDefaultReader(URL gtfsLocation) {
-    return new GtfsReader(gtfsLocation);
+    return new GtfsReader(gtfsLocation, GtfsColumnType.ALL_COLUMNS);
+  }
+
+  /**
+   * Identical to {@link #createFileReader(GtfsFileScheme, URL, GtfsColumnType)} only allowing for string based gtfs location reflecting
+   * a path to gtfs file and setting initially all columns to be parsed
+   *
+   * @param fileScheme to apply
+   * @param gtfsLocation to use (expected to be local file path)
+   * @return created file reader based on scheme
+   */
+  public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, String gtfsLocation) {
+      return createFileReader(fileScheme, UrlUtils.createFromLocalPathOrResource(gtfsLocation));
+  }
+
+  /**
+   * Identical to {@link #createFileReader(GtfsFileScheme, URL, GtfsColumnType)} only allowing for string based gtfs location reflecting
+   * a path to gtfs file
+   *
+   * @param fileScheme to apply
+   * @param gtfsLocation to use (expected to be local file path or resource)
+   * @param columnType the way we configure the initial included columns across all GTFS files
+   * @return created file reader based on scheme
+   */
+  public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, String gtfsLocation, GtfsColumnType columnType) {
+    return createFileReader(fileScheme, UrlUtils.createFromLocalPathOrResource(gtfsLocation), columnType);
+  }
+
+  /** Factory method to create a GTFS file specific reader with all columns initially included enforcing the file is present (otherwise why other having a reader)
+   *
+   * @param fileScheme to create reader for
+   * @param gtfsLocation URL to use to extract GTFS file from, URL based so more versatile than a local String based file (jar, resources, etc)
+   * @return created file reader
+   */
+  public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, URL gtfsLocation) {
+    return createFileReader(fileScheme, gtfsLocation, GtfsColumnType.ALL_COLUMNS);
+  }
+
+  /** Factory method to create a GTFS file specific reader enforcing the file is present (otherwise why other having a reader)
+   *
+   * @param fileScheme to create reader for
+   * @param gtfsLocation to use to extract GTFS file from
+   * @param columnType the way we configure the initial included columns across all GTFS files
+   * @return created file reader
+   */
+  public static GtfsFileReaderBase createFileReader(
+      GtfsFileScheme fileScheme, URL gtfsLocation, GtfsColumnType columnType) {
+    return createFileReader(fileScheme, gtfsLocation, columnType, GtfsFileConditions.required());
   }
 
   /** Factory method to create a GTFS file specific reader
    * 
    * @param fileScheme to create reader for
    * @param gtfsLocation to use to extract GTFS file from
+   * @param columnType the way we configure the initial included columns across all GTFS files
+   * @param conditions to apply regarding presence
    * @return created file reader
    */
-  public static GtfsFileReaderBase createFileReader(GtfsFileScheme fileScheme, URL gtfsLocation) {
+  public static GtfsFileReaderBase createFileReader(
+      GtfsFileScheme fileScheme, URL gtfsLocation, GtfsColumnType columnType, GtfsFileConditions conditions) {
+    GtfsFileReaderBase createdReader = null;
     switch (fileScheme.getFileType()) {
       case AGENCIES:
-        return new GtfsFileReaderAgencies(gtfsLocation);
+        createdReader = new GtfsFileReaderAgencies(gtfsLocation, conditions);
+        break;
       case ATTRIBUTIONS:
-        return new GtfsFileReaderAttributions(gtfsLocation);        
+        createdReader = new GtfsFileReaderAttributions(gtfsLocation, conditions);
+        break;
       case CALENDARS:
-        return new GtfsFileReaderCalendars(gtfsLocation);
+        createdReader = new GtfsFileReaderCalendars(gtfsLocation, conditions);
+        break;
       case CALENDAR_DATES:
-        return new GtfsFileReaderCalendarDates(gtfsLocation);
+        createdReader = new GtfsFileReaderCalendarDates(gtfsLocation, conditions);
+        break;
       case FARE_ATTRIBUTES:
-        return new GtfsFileReaderFareAttributes(gtfsLocation);
+        createdReader = new GtfsFileReaderFareAttributes(gtfsLocation, conditions);
+        break;
       case FARE_RULES:
-        return new GtfsFileReaderFareRules(gtfsLocation);
+        createdReader = new GtfsFileReaderFareRules(gtfsLocation, conditions);
+        break;
       case FEED_INFO:
-        return new GtfsFileReaderFeedInfo(gtfsLocation);        
+        createdReader = new GtfsFileReaderFeedInfo(gtfsLocation, conditions);
+        break;
       case FREQUENCIES:
-        return new GtfsFileReaderFrequencies(gtfsLocation);
+        createdReader = new GtfsFileReaderFrequencies(gtfsLocation, conditions);
+        break;
       case LEVELS:
-        return new GtfsFileReaderLevels(gtfsLocation);        
+        createdReader = new GtfsFileReaderLevels(gtfsLocation, conditions);
+        break;
       case PATHWAYS:
-        return new GtfsFileReaderPathways(gtfsLocation);        
+        createdReader = new GtfsFileReaderPathways(gtfsLocation, conditions);
+        break;
       case ROUTES:
-        return new GtfsFileReaderRoutes(gtfsLocation);
+        createdReader = new GtfsFileReaderRoutes(gtfsLocation, conditions);
+        break;
       case SHAPES:
-        return new GtfsFileReaderShapes(gtfsLocation);
+        createdReader = new GtfsFileReaderShapes(gtfsLocation, conditions);
+        break;
       case TRANSFERS:
-        return new GtfsFileReaderTransfers(gtfsLocation);
+        createdReader = new GtfsFileReaderTransfers(gtfsLocation, conditions);
+        break;
       case TRANSLATIONS:
-        return new GtfsFileReaderTranslations(gtfsLocation);        
+        createdReader = new GtfsFileReaderTranslations(gtfsLocation, conditions);
+        break;
       case TRIPS:
-        return new GtfsFileReaderTrips(gtfsLocation);
+        createdReader = new GtfsFileReaderTrips(gtfsLocation, conditions);
+        break;
       case STOP_TIMES:
-        return new GtfsFileReaderStopTimes(gtfsLocation);        
+        createdReader = new GtfsFileReaderStopTimes(gtfsLocation, conditions);
+        break;
       case STOPS:
-        return new GtfsFileReaderStops(gtfsLocation);        
+        createdReader = new GtfsFileReaderStops(gtfsLocation, conditions);
+        break;
       default:
-        LOGGER.warning(String.format("Unable to create GTFS file reader for given scheme %s", fileScheme.toString()));
+        LOGGER.warning(String.format("Unable to create GTFS file reader for given scheme %s", fileScheme));
         return null;
     }
+
+    createdReader.initialiseColumnConfiguration(columnType);
+    return createdReader;
   }
    
   

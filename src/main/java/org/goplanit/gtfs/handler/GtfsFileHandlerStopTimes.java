@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsStopTime;
+import org.goplanit.gtfs.entity.GtfsStopTime;
 import org.goplanit.gtfs.scheme.GtfsStopTimesScheme;
 
 /**
@@ -20,6 +20,8 @@ public class GtfsFileHandlerStopTimes extends GtfsFileHandler<GtfsStopTime> {
 
   /**
    * Handle a GTFS stop time
+   *
+   * @param gtfsStop to handler
    */
   @Override
   public void handle(GtfsStopTime gtfsStop) {

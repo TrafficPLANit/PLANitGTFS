@@ -1,13 +1,15 @@
 package org.goplanit.gtfs.reader;
 
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.gtfs.enums.GtfsColumnType;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.handler.GtfsFileHandler;
-import org.goplanit.gtfs.model.GtfsObject;
+import org.goplanit.gtfs.entity.GtfsObject;
 import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.gtfs.util.GtfsUtils;
 
@@ -28,6 +30,9 @@ public class GtfsReader {
   
   /** registered file readers based on handlers that are added */
   private final Map<GtfsFileType, GtfsFileReaderBase> fileReaders;
+
+  /** base column configuration to apply across all readers */
+  private final GtfsColumnType gtfsColumnConfiguration;
   
   /** location (dir or zip) of GTFS file(s) */
   private final URL gtfsLocation;
@@ -36,12 +41,13 @@ public class GtfsReader {
    * 
    * @param gtfsFileType to reader
    * @param gtfsFileCondition on the file type
+   * @param charSet to use for the reader
    */
-  private void read(GtfsFileType gtfsFileType, GtfsFileConditions gtfsFileCondition) {
+  private void read(GtfsFileType gtfsFileType, GtfsFileConditions gtfsFileCondition, Charset charSet) {
     if(fileReaders.containsKey(gtfsFileType)) {
       GtfsFileReaderBase fileReader = fileReaders.get(gtfsFileType);
       fileReader.setPresenceCondition(gtfsFileCondition);
-      fileReader.read();
+      fileReader.read(charSet);
     }
   }
 
@@ -50,9 +56,11 @@ public class GtfsReader {
    * 
    * @param gtfsLocation url of the location of the GTFS files, this should either be a directory containing uncompressed *.txt files or alternatively
    * a *.zip file containing the *.txt files
+   * @param gtfsColumnConfiguration initial column configuration for all created readers/handlers
    */
-  protected GtfsReader(final URL gtfsLocation) {
-    this.fileReaders = new HashMap<GtfsFileType, GtfsFileReaderBase>();
+  protected GtfsReader(final URL gtfsLocation, GtfsColumnType gtfsColumnConfiguration) {
+    this.fileReaders = new HashMap<>();
+    this.gtfsColumnConfiguration = gtfsColumnConfiguration;
     
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);    
     this.gtfsLocation = validGtfsLocation ? gtfsLocation : null; 
@@ -63,34 +71,36 @@ public class GtfsReader {
   
   /**
    * Read GTFS files based on the registered file handlers
+   *
+   * @param charSet to use for reading
    */
-  public void read() {
+  public void read(Charset charSet) {
     if(gtfsLocation==null) {
       return;
     }
     
     /* perform reading of files in a logical order, i.e. from less dependencies to more */
-    read(GtfsFileType.AGENCIES,       GtfsFileConditions.required() );
-    read(GtfsFileType.STOPS,          GtfsFileConditions.required() );
-    read(GtfsFileType.ROUTES,         GtfsFileConditions.required() );
-    read(GtfsFileType.TRIPS,          GtfsFileConditions.required() );
-    read(GtfsFileType.STOP_TIMES,     GtfsFileConditions.required() );
+    read(GtfsFileType.AGENCIES,       GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.STOPS,          GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.ROUTES,         GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.TRIPS,          GtfsFileConditions.required(), charSet );
+    read(GtfsFileType.STOP_TIMES,     GtfsFileConditions.required(), charSet );
     
-    read(GtfsFileType.CALENDARS,      GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDAR_DATES) ); // technically required if not all are specified in CALENDAR_DATES
-    read(GtfsFileType.CALENDAR_DATES, GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDARS)  );
-    read(GtfsFileType.FARE_ATTRIBUTES,GtfsFileConditions.optional() );
-    read(GtfsFileType.FARE_RULES,     GtfsFileConditions.optional());
-    read(GtfsFileType.SHAPES,         GtfsFileConditions.optional());
-    read(GtfsFileType.FREQUENCIES,    GtfsFileConditions.optional());
-    read(GtfsFileType.TRANSFERS,      GtfsFileConditions.optional());
-    read(GtfsFileType.PATHWAYS,       GtfsFileConditions.optional());
-    read(GtfsFileType.LEVELS,         GtfsFileConditions.optional());
-    read(GtfsFileType.FEED_INFO,      GtfsFileConditions.requiredinPresenceOf(GtfsFileType.TRANSLATIONS));
-    read(GtfsFileType.TRANSLATIONS,   GtfsFileConditions.optional());
-    read(GtfsFileType.ATTRIBUTIONS,   GtfsFileConditions.optional());
+    read(GtfsFileType.CALENDARS,      GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDAR_DATES), charSet ); // technically required if not all are specified in CALENDAR_DATES
+    read(GtfsFileType.CALENDAR_DATES, GtfsFileConditions.requiredInAbsenceOf(GtfsFileType.CALENDARS), charSet  );
+    read(GtfsFileType.FARE_ATTRIBUTES,GtfsFileConditions.optional(), charSet );
+    read(GtfsFileType.FARE_RULES,     GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.SHAPES,         GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.FREQUENCIES,    GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.TRANSFERS,      GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.PATHWAYS,       GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.LEVELS,         GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.FEED_INFO,      GtfsFileConditions.requiredInPresenceOf(GtfsFileType.TRANSLATIONS), charSet);
+    read(GtfsFileType.TRANSLATIONS,   GtfsFileConditions.optional(), charSet);
+    read(GtfsFileType.ATTRIBUTIONS,   GtfsFileConditions.optional(), charSet);
     
   }
-  
+
   /** Register a handler for a specific file type
    * 
    * @param gtfsFileHandler to register
@@ -110,7 +120,7 @@ public class GtfsReader {
     GtfsFileType fileType = gtfsFileHandler.getFileScheme().getFileType();
     GtfsFileReaderBase fileReader = null;
     if(!fileReaders.containsKey(fileType)) {
-      fileReader = GtfsReaderFactory.createFileReader(gtfsFileHandler.getFileScheme(), gtfsLocation);
+      fileReader = GtfsReaderFactory.createFileReader(gtfsFileHandler.getFileScheme(), gtfsLocation, gtfsColumnConfiguration);
       fileReaders.put(fileType, fileReader);
     }else {
       fileReader = fileReaders.get(fileType);

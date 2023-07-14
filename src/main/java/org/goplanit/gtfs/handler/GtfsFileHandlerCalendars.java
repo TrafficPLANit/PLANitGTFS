@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsCalendar;
+import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.scheme.GtfsCalendarsScheme;
 
 /**

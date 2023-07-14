@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsAgency;
+import org.goplanit.gtfs.entity.GtfsAgency;
 import org.goplanit.gtfs.scheme.GtfsAgenciesScheme;
 
 /**

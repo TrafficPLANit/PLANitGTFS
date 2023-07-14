@@ -5,3 +5,6 @@
 /dependency-reduced-pom.xml
 /bin
 /doc
+/docs
+/.idea
+/src/test/resources/testcases

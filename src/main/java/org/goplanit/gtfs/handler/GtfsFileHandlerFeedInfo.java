@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsFeedInfo;
+import org.goplanit.gtfs.entity.GtfsFeedInfo;
 import org.goplanit.gtfs.scheme.GtfsFeedInfoScheme;
 
 /**

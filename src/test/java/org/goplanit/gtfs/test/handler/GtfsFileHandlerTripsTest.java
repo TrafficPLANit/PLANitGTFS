@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.goplanit.gtfs.handler.GtfsFileHandlerTrips;
-import org.goplanit.gtfs.model.GtfsTrip;
+import org.goplanit.gtfs.entity.GtfsTrip;
 
 /**
  * Handler for testing that simply stores the trips in memory
@@ -14,7 +14,7 @@ import org.goplanit.gtfs.model.GtfsTrip;
  */
 public class GtfsFileHandlerTripsTest extends GtfsFileHandlerTrips{
 
-  public final Map<String, GtfsTrip> trips = new HashMap<String, GtfsTrip>();
+  public final Map<String, GtfsTrip> trips = new HashMap<>();
   
   @Override
   public void handle(GtfsTrip gtfsTrip) {

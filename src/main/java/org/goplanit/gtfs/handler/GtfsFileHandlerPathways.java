@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.handler;
 
-import org.goplanit.gtfs.model.GtfsPathway;
+import org.goplanit.gtfs.entity.GtfsPathway;
 import org.goplanit.gtfs.scheme.GtfsPathwaysScheme;
 
 /**
