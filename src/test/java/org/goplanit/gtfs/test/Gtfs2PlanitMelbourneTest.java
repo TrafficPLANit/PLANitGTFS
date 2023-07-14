@@ -38,7 +38,7 @@ public class Gtfs2PlanitMelbourneTest {
 
   public static final Path RESOURCE_PATH = Path.of("src", "test", "resources");
 
-  public static final Path GTFS_VIC_NO_SHAPES = Path.of("gtfs", "VIC", "melbourne_gtfs_9_3_2023_no_shapes.zip");
+  public static final Path GTFS_VIC_NO_SHAPES = Path.of("GTFS", "VIC", "melbourne_gtfs_9_3_2023_no_shapes.zip");
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -72,7 +72,7 @@ public class Gtfs2PlanitMelbourneTest {
     final String GTFS_FILES_INPUT_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_VIC_NO_SHAPES.toString())).toAbsolutePath().toString();
     final String PLANIT_OUTPUT_DIR = Path.of(RESOURCE_PATH.toString(),"testcases","melbourne").toAbsolutePath().toString();
     final String PLANIT_REF_DIR = Path.of(RESOURCE_PATH.toString(),"planit","melbourne","reference").toAbsolutePath().toString();
-
+    
     try {
 
       /* parse PLANit intermodal network (without services) from disk to memory */
