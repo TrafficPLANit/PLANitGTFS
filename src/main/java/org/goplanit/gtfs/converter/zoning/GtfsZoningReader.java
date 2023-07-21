@@ -22,7 +22,6 @@ import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.ZoningModifierUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -124,7 +123,7 @@ public class GtfsZoningReader implements ZoningReader {
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each stop found */
     GtfsFileReaderStops stopsFileReader = (GtfsFileReaderStops) GtfsReaderFactory.createFileReader(
-        GtfsFileSchemeFactory.create(GtfsFileType.STOPS), getSettings().getInputDirectory());
+        GtfsFileSchemeFactory.create(GtfsFileType.STOPS), getSettings().getInputSource());
     stopsFileReader.addHandler(stopsHandler);
 
     /* configuration of reader */
@@ -183,7 +182,7 @@ public class GtfsZoningReader implements ZoningReader {
   @Override
   public Zoning read(){
     PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()), "Country not set for GTFS zoning reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(getSettings().getInputDirectory(), "Input source not set for GTFS zoning reader, unable to proceed");
+    PlanItRunTimeException.throwIfNull(getSettings().getInputSource(), "Input source not set for GTFS zoning reader, unable to proceed");
     PlanItRunTimeException.throwIfNull(serviceNetwork.getParentNetwork(),"Reference physical network not available when parsing GTFS zoning, unable to proceed");
 
     /* prepare for parsing */

@@ -4,6 +4,7 @@ import org.goplanit.converter.ConverterReaderSettings;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.misc.Pair;
 
+import java.net.URL;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Collection;
@@ -28,7 +29,7 @@ public interface GtfsConverterReaderSettings extends ConverterReaderSettings {
    * Collect the input dir to use
    * @return input directory
    */
-  public abstract String getInputDirectory();
+  public abstract URL getInputSource();
 
   /**
    * Log settings used

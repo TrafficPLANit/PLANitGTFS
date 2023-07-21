@@ -3,10 +3,10 @@ package org.goplanit.gtfs.converter;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.misc.CharacterUtils;
-import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.mode.PredefinedModeType;
 
+import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -127,14 +127,24 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
      * @param routeTypeChoice to apply
      */
     protected GtfsConverterReaderSettingsWithModeMapping(String inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
-      super(inputSource, countryName);
-      this.routeTypeChoice = routeTypeChoice;
-
-      this.activatedGtfsModes = new HashSet<>();
-      this.defaultGtfsMode2PrefinedModeTypeMap = new HashMap<>();
-
-      initialiseDefaultModeMappings();
+      this(UrlUtils.createFrom(inputSource), countryName, routeTypeChoice);
     }
+
+  /** Constructor with user defined source locale
+   *
+   * @param inputSource to use
+   * @param countryName to base source locale on
+   * @param routeTypeChoice to apply
+   */
+  protected GtfsConverterReaderSettingsWithModeMapping(URL inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
+    super(inputSource, countryName);
+    this.routeTypeChoice = routeTypeChoice;
+
+    this.activatedGtfsModes = new HashSet<>();
+    this.defaultGtfsMode2PrefinedModeTypeMap = new HashMap<>();
+
+    initialiseDefaultModeMappings();
+  }
 
   /** Copy constructor (reference copy because we use it to share the same mode mapping across multiple instance)
    *  todo not great because technically this is a hack and we do not create a shallow copy but simply assign references...
@@ -142,7 +152,7 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
    * @param other to use
    */
   protected GtfsConverterReaderSettingsWithModeMapping(GtfsConverterReaderSettingsWithModeMapping other) {
-    super(other.getInputDirectory(), other.getCountryName());
+    super(other.getInputSource(), other.getCountryName());
     this.routeTypeChoice = other.getRouteTypeChoice();
 
     // reference assignment

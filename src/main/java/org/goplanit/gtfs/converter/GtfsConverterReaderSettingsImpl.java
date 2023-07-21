@@ -1,17 +1,10 @@
 package org.goplanit.gtfs.converter;
 
-import org.goplanit.converter.ConverterReaderSettings;
-import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.time.LocalTimeUtils;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.UrlUtils;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.*;
+import java.net.URL;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Capture all common user configurable settings regarding GTFS converter readers for raw (static) GTFS feeds. To be
@@ -26,8 +19,8 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(GtfsConverterReaderSettingsImpl.class.getCanonicalName());
 
-  /** Input directory to use */
-  private String inputDirectory;
+  /** Input source to use */
+  private URL inputSource;
 
   /** Country name to use to initialise OSM defaults for */
   private final String countryName;
@@ -41,11 +34,11 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
 
   /** Constructor with user defined source locale
    *
-   * @param inputDirectory to use
+   * @param inputSource to use
    * @param countryName to base source locale on
    */
-  public GtfsConverterReaderSettingsImpl(String inputDirectory, String countryName) {
-    this.inputDirectory = inputDirectory;
+  public GtfsConverterReaderSettingsImpl(URL inputSource, String countryName) {
+    this.inputSource = inputSource;
     this.countryName = countryName;
   }
 
@@ -68,18 +61,30 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   /**
    * Set the input dir to use
    *
-   * @param inputDirectory to use
+   * @param inputSource to use
    */
-  public final void setInputDirectory(String inputDirectory){
-    this.inputDirectory = inputDirectory;
+  public final void setInputSource(URL inputSource){
+    this.inputSource = inputSource;
+  }
+
+  /** Set the input source  to use, we attempt to extract a URL from the String directly here
+   *
+   * @param inputFile to use
+   */
+  public void setInputFile(final String inputFile) {
+    try {
+      setInputSource(UrlUtils.createFrom(inputFile));
+    }catch (Exception e) {
+      throw new PlanItRunTimeException("Unable to extract URL from input source %s",inputSource);
+    }
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public final String getInputDirectory(){
-    return this.inputDirectory;
+  public final URL getInputSource(){
+    return this.inputSource;
   }
 
 
@@ -88,7 +93,7 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
    */
   @Override
   public void logSettings() {
-    LOGGER.info(String.format("GTFS input source: %s", getInputDirectory()));
+    LOGGER.info(String.format("GTFS input source: %s", getInputSource()));
     LOGGER.info(String.format("Country: %s", getCountryName()));
   }
 

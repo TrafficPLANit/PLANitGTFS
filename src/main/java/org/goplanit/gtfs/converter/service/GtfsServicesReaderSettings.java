@@ -8,8 +8,10 @@ import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.ComparablePair;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 
+import java.net.URL;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -129,6 +131,17 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * @param routeTypeChoice to apply
    */
   public GtfsServicesReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeekFilter, RouteTypeChoice routeTypeChoice) {
+    this(UrlUtils.createFrom(inputSource), countryName, dayOfWeekFilter, routeTypeChoice);
+  }
+
+  /** Constructor with user defined source locale
+   *
+   * @param inputSource to use
+   * @param countryName to base source locale on
+   * @param dayOfWeekFilter to use
+   * @param routeTypeChoice to apply
+   */
+  public GtfsServicesReaderSettings(URL inputSource, String countryName, DayOfWeek dayOfWeekFilter, RouteTypeChoice routeTypeChoice) {
     super(inputSource, countryName, routeTypeChoice);
     this.dayOfWeek = dayOfWeekFilter;
     this.timePeriodFilters = new TreeSet<>();
@@ -270,7 +283,7 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     }
 
     if(!exceptionsToBlanketBlackListByShortName.isEmpty()){
-      LOGGER.info(String.format("Filtering GTFS routes to only include: %s", exceptionsToBlanketBlackListByShortName.stream().collect(Collectors.joining())));
+      LOGGER.info(String.format("Filtering GTFS routes to only include: %s", String.join(",", exceptionsToBlanketBlackListByShortName)));
     }
 
     LOGGER.info(String.format("Consolidate identical GTFS trips: %s ", String.valueOf(isGroupIdenticalGtfsTrips())));

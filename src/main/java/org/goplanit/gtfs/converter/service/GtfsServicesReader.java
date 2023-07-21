@@ -4,11 +4,9 @@ import org.goplanit.converter.PairConverterReader;
 import org.goplanit.gtfs.converter.service.handler.*;
 import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsFileType;
-import org.goplanit.gtfs.enums.GtfsFileTypePresence;
 import org.goplanit.gtfs.reader.*;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
-import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.gtfs.util.GtfsRoutedServicesModifierUtils;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
@@ -109,7 +107,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each trip stop time found */
     GtfsFileReaderStopTimes stopTimeFileReader = (GtfsFileReaderStopTimes) GtfsReaderFactory.createFileReader(
-        GtfsFileSchemeFactory.create(GtfsFileType.STOP_TIMES), getSettings().getInputDirectory());
+        GtfsFileSchemeFactory.create(GtfsFileType.STOP_TIMES), getSettings().getInputSource());
     stopTimeFileReader.addHandler(tripStopTimeHandler);
 
     /** execute */
@@ -133,7 +131,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
     GtfsFileReaderTrips tripsFileReader = (GtfsFileReaderTrips) GtfsReaderFactory.createFileReader(
-        GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), getSettings().getInputDirectory());
+        GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), getSettings().getInputSource());
     tripsFileReader.addHandler(tripsHandler);
 
     /** execute */
@@ -158,7 +156,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
     GtfsFileReaderCalendars calendarFileReader = (GtfsFileReaderCalendars) GtfsReaderFactory.createFileReader(
-        GtfsFileSchemeFactory.create(GtfsFileType.CALENDARS), getSettings().getInputDirectory());
+        GtfsFileSchemeFactory.create(GtfsFileType.CALENDARS), getSettings().getInputSource());
     calendarFileReader.addHandler(calendarHandler);
 
     /** execute */
@@ -179,7 +177,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
     GtfsFileReaderRoutes routesFileReader = (GtfsFileReaderRoutes) GtfsReaderFactory.createFileReader(
-        GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputDirectory());
+        GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputSource());
     routesFileReader.addHandler(routesHandler);
 
     /** execute */
@@ -265,7 +263,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   public Pair<ServiceNetwork, RoutedServices> read(){
 
     PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()), "Country not set for GTFS services reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(getSettings().getInputDirectory(), "Input directory not set for GTFS services reader, unable to proceed");
+    PlanItRunTimeException.throwIfNull(getSettings().getInputSource(), "Input directory not set for GTFS services reader, unable to proceed");
     PlanItRunTimeException.throwIfNull(referenceNetwork,"Reference network not available when parsing GTFS services, unable to proceed");
 
     /* prepare for parsing */

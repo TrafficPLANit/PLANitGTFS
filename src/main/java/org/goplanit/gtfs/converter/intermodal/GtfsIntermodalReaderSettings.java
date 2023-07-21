@@ -5,19 +5,11 @@ import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
-import org.goplanit.io.converter.network.PlanitNetworkReaderSettings;
-import org.goplanit.io.converter.zoning.PlanitZoningReaderSettings;
-import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.utils.id.ManagedId;
-import org.goplanit.utils.id.ManagedIdEntityFactory;
-import org.goplanit.utils.network.layer.service.ServiceNode;
-import org.goplanit.zoning.Zoning;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.UrlUtils;
 
+import java.net.URL;
 import java.time.DayOfWeek;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Function;
 
 /**
  * Settings of GtfsIntermodalReader
@@ -57,6 +49,17 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    * @param routeTypeChoice to apply
    */
   public GtfsIntermodalReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
+    this(UrlUtils.createFrom(inputSource), countryName, dayOfWeek, routeTypeChoice);
+  }
+
+  /** Constructor with user defined source locale
+   *
+   * @param inputSource to use
+   * @param countryName to base source locale on
+   * @param dayOfWeek to filter on
+   * @param routeTypeChoice to apply
+   */
+  public GtfsIntermodalReaderSettings(URL inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
     this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, dayOfWeek, routeTypeChoice);
     this.zoningSettings = new GtfsZoningReaderSettings(servicesReaderSettings);
   }
@@ -103,8 +106,19 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
   /**
    * {@inheritDoc}
    */
-  public String getInputDirectory() {
-    return servicesReaderSettings.getInputDirectory();
+  public URL getInputSource() {
+    return servicesReaderSettings.getInputSource();
+  }
+
+  /** Set the input file to use, which is internally converted into a URL
+   * @param inputFile to use
+   */
+  public void setInputFile(final String inputFile) {
+    try{
+      servicesReaderSettings.setInputSource(UrlUtils.createFromLocalPath(inputFile));
+    }catch(Exception e) {
+      throw new PlanItRunTimeException("Unable to extract URL from input file location %s",inputFile);
+    }
   }
 
   /** The methodology used to find the paths between stops by means of its full canonical class name which is assumed to be supported by
