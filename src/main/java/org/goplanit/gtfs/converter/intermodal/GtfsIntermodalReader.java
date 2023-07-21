@@ -100,7 +100,7 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     this.idToken = null;
     this.networkAndZoningReader = networkAndZoningReader;
     this.parentNetwork = null;
-    this. parentZoning =  null;
+    this.parentZoning =  null;
   }
 
 

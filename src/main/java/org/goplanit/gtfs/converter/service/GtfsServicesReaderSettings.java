@@ -113,12 +113,13 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     return GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION;
   }
 
-  /** Constructor with user defined source locale
+  /** Constructor with user defined source locale, the input source and other settings are reuqired to be populated by
+   * the user afterwards
    *
    * @param countryName to base source locale on
    */
   public GtfsServicesReaderSettings(String countryName) {
-    this((String) null, countryName, (RouteTypeChoice) null);
+    this((URL) null, countryName, null, RouteTypeChoice.EXTENDED);
   }
 
   /** Constructor with user defined source locale, input location and route choice type info
@@ -139,7 +140,7 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * @param routeTypeChoice to apply
    */
   public GtfsServicesReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeekFilter, RouteTypeChoice routeTypeChoice) {
-    this(UrlUtils.createFrom(inputSource), countryName, dayOfWeekFilter, routeTypeChoice);
+    this( (URL) (inputSource==null ? null : UrlUtils.createFrom(inputSource)), countryName, dayOfWeekFilter, routeTypeChoice);
   }
 
   /** Constructor with user defined source locale

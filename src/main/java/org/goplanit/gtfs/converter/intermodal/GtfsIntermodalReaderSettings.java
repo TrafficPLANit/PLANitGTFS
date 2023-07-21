@@ -32,6 +32,14 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
 
   /** Constructor with user defined source locale
    *
+   * @param countryName to base source locale on
+   */
+  public GtfsIntermodalReaderSettings(String countryName) {
+    this(".", countryName, RouteTypeChoice.EXTENDED);
+  }
+
+  /** Constructor with user defined source locale
+   *
    * @param inputSource to use
    * @param countryName to base source locale on
    * @param routeTypeChoice to apply
@@ -49,7 +57,10 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    * @param routeTypeChoice to apply
    */
   public GtfsIntermodalReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
-    this(UrlUtils.createFrom(inputSource), countryName, dayOfWeek, routeTypeChoice);
+    this((URL) (inputSource==null ? null : UrlUtils.createFrom(inputSource)),
+        countryName,
+        dayOfWeek,
+        routeTypeChoice);
   }
 
   /** Constructor with user defined source locale
