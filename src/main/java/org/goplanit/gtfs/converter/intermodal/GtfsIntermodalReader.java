@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.intermodal;
 
+import org.goplanit.converter.PairConverterReader;
 import org.goplanit.converter.intermodal.IntermodalReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
@@ -45,11 +46,14 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
   /** id token to use */
   private IdGroupingToken idToken;
 
-  /** network to use */
-  private final MacroscopicNetwork parentNetwork;
+  /** network to use (unless obtained from networkAndZoningReader) */
+  private MacroscopicNetwork parentNetwork;
 
-  /** zoning to use */
-  private final Zoning parentZoning;
+  /** zoning to use (unless obtained from networkAndZoningReader) */
+  private Zoning parentZoning;
+
+  /** reader to use to extract network and zoning (unless obtained from network and zoning instances ) */
+  private PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader;
 
   /* Remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
    * therefore have no mapping populated with respect to their parent service network (and physical network). Sync XML ids to avoid gaps
@@ -76,20 +80,41 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
    * @param settings to use
    */
   protected GtfsIntermodalReader(final IdGroupingToken idToken, MacroscopicNetwork parentNetwork, final Zoning parentZoning, final GtfsIntermodalReaderSettings settings){
-    this.idToken = idToken;
     this.settings = settings;
+
+    this.idToken = idToken;
+    this.networkAndZoningReader = null;
     this.parentNetwork = parentNetwork;
     this. parentZoning =  parentZoning;
-  }   
+
+  }
+
+  /** Constructor where settings are directly provided such that input information can be extracted from it, use reader to obtain network and zoning instances
+   *
+   * @param networkAndZoningReader to use
+   * @param settings to use
+   */
+  protected GtfsIntermodalReader(final PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader, final GtfsIntermodalReaderSettings settings){
+    this.settings = settings;
+
+    this.idToken = null;
+    this.networkAndZoningReader = networkAndZoningReader;
+    this.parentNetwork = null;
+    this. parentZoning =  null;
+  }
+
+
 
   /**
    * GTFS intermodal reader - when used - only supports reading with services included. Hence, calling this method will log this to the user
    * and will not generate any results
+   *
+   * @return always null
    */
   @Override
-  public Pair<MacroscopicNetwork, Zoning> read() throws PlanItException {
+  public Pair<MacroscopicNetwork, Zoning> read() {
     LOGGER.warning("GTFS Intermodal Reader only supports readWithServices(), read() is not supported due to absence of physical network in GTFS data...");
-    LOGGER.warning("...To parse a compatible network consider using the OSM Intermodel Reader or another compatible network reader to pre-load the network");
+    LOGGER.warning("...To parse a compatible network consider using the OSM Intermodal Reader or another compatible network reader to pre-load the network");
     return null;
   }
 
@@ -125,6 +150,22 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
    */
   @Override
   public Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> readWithServices() {
+
+    if( (parentNetwork==null || parentZoning==null) && networkAndZoningReader==null){
+      LOGGER.severe("GTFS intermodal reader incorrectly configured, no network and/or zoning available, yet no reader present to construct them beforehand, this shouldn't happen");
+      return null;
+    }
+
+    if(networkAndZoningReader!=null){
+      var networkAndZoning = networkAndZoningReader.read();
+      if(networkAndZoning==null || networkAndZoning.anyIsNull()){
+        LOGGER.severe("Unable to construct network and/or zoning for GTFS intermodal reader");
+        return null;
+      }
+      parentNetwork = networkAndZoning.first();
+      parentZoning = networkAndZoning.second();
+      this.idToken = parentNetwork.getIdGroupingToken();
+    }
 
     /* SERVICES without geo filter (since locations are currently only parsed when considering GTFS stops via (transfer) zoning reader), hence
     *  all routes/services are initially mapped to PLANit equivalents but without mapping to physical network yet*/
