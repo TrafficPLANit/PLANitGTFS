@@ -113,13 +113,29 @@ public class GtfsIntermodalReaderFactory {
    *  This specific approach allows the provision of an intermodal reader to obtain network and zoning rather than having
    *  instances passed in
    *
-   * @param networkAndZoningReader (intermodal) reader to use to extract network and zoning
    * @param settings to use
+   * @param networkAndZoningReader (intermodal) reader to use to extract network and zoning
    * @return created routed service reader
    */
   public static GtfsIntermodalReader create(
-      final PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader,
-      final GtfsIntermodalReaderSettings settings) {
+      final GtfsIntermodalReaderSettings settings,
+      final PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader) {
     return new GtfsIntermodalReader(networkAndZoningReader, settings);
+  }
+
+  /** Create a GtfsIntermodalReader based on given locale input source needs to be manually set after, GTFS route choice
+   * type set to RouteTypeChoice.EXTENDED). This specific approach allows the provision of an intermodal reader to
+   * obtain network and zoning rather than requiring memory model versions to be passed in
+   *
+   * @param countryName to use
+   * @param networkAndZoningReader (intermodal) reader to use to extract network and zoning
+   * @return created routed service reader
+   */
+  public static GtfsIntermodalReader create(
+      final String countryName,
+      final PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader) {
+    return new GtfsIntermodalReader(
+        networkAndZoningReader,
+        new GtfsIntermodalReaderSettings(null, countryName, RouteTypeChoice.EXTENDED));
   }
 }

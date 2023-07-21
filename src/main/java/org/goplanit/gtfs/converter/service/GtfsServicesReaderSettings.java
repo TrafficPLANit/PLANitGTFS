@@ -115,6 +115,14 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
 
   /** Constructor with user defined source locale
    *
+   * @param countryName to base source locale on
+   */
+  public GtfsServicesReaderSettings(String countryName) {
+    this((String) null, countryName, (RouteTypeChoice) null);
+  }
+
+  /** Constructor with user defined source locale, input location and route choice type info
+   *
    * @param inputSource to use
    * @param countryName to base source locale on
    * @param routeTypeChoice to apply

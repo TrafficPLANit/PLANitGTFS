@@ -221,7 +221,7 @@ public class GtfsToPlanitSydneyTest {
           LocalTime.of(6,0,0),
           LocalTime.of(9, 59,59));
 
-      var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(planitReader, gtfsSettings);
+      var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(gtfsSettings, planitReader);
 
       /* log mappings, useful for debugging if needed */
 //    gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
