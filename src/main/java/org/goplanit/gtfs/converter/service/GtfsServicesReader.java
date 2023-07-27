@@ -323,7 +323,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    */
   @Override
   public void reset() {
-    settings.reset();
   }
 
 }

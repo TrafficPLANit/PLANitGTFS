@@ -123,7 +123,6 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
    */  
   @Override
   public void reset() {
-    getSettings().reset();
   }
 
   /**

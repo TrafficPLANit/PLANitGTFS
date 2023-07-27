@@ -126,7 +126,9 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    */
   public void setInputFile(final String inputFile) {
     try{
-      servicesReaderSettings.setInputSource(UrlUtils.createFromLocalPath(inputFile));
+      var urlInputSource = UrlUtils.createFromLocalPath(inputFile);
+      getServiceSettings().setInputSource(urlInputSource);
+      getZoningSettings().setInputSource(urlInputSource);
     }catch(Exception e) {
       throw new PlanItRunTimeException("Unable to extract URL from input file location %s",inputFile);
     }

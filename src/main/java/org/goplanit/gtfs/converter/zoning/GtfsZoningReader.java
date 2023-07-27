@@ -210,8 +210,6 @@ public class GtfsZoningReader implements ZoningReader {
    */
   @Override
   public void reset() {
-    /* free memory */
-    getSettings().reset();
     /* reset state */
     readInvoked = false;
     gtfsStopIdToTransferZoneMapping = null;
