@@ -293,7 +293,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       LOGGER.info(String.format("[TRACK] stop: %s, trip: %s, route: %s (%s), arrival--departure: %s -- %s",
           gtfsStopTime.getStopId(), planitTrip.getExternalId(), planitRoutedService.getName(), planitRoutedService.getNameDescription(), arrivalTime, departureTime));
     }
-    if(data.getSettings().isLogGtfsStopRoutes(gtfsStopTime.getStopId())){
+    if(data.getSettings().isLogGtfsStopRoute(gtfsStopTime.getStopId())){
       uniqueRoutesForStopsIfLoggingRequired.putIfAbsent(gtfsStopTime.getStopId(), new TreeSet<>());
       uniqueRoutesForStopsIfLoggingRequired.get(gtfsStopTime.getStopId()).add("(name: " + planitRoutedService.getName()+" id: " + gtfsTrip.getRouteId()+")");
     }

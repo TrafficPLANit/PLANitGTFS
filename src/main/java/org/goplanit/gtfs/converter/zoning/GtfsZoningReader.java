@@ -106,6 +106,12 @@ public class GtfsZoningReader implements ZoningReader {
    * perform final preparation before conducting parsing of GTFS pt entities
    */
   private GtfsZoningHandlerData initialiseBeforeParsing() {
+    // sync crs of zoning to network if not set
+    if(zoning.getCoordinateReferenceSystem()==null){
+      zoning.setCoordinateReferenceSystem(this.serviceNetwork.getParentNetwork().getCoordinateReferenceSystem());
+    }
+
+    // initialise data
     readInvoked = false;
     syncIdsAndinitialiseEventListeners();
     return new GtfsZoningHandlerData(getSettings(), zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());

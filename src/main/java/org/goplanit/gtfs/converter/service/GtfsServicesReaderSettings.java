@@ -19,7 +19,6 @@ import java.time.format.TextStyle;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Configurable settings for the Gtfs to PLANit routed services reader
@@ -163,7 +162,17 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * @param gtfsShortNames the only routes not to exclude
    */
   public void excludeAllGtfsRoutesExceptByShortName(String... gtfsShortNames){
-    exceptionsToBlanketBlackListByShortName.addAll(Arrays.asList(gtfsShortNames));
+    excludeAllGtfsRoutesExceptByShortName(Arrays.asList(gtfsShortNames));
+  }
+
+  /**
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * listing is considered
+   *
+   * @param gtfsShortNames the only routes not to exclude
+   */
+  public void excludeAllGtfsRoutesExceptByShortName(List<String> gtfsShortNames){
+    exceptionsToBlanketBlackListByShortName.addAll(gtfsShortNames);
   }
 
   /**
@@ -183,8 +192,18 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    *
    * @param gtfsShortNames the only routes not to exclude
    */
-  public void excludeGtfsRouteByShortName(String... gtfsShortNames){
-    excludeGtfsRoutesByShortName.addAll(Arrays.asList(gtfsShortNames));
+  public void excludeGtfsRoutesByShortName(String... gtfsShortNames){
+    excludeGtfsRoutesByShortName(Arrays.asList(gtfsShortNames));
+  }
+
+  /**
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * listing is considered
+   *
+   * @param gtfsShortNames the only routes not to exclude
+   */
+  public void excludeGtfsRoutesByShortName(List<String> gtfsShortNames){
+    excludeGtfsRoutesByShortName.addAll(gtfsShortNames);
   }
 
 
@@ -344,7 +363,17 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * @param gtfsStopIds GTFS stop id to provide stopping GTFS routes for
    */
   public void addLogGtfsStopRoutes(final String... gtfsStopIds) {
-    Arrays.stream(gtfsStopIds).forEach(e -> logGtfsStopRoutes.add(e));
+    addLogGtfsStopRoutes(Arrays.asList(gtfsStopIds));
+  }
+
+  /**
+   * Indicate to log the routes that stop at the given GTFS stops (within selected time period(s). Can be useful
+   * for debugging purposes.
+   *
+   * @param gtfsStopIds GTFS stop id to provide stopping GTFS routes for
+   */
+  public void addLogGtfsStopRoutes(final List<String> gtfsStopIds) {
+    logGtfsStopRoutes.addAll(gtfsStopIds);
   }
 
   /** Verify if GTFS stop id is marked for logging the stopping GTFS routes for
@@ -352,7 +381,7 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * @param gtfsStopId GTFS stop id to verify
    * @return true when present, false otherwise
    */
-  public boolean isLogGtfsStopRoutes(final String gtfsStopId) {
+  public boolean isLogGtfsStopRoute(final String gtfsStopId) {
     return logGtfsStopRoutes.contains(gtfsStopId);
   }
 

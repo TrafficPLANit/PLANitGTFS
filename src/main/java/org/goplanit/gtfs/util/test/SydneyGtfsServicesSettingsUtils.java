@@ -23,7 +23,7 @@ public class SydneyGtfsServicesSettingsUtils {
     settings.addLogGtfsStopRoutes("2000234", "2000143","2000237");
 
     /* stop area resides on edge of bounding box, it references entries outside bounding box yielding (valid but uncorrectable) warnings */
-    settings.excludeGtfsRouteByShortName(
+    settings.excludeGtfsRoutesByShortName(
         "CCTZ",
         "CCLC",
         "F3"

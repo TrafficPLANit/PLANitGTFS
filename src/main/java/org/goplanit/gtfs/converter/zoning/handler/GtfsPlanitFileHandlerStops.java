@@ -850,7 +850,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     TransferZone theTransferZone = null;
     if(!nearbyTransferZones.isEmpty() &&
-        !data.getSettings().isForceCreateNewTransferZoneForGtfsStops(gtfsStop.getStopId())) {
+        !data.getSettings().isForceCreateNewTransferZoneForGtfsStop(gtfsStop.getStopId())) {
 
       theTransferZone = findMatchFromExistingTransferZone(gtfsStop, primaryGtfsStopModes, nearbyTransferZones);
 
@@ -971,7 +971,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         return;
       }
 
-      if(data.getSettings().isOverwrittenGtfsStopLocationMapping(gtfsStop.getStopId())){
+      if(data.getSettings().isOverwrittenGtfsStopLocation(gtfsStop.getStopId())){
         gtfsStop.setLocationAsCoord(data.getSettings().getOverwrittenGtfsStopLocation(gtfsStop.getStopId()));
       }
     }

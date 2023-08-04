@@ -154,8 +154,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    *
    * @param searchRadiusMeters to apply
    */
-  public void setGtfsStopToTransferZoneSearchRadiusMeters(double searchRadiusMeters) {
-    this.gtfsStop2TransferZoneSearchRadiusMeters = searchRadiusMeters;
+  public void setGtfsStopToTransferZoneSearchRadiusMeters(Number searchRadiusMeters) {
+    this.gtfsStop2TransferZoneSearchRadiusMeters = searchRadiusMeters.doubleValue();
   }
 
   /**
@@ -172,8 +172,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    *
    * @param searchRadiusMeters to apply
    */
-  public void setGtfsStopToLinkSearchRadiusMeters(double searchRadiusMeters) {
-    this.gtfsStop2RoadSearchRadiusMeters = searchRadiusMeters;
+  public void setGtfsStopToLinkSearchRadiusMeters(Number searchRadiusMeters) {
+    this.gtfsStop2RoadSearchRadiusMeters = searchRadiusMeters.doubleValue();
   }
 
 
@@ -247,7 +247,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param gtfsStopId to verify
    * @return true when present, false otherwise
    */
-  public boolean isOverwrittenGtfsStopLocationMapping(final String gtfsStopId) {
+  public boolean isOverwrittenGtfsStopLocation(final String gtfsStopId) {
     return overwriteGtfsStopLocationMapping.containsKey(gtfsStopId);
   }
 
@@ -290,7 +290,16 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param gtfsStopIds to activate extended logging for
    */
   public void activateExtendedLoggingForGtfsZones(String... gtfsStopIds){
-    extendedLoggingByGtfsStopId.addAll(Arrays.asList(gtfsStopIds));
+    activateExtendedLoggingForGtfsZones(Arrays.asList(gtfsStopIds));
+  }
+
+  /** Allow user to trigger extensive logging on how particular GTFS stops are being parsed and converted into a PLANit
+   * transfer zone
+   *
+   * @param gtfsStopIds to activate extended logging for
+   */
+  public void activateExtendedLoggingForGtfsZones(final List<String> gtfsStopIds){
+    extendedLoggingByGtfsStopId.addAll(gtfsStopIds);
   }
 
   /**
@@ -423,13 +432,23 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Log the chosen PLANit link (and its ids) to the user for the given GTFS stop so it can be manually verified what
+   * Log the chosen PLANit link (and its ids) to the user for the given GTFS stop, so it can be manually verified what
    * the algorithm has chosen from the logs
    *
    * @param gtfsStopIds to log mapping for
    */
   public void addLogGtfsStopToLinkMapping(final String... gtfsStopIds) {
-    logGtfsStop2PlanitLinkMapping.addAll(Arrays.stream(gtfsStopIds).collect(Collectors.toSet()));
+    addLogGtfsStopToLinkMapping(Arrays.asList(gtfsStopIds));
+  }
+
+  /**
+   * Log the chosen PLANit link (and its ids) to the user for the given GTFS stop, so it can be manually verified what
+   * the algorithm has chosen from the logs
+   *
+   * @param gtfsStopIds to log mapping for
+   */
+  public void addLogGtfsStopToLinkMapping(final List<String> gtfsStopIds) {
+    logGtfsStop2PlanitLinkMapping.addAll(gtfsStopIds.stream().collect(Collectors.toSet()));
   }
 
   /**
@@ -444,12 +463,22 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
 
   /**
    * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop. If such a situation
-   * is identified, instead a new transfer zone is created instead
+   * is identified, a new transfer zone is created instead
    *
    * @param gtfsStopIds GTFS stop id to provide link mapping for
    */
   public void disallowGtfsStopToTransferZoneJointMapping(final String... gtfsStopIds) {
-    Arrays.stream(gtfsStopIds).forEach( e -> disallowGtfsTop2TransferZoneJointMapping.add(e));
+    disallowGtfsStopToTransferZoneJointMapping(Arrays.asList(gtfsStopIds));
+  }
+
+  /**
+   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop. If such a situation
+   * is identified, a new transfer zone is created instead
+   *
+   * @param gtfsStopIds GTFS stop id to provide link mapping for
+   */
+  public void disallowGtfsStopToTransferZoneJointMapping(final List<String> gtfsStopIds) {
+    disallowGtfsTop2TransferZoneJointMapping.addAll(gtfsStopIds);
   }
 
 
@@ -469,7 +498,17 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param gtfsStopIds GTFS stop id to provide link mapping for
    */
   public void forceCreateNewTransferZoneForGtfsStops(final String... gtfsStopIds) {
-    Arrays.stream(gtfsStopIds).forEach( e -> forceCreateNewTransferZoneForGtfsStops.add(e));
+    forceCreateNewTransferZoneForGtfsStops(Arrays.asList(gtfsStopIds));
+  }
+
+  /**
+   * Flag that given GTFS stop must trigger creation of a new transfer zone, so do not attempt to map it to any
+   * existing transfer zones.
+   *
+   * @param gtfsStopIds GTFS stop id to provide link mapping for
+   */
+  public void forceCreateNewTransferZoneForGtfsStops(final List<String> gtfsStopIds) {
+    forceCreateNewTransferZoneForGtfsStops.addAll(gtfsStopIds);
   }
 
 
@@ -478,7 +517,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param gtfsStopId GTFS stop id to verify
    * @return true when present, false otherwise
    */
-  public boolean isForceCreateNewTransferZoneForGtfsStops(final String gtfsStopId) {
+  public boolean isForceCreateNewTransferZoneForGtfsStop(final String gtfsStopId) {
     return forceCreateNewTransferZoneForGtfsStops.contains(gtfsStopId);
   }
 
