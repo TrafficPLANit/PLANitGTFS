@@ -30,7 +30,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
 
   private final String stopToStopPathSearchPhysicalCostApproach = DEFAULT_STOP_TO_STOP_COST_APPROACH;
 
-  /** Constructor with user defined source locale
+  /** Constructor with user defined source locale, input source the current directory, and EXTENDED RouteTypeChoice applied
    *
    * @param countryName to base source locale on
    */
@@ -122,6 +122,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
   }
 
   /** Set the input file to use, which is internally converted into a URL
+   *
    * @param inputFile to use
    */
   public void setInputFile(final String inputFile) {
