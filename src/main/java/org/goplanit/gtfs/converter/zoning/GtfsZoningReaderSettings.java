@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.converter.zoning;
 
-import org.goplanit.converter.idmapping.IdMapperType;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
