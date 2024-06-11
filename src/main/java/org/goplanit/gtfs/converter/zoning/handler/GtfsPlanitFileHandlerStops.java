@@ -750,7 +750,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
 
       /* register new transfer zone if not done already */
-      if(newTransferZone == null) {
+      if(newTransferZone == null && accessLinkSegments !=null) {
         newTransferZone = GtfsTransferZoneHelper.createAndRegisterNewTransferZone(gtfsStop, projectedGtfsStopLocation, type, data);
         if (data.getSettings().isLogCreatedGtfsZones()) {
           LOGGER.info(String.format(
@@ -759,11 +759,13 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
 
       /* register connectoid for each stop-mode combinations selected access link segment on PLANit network/zoning */
-      final var finalAccessLinkSegments = accessLinkSegments;
-      allEligibleModes.removeIf( m -> finalAccessLinkSegments.stream().anyMatch(ls -> !ls.isModeAllowed(m))); // only retain those that also are supported on the found access link segment
-      var results = GtfsDirectedConnectoidHelper.createAndRegisterDirectedConnectoids(
-          newTransferZone, networkLayer, accessNode, accessLinkSegments, allEligibleModes, data);
-      connectoidsCreated = connectoidsCreated || results != null && !results.isEmpty();
+      if(accessLinkSegments != null) {
+        final var finalAccessLinkSegments = accessLinkSegments;
+        allEligibleModes.removeIf(m -> finalAccessLinkSegments.stream().anyMatch(ls -> !ls.isModeAllowed(m))); // only retain those that also are supported on the found access link segment
+        var results = GtfsDirectedConnectoidHelper.createAndRegisterDirectedConnectoids(
+                newTransferZone, networkLayer, accessNode, accessLinkSegments, allEligibleModes, data);
+        connectoidsCreated = connectoidsCreated || results != null && !results.isEmpty();
+      }
     }
 
     final double maxDistanceFromBoundingBoxForDebugMessage = 100; //meters
