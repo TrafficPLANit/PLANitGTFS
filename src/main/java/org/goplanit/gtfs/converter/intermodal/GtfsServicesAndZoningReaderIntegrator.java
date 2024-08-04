@@ -328,13 +328,14 @@ public class GtfsServicesAndZoningReaderIntegrator {
     is how the GTFS converter has created them */
     final var counter = new LongAdder();
     final var doublingCounter = new LongAdder();
+    doublingCounter.add(500);
     data.getServiceNetwork().getTransportLayers().forEach(l -> l.getLegs().forEach(
         leg -> leg.forEachSegment( legSegment ->
             {
               mapServiceLegSegmentToPhysicalNetwork(l, (ServiceLegSegmentImpl) legSegment);
 
               // can be costly exercise for large networks, track progress
-              if(counter.longValue() >= 500 && counter.longValue() >= doublingCounter.longValue()){
+              if(counter.longValue() >= doublingCounter.longValue()){
                 LOGGER.info(String.format("Mapped %d service leg segments to network", counter.intValue()));
                 doublingCounter.add(counter.longValue());
               }
