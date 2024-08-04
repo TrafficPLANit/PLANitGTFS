@@ -205,7 +205,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS stop times");
     PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS stop times");
     // prerequisites
-    PlanItRunTimeException.throwIf(data.getRoutedServices().getLayers().isEachLayerEmpty()==true,"No GTFS routes parsed yet, unable to parse GTFS stop times");
+    PlanItRunTimeException.throwIf(data.getRoutedServices().getLayers().isEachLayerEmpty(),"No GTFS routes parsed yet, unable to parse GTFS stop times");
 
     reset();
   }
@@ -228,11 +228,11 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     }
 
     var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
-    boolean logTrackedRoute = (activatedLoggingForGtfsRoutesByShortName.contains(planitRoutedService.getName()));
     if(planitRoutedService == null){
       LOGGER.severe(String.format("Unable to find GTFS route %s in PLANit memory model corresponding to GTFS trip %s, GTFS stop time (stop id %s) ignored", gtfsTrip.getRouteId(), gtfsTrip.getTripId(), gtfsStopTime.getStopId()));
       return;
     }
+    boolean logTrackedRoute = (activatedLoggingForGtfsRoutesByShortName.contains(planitRoutedService.getName()));
     var layer = data.getServiceNetwork().getLayerByMode(planitRoutedService.getMode());
 
     /* change of GTFS trip between stop times, assume current stop time is the very first stop time for the new trip */

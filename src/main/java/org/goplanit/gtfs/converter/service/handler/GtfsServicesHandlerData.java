@@ -203,7 +203,8 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
    * @return true when discarded, false otherwise
    */
   public boolean isGtfsTripRemoved(String gtfsTripId){
-    return this.removedGtfsTrips.entrySet().stream().filter(e -> e.getValue().contains(gtfsTripId)).findFirst().isPresent();
+    return this.removedGtfsTrips.entrySet().stream().anyMatch(
+        e -> e.getValue().contains(gtfsTripId));
   }
 
   /**

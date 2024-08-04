@@ -22,6 +22,7 @@ import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
 
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -78,7 +79,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
   }
 
   /**
-   * Given a network layer and two GTFS stop's transfer zones, find the most likely path between them taking the mode and shortest distance into account
+   * Given a network layer and two GTFS stop's transfer zones, find the most likely path between them taking the
+   * mode and shortest distance into account
    *
    * @param layer to use for the physical network
    * @param serviceLegSegment to find physical path for
@@ -96,10 +98,6 @@ public class GtfsServicesAndZoningReaderIntegrator {
     if(transferZoneUpstream==null || transferZoneDownstream == null){
       /* likely no mapping found for stops due to physical network not being close enough, i.e., routes/legs/nodes fall outside bounding box of physical network we are mapping to */
       return null;
-    }
-
-    if(gtfsStopIdUpstream.equals("2000449") && gtfsStopIdDownstream.equals("2000453")){
-      int bla = 4;
     }
 
     /* link service node to transfer zone access nodes (which are physical nodes) */
@@ -121,8 +119,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
     downstreamConnectoidsByAccessNode.values().forEach(cList -> cList.removeIf( c -> !c.isModeAllowed(transferZoneDownstream, mode)));
 
     // proceed when both connectoids support the mode on any of its access nodes
-    if (!upstreamConnectoidsByAccessNode.values().stream().flatMap(e -> e.stream()).findFirst().isPresent() &&
-        !downstreamConnectoidsByAccessNode.values().stream().flatMap(e -> e.stream()).findFirst().isPresent()) {
+    if (upstreamConnectoidsByAccessNode.values().stream().flatMap(Collection::stream).findFirst().isEmpty() &&
+        downstreamConnectoidsByAccessNode.values().stream().flatMap(Collection::stream).findFirst().isEmpty()) {
       LOGGER.severe(String.format("Service leg segment connecting GTFS stop pair [%s (%s), %s (%s)] not mode compatible [mode (%s)] with PLANit mapped stops (connectoids), this shouldn't happen",
           gtfsStopIdUpstream, transferZoneUpstream.getName(), gtfsStopIdDownstream, transferZoneDownstream.getName(), mode.getName()));
       return null;
@@ -157,8 +155,14 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     // when no options are found but connectoids support current mode, issue a warning
     if (allLegSegmentPathOptions.isEmpty()) {
-      LOGGER.warning(String.format("Valid service leg segment [mode (%s)] connects GTFS stops [%s (%s), %s (%s)], but no eligible physical path found, verify expected path (partly) exits parsed bounding box",
-          mode.getName(), gtfsStopIdUpstream, transferZoneUpstream.getName(), gtfsStopIdDownstream, transferZoneDownstream.getName()));
+      LOGGER.warning(String.format("Valid service leg segment [mode (%s)] connects GTFS stops [%s (%s, %s), %s (%s, %s)], but no eligible physical path found, verify if path (partly) exits parsed bounding area",
+          mode.getName(),
+          gtfsStopIdUpstream,
+          transferZoneUpstream.getName(),
+          transferZoneUpstream.getGeometry().toString(),
+          gtfsStopIdDownstream,
+          transferZoneDownstream.getName(),
+          transferZoneUpstream.getGeometry().toString()));
       return null;
     }
 
@@ -185,7 +189,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
           List<DirectedConnectoid> upstreamAccessNodeConnectoids,
           TransferZone transferZoneUpstream,
           List<DirectedConnectoid> downstreamAccessNodeConnectoids,
-          TransferZone transferZoneDownstream, ShortestPathAStar shortestPathAlgo) {
+          TransferZone transferZoneDownstream,
+          ShortestPathAStar shortestPathAlgo) {
 
     Set<SimpleDirectedPath> createdPaths = new HashSet<>();
     for(var upstreamConnectoid : upstreamAccessNodeConnectoids) {
@@ -215,7 +220,9 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
           /* execute shortest path */
           ShortestPathResult result = shortestPathAlgo.executeOneToOne(
-              upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode(), bannedLinkSegments);
+              upstreamConnectoid.getAccessNode(),
+              downstreamConnectoid.getAccessLinkSegment().getUpstreamNode(),
+              bannedLinkSegments);
           var foundPath = (SimpleDirectedPathImpl) result.createPath(new SimpleDirectedPathFactoryImpl(), upstreamConnectoid.getAccessNode(), downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
 
           foundPath.append(downstreamConnectoid.getAccessLinkSegment());
@@ -281,7 +288,6 @@ public class GtfsServicesAndZoningReaderIntegrator {
     if(chosenPath != null) {
       /* now attach the link segments to the service leg segment based on the found path */
       legSegment.setPhysicalParentSegments(IterableUtils.toTypeCastList(chosenPath));
-      return;
     }
   }
 
@@ -318,9 +324,23 @@ public class GtfsServicesAndZoningReaderIntegrator {
   public void execute() {
     initialise();
 
-    /* process service leg segments - knowing that all leg segments are instances of ServiceLegSegmentImpl as this is how the GTFS converter has created them */
+    /* process service leg segments - knowing that all leg segments are instances of ServiceLegSegmentImpl as this
+    is how the GTFS converter has created them */
+    final var counter = new LongAdder();
+    final var doublingCounter = new LongAdder();
     data.getServiceNetwork().getTransportLayers().forEach(l -> l.getLegs().forEach(
-        leg -> leg.forEachSegment( legSegment -> mapServiceLegSegmentToPhysicalNetwork(l, (ServiceLegSegmentImpl) legSegment))));
+        leg -> leg.forEachSegment( legSegment ->
+            {
+              mapServiceLegSegmentToPhysicalNetwork(l, (ServiceLegSegmentImpl) legSegment);
+
+              // can be costly exercise for large networks, track progress
+              if(counter.longValue() >= 500 && counter.longValue() >= doublingCounter.longValue()){
+                LOGGER.info(String.format("Mapped %d service leg segments to network", counter.intValue()));
+                doublingCounter.add(counter.longValue());
+              }
+
+              counter.increment();
+            })));
   }
 
   /**
