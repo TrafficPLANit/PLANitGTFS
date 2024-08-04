@@ -1,7 +1,7 @@
 # PLANitGTFS
 
-![Master Branch](https://github.com/TrafficPLANit/PLANit/actions/workflows/maven_master.yml/badge.svg?branch=master)
-![Develop Branch](https://github.com/TrafficPLANit/PLANit/actions/workflows/maven_develop.yml/badge.svg?branch=develop)
+![Master Branch](https://github.com/TrafficPLANit/PLANitGTFS/actions/workflows/maven_master.yml/badge.svg?branch=master)
+![Develop Branch](https://github.com/TrafficPLANit/PLANitGTFS/actions/workflows/maven_develop.yml/badge.svg?branch=develop)
 
 Provides a lightweight GTFS API to access GTFS file in a memory model form. 
 
