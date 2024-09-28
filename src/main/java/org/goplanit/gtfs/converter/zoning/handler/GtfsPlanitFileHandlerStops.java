@@ -843,10 +843,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private void handleStopPlatform(final GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
-    if(gtfsStop.getStopId().equals("206036")){
-      int bla = 4;
-    }
-
     var nearbyTransferZones = GtfsTransferZoneHelper.findNearbyTransferZones(
         gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
 
@@ -960,10 +956,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     gtfsStopModes.removeIf(m -> !activatedModes.contains(m));
     if(gtfsStopModes.isEmpty()){
       return;
-    }
-
-    if(gtfsStop.getStopId().equals("7575")){
-      int bla = 4;
     }
 
     /* OVERRIDES CHECKING */
