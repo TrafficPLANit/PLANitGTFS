@@ -8,6 +8,7 @@ import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
@@ -65,7 +66,7 @@ public class GtfsServicesAndZoningIntegratorData {
     /* populate based on cost configuration and underlying physical network's link segments and connectoids */
     double[]  modalLinkSegmentCosts = CostUtils.createAndPopulateModalSegmentCost(mode, physicalCostApproach, network);
 
-    int numberOfVerticesAllLayers = TransportModelNetwork.getNumberOfVerticesAllLayers(network, this.zoning);
+    int numberOfVerticesAllLayers = TransportModelNetworkUtils.getNumberOfVerticesAllLayers(network, this.zoning);
     double heuristicMultiplier = Math.min(1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
     this.shortestPathAlgoByMode.put(mode, new ShortestPathAStar(modalLinkSegmentCosts, numberOfVerticesAllLayers,  network.getCoordinateReferenceSystem(), heuristicMultiplier));
   }
