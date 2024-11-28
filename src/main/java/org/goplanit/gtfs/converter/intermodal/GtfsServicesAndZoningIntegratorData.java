@@ -42,15 +42,16 @@ public class GtfsServicesAndZoningIntegratorData {
   /** shortest path algorithm used specific to each mode (and its link segment costs) */
   private Map<Mode, ShortestPathAStar> shortestPathAlgoByMode;
 
-  /** track the expected mode to be used for a given service leg (before physical link segments have been attached), based on
-   * the routed services that traverse it (which do have a mode) */
+  /** track the expected mode to be used for a given service leg (before physical link segments have been
+   * attached), based on the routed services that traverse it (which do have a mode) */
   private Map<ServiceLeg, Mode> serviceLegToModeMapping;
 
   /** use this for the mode mapping */
-  private GtfsConverterHandlerData modeMappingData;
+  private final GtfsConverterHandlerData modeMappingData;
 
   /**
-   * Initialise a shortest path algorithm with free flow costs for the entire network for a given mode so it can be reused when needed
+   * Initialise a shortest path algorithm with free flow costs for the entire network for a given mode, so it can
+   * be reused when needed
    *
    * @param mode to prep algorithm for (stored in class member)
    */
@@ -66,9 +67,17 @@ public class GtfsServicesAndZoningIntegratorData {
     /* populate based on cost configuration and underlying physical network's link segments and connectoids */
     double[]  modalLinkSegmentCosts = CostUtils.createAndPopulateModalSegmentCost(mode, physicalCostApproach, network);
 
-    int numberOfVerticesAllLayers = TransportModelNetworkUtils.getNumberOfVerticesAllLayers(network, this.zoning);
-    double heuristicMultiplier = Math.min(1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
-    this.shortestPathAlgoByMode.put(mode, new ShortestPathAStar(modalLinkSegmentCosts, numberOfVerticesAllLayers,  network.getCoordinateReferenceSystem(), heuristicMultiplier));
+    int numberOfVerticesAllLayers =
+            TransportModelNetworkUtils.getNumberOfVerticesAllLayers(network, this.zoning.getVirtualNetwork());
+    double heuristicMultiplier = Math.min(
+            1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
+    this.shortestPathAlgoByMode.put(
+            mode,
+            new ShortestPathAStar(
+                    modalLinkSegmentCosts,
+                    numberOfVerticesAllLayers,
+                    network.getCoordinateReferenceSystem(),
+                    heuristicMultiplier));
   }
 
 
