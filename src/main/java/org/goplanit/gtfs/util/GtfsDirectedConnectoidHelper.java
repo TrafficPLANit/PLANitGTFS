@@ -21,12 +21,14 @@ import java.util.Set;
  */
 public class GtfsDirectedConnectoidHelper {
 
-  /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with access modes provided. connectoids are only created
-   * when the access link segment has at least one of the allowed modes as an eligible mode
+  /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with
+   * access modes provided. Connectoids are only created when the access link segment has at least one of the
+   * allowed modes as an eligible mode.
    *
    * @param transferZone to relate connectoids to
    * @param networkLayer of the modes and link segments used
-   * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the attached link segment(s)
+   * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the attached
+   *                   link segment(s)
    * @param linkSegments to create connectoids for (one per segment)
    * @param allowedModes used for each connectoid
    * @param data containing state

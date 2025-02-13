@@ -778,11 +778,13 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
       /* register new transfer zone if not done already */
       if(newTransferZone == null && accessLinkSegments !=null) {
-        newTransferZone = GtfsTransferZoneHelper.createAndRegisterNewTransferZone(gtfsStop, projectedGtfsStopLocation, type, data);
+        newTransferZone = GtfsTransferZoneHelper.createAndRegisterNewTransferZone(
+                gtfsStop, projectedGtfsStopLocation, type, data);
         if (data.getSettings().isLogCreatedGtfsZones()) {
           LOGGER.info(String.format(
               "GTFS stop %s %s at location %s triggered creation of new PLANit Transfer zone %s %s",
-              gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), newTransferZone.getXmlId(), newTransferZone.hasName() ? newTransferZone.getName() : ""));
+              gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(),
+                  newTransferZone.getXmlId(), newTransferZone.hasName() ? newTransferZone.getName() : ""));
         }
       }
 
