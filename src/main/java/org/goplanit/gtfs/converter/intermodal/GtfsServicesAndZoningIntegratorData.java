@@ -7,7 +7,6 @@ import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.mode.Mode;
@@ -61,7 +60,7 @@ public class GtfsServicesAndZoningIntegratorData {
 
     /* costs used for physical component of road network based on user settings */
     var physicalCostApproach =
-        PlanitComponentFactory.create(
+        PlanitComponentFactory.createAndDispatch(
             AbstractPhysicalCost.class, settings.getStopToStopPathSearchPhysicalCostApproach(), new Object[]{ idToken});
 
     /* populate based on cost configuration and underlying physical network's link segments and connectoids */
