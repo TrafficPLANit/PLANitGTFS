@@ -30,7 +30,8 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
 
   private final String stopToStopPathSearchPhysicalCostApproach = DEFAULT_STOP_TO_STOP_COST_APPROACH;
 
-  /** Constructor with user defined source locale, input source the current directory, and EXTENDED RouteTypeChoice applied
+  /** Constructor with user defined source locale, input source the current directory, and
+   * EXTENDED RouteTypeChoice applied.
    *
    * @param countryName to base source locale on
    */
@@ -56,7 +57,8 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    * @param dayOfWeek to filter on
    * @param routeTypeChoice to apply
    */
-  public GtfsIntermodalReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
+  public GtfsIntermodalReaderSettings(
+          String inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
     this((URL) (inputSource==null ? null : UrlUtils.createFrom(inputSource)),
         countryName,
         dayOfWeek,
@@ -70,7 +72,8 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    * @param dayOfWeek to filter on
    * @param routeTypeChoice to apply
    */
-  public GtfsIntermodalReaderSettings(URL inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
+  public GtfsIntermodalReaderSettings(
+          URL inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
     this.servicesReaderSettings = new GtfsServicesReaderSettings(inputSource, countryName, dayOfWeek, routeTypeChoice);
     this.zoningSettings = new GtfsZoningReaderSettings(servicesReaderSettings);
   }
@@ -135,8 +138,8 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
     }
   }
 
-  /** The methodology used to find the paths between stops by means of its full canonical class name which is assumed to be supported by
-   * PLANit as a valid cost generating method
+  /** The methodology used to find the paths between stops by means of its full canonical class name which is
+   * assumed to be supported by PLANit as a valid cost generating method.
    *
    * @return stopToStopPathSearchPhysicalCostApproach*/
   public String getStopToStopPathSearchPhysicalCostApproach() {

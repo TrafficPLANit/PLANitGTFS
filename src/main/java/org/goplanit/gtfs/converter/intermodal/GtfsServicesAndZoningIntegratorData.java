@@ -20,7 +20,8 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Data for integration where we create some local mappings based on the mode mapping from the settings among other things
+ * Data for integration where we create some local mappings based on the mode mapping from the settings among
+ * other things.
  */
 public class GtfsServicesAndZoningIntegratorData {
 
@@ -100,31 +101,36 @@ public class GtfsServicesAndZoningIntegratorData {
   }
 
   /**
-   * Initialise before start of integration on the owner of this instance. Only after initialisation the available public getters/settings can be used
+   * Initialise before start of integration on the owner of this instance. Only after initialisation the
+   * available public getters/settings can be used.
    */
   public void initialise() {
     this.connectoidsByAccessZone = zoning.getTransferConnectoids().createIndexByAccessZone();
 
-    /* determine eligible service modes by intersecting physical layer modes with activated public transport modes of the GTFS settings */
+    /* determine eligible service modes by intersecting physical layer modes with activated public transport modes
+     * of the GTFS settings */
     var eligibleServiceModes = getServiceNetwork().getTransportLayers().getSupportedModes();
     eligibleServiceModes.retainAll(getActivatedPlanitModes());
     if(eligibleServiceModes.isEmpty()){
-      LOGGER.severe("No eligible modes found on any of the service network layers that are configured as activated for the GTFS reader, consider revising your configuration");
+      LOGGER.severe("No eligible modes found on any of the service network layers that are configured as " +
+              "activated for the GTFS reader, consider revising your configuration");
     }
 
-    /* prep shortest path algorithm (costs) per mode across network link segments for path searching, since costs are fixed, we can do this beforehand and reuse */
+    /* prep shortest path algorithm (costs) per mode across network link segments for path searching, since costs
+     * are fixed, we can do this beforehand and reuse */
     this.shortestPathAlgoByMode = new HashMap<>();
     for(var mode : eligibleServiceModes) {
       initialiseShortestPathAlgorithmForMode(mode);
     }
 
-    /* infer the modes for each service leg based on the routed services that use it, this reduced the complexity of finding paths
-    *  for a leg and allows for validity check, in case routes with different PLANit modes use the same leg (which we do not allow)
-    *  essentially, each mode potentially obtains its own service network in terms of legs and leg segments when they would use different
-    *  physical routes between service nodes */
+    /* infer the modes for each service leg based on the routed services that use it, this reduced the complexity of
+     * finding paths  for a leg and allows for validity check, in case routes with different PLANit modes use the same
+     * leg (which we do not allow) essentially, each mode potentially obtains its own service network in terms of legs
+     * and leg segments when they would use different physical routes between service nodes */
     serviceLegToModeMapping = new HashMap<>();
     this.routedServices.getLayers().forEach(l -> l.forEach( rs -> rs.forEach(
-        s -> s.getTripInfo().getLegSegmentsStream().forEach(ls -> serviceLegToModeMapping.put(ls.getParent(), s.getMode())))));
+        s -> s.getTripInfo().getLegSegmentsStream().forEach(
+                ls -> serviceLegToModeMapping.put(ls.getParent(), s.getMode())))));
   }
 
   /** Access to the service network
@@ -170,15 +176,16 @@ public class GtfsServicesAndZoningIntegratorData {
    * Collect PLANit modes if it is known as being activated and compatible, otherwise return null
    *
    * @param gtfsMode to check for
-   * @return all compatible PLANit modes in order from primary compatible to alternatives that one might consider, null if not present
+   * @return all compatible PLANit modes in order from primary compatible to alternatives that one might consider,
+   * null if not present
    */
   public List<Mode> getCompatiblePlanitModesIfActivated(RouteType gtfsMode){
     return modeMappingData.getCompatiblePlanitModesIfActivated(gtfsMode);
   }
 
   /**
-   * Collect compatible PLANit modes from a given PLANit mode (if any). These only exist if a GTFS mode listed more than one
-   * mapped PLANit mode, e.g. lightrail and tram, in which case lightrail would return tram and vice versa.
+   * Collect compatible PLANit modes from a given PLANit mode (if any). These only exist if a GTFS mode listed more
+   * than one mapped PLANit mode, e.g. lightrail and tram, in which case lightrail would return tram and vice versa.
    *
    * @param planitMode to check for
    * @return all compatible PLANit modes

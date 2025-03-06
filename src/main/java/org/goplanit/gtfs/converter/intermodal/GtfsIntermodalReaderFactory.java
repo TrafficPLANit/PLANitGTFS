@@ -18,13 +18,15 @@ import java.time.DayOfWeek;
  */
 public class GtfsIntermodalReaderFactory {
 
-  /** Create a GtfsIntermodalReader sourced from given input directory, but without a zoning available yet, an empty zoning based on global id token will be created
+  /** Create a GtfsIntermodalReader sourced from given input directory, but without a zoning available yet, an
+   * empty zoning based on global id token will be created.
    *
    * @param inputDirectory to use (directory only, find first compatible file)
    * @param countryName to use
    * @param dayOfWeek dayOfWeek to filter on
    * @param parentNetwork the network the routed services and service network are to be built upon
-   * @param typeChoice to apply, this pertains to how the GTFS files are to be parsed as they have different specifications
+   * @param typeChoice to apply, this pertains to how the GTFS files are to be parsed as they have
+   *                   different specifications
    * @return created routed service reader
    */
   public static GtfsIntermodalReader create(
@@ -33,17 +35,21 @@ public class GtfsIntermodalReaderFactory {
       @NotNull DayOfWeek dayOfWeek,
       @NotNull MacroscopicNetwork parentNetwork,
       RouteTypeChoice typeChoice) {
-    return create(inputDirectory, countryName, dayOfWeek, parentNetwork, IdGroupingToken.collectGlobalToken(), typeChoice);
+    return create(
+            inputDirectory, countryName, dayOfWeek, parentNetwork, IdGroupingToken.collectGlobalToken(), typeChoice);
   }
 
-  /** Create a GtfsIntermodalReader sourced from given input directory, but without a zoning available yet, an empty zoning based on the id grouping token will be created for you
+  /** Create a GtfsIntermodalReader sourced from given input directory, but without a zoning available yet, an
+   * empty zoning based on the id grouping token will be created for you.
    *
    * @param inputDirectory to use (directory only, find first compatible file)
    * @param countryName to use
    * @param dayOfWeek dayOfWeek to filter on
    * @param parentNetwork the network the routed services and service network are to be built upon
-   * @param zoningIdToken the zoning id token to use for creating a new empty zoning to map the Gtfs stops to (transfer zones)
-   * @param typeChoice to apply, this pertains to how the GTFS files are to be parsed as they have different specifications
+   * @param zoningIdToken the zoning id token to use for creating a new empty zoning to map the Gtfs stops to
+   *                      (transfer zones)
+   * @param typeChoice to apply, this pertains to how the GTFS files are to be parsed as they have
+   *                   different specifications
    * @return created routed service reader
    */
   public static GtfsIntermodalReader create(
@@ -63,7 +69,8 @@ public class GtfsIntermodalReaderFactory {
    * @param countryName to use
    * @param parentNetwork the network the routed services and service network are to be built upon
    * @param parentZoning the zoning the transfer zones are to be expanded upon or mapped to
-   * @param typeChoice to apply, this pertains to how the GTFS files are to be parsed as they have different specifications
+   * @param typeChoice to apply, this pertains to how the GTFS files are to be parsed as they have
+   *                   different specifications
    * @return created routed service reader
    */
   public static GtfsIntermodalReader create(
@@ -83,7 +90,8 @@ public class GtfsIntermodalReaderFactory {
    * @param dayOfWeek dayOfWeek to filter on
    * @param parentNetwork the network the routed services and service network are to be built upon
    * @param parentZoning the zoning the transfer zones are to be expanded upon or mapped to
-   * @param typeChoice to apply, this pertains to how the GTFS siles are to be parsed as they have different specifications
+   * @param typeChoice to apply, this pertains to how the GTFS siles are to be parsed as they have
+   *                   different specifications
    * @return created routed service reader
    */
   public static GtfsIntermodalReader create(
@@ -93,10 +101,12 @@ public class GtfsIntermodalReaderFactory {
       final MacroscopicNetwork parentNetwork,
       final Zoning parentZoning,
       RouteTypeChoice typeChoice) {
-    return create(parentNetwork, parentZoning, new GtfsIntermodalReaderSettings(inputDirectory, countryName, dayOfWeek, typeChoice));
+    return create(parentNetwork, parentZoning,
+            new GtfsIntermodalReaderSettings(inputDirectory, countryName, dayOfWeek, typeChoice));
   }
 
-  /** Create a GtfsIntermodalReader based on given settings which in turn contain information on required location and reference inputs
+  /** Create a GtfsIntermodalReader based on given settings which in turn contain information on required location
+   * and reference inputs.
    *
    * @param parentNetwork to use
    * @param parentZoning to use
@@ -124,9 +134,9 @@ public class GtfsIntermodalReaderFactory {
     return create(new GtfsIntermodalReaderSettings(countryName),networkAndZoningReader);
   }
 
-  /** Create a GtfsIntermodalReader based on given settings which in turn contain information on required location and reference inputs
-   *  This specific approach allows the provision of an intermodal reader to obtain network and zoning rather than having
-   *  instances passed in
+  /** Create a GtfsIntermodalReader based on given settings which in turn contain information on required
+   * location and reference inputs. This specific approach allows the provision of an intermodal reader to obtain
+   * network and zoning rather than having  instances passed in.
    *
    * @param settings to use
    * @param networkAndZoningReader (intermodal) reader to use to extract network and zoning
