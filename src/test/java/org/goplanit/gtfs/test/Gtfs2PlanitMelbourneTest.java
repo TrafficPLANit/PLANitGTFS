@@ -81,7 +81,8 @@ public class Gtfs2PlanitMelbourneTest {
       var planitNetwork = planitIntermodalNetworkTuple.first();
       var planitZoning = planitIntermodalNetworkTuple.second();
 
-      var inputSettings = new GtfsIntermodalReaderSettings(GTFS_FILES_INPUT_DIR,  CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
+      var inputSettings = new GtfsIntermodalReaderSettings(
+              GTFS_FILES_INPUT_DIR,  CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
 
       /* 6-10 in the morning as time period filter */
       inputSettings.getServiceSettings().addTimePeriodFilter(
