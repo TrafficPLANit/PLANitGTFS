@@ -2,6 +2,10 @@
 
 This project contains PLANit GTFS code to allow for a lightweight memory model accessing GTFS file data
 
+## 0.5.0
+
+
+
 ## 0.4.0
 
 **Enhancements**
