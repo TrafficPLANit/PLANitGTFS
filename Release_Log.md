@@ -4,7 +4,8 @@ This project contains PLANit GTFS code to allow for a lightweight memory model a
 
 ## 0.5.0
 
-
+**Bug fixes**
+[GENERAL] nullpointer exception bug fix for stops
 
 ## 0.4.0
 
@@ -26,7 +27,6 @@ This project contains PLANit GTFS code to allow for a lightweight memory model a
 * #38 GTFS support - STEP 4 - Parse GTFS schedules and map them to stops in PLANit memory model
 * #36 Add option to Add GTFS stops without matching OSM/existing PLANit stops within parser bounding box
 * #35 Combine matching GTFS stops with existing (OSM/PLANit) stops
-
 
 **Bug fixes**
 
