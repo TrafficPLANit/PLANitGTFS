@@ -59,7 +59,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    */
   public GtfsIntermodalReaderSettings(
           String inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
-    this((URL) (inputSource==null ? null : UrlUtils.createFrom(inputSource)),
+    this(inputSource==null ? null : UrlUtils.createFrom(inputSource),
         countryName,
         dayOfWeek,
         routeTypeChoice);
@@ -130,7 +130,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    */
   public void setInputFile(final String inputFile) {
     try{
-      var urlInputSource = UrlUtils.createFromLocalPath(inputFile);
+      var urlInputSource = UrlUtils.createFromLocalAbsoluteOrRelativePath(inputFile);
       getServiceSettings().setInputSource(urlInputSource);
       getZoningSettings().setInputSource(urlInputSource);
     }catch(Exception e) {
