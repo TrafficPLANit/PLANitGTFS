@@ -52,7 +52,7 @@ public class GtfsFileConditions {
    * @return created file condition
    */
   public static GtfsFileConditions optional() {
-    return new GtfsFileConditions(GtfsFileTypePresence.OTPTIONAL, null, null);
+    return new GtfsFileConditions(GtfsFileTypePresence.OPTIONAL, null, null);
   }
   
   /** Create a file condition indicating it is required if another file is present
@@ -94,7 +94,7 @@ public class GtfsFileConditions {
    * @return true when optional false otherwise
    */  
   public boolean isOptional() {
-    return presenceCondition.equals(GtfsFileTypePresence.OTPTIONAL);
+    return presenceCondition.equals(GtfsFileTypePresence.OPTIONAL);
   }  
 
   /** Collect the dependency on other file type's presence/or not. Only relevant when conditionally required

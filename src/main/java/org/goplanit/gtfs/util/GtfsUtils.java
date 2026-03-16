@@ -176,7 +176,7 @@ public class GtfsUtils {
    */
   public static ExtendedLocalTime parseGtfsTime(String gtfsTime) {
     if(StringUtils.isNullOrBlank(gtfsTime)){
-      LOGGER.severe(String.format("GTFS time null or blank, ignored"));
+      LOGGER.severe("GTFS time null or blank, ignored");
     }
     return ExtendedLocalTime.of(gtfsTime);
   }

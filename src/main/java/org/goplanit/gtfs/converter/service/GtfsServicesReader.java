@@ -82,7 +82,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* profiler to use */
     GtfsServicesHandlerProfiler handlerProfiler = new GtfsServicesHandlerProfiler();
 
-    /** provide access to the service network and routed services via the file handler data tracking used throughout
+    /* provide access to the service network and routed services via the file handler data tracking used throughout
      * the parsing process */
     return new GtfsServicesHandlerData(getSettings(), serviceNetwork, routedServices, handlerProfiler);
   }

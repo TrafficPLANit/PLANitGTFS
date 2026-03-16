@@ -120,8 +120,13 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
    * @param routedServices to use
    * @param handlerProfiler to use
    */
-  public GtfsServicesHandlerData(final GtfsServicesReaderSettings settings, final ServiceNetwork serviceNetwork, final RoutedServices routedServices, final GtfsServicesHandlerProfiler handlerProfiler){
+  public GtfsServicesHandlerData(
+          final GtfsServicesReaderSettings settings,
+          final ServiceNetwork serviceNetwork,
+          final RoutedServices routedServices,
+          final GtfsServicesHandlerProfiler handlerProfiler){
     super(serviceNetwork, settings);
+
     this.routedServices = routedServices;
     this.handlerProfiler = handlerProfiler;
 
@@ -280,7 +285,8 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
       /* check filters */
       return getSettings().getTimePeriodFilters().stream().anyMatch(
                     // period starts before or on departure time    AND period ends after or on departure time
-          period -> !period.first().isAfter(withinDayDepartureTime) && !period.second().isBefore(withinDayDepartureTime));
+          period -> !period.first().isAfter(withinDayDepartureTime) &&
+                  !period.second().isBefore(withinDayDepartureTime));
     };
 
     /* same day regular case */
@@ -304,11 +310,13 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
         return false;
       }
 
-      /* check filters by looking at component after midnight which given it is on preceding day, results in the morning of the eligible day*/
+      /* check filters by looking at component after midnight which given it is on preceding day, results in the
+      morning of the eligible day*/
       return isEligibleDeparture.apply(departureTime.asLocalTimeAfterMidnight());
 
     }else{
-      LOGGER.severe("ServiceId active but GTFSCalendar entry does not match eligible active day, this should not happen");
+      LOGGER.severe("ServiceId active but GTFSCalendar entry does not match eligible active day, " +
+              "this should not happen");
       return false;
     }
   }
