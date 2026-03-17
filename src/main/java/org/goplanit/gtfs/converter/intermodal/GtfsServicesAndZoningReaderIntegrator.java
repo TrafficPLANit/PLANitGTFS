@@ -1,9 +1,14 @@
 package org.goplanit.gtfs.converter.intermodal;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.algorithms.shortest.ShortestPathAStar;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.layer.service.ServiceLegSegmentImpl;
+import org.goplanit.utils.geo.PlanitCrsUtils;
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.utils.path.SimpleDirectedPathImpl;
 import org.goplanit.service.routed.RoutedServices;
@@ -48,7 +53,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
   /**
    * Initialise some local indices that are to be used
    */
-  private void initialise(){
+  private void initialiseLocalIndices(){
     data.initialise();
   }
 
@@ -330,6 +335,56 @@ public class GtfsServicesAndZoningReaderIntegrator {
   }
 
   /**
+   * Make sure that all relevant geometries are in a linear projected CRS so A* shortest path is computationally
+   * more efficient
+   *
+   * @return original CRS to revert to after done
+   */
+  private CoordinateReferenceSystem initialiseLinearCrsTransformation() {
+    var zoning = this.data.getZoning();
+    var network = this.data.getServiceNetwork().getParentNetwork();
+    // routed service have no geographic information of themselves and can be ignored
+    // serviceNetwork utilises underlying physical network for its geometries but has no geometry of its own either
+    if(!network.getCoordinateReferenceSystem().equals(zoning.getCoordinateReferenceSystem())){
+      throw new PlanItRunTimeException("Expect zoning and network to have the same coordinate reference system");
+    }
+    var originalCrs = network.getCoordinateReferenceSystem();
+    if(PlanitCrsUtils.isLinearCRSWithLengthCompatibleUnit(originalCrs)){
+      return originalCrs;
+    }
+
+    String desiredEpsg = PlanitCrsUtils.findProjectedCrsEpsgCodeByCountryName(
+            this.data.getSettings().getCountryName(), true /* use fallback web mercator */);
+    var destinationCrs = PlanitCrsUtils.createCoordinateReferenceSystem(desiredEpsg);
+    LOGGER.info(String.format(
+            "Temporarily converting CRS (%s) to linear equivalent (%s) for optimised shortest path calculation " +
+                    "performance", originalCrs.getName(), destinationCrs.getName()));
+    network.transform(destinationCrs);
+    zoning.transform(destinationCrs);
+
+    return originalCrs;
+  }
+
+  /**
+   * Revert back to original CRS post-shortest path calculations to reinstate original geometries
+   *
+   * @param originalCrs to revert back to
+   */
+  private void revertLinearCrsTransformationTo(CoordinateReferenceSystem originalCrs) {
+    // if already correct, we did not transform, we do not need to transform back
+    if(PlanitCrsUtils.isLinearCRSWithLengthCompatibleUnit(originalCrs)){
+      return;
+    }
+    var zoning = this.data.getZoning();
+    var network = this.data.getServiceNetwork().getParentNetwork();
+    LOGGER.info(String.format(
+            "Converting linear projected CRS (%s) back to original (%s) after shortest path calculation is complete",
+            network.getCoordinateReferenceSystem().getName(), originalCrs.getName()));
+    network.transform(originalCrs);
+    zoning.transform(originalCrs);
+  }
+
+  /**
    * Constructor
    *
    * @param settings of the parent reader used
@@ -360,7 +415,13 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * physical road network and update the PLANit references in the service legs accordingly
    */
   public void execute() {
-    initialise();
+    // we'll be doing thousands of A* shortest path calcs to map the leg segments between stops. To optimise
+    // calculation of heuristic distances within the algorithm the CRS should be one that is linear in lengths to avoid
+    // costly calcs. Hence, we temporarily transform ALL geometries to such a CRS based on the destination country
+    // and then transform back afterward to avoid affecting state
+    var originalCrs = initialiseLinearCrsTransformation();
+    // now prepare indices and shortest path algos
+    initialiseLocalIndices();
 
     /* process service leg segments - knowing that all leg segments are instances of ServiceLegSegmentImpl as this
     is how the GTFS converter has created them */
@@ -380,6 +441,10 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
               counter.increment();
             })));
+
+    if(!PlanitCrsUtils.isLinearCRSWithLengthCompatibleUnit(originalCrs)){
+      revertLinearCrsTransformationTo(originalCrs);
+    }
   }
 
   /**
