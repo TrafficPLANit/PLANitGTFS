@@ -67,15 +67,15 @@ public class GtfsServicesAndZoningIntegratorData {
     /* populate based on cost configuration and underlying physical network's link segments and connectoids */
     double[]  modalLinkSegmentCosts = CostUtils.createAndPopulateModalSegmentCost(mode, physicalCostApproach, network);
 
-    int numberOfVerticesAllLayers =
-            TransportModelNetworkUtils.getNumberOfVerticesAllLayers(network, this.zoning.getVirtualNetwork());
+    var idIndexedVerticesAllLayers =
+            TransportModelNetworkUtils.getIdIndexedVerticesAllLayers(network, this.zoning.getVirtualNetwork());
     double heuristicMultiplier = Math.min(
             1.0/mode.getMaximumSpeedKmH(),network.getLayerByMode(mode).findMaximumPaceHKm(mode));
     this.shortestPathAlgoByMode.put(
             mode,
             new ShortestPathAStar(
                     modalLinkSegmentCosts,
-                    numberOfVerticesAllLayers,
+                    idIndexedVerticesAllLayers,
                     network.getCoordinateReferenceSystem(),
                     heuristicMultiplier));
   }
