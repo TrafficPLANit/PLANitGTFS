@@ -324,7 +324,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * @param layer the segment resides in
    * @param legSegment between two service nodes that will be populated with physical link segments (references)
    */
-  private void mapServiceLegSegmentToPhysicalNetwork(ServiceNetworkLayer layer, ServiceLegSegmentImpl legSegment){
+  private void mapServiceLegSegmentToPhysicalNetwork(
+          ServiceNetworkLayer layer, ServiceLegSegmentImpl legSegment){
 
     Mode expectedMode = data.getExpectedModeForServiceLeg(legSegment.getParent());
     var chosenPath = findMostLikelyPathBetweenGtfsStopServiceNodes(layer, legSegment, expectedMode);
