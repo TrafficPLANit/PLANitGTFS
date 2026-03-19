@@ -174,15 +174,21 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     // when no options are found but connectoids support current mode, issue a warning
     if (allLegSegmentPathOptions.isEmpty()) {
-      LOGGER.warning(String.format("Valid service leg segment [mode (%s)] connects GTFS stops [%s (%s, %s), %s (%s, %s)" +
-                      "], but no eligible physical path found, verify if path (partly) exits parsed bounding area",
+      var upstreamLocation =
+          transferZoneUpstream.hasGeometry() ? transferZoneUpstream.getGeometry() :
+              transferZoneUpstream.getCentroid().getPosition();
+      var downstreamLocation =
+          transferZoneDownstream.hasGeometry() ? transferZoneDownstream.getGeometry() :
+              transferZoneDownstream.getCentroid().getPosition();
+      LOGGER.warning(String.format("No eligible physical path for valid service leg segment [mode (%s)] between GTFS stops [%s (%s, %s), %s (%s, %s)" +
+                      "], verify if path (partly) exits parsed bounding area",
           mode.getName(),
           gtfsStopIdUpstream,
           transferZoneUpstream.getName(),
-          transferZoneUpstream.getGeometry().toString(),
+          upstreamLocation.toString(),
           gtfsStopIdDownstream,
           transferZoneDownstream.getName(),
-          transferZoneUpstream.getGeometry().toString()));
+          downstreamLocation.toString()));
       return null;
     }
 
@@ -428,20 +434,31 @@ public class GtfsServicesAndZoningReaderIntegrator {
     is how the GTFS converter has created them */
     final var counter = new LongAdder();
     final var doublingCounter = new LongAdder();
+    final var validSegmentsFound = new LongAdder();
     doublingCounter.add(500);
     data.getServiceNetwork().getTransportLayers().forEach(l -> l.getLegs().forEach(
         leg -> leg.forEachSegment( legSegment ->
             {
               mapServiceLegSegmentToPhysicalNetwork(l, (ServiceLegSegmentImpl) legSegment);
 
-              // can be costly exercise for large networks, track progress
-              if(counter.longValue() >= doublingCounter.longValue()){
-                LOGGER.info(String.format("Mapped %d service leg segments to network", counter.intValue()));
-                doublingCounter.add(counter.longValue());
+              counter.increment();
+              if(((ServiceLegSegmentImpl) legSegment).hasPhysicalParentSegments()){
+                validSegmentsFound.increment();
               }
 
-              counter.increment();
+              // can be costly exercise for large networks, track progress
+              if(counter.longValue() >= doublingCounter.longValue()){
+                LOGGER.info(String.format("Mapped %d service leg segments to network (%.2f%% successfully)",
+                    counter.intValue(), validSegmentsFound.doubleValue()*100/counter.intValue()));
+                doublingCounter.add(counter.longValue());
+              }
             })));
+
+    if(counter.longValue() >= doublingCounter.longValue()){
+      LOGGER.info(String.format("Mapped Total of %d service leg segments to network (%.2f%% successfully)",
+          counter.intValue(), validSegmentsFound.doubleValue()*100/counter.intValue()));
+      doublingCounter.add(counter.longValue());
+    }
 
     if(!PlanitCrsUtils.isLinearCRSWithLengthCompatibleUnit(originalCrs)){
       revertLinearCrsTransformationTo(originalCrs);

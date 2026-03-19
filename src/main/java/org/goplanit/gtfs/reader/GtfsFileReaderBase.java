@@ -273,20 +273,27 @@ public abstract class GtfsFileReaderBase {
 
       // parse first row as header
       String[] headers = parser.parseNext();
-      Map<String, Integer> headerMap = new HashMap<>();
-      for (int index =0 ; index< headers.length; index ++) {
-        headerMap.put(StringUtils.removeBOM(headers[index]), index);
-      }
+      if(headers == null){
+        LOGGER.severe(String.format("Header for %s - %s seems to be missing, check if file is available or valid",
+            gtfsLocation, fileScheme.getFileType().value()));
+      }else{
 
-      if(!isValid(headerMap)) {
-        LOGGER.warning(String.format("Header for %s - %s contains ignored columns, ",
-                gtfsLocation, fileScheme.getFileType().value()));
-      }
+        Map<String, Integer> headerMap = new HashMap<>();
+        for (int index =0 ; index< headers.length; index ++) {
+          headerMap.put(StringUtils.removeBOM(headers[index]), index);
+        }
 
-      // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
-      long numRecords = parseGtfsRecords(parser, filterExcludedColumns(mapHeadersToGtfsKeys(headerMap)), headerMap);
-      if(settings.isLogGtfsFileInputStreamInfo()){
-        LOGGER.info(String.format("Processed %d records from input stream", numRecords));
+        if(!isValid(headerMap)) {
+          LOGGER.warning(String.format("Header for %s - %s contains ignored columns, ",
+              gtfsLocation, fileScheme.getFileType().value()));
+        }
+
+        // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
+        long numRecords = parseGtfsRecords(parser, filterExcludedColumns(mapHeadersToGtfsKeys(headerMap)), headerMap);
+        if(settings.isLogGtfsFileInputStreamInfo()){
+          LOGGER.info(String.format("Processed %d records from input stream", numRecords));
+        }
+
       }
 
     }catch(Exception e){

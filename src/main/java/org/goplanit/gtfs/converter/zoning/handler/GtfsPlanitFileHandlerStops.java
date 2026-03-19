@@ -902,11 +902,14 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         var connectoids = data.getTransferZoneConnectoids(theTransferZone);
         if(connectoids != null){
           accessLinkIds = connectoids.stream().map(
-              c -> "(" + c.getAccessLinkSegment().getParent().getIdsAsString() + ")").distinct().collect(Collectors.joining(","));
+              c -> "(" + c.getAccessLinkSegment().getParent().getIdsAsString() + ")").distinct().collect(
+                  Collectors.joining(","));
         }
-        String message = createNewTransferZone ?  "triggered creation of new transfer zone" : "matched to existing transfer zone";
+        String message = createNewTransferZone ?  "triggered creation of new transfer zone" : "matched to existing " +
+            "transfer zone";
         LOGGER.info(String.format("[TRACK] GTFS stop %s %s (location %s) %s %s with access link(s): %s",
-                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), message, theTransferZone.getIdsAsString(),accessLinkIds));
+                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), message,
+            theTransferZone.getIdsAsString(),accessLinkIds));
       }
 
       attachToTransferZone(gtfsStop, theTransferZone);
@@ -914,8 +917,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         data.getProfiler().incrementAugmentedTransferZones();
       }
     }else if(!nearbyTransferZones.isEmpty()){
-      LOGGER.warning(String.format("DISCARD: Unable to add TransferZone for GTFS stop %s %s %s despite nearby transfer zones [%s], verify correctness",
-          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), nearbyTransferZones.stream().map( tz -> "(" + tz.getIdsAsString() + ")").collect(Collectors.joining(","))));
+      LOGGER.warning(String.format("DISCARD: Unable to add TransferZone for GTFS stop %s %s %s despite nearby " +
+              "transfer zones [%s], verify correctness",
+          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(),
+          nearbyTransferZones.stream().map( tz -> "(" + tz.getIdsAsString() + ", name: " +
+              (tz.hasName() ? tz.getName() : "n/a") + ")").collect(
+              Collectors.joining(","))));
     }
 
   }
