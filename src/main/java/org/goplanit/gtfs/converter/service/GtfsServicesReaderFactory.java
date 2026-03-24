@@ -3,7 +3,6 @@ package org.goplanit.gtfs.converter.service;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.network.MacroscopicNetwork;
 
-import java.net.URL;
 import java.time.DayOfWeek;
 
 

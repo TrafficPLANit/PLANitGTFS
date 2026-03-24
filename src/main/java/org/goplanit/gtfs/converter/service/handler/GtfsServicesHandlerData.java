@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.converter.service.handler;
 
-import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
+import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
 import org.goplanit.gtfs.converter.service.GtfsServicesHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsCalendar;
@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 /**
  * Track data used during handling/parsing of GTFS routes
  */
-public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
+public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
 
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesHandlerData.class.getCanonicalName());
 

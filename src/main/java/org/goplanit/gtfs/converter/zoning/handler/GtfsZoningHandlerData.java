@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
-import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
+import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  *
  * @author markr
  */
-public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
+public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerData.class.getCanonicalName());
@@ -85,7 +85,7 @@ public class GtfsZoningHandlerData extends GtfsConverterHandlerData {
 
     /* all links across all used layers for activated modes in geoindexed format */
     Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
-    getActivatedPlanitModesByGtfsMode().forEach(m -> usedLayers.add(getServiceNetwork().getParentNetwork().getLayerByMode(m)));
+    getActivatedPlanitModes().forEach(m -> usedLayers.add(getServiceNetwork().getParentNetwork().getLayerByMode(m)));
     Collection<MacroscopicLinks> linksCollection = new ArrayList<>();
     usedLayers.forEach( l -> linksCollection.add(l.getLinks()));
     this.geoIndexedLinks = GeoContainerUtils.toGeoIndexed(linksCollection);

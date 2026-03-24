@@ -3,7 +3,6 @@ package org.goplanit.gtfs.util;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.mode.ModeFactoryImpl;
 import org.goplanit.mode.ModesImpl;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGenerator;
@@ -11,7 +10,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.*;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;

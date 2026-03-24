@@ -7,7 +7,6 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.zoning.Zoning;
 
-import java.net.URL;
 import java.time.DayOfWeek;
 
 /**

@@ -1,5 +1,7 @@
 package org.goplanit.gtfs.test;
 
+import org.goplanit.geoio.converter.intermodal.GeometryIntermodalWriter;
+import org.goplanit.geoio.converter.intermodal.GeometryIntermodalWriterFactory;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
@@ -73,7 +75,7 @@ public class Gtfs2PlanitMelbourneTest {
         RESOURCE_PATH.toString(), "planit","melbourne").toAbsolutePath().toString();
     final String GTFS_FILES_INPUT_DIR = Path.of(
         ResourceUtils.getResourceUri(GTFS_VIC_NO_SHAPES.toString())).toAbsolutePath().toString();
-    final String PLANIT_OUTPUT_DIR = Path.of(
+    final String OUTPUT_DIR = Path.of(
         RESOURCE_PATH.toString(),"testcases","melbourne").toAbsolutePath().toString();
     final String PLANIT_REF_DIR = Path.of(
         RESOURCE_PATH.toString(),"planit","melbourne","reference").toAbsolutePath().toString();
@@ -120,20 +122,31 @@ public class Gtfs2PlanitMelbourneTest {
       var routedServices = result.fourth();
 
       /* PLANit intermodal writer */
-      PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
-      planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
-      planitIntermodalWriter.getSettings().setOutputDirectory(PLANIT_OUTPUT_DIR);
+      {
+        PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
+        planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
+        planitIntermodalWriter.getSettings().setOutputDirectory(OUTPUT_DIR);
 
-      /* configure routed service writer */
-      planitIntermodalWriter.getSettings().getRoutedServicesSettings().setLogServicesWithoutTrips(true);
+        /* configure routed service writer */
+        planitIntermodalWriter.getSettings().getRoutedServicesSettings().setLogServicesWithoutTrips(true);
 
-      /* persist */
-      planitIntermodalWriter.writeWithServices(planitNetwork, planitZoning, serviceNetwork, routedServices);
+        /* persist */
+        planitIntermodalWriter.writeWithServices(planitNetwork, planitZoning, serviceNetwork, routedServices);
+      }
 
-      PlanitAssertionUtils.assertNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
-      PlanitAssertionUtils.assertZoningFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
-      PlanitAssertionUtils.assertServiceNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
-      PlanitAssertionUtils.assertRoutedServicesFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
+      /* Geopackage intermodal writer (for inspection only) */
+      {
+        GeometryIntermodalWriterFactory.create(OUTPUT_DIR, CountryNames.AUSTRALIA).writeWithServices(
+                        result.first(),
+                        result.second(),
+                        result.third(),
+                        result.fourth());
+      }
+
+      PlanitAssertionUtils.assertNetworkFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertZoningFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertServiceNetworkFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertRoutedServicesFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
 
     } catch (Exception e) {
       e.printStackTrace();

@@ -992,7 +992,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     }
 
     /* PLANit mode mapping compatibility */
-    final var activatedModes = data.getActivatedPlanitModesByGtfsMode();
+    final var activatedModes = data.getActivatedPlanitModes();
     gtfsStopModes.removeIf(m -> !activatedModes.contains(m));
     if(gtfsStopModes.isEmpty()){
       return;

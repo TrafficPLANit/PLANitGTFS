@@ -1,13 +1,12 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
-import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
+import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.zoning.Zoning;
@@ -22,7 +21,7 @@ import java.util.logging.Logger;
  *
  * @author markr
  */
-public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData {
+public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingData {
 
   /**
    * Function to hide implementation of mapping between GTFS Stop id and transfer zone
@@ -95,7 +94,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterHandlerData 
           var transferZone = (TransferZone) entry.getKey();
           for(var dirConnectoid : entry.getValue()){
             /* register on transfer zone */
-            registerTransferZoneToConnectoidModes(transferZone,dirConnectoid, getActivatedPlanitModesByGtfsMode());
+            registerTransferZoneToConnectoidModes(transferZone,dirConnectoid, getActivatedPlanitModes());
           }
         }
       }

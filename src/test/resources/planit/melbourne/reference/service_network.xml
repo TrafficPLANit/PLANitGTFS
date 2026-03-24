@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<servicenetwork xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://trafficplanit.github.io/PLANitManual/xsd/servicenetworkinput.xsd">
+<servicenetwork xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://www.goplanit.org/xsd/servicenetworkinput.xsd">
     <id>2</id>
     <parentnetwork>1</parentnetwork>
     <servicenetworklayer id="0" parentlayerref="all">
@@ -915,7 +915,7 @@
                 <legsegment id="1045" externalid="18099_18100" dir="a_b" lsrefs="42378,33966,54054,36942,36934,20776"/>
             </leg>
             <leg id="1046" externalid="18100_18102" nodearef="958" nodebref="913">
-                <legsegment id="1046" externalid="18100_18102" dir="a_b" lsrefs="42374,20766,39198,37590,37586"/>
+                <legsegment id="1046" externalid="18100_18102" dir="a_b" lsrefs="42374,47859,39203,37583,37579,42329"/>
             </leg>
             <leg id="1047" externalid="19379_19381" nodearef="959" nodebref="960">
                 <legsegment id="1047" externalid="19379_19381" dir="a_b" lsrefs="42578,37888,4024,37884,4022,50074"/>
@@ -3534,7 +3534,7 @@
                 <legsegment id="968" externalid="18098_19706" dir="a_b" lsrefs="42376,30152,19970,37596,34102,41658,41664,39636,37604"/>
             </leg>
             <leg id="999" externalid="18102_18103" nodearef="913" nodebref="914">
-                <legsegment id="999" externalid="18102_18103" dir="a_b" lsrefs="42330,33934,33930"/>
+                <legsegment id="999" externalid="18102_18103" dir="a_b" lsrefs="42328,37578,37582,39202,47858,20766,39198,37590,37586,42330,33934,33930"/>
             </leg>
         </servicelegs>
     </servicenetworklayer>
