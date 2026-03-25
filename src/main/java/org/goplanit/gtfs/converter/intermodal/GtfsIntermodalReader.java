@@ -18,6 +18,7 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 import org.goplanit.zoning.Zoning;
+import org.goplanit.zoning.ZoningModifierUtils;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -238,13 +239,17 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     /* ZONING CLEAN-UP */
     {
       if(getSettings().getZoningSettings().isRemoveUnusedTransferZones()){
+        //todo: verify the services are correctly updated and use the right zone ids etc.!
+
         /* first remove the unused connectoids */
         zoning.getZoningModifier().removeUnusedTransferConnectoids(
-                servicesResult.first().getTransportLayers(), true);
+                servicesResult.first().getTransportLayers(), false);
         /* then we can remove transfer zones without connectoids */
-        zoning.getZoningModifier().removeDanglingTransferZones(true);
+        zoning.getZoningModifier().removeDanglingTransferZones(false);
         /* then we can remove transfer zone groups without transfer zones */
-        zoning.getZoningModifier().removeDanglingTransferZoneGroups();
+        zoning.getZoningModifier().removeDanglingTransferZoneGroups(false);
+        // --> now recreate ids
+        ZoningModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(zoning);
       }
     }
 

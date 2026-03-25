@@ -73,12 +73,12 @@ public class GtfsZoningReader implements ZoningReader {
    * by syncing XML ids to internal ids when we break links
    */
   private void syncIdsAndinitialiseEventListeners() {
-    /** listener with functionality to sync XML ids to unique internal id upon breaking a link, ensures that when persisting
-     *  physical network by XML id,  we do not have duplicate ids */
+    /* listener with functionality to sync XML ids to unique internal id upon breaking a link, ensures that when
+    persisting physical network by XML id,  we do not have duplicate ids */
     SyncXmlIdToIdBreakEdgeHandler syncXmlIdToIdOnBreakLink = new SyncXmlIdToIdBreakEdgeHandler();
 
-    /** listener with functionality to sync XML ids to unique internal id upon breaking a link segment, ensures that when persisting
-     * physical network by XML id,  we do not have duplicate ids */
+    /* listener with functionality to sync XML ids to unique internal id upon breaking a link segment, ensures that
+    when persisting physical network by XML id,  we do not have duplicate ids */
     SyncXmlIdToIdBreakEdgeSegmentHandler syncXmlIdToIdOnBreakLinkSegment = new SyncXmlIdToIdBreakEdgeSegmentHandler();
 
     /* network layers */
@@ -87,19 +87,20 @@ public class GtfsZoningReader implements ZoningReader {
       var layerModifier = networkLayer.getLayerModifier();
       layerModifier.removeAllListeners();
 
-      /* whenever a link(segment) is broken we ensure that its XML id is synced with the internal id to ensure it remains unique */
+      /* whenever a link(segment) is broken we ensure that its XML id is synced with the internal id to ensure it
+      remains unique */
       layerModifier.addListener(syncXmlIdToIdOnBreakLink);
       layerModifier.addListener(syncXmlIdToIdOnBreakLinkSegment);
     }
 
     // update all network XML ids to internal id's upon calling recreating managed id entities on a graph layer
     LOGGER.info("Syncing PLANit network XML ids to internal ids");
-    MacroscopicNetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(referenceNetwork);
+    MacroscopicNetworkModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(referenceNetwork);
 
     /* zoning: since zoning can be partially populated we must ensure we do not generate XML ids synced to internal ids that clash with
     * pre-existing XML ids, hence recreated managed ids and sync all XML ids to internal ids as well */
     LOGGER.info("Syncing PLANit zoning XML ids to internal ids");
-    ZoningModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(zoning);
+    ZoningModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(zoning);
   }
 
   /**
