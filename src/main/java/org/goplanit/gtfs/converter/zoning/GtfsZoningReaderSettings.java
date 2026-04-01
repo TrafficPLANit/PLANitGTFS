@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithModeMapping implements GtfsConverterReaderSettings {
+public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithModeMapping
+        implements GtfsConverterReaderSettings {
 
   /**
    * logger to use
@@ -45,7 +46,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * Provide explicit mapping from GTFS stop (by GTFS stop id) to existing PLANit transfer zone(s) based on an id (XML or external id (third party source ide.g., OSM id)),
    * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
    */
-  private final Map<String, List<Pair<Object, IdMapperType>>> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
+  private final Map<String, List<Pair<Object, IdMapperType>>> overwriteGtfsStopTransferZoneExternalIdMapping =
+          new HashMap<>();
 
   /**
    * Provide explicit mapping from GTFS stop (by GTFS stop id) to a geo-location.
@@ -340,8 +342,10 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   public void logSettings() {
     LOGGER.info("GTFS zoning reader settings:");
-    LOGGER.info(String.format("GTFS stop-to-transfer zone mappings are %slogged", isLogMappedGtfsZones() ? "" : "not "));
-    LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f", getGtfsStopToTransferZoneSearchRadiusMeters()));
+    LOGGER.info(String.format("GTFS stop-to-transfer zone mappings are %slogged",
+            isLogMappedGtfsZones() ? "" : "not "));
+    LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f",
+            getGtfsStopToTransferZoneSearchRadiusMeters()));
     LOGGER.info(String.format("GTFS stop-to-link search radius (m): %.1f", getGtfsStopToLinkSearchRadiusMeters()));
     LOGGER.info(String.format("GTFS remove unused transfer zones (stops): %s", isRemoveUnusedTransferZones()));
   }
