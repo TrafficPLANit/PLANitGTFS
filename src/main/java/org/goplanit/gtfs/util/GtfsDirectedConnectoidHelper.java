@@ -11,6 +11,7 @@ import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -20,6 +21,9 @@ import java.util.Set;
  * @author markr
  */
 public class GtfsDirectedConnectoidHelper {
+
+  /** no direct GTFS external id for connectoid, but signify source */
+  public static final String GTFS_CONNECTOID_EXTERNAL_INFERRED_ID = "gtfs_inferred";
 
   /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with
    * access modes provided. Connectoids are only created when the access link segment has at least one of the
@@ -43,7 +47,12 @@ public class GtfsDirectedConnectoidHelper {
 
     Collection<DirectedConnectoid> createdConnectoids =
         ZoningConverterUtils.createAndRegisterDirectedConnectoids(
-            data.getZoning(), transferZone, accessNode, (Iterable<MacroscopicLinkSegment>) linkSegments, allowedModes);
+                GTFS_CONNECTOID_EXTERNAL_INFERRED_ID,
+                data.getZoning(),
+                transferZone,
+                accessNode,
+                (Iterable<MacroscopicLinkSegment>) linkSegments,
+                allowedModes);
     for(var newConnectoid : createdConnectoids) {
       /* update GTFS parsing specific PLANit data tracking information */
 

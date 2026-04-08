@@ -29,11 +29,12 @@ public class GtfsZoningHandlerConnectoidData {
    * @param referenceZoning to use
    */
   public GtfsZoningHandlerConnectoidData(ServiceNetwork serviceNetwork, Zoning referenceZoning){
-    //TODO: no support yet for OD connectoids, meaning that if links are broken the connectoid is potentially moved for OD zones
+    //TODO: no support yet for OD connectoids, meaning that if links are broken the connectoid is potentially moved
+    // for OD zones
 
     /* locate by position (point) so we can use it even if the entities/ids change */
     directedConnectoidsByLocation = referenceZoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(
-        serviceNetwork.getParentNetwork().getTransportLayers(), d -> d.getAccessNode().getPosition());
+        serviceNetwork.getParentNetwork().getTransportLayers(), d -> d.getAccessVertex().getPosition());
   }
 
   /**
@@ -59,7 +60,8 @@ public class GtfsZoningHandlerConnectoidData {
    * @param networkLayer to extract from
    * @return found connectoids (if any), otherwise null or empty set
    */
-  public List<DirectedConnectoid> getDirectedConnectoidsByLocation(Point nodeLocation, MacroscopicNetworkLayer networkLayer) {
+  public List<DirectedConnectoid> getDirectedConnectoidsByLocation(
+          Point nodeLocation, MacroscopicNetworkLayer networkLayer) {
     return getDirectedConnectoidsByLocation(networkLayer).get(nodeLocation);
   }
 
@@ -70,7 +72,8 @@ public class GtfsZoningHandlerConnectoidData {
    * @param connectoid to add
    * @return true when successful, false otherwise
    */
-  public boolean addDirectedConnectoidByLocation(MacroscopicNetworkLayer networkLayer, Point connectoidLocation , DirectedConnectoid connectoid) {
+  public boolean addDirectedConnectoidByLocation(
+          MacroscopicNetworkLayer networkLayer, Point connectoidLocation , DirectedConnectoid connectoid) {
     directedConnectoidsByLocation.putIfAbsent(networkLayer, new HashMap<>());
     Map<Point, List<DirectedConnectoid>> connectoidsForLayer = directedConnectoidsByLocation.get(networkLayer);
     connectoidsForLayer.putIfAbsent(connectoidLocation, new ArrayList<>(1));
@@ -103,6 +106,7 @@ public class GtfsZoningHandlerConnectoidData {
    */
   public boolean hasDirectedConnectoidForLocation(NetworkLayer networkLayer, Point point) {
     Map<Point, List<DirectedConnectoid>>  connectoidsForLayer = directedConnectoidsByLocation.get(networkLayer);
-    return connectoidsForLayer != null && connectoidsForLayer.get(point) != null && !connectoidsForLayer.get(point).isEmpty();
+    return connectoidsForLayer != null && connectoidsForLayer.get(point) != null &&
+            !connectoidsForLayer.get(point).isEmpty();
   }
 }

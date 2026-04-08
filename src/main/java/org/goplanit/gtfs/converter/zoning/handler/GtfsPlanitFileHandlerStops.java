@@ -808,7 +808,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         allEligibleModes.removeIf(
                 m -> finalAccessLinkSegments.stream().anyMatch(ls -> !ls.isModeAllowed(m)));
         var results = GtfsDirectedConnectoidHelper.createAndRegisterDirectedConnectoids(
-                newTransferZone, networkLayer, accessNode, accessLinkSegments, allEligibleModes, data);
+                newTransferZone,
+                networkLayer,
+                accessNode,
+                accessLinkSegments,
+                allEligibleModes,
+                data);
         connectoidsCreated = connectoidsCreated || results != null && !results.isEmpty();
       }
     }
