@@ -33,7 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Unit tests for Gtfs's API basic functionality
+ * Unit tests for Gtfs's API basic functionality. PLANit reference network and zoning are expected to be identical to
+ * the results produced in the PLANitOSM repo so they can easily be updated/synced
  * 
  * @author markr
  *
@@ -47,7 +48,8 @@ public class GtfsToPlanitSydneyTest {
   public static final Path GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greatersydneygtfsstaticnoshapes.zip");
 
   private static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
-  private static final String PLANIT_INPUT_PATH = Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
+  private static final String PLANIT_INPUT_PATH =
+      Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
 
   public static MacroscopicNetwork macroscopicNetwork;
 
@@ -89,7 +91,8 @@ public class GtfsToPlanitSydneyTest {
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
-      String GTFS_FILES_DIR = UrlUtils.asLocalPath(UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
+      String GTFS_FILES_DIR = UrlUtils.asLocalPath(
+          UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
       var networkCopy = macroscopicNetwork.deepClone();
       GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(
@@ -126,8 +129,9 @@ public class GtfsToPlanitSydneyTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services, service network and zoning from GTFS data given the PLANit network exists,
-   * but it has no transfer zones yet,i.e., all transfer zones (stops) are to be based on the GTFS data only.
+   * Test that attempts to extract PLANit routed services, service network and zoning from GTFS data given the
+   * PLANit network exists, but it has no transfer zones yet,i.e., all transfer zones (stops) are to be based on the
+   * GTFS data only.
    */
   @Test
   public void testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones() {
@@ -149,23 +153,27 @@ public class GtfsToPlanitSydneyTest {
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
-      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getZoningSettings(), false);
-      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getServiceSettings());
+      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getZoningSettings(), false);
+      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getServiceSettings());
 
-      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
+      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result =
+          gtfsIntermodalReader.readWithServices();
 
       var network = result.first();
       var zoning = result.second();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
-      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
-      // and a conscious choice has to be made whether this is better or not before changing the below results
+      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something
+      // has changed in how we process the same underlying data and a conscious choice has to be made whether this is
+      // better or not before changing the below results
       assertEquals(1, network.getTransportLayers().size());
       assertEquals(1383, network.getTransportLayers().getFirst().getLinks().size());
       assertEquals(1161, network.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2735, network.getTransportLayers().getFirst().getLinkSegments().size());
-      assertEquals(71, network.getTransportLayers().getFirst().getLinkSegmentTypes().size());
+      assertEquals(2739, network.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(55, network.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(119, zoning.getTransferZones().size());
@@ -198,8 +206,8 @@ public class GtfsToPlanitSydneyTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services, service network and zoning  from GTFS data given the PLANit network already has existing transfer
-   * zones present that will be fused/merged when found in GTFS
+   * Test that attempts to extract PLANit routed services, service network and zoning  from GTFS data given the PLANit
+   * network already has existing transfer zones present that will be fused/merged when found in GTFS
    */
   @Test
   public void testGtfsIntermodalReaderWithPreExistingPlanitTransferZones() {
@@ -243,18 +251,19 @@ public class GtfsToPlanitSydneyTest {
       planitIntermodalWriter.getSettings().setOutputDirectory(PLANIT_OUTPUT_DIR);
       planitIntermodalWriter.writeWithServices(macroscopicNetwork, zoning, serviceNetwork, routedServices);
 
-      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
-      // and a conscious choice has to be made whether this is better or not before changing the below results
+      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something
+      // has changed in how we process the same underlying data and a conscious choice has to be made whether this is
+      // better or not before changing the below results
       assertEquals(macroscopicNetwork.getTransportLayers().size(),1);
       assertEquals(1353, macroscopicNetwork.getTransportLayers().getFirst().getLinks().size());
       assertEquals(1131, macroscopicNetwork.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2675, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegments().size());
-      assertEquals(71, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
+      assertEquals(2679, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(55, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(143, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(182, zoning.getTransferConnectoids().size());
+      assertEquals(211, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(100, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());

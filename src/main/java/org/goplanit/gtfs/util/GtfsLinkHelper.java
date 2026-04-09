@@ -56,7 +56,11 @@ public class GtfsLinkHelper {
    * @return PLANit node collected/created, and flag indicating if this required breaking a link and node is newly created (true), false otherwise
    */
   public static Pair<Node,Boolean> extractNodeByLinkGeometryLocation(
-      Point gtfsStopNodeLocation, final MacroscopicLink referenceLink, final MacroscopicNetworkLayer networkLayer, final GtfsZoningHandlerData data){
+      Point gtfsStopNodeLocation,
+      final MacroscopicLink referenceLink,
+      final MacroscopicNetworkLayer networkLayer,
+      final GtfsZoningHandlerData data){
+
     PlanItRunTimeException.throwIfNull(gtfsStopNodeLocation, "Stop node location is null, not allowed");
     PlanItRunTimeException.throwIfNull(referenceLink, "Designated access link for GTFS stop is null, not allowed");
 
@@ -88,8 +92,9 @@ public class GtfsLinkHelper {
     /* register additional actions on breaking link via listener for connectoid update (see above) as connectoids and their access links might be affected/invalidated when
     * breaking links, this listener accounts for that */
     /* TODO: refactor this so it does not require this whole preparing of data. Ideally this is handled more elegantly than now */
-    Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink =
-        ConnectoidUtils.findDirectedConnectoidsReferencingLinks(List.of(referenceLink), data.getDirectedConnectoidsByLocation(networkLayer));
+    Map<Point, Set<DirectedConnectoid>> connectoidsAccessNodeLocationBeforeBreakLink =
+        ConnectoidUtils.findDirectedConnectoidsReferencingLinks(
+            List.of(referenceLink), data.getDirectedConnectoidsByLocation(networkLayer));
     GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(connectoidsAccessNodeLocationBeforeBreakLink);
 
     /* now perform the breaking of links at the given node and update related tracking/reference information to broken link(segment)(s) where needed */
