@@ -88,7 +88,9 @@ public class GtfsTransferZoneHelper {
     boolean leftHandDrive = isLeftHandDrive(data.getSettings().getCountryName());
     var connectoids = data.getTransferZoneConnectoids(transferZone);
     if(connectoids== null || connectoids.isEmpty()){
-      LOGGER.warning(String.format("Cannot determine of GTFS stop (%s) is on correct side of transfer zone (%s) access links since transfer zone has no connectoids associated with it, this shouldn't happen", gtfsStop.getStopId(), transferZone.getXmlId()));
+      LOGGER.warning(String.format("Cannot determine of GTFS stop (%s) is on correct side of transfer zone (%s) " +
+              "access links since transfer zone has no connectoids associated with it, this shouldn't happen",
+              gtfsStop.getStopId(), transferZone.getXmlId()));
       return false;
     }
 

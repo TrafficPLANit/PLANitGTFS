@@ -28,7 +28,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    *
    * @author markr
    */
-  public class GtfsStopIdToTransferZone implements Function<String, TransferZone> {
+  public static class GtfsStopIdToTransferZone implements Function<String, TransferZone> {
 
     private final Map<String, TransferZone> mappedTransferZonesByGtfsStopId;
 
@@ -160,7 +160,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    * @return true when already mapped by GTFS stop, false otherwise
    */
   public boolean hasMappedGtfsStop(TransferZone transferZone) {
-    return mappedTransferZoneByGtfsStopId.values().contains(transferZone);
+    return mappedTransferZoneByGtfsStopId.containsValue(transferZone);
   }
 
   /**
@@ -184,7 +184,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
     var ptConnectoids = transferZoneConnectoidIndex.get(planitTransferZone);
     Set<Mode> ptServiceModes = new HashSet<>();
     for(var connectoid : ptConnectoids) {
-      ptServiceModes.addAll(connectoid.getAccessLinkSegment().getAllowedModesFrom(modesFilter));
+      ptServiceModes.addAll(connectoid.getAllowedModesFrom(planitTransferZone, modesFilter));
     }
     return ptServiceModes;
   }
@@ -196,9 +196,10 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    * @param directedConnectoid  to extract access information from
    * @param activatedPlanitModes supported modes
    */
-  public void registerTransferZoneToConnectoidModes(TransferZone transferZone, DirectedConnectoid directedConnectoid, Collection<Mode> activatedPlanitModes) {
+  public void registerTransferZoneToConnectoidModes(
+          TransferZone transferZone, DirectedConnectoid directedConnectoid, Collection<Mode> activatedPlanitModes) {
     /* remove all non service modes */
-    var allowedModes = directedConnectoid.getAccessLinkSegment().getAllowedModesFrom(activatedPlanitModes);
+    var allowedModes = directedConnectoid.getAllowedModesFrom(transferZone, activatedPlanitModes);
     if(allowedModes.isEmpty()){
       return;
     }

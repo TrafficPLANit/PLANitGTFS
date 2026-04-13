@@ -57,7 +57,8 @@ public class GtfsDirectedConnectoidHelper {
       /* update GTFS parsing specific PLANit data tracking information */
 
       /* 1) index by access node's location */
-      data.addDirectedConnectoidByLocation(networkLayer, newConnectoid.getAccessNode().getPosition() ,newConnectoid);
+      data.addDirectedConnectoidByLocation(
+              networkLayer, newConnectoid.getAccessVertex().getPosition() ,newConnectoid);
       /* 2) index connectoids on transfer zone, so we can collect it by transfer zone as well */
       data.registerTransferZoneToConnectoidModes(transferZone, newConnectoid, allowedModes);
 

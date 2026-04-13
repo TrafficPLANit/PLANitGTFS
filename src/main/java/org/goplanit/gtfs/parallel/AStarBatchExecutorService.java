@@ -175,13 +175,14 @@ public final class AStarBatchExecutorService {
     /* it is possible multiple connectoids exist, e.g., train platforms with access on both sides in either direction,
     therefore we group by access node */
     var resultByAccessNode = transferZoneConnectoids.stream().collect(
-            Collectors.groupingBy(DirectedConnectoid::getAccessNode));
+            Collectors.groupingBy(DirectedConnectoid::getAccessVertex));
 
     /* When GTFS stop has been linked to a service node which in turn has already been mapped to a physical node,
      * then we must limit the connectoids we consider to access nodes matching the physical node that is related to
      * this service node */
     if(gtfsStopServiceNode.hasPhysicalParentNodes()){
-      resultByAccessNode.entrySet().removeIf( e -> !gtfsStopServiceNode.isMappedToPhysicalParentNode(e.getKey()));
+      resultByAccessNode.entrySet().removeIf( e -> !gtfsStopServiceNode.isMappedToPhysicalParentNode(
+              (Node)e.getKey()));
     }
 
     if(resultByAccessNode.isEmpty() && gtfsStopServiceNode.hasPhysicalParentNodes()){
@@ -312,7 +313,8 @@ public final class AStarBatchExecutorService {
       var downstreamLocation =
               transferZoneDownstream.hasGeometry() ? transferZoneDownstream.getGeometry() :
                       transferZoneDownstream.getCentroid().getPosition();
-      LOGGER.warning(String.format("No eligible physical path for valid service leg segment [mode (%s)] between GTFS stops [%s (%s, %s), %s (%s, %s)" +
+      LOGGER.warning(String.format("No eligible physical path for valid service leg segment [mode (%s)] " +
+                      "between GTFS stops [%s (%s, %s), %s (%s, %s)" +
                       "], verify if path (partly) exits parsed bounding area",
               mode.getName(),
               gtfsStopIdUpstream,
@@ -337,14 +339,17 @@ public final class AStarBatchExecutorService {
       //  use the shortest path (this will eliminate crossing paths most likely (switches), we then  might still
       //  choose the wrong platform/track but this is not a big issue.
       LOGGER.fine(String.format("Multiple paths possible between two GTFS stops (%s, %s) for mode %s, due to GTFS " +
-                      "stop having multiple possible access points to physical network, e.g., train platform, choosing first",
+                      "stop having multiple possible access points to physical network, e.g.," +
+                      " train platform, choosing first",
               gtfsStopIdUpstream, gtfsStopIdDownstream, mode.getName()));
       chosenPath = allLegSegmentPathOptions.stream().min(
               Comparator.comparingDouble(SimpleDirectedPath::computeLengthKm)).get();
     }
 
     // print all subsequent (OSM) node external ids of each chosen path for visualisation/error checking purposes
-    //LOGGER.info(mode.getName() + " " + chosenPath.iterator().next().getUpstreamVertex().getExternalId() + ","+ StreamSupport.stream(chosenPath.spliterator(), false).map(es -> es.getDownstreamVertex().getExternalId()).collect(Collectors.joining(", ")));
+    //LOGGER.info(mode.getName() + " " + chosenPath.iterator().next().getUpstreamVertex().getExternalId() + ","+
+    // StreamSupport.stream(chosenPath.spliterator(), false).map(es -> es.getDownstreamVertex().getExternalId()).
+    // collect(Collectors.joining(", ")));
     return chosenPath;
   }
 
