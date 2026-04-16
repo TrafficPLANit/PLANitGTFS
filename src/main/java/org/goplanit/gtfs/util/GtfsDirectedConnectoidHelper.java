@@ -36,7 +36,7 @@ public class GtfsDirectedConnectoidHelper {
    * @param linkSegments to create connectoids for (one per segment)
    * @param allowedModes used for each connectoid
    * @param data containing state
-   * @return created connectoids
+   * @return created connectoids (should not retun null)
    */
   public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(
       final TransferZone transferZone,
