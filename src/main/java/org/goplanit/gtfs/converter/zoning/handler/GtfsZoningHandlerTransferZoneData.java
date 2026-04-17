@@ -198,9 +198,20 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    */
   public void registerTransferZoneToConnectoidModes(
           TransferZone transferZone, DirectedConnectoid directedConnectoid, Collection<Mode> activatedPlanitModes) {
+    activatedPlanitModes.forEach(m -> registerTransferZoneToConnectoidMode(transferZone, directedConnectoid, m));
+  }
+
+  /**
+   * Update registered and activated mode and their access information on transfer zone
+   *
+   * @param transferZone        to update for
+   * @param directedConnectoid  to extract access information from
+   * @param activatedPlanitMode supported modes
+   */
+  public void registerTransferZoneToConnectoidMode(
+      TransferZone transferZone, DirectedConnectoid directedConnectoid, Mode activatedPlanitMode) {
     /* remove all non service modes */
-    var allowedModes = directedConnectoid.getAllowedModesFrom(transferZone, activatedPlanitModes);
-    if(allowedModes.isEmpty()){
+    if(!directedConnectoid.isModeAllowed(transferZone, activatedPlanitMode)){
       return;
     }
 

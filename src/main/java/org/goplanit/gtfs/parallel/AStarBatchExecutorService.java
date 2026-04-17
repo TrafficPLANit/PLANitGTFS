@@ -4,11 +4,13 @@ import org.goplanit.algorithms.shortest.ShortestPathAStar;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.network.layer.service.ServiceLegSegmentImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -168,7 +170,7 @@ public final class AStarBatchExecutorService {
    * @param transferZone       to use
    * @return connectoids found, grouped by access node
    */
-  private Map<Node, List<DirectedConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(
+  private Map<DirectedVertex, List<DirectedConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(
           String gtfsStopId, TransferZone transferZone, ServiceNode gtfsStopServiceNode) {
     var transferZoneConnectoids = sharedData.getConnectoidsByAccessZone(transferZone);
 
@@ -293,7 +295,7 @@ public final class AStarBatchExecutorService {
         }
 
         // find eligible paths between upstream access node and downstream access node(s).
-        Set<SimpleDirectedPath> accessNodePathOptions =
+        Collection<SimpleDirectedPath> accessNodePathOptions =
                 createShortestPathsBetweenAccessNodes(
                         mode,
                         upstreamEntry.getValue(),
@@ -346,14 +348,23 @@ public final class AStarBatchExecutorService {
               Comparator.comparingDouble(SimpleDirectedPath::computeLengthKm)).get();
     }
 
-    // print all subsequent (OSM) node external ids of each chosen path for visualisation/error checking purposes
-    //LOGGER.info(mode.getName() + " " + chosenPath.iterator().next().getUpstreamVertex().getExternalId() + ","+
-    // StreamSupport.stream(chosenPath.spliterator(), false).map(es -> es.getDownstreamVertex().getExternalId()).
-    // collect(Collectors.joining(", ")));
     return chosenPath;
   }
 
-  private Set<SimpleDirectedPath> createShortestPathsBetweenAccessNodes(
+  /**
+   * Find shortest paths between access nodes taking access link segments into account
+   * todo: add access type for each entry as it matters if we are dealing with pt vehicle access or traveller access for
+   *   example. Otherwise we are computing too many paths.
+   *
+   * @param mode to consider
+   * @param upstreamAccessNodeConnectoids origin connectoids
+   * @param transferZoneUpstream origin transfer zone
+   * @param downstreamAccessNodeConnectoids destination connectoids
+   * @param transferZoneDownstream destination transfer zone
+   * @param shortestPathAlgo algo to use
+   * @return found paths
+   */
+  private Collection<SimpleDirectedPath> createShortestPathsBetweenAccessNodes(
           Mode mode,
           List<DirectedConnectoid> upstreamAccessNodeConnectoids,
           TransferZone transferZoneUpstream,
@@ -361,57 +372,68 @@ public final class AStarBatchExecutorService {
           TransferZone transferZoneDownstream,
           ShortestPathAStar shortestPathAlgo) {
 
-    Set<SimpleDirectedPath> createdPaths = new HashSet<>();
+    List<SimpleDirectedPath> createdPaths = new LinkedList<>();
     for(var upstreamConnectoid : upstreamAccessNodeConnectoids) {
-      if (!(upstreamConnectoid.isModeAllowed(transferZoneUpstream, mode) &&
-              upstreamConnectoid.getAccessLinkSegment().isModeAllowed(mode))) {
+      if (!upstreamConnectoid.isModeAllowed(transferZoneUpstream, mode)) {
         continue;
       }
-      for(var downstreamConnectoid : downstreamAccessNodeConnectoids) {
-        if (!(downstreamConnectoid.isModeAllowed(transferZoneDownstream, mode) &&
-                downstreamConnectoid.getAccessLinkSegment().isModeAllowed(mode))) {
+      var upstreamAccessEntry = upstreamConnectoid.getAccessZoneEntry(transferZoneUpstream);
+      for(var upstreamAccessSegment : upstreamAccessEntry.getAccessLinkSegments()) {
+        if (!((MacroscopicLinkSegment)upstreamAccessSegment).isModeAllowed(mode)) {
           continue;
         }
+        for(var downstreamConnectoid : downstreamAccessNodeConnectoids) {
+          if (!downstreamConnectoid.isModeAllowed(transferZoneDownstream, mode)) {
+            continue;
+          }
+          var downstreamAccessEntry = downstreamConnectoid.getAccessZoneEntry(transferZoneDownstream);
+          for (var downstreamAccessSegment : downstreamAccessEntry.getAccessLinkSegments()) {
+            if (!((MacroscopicLinkSegment) downstreamAccessSegment).isModeAllowed(mode)) {
+              continue;
+            }
 
-        /* find shortest path using the upstream access node and downstream access link segment upstream node to
-         ensure that we use both access link segments in the final path we then supplement the found path with the
-         two access link segments which we know are mode compatible */
-        try {
+            /* find shortest path using the upstream access node/segment and downstream access node/segment
+             combinations to ensure that we use both access link segments in the final path we then supplement
+             the found path with the two access link segments which we know are mode compatible */
+            try {
 
-          /* ban direct u-turn around access link segments, unless it is a water/rail mode where this can be
-             acceptable */
-          boolean banInitialUTurn = !(mode.hasPhysicalFeatures() &&
+              /* ban direct u-turn around access link segments, unless it is a water/rail mode where this can be
+              acceptable */
+              boolean banInitialUTurn = !(mode.hasPhysicalFeatures() &&
                   mode.getPhysicalFeatures().getTrackType() != TrackModeType.ROAD);
 
-          // todo if ever we support turn bans, then we must make the below more sophisticated
-          Set<EdgeSegment> bannedLinkSegments = new HashSet<>();
-          if(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment() != null && banInitialUTurn){
-            bannedLinkSegments.add(upstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment());
-          }
-          if( downstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment() != null){
-            bannedLinkSegments.add( downstreamConnectoid.getAccessLinkSegment().getOppositeDirectionSegment());
-          }
+              // todo if ever we support turn bans, then we must make the below more sophisticated
+              Set<EdgeSegment> bannedLinkSegments = new HashSet<>();
+              if(upstreamAccessSegment.getOppositeDirectionSegment() != null && banInitialUTurn){
+                bannedLinkSegments.add(upstreamAccessSegment.getOppositeDirectionSegment());
+              }
+              if(downstreamAccessSegment.getOppositeDirectionSegment() != null){
+                bannedLinkSegments.add(downstreamAccessSegment.getOppositeDirectionSegment());
+              }
 
-          /* execute shortest path */
-          ShortestPathResult result = shortestPathAlgo.executeOneToOne(
-                  upstreamConnectoid.getAccessNode(),
-                  downstreamConnectoid.getAccessLinkSegment().getUpstreamNode(),
+              /* execute shortest path */
+              ShortestPathResult result = shortestPathAlgo.executeOneToOne(
+                  upstreamConnectoid.getAccessVertex(),
+                  downstreamAccessSegment.getUpstreamVertex(),
                   bannedLinkSegments);
-          var foundPath = (SimpleDirectedPathImpl) result.createPath(
+              var foundPath = (SimpleDirectedPathImpl) result.createPath(
                   new SimpleDirectedPathFactoryImpl(),
-                  upstreamConnectoid.getAccessNode(),
-                  downstreamConnectoid.getAccessLinkSegment().getUpstreamNode());
+                  upstreamConnectoid.getAccessVertex(),
+                  downstreamAccessSegment.getUpstreamVertex());
 
-          foundPath.append(downstreamConnectoid.getAccessLinkSegment());
-          createdPaths.add(foundPath);
-          //LOGGER.info(StreamSupport.stream(foundPath.spliterator(), false).map( e -> e.getParent().getExternalId()).collect(Collectors.joining(", ")));
-        } catch (PlanItRunTimeException e) {
-          /* when no path can be found this means we have a problem OR in case of multiple access nodes per
-          transfer zone, e.g., station platform with tracks on either side it can still be fine. We therefore do
-          not report a problem if no path between upstream access node and used downstream access node can be found */
-        }
-      }
-    }
+              foundPath.append(downstreamAccessSegment);
+              createdPaths.add(foundPath);
+              //LOGGER.info(StreamSupport.stream(foundPath.spliterator(), false).map( e -> e.getParent().getExternalId()).collect(Collectors.joining(", ")));
+            } catch (PlanItRunTimeException e) {
+              /* when no path can be found this means we have a problem OR in case of multiple access nodes per
+              transfer zone, e.g., station platform with tracks on either side it can still be fine. We therefore do
+              not report a problem if no path between upstream access node and used downstream access node can be found */
+            }
+          } // downstr segm
+        } // downstr connectoid
+      } // upstr access segm
+    } // upstr connectoid
+
     /* discard redundant paths, for example an access node with two connectoids having two access link segments:
         o-------->*<--------o
         can result in situation of having two paths generated:

@@ -983,8 +983,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /* Update connectoid mode support to secondary modes for the GTFS stop's primary modes that we matched to
-   *  this transfer zone. Useful
-   *  in case the primary mode of GTFS is not supported by the physical network (but the secondary one is)
+   * this transfer zone. Useful in case the primary mode of GTFS is not supported by the physical network
+   * (but the secondary one is)
    *
    * @param theTransferZone to use
    * @param primaryGtfsStopModes gtfs stop's primary supported modes to base all eligible modes on
@@ -994,11 +994,15 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     for(var connectoid : data.getTransferZoneConnectoids(theTransferZone)){
       for(var primaryMode : primaryGtfsStopModes) {
         var allEligibleModes = data.expandWithCompatibleModes(primaryMode);
-        /* add support for all (secondary) modes that are also supported by the access link segment
+        /* add support for all (secondary) modes that are also supported by the access link segments
          of the connectoid */
-        allEligibleModes.removeIf(m -> !connectoid.getAccessLinkSegment().isModeAllowed(m));
-        connectoid.addAllowedModes(theTransferZone, allEligibleModes);
-        data.registerTransferZoneToConnectoidModes(theTransferZone, connectoid, allEligibleModes);
+        for(var accessSegment : connectoid.getAccessZoneEntry(theTransferZone).getAccessLinkSegments()) {
+          allEligibleModes.stream().filter(m -> ((MacroscopicLinkSegment)accessSegment).isModeAllowed(m)).forEach(
+              m -> {
+              connectoid.addAllowedModes(theTransferZone, m);
+              data.registerTransferZoneToConnectoidMode(theTransferZone, connectoid, m);
+          });
+        }
       }
     }
   }
@@ -1039,7 +1043,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * Process the GTFS stop which is marked as stop platform and fuse it with the PLANit memory model and previously parsed GTFS entities
+   * Process the GTFS stop which is marked as stop platform and fuse it with the PLANit memory model and previously
+   * parsed GTFS entities
    *
    * @param gtfsStop     GTFS stop to processs
    * @param primaryGtfsStopModes identified mode(s) for GTFS stop
@@ -1075,8 +1080,10 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         String accessLinkIds = "unknown";
         var connectoids = data.getTransferZoneConnectoids(theTransferZone);
         if(connectoids != null){
-          accessLinkIds = connectoids.stream().map(
-              c -> "(" + c.getAccessLinkSegment().getParent().getIdsAsString() + ")").distinct().collect(
+          final var finalTz = theTransferZone;
+          accessLinkIds = connectoids.stream().map(c -> c.getAccessZoneEntry(finalTz)).map(
+              e -> "[" + e.getAccessLinkSegments().stream().map(ls -> "(" +
+                  ls.getParent().getIdsAsString() + ")").distinct()).collect(
                   Collectors.joining(","));
         }
         String message = createNewTransferZone ?  "triggered creation of new transfer zone" : "matched to existing " +

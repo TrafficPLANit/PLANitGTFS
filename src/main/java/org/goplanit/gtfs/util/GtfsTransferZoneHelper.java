@@ -8,6 +8,7 @@ import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.CharacterUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneType;
 import org.locationtech.jts.geom.Coordinate;
@@ -67,15 +68,18 @@ public class GtfsTransferZoneHelper {
   }
 
   /**
-   * Verify based on driving direction and orientation of the access link segment(s) whether the GTFS stop is a viable match for the
-   * found transfer zone in terms of being on the correct side of the road. The assumption here is that this pertains to a road based stop
+   * Verify based on driving direction and orientation of the access link segment(s) whether the GTFS stop is a viable
+   * match for the
+   * found transfer zone in terms of being on the correct side of the road. The assumption here is that this pertains
+   * to a road based stop
    * not rail and connectoids being available for the provided transfer zone to extract this information
    *
    * @param gtfsStop to verify
    * @param gtfsMode used
    * @param transferZone to verify against
    * @param data containing state
-   * @param allConnectoidsMustMatch flag indicating whether we require all connectoids to be on the correct side of the road (true), or not (false)
+   * @param allConnectoidsMustMatch flag indicating whether we require all connectoids to be on the correct side of the
+   *                                road (true), or not (false)
    * @return true when on correct side of the road, false otherwise
    */
   public static boolean isGtfsStopOnCorrectSideOfTransferZoneAccessLinkSegments(
@@ -97,28 +101,34 @@ public class GtfsTransferZoneHelper {
     /* only consider connectoids that are mode compatible */
     connectoids = connectoids.stream().filter(
             c -> c.isModeAllowed(transferZone, gtfsMode)).collect(Collectors.toUnmodifiableSet());
-    if(connectoids== null || connectoids.isEmpty()){
+    if(connectoids.isEmpty()){
       return false;
     }
 
     boolean success = false;
     for (var connectoid : connectoids) {
-      var accessSegment = connectoid.getAccessLinkSegment();
-      var localProjection = PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
-      success = success ||
-          localProjection!=null &&
-                  GtfsLinkSegmentHelper.isGeometryOnCorrectSideOfLinkSegment(
-                          localProjection, accessSegment, leftHandDrive, data.getGeoTools());
-      if(allConnectoidsMustMatch && !success) {
-        break;
+      if(!connectoid.hasAccessZoneEntry(transferZone)){
+        continue;
+      }
+      var entry = connectoid.getAccessZoneEntry(transferZone);
+      for(var accessSegment : entry.getAccessLinkSegments()){
+        var localProjection = PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
+        success = success ||
+            localProjection!=null &&
+                GtfsLinkSegmentHelper.isGeometryOnCorrectSideOfLinkSegment(
+                    localProjection, (LinkSegment) accessSegment, leftHandDrive, data.getGeoTools());
+        if(allConnectoidsMustMatch && !success) {
+          break;
+        }
       }
     }
     return success;
   }
 
   /**
-   * find the transfer zone (underlying stop locations if any) closest to the provided GTFS stop location. In case the transfer zone has no
-   * stop locations registered, we use its overall geometry to match the distance to the GTFS stop location.
+   * find the transfer zone (underlying stop locations if any) closest to the provided GTFS stop location.
+   * In case the transfer zone has no stop locations registered, we use its overall geometry to match the
+   * distance to the GTFS stop location.
    *
    * @param gtfsStopLocation to find closest transfer zone for
    * @param nearbyTransferZones to consider
@@ -151,7 +161,7 @@ public class GtfsTransferZoneHelper {
       } else {
         /* connectoid access node based */
         for (var dirConnectoid : directedConnectoids) {
-          var planitTransferZoneStopLocation = dirConnectoid.getAccessNode().getPosition().getCoordinate();
+          var planitTransferZoneStopLocation = dirConnectoid.getAccessVertex().getPosition().getCoordinate();
           double distance = data.getGeoTools().getDistanceInMetres(gtfsStopLocation, planitTransferZoneStopLocation);
           if (minDistance > distance) {
             closest = transferZone;
