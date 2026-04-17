@@ -10,6 +10,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -52,7 +53,8 @@ public class GtfsDirectedConnectoidHelper {
                 transferZone,
                 accessNode,
                 (Iterable<MacroscopicLinkSegment>) linkSegments,
-                allowedModes);
+                allowedModes,
+                ZoneConnectoidType.PT_VEHICLE_STOP);
     for(var newConnectoid : createdConnectoids) {
       /* update GTFS parsing specific PLANit data tracking information */
 
