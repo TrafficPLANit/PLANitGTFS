@@ -17,6 +17,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
@@ -358,13 +359,14 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   }
 
   /**
-   * The pt services modes supported on the given transfer zone
+   * The pt services modes supported on the given transfer zone with entries of type PT_VEHICLE_STOP
    *
    * @param planitTransferZone to get supported pt service modes for
    * @param modesFilter to select from
    * @return found PLANit modes
    */
-  public Set<Mode> getSupportedPtModesIn(TransferZone planitTransferZone, Set<Mode> modesFilter){
+  public Set<Mode> getSupportedPtModesIn(
+      TransferZone planitTransferZone, Set<Mode> modesFilter){
     return transferZoneData.getSupportedPtModesIn(planitTransferZone, modesFilter);
   }
 
@@ -372,23 +374,32 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    * Update registered and activated pt modes and their access information on transfer zone
    *
    * @param transferZone        to update for
+   * @param type the type restriction
    * @param directedConnectoid  to extract access information from
    * @param activatedPlanitModes supported modes
    */
   public void registerTransferZoneToConnectoidModes(
-      TransferZone transferZone, DirectedConnectoid directedConnectoid, Set<Mode> activatedPlanitModes) {
-    activatedPlanitModes.forEach(m -> registerTransferZoneToConnectoidMode(transferZone, directedConnectoid, m));
+      TransferZone transferZone,
+      ZoneConnectoidType type,
+      DirectedConnectoid directedConnectoid,
+      Set<Mode> activatedPlanitModes) {
+    activatedPlanitModes.forEach(
+        m -> registerTransferZoneToConnectoidMode(transferZone, type, directedConnectoid, m));
   }
   /**
    * Update registered and activated mode and their access information on transfer zone
    *
    * @param transferZone        to update for
+   * @param type the type restriction
    * @param directedConnectoid  to extract access information from
    * @param activatedPlanitMode supported modes
    */
   public void registerTransferZoneToConnectoidMode(
-      TransferZone transferZone, DirectedConnectoid directedConnectoid, Mode activatedPlanitMode) {
-    transferZoneData.registerTransferZoneToConnectoidMode(transferZone, directedConnectoid, activatedPlanitMode);
+      TransferZone transferZone,
+      ZoneConnectoidType type,
+      DirectedConnectoid directedConnectoid,
+      Mode activatedPlanitMode) {
+    transferZoneData.registerTransferZoneToConnectoidMode(transferZone, type, directedConnectoid, activatedPlanitMode);
   }
 
   /**

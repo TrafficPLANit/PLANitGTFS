@@ -32,6 +32,7 @@ public class GtfsDirectedConnectoidHelper {
    *
    * @param transferZone to relate connectoids to
    * @param networkLayer of the modes and link segments used
+   * @param type the type restriction
    * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the attached
    *                   link segment(s)
    * @param linkSegments to create connectoids for (one per segment)
@@ -42,19 +43,20 @@ public class GtfsDirectedConnectoidHelper {
   public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(
       final TransferZone transferZone,
       final MacroscopicNetworkLayer networkLayer,
+      final ZoneConnectoidType type,
       final Node accessNode,
       final Iterable<? extends EdgeSegment> linkSegments,
       final Set<Mode> allowedModes, GtfsZoningHandlerData data){
 
     Collection<DirectedConnectoid> createdConnectoids =
         ZoningConverterUtils.createAndRegisterDirectedConnectoids(
-                GTFS_CONNECTOID_EXTERNAL_INFERRED_ID,
-                data.getZoning(),
-                transferZone,
-                accessNode,
-                (Iterable<MacroscopicLinkSegment>) linkSegments,
-                allowedModes,
-                ZoneConnectoidType.PT_VEHICLE_STOP);
+            GTFS_CONNECTOID_EXTERNAL_INFERRED_ID,
+            data.getZoning(),
+            transferZone,
+            accessNode,
+            (Iterable<MacroscopicLinkSegment>) linkSegments,
+            allowedModes,
+            type);
     for(var newConnectoid : createdConnectoids) {
       /* update GTFS parsing specific PLANit data tracking information */
 
@@ -62,7 +64,7 @@ public class GtfsDirectedConnectoidHelper {
       data.addDirectedConnectoidByLocation(
               networkLayer, newConnectoid.getAccessVertex().getPosition() ,newConnectoid);
       /* 2) index connectoids on transfer zone, so we can collect it by transfer zone as well */
-      data.registerTransferZoneToConnectoidModes(transferZone, newConnectoid, allowedModes);
+      data.registerTransferZoneToConnectoidModes(transferZone, type, newConnectoid, allowedModes);
 
       data.getProfiler().incrementCreatedConnectoids();
     }

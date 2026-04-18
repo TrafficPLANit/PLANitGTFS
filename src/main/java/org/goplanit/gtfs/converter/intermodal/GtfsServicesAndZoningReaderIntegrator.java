@@ -5,7 +5,7 @@ import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
 import org.goplanit.gtfs.parallel.AStarBatchExecutionData;
-import org.goplanit.gtfs.parallel.AStarBatchExecutorService;
+import org.goplanit.gtfs.parallel.AStarPtLegSegmentBatchExecutorService;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.geo.PlanitCrsUtils;
 import org.goplanit.service.routed.RoutedServices;
@@ -185,7 +185,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
     // To further speed this up, we run this in parallel. To do so, we create batches of shortest path calcs each
     // dispatched to the first available thread all encapsulated within the below executor service
-    var executor = AStarBatchExecutorService.create(createBatchData());
+    var executor = AStarPtLegSegmentBatchExecutorService.create(createBatchData());
     try{
       executor.execute();
     }catch (Exception e){

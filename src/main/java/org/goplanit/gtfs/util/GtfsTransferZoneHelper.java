@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.goplanit.utils.locale.DrivingDirectionDefaultByCountry.isLeftHandDrive;
+import static org.goplanit.utils.zoning.ZoneConnectoidType.PT_VEHICLE_STOP;
 
 /**
  * Utils class related to GTFS and PLANit transfer zone functionality
@@ -82,7 +83,7 @@ public class GtfsTransferZoneHelper {
    *                                road (true), or not (false)
    * @return true when on correct side of the road, false otherwise
    */
-  public static boolean isGtfsStopOnCorrectSideOfTransferZoneAccessLinkSegments(
+  public static boolean isGtfsStopOnCorrectSideOfPtModeTransferZoneAccessLinkSegments(
       GtfsStop gtfsStop,
       Mode gtfsMode,
       TransferZone transferZone,
@@ -99,8 +100,8 @@ public class GtfsTransferZoneHelper {
     }
 
     /* only consider connectoids that are mode compatible */
-    connectoids = connectoids.stream().filter(
-            c -> c.isModeAllowed(transferZone, gtfsMode)).collect(Collectors.toUnmodifiableSet());
+    connectoids = connectoids.stream().filter(c ->
+        c.isModeAllowed(transferZone, PT_VEHICLE_STOP, gtfsMode)).collect(Collectors.toUnmodifiableSet());
     if(connectoids.isEmpty()){
       return false;
     }
@@ -110,7 +111,7 @@ public class GtfsTransferZoneHelper {
       if(!connectoid.hasAccessZoneEntry(transferZone)){
         continue;
       }
-      var entry = connectoid.getAccessZoneEntry(transferZone);
+      var entry = connectoid.getAccessZoneEntry(transferZone, PT_VEHICLE_STOP);
       for(var accessSegment : entry.getAccessLinkSegments()){
         var localProjection = PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
         success = success ||

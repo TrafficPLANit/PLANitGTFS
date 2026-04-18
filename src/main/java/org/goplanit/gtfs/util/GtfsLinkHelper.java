@@ -94,8 +94,10 @@ public class GtfsLinkHelper {
     /* TODO: refactor this so it does not require this whole preparing of data. Ideally this is handled more elegantly than now */
     Map<Point, Set<DirectedConnectoid>> connectoidsAccessNodeLocationBeforeBreakLink =
         ConnectoidUtils.findDirectedConnectoidsReferencingLinks(
-            List.of(referenceLink), data.getDirectedConnectoidsByLocation(networkLayer));
-    GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(connectoidsAccessNodeLocationBeforeBreakLink);
+            List.of(referenceLink),
+            data.getDirectedConnectoidsByLocation(networkLayer).values().stream().flatMap(Collection::stream));
+    GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(
+        connectoidsAccessNodeLocationBeforeBreakLink);
 
     /* now perform the breaking of links at the given node and update related tracking/reference information to broken link(segment)(s) where needed */
     breakLinksAtPlanitNode(planitNode, networkLayer, referenceLink, List.of(listener), data);

@@ -19,19 +19,22 @@ import org.goplanit.utils.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.utils.path.SimpleDirectedPathImpl;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static org.goplanit.utils.zoning.ZoneConnectoidType.PT_VEHICLE_STOP;
+
 /**
  * Executes A* star shortest path search in threaded batch mode between Service Network Leg Segments in the desired
  * number of threads and batch size. Populated physical parent leg segments in each service leg segment as a result
  */
-public final class AStarBatchExecutorService {
+public final class AStarPtLegSegmentBatchExecutorService {
 
-  private static final Logger LOGGER = Logger.getLogger(AStarBatchExecutorService.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(AStarPtLegSegmentBatchExecutorService.class.getCanonicalName());
 
   /* default batch size set to 1024 */
   private static final int DEFAULT_BATCH_SIZE = 1024;
@@ -263,11 +266,13 @@ public final class AStarBatchExecutorService {
     // thread safe access
     var shortestPathAlgo = sharedData.getShortestPathAlgoForCurrentThread(mode);
 
-    /* prune to connectoids that are mode compatible */
+    /* prune to connectoids that are mode compatible for type STOP */
     upstreamConnectoidsByAccessNode.values().forEach(
-            cList -> cList.removeIf( c -> !c.isModeAllowed(transferZoneUpstream, mode)));
+            cList -> cList.removeIf(c ->
+                !c.isModeAllowed(transferZoneUpstream, PT_VEHICLE_STOP, mode)));
     downstreamConnectoidsByAccessNode.values().forEach(
-            cList -> cList.removeIf( c -> !c.isModeAllowed(transferZoneDownstream, mode)));
+            cList -> cList.removeIf(c ->
+                !c.isModeAllowed(transferZoneDownstream, PT_VEHICLE_STOP, mode)));
 
     // proceed when both connectoids support the mode on any of its access nodes
     if (upstreamConnectoidsByAccessNode.values().stream().flatMap(Collection::stream).findFirst().isEmpty() &&
@@ -284,7 +289,8 @@ public final class AStarBatchExecutorService {
 
     // Do this ordered in case we have identical distance options for which we want to at least be consistent
     // between runs Lambda so "return" is a "continue"
-    upstreamConnectoidsByAccessNode.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach( upstreamEntry  -> {
+    upstreamConnectoidsByAccessNode.entrySet().stream().sorted(
+        Map.Entry.comparingByKey()).forEach( upstreamEntry  -> {
       if(upstreamEntry.getValue().isEmpty()){
         return;
       }
@@ -374,19 +380,19 @@ public final class AStarBatchExecutorService {
 
     List<SimpleDirectedPath> createdPaths = new LinkedList<>();
     for(var upstreamConnectoid : upstreamAccessNodeConnectoids) {
-      if (!upstreamConnectoid.isModeAllowed(transferZoneUpstream, mode)) {
+      if (!upstreamConnectoid.isModeAllowed(transferZoneUpstream, PT_VEHICLE_STOP, mode)) {
         continue;
       }
-      var upstreamAccessEntry = upstreamConnectoid.getAccessZoneEntry(transferZoneUpstream);
+      var upstreamAccessEntry = upstreamConnectoid.getAccessZoneEntry(transferZoneUpstream, PT_VEHICLE_STOP);
       for(var upstreamAccessSegment : upstreamAccessEntry.getAccessLinkSegments()) {
         if (!((MacroscopicLinkSegment)upstreamAccessSegment).isModeAllowed(mode)) {
           continue;
         }
         for(var downstreamConnectoid : downstreamAccessNodeConnectoids) {
-          if (!downstreamConnectoid.isModeAllowed(transferZoneDownstream, mode)) {
+          if (!downstreamConnectoid.isModeAllowed(transferZoneDownstream, PT_VEHICLE_STOP, mode)) {
             continue;
           }
-          var downstreamAccessEntry = downstreamConnectoid.getAccessZoneEntry(transferZoneDownstream);
+          var downstreamAccessEntry = downstreamConnectoid.getAccessZoneEntry(transferZoneDownstream, PT_VEHICLE_STOP);
           for (var downstreamAccessSegment : downstreamAccessEntry.getAccessLinkSegments()) {
             if (!((MacroscopicLinkSegment) downstreamAccessSegment).isModeAllowed(mode)) {
               continue;
@@ -459,7 +465,7 @@ public final class AStarBatchExecutorService {
    * Constructor
    * @param sharedData to use
    */
-  private AStarBatchExecutorService(AStarBatchExecutionData sharedData){
+  private AStarPtLegSegmentBatchExecutorService(AStarBatchExecutionData sharedData){
     this.sharedData = sharedData;
   }
 
@@ -468,8 +474,8 @@ public final class AStarBatchExecutorService {
    * @param sharedData to use
    * @return created instance
    */
-  public static AStarBatchExecutorService create(AStarBatchExecutionData sharedData){
-    return new AStarBatchExecutorService(sharedData);
+  public static AStarPtLegSegmentBatchExecutorService create(AStarBatchExecutionData sharedData){
+    return new AStarPtLegSegmentBatchExecutorService(sharedData);
   }
 
   /**
