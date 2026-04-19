@@ -92,14 +92,15 @@ public class GtfsLinkHelper {
     /* register additional actions on breaking link via listener for connectoid update (see above) as connectoids and their access links might be affected/invalidated when
     * breaking links, this listener accounts for that */
     /* TODO: refactor this so it does not require this whole preparing of data. Ideally this is handled more elegantly than now */
-    Map<Point, Set<DirectedConnectoid>> connectoidsAccessNodeLocationBeforeBreakLink =
+    Set<DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink =
         ConnectoidUtils.findDirectedConnectoidsReferencingLinks(
             List.of(referenceLink),
             data.getDirectedConnectoidsByLocation(networkLayer).values().stream().flatMap(Collection::stream));
     GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(
         connectoidsAccessNodeLocationBeforeBreakLink);
 
-    /* now perform the breaking of links at the given node and update related tracking/reference information to broken link(segment)(s) where needed */
+    /* now perform the breaking of links at the given node and update related tracking/reference
+    information to broken link(segment)(s) where needed */
     breakLinksAtPlanitNode(planitNode, networkLayer, referenceLink, List.of(listener), data);
 
     return Pair.of(planitNode, Boolean.TRUE);
