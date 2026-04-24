@@ -8,7 +8,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
@@ -56,7 +56,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    * created and their used directed connectoids so we can pinpoint PT stop locations on the physical road network
    * more accurately rather than relying on the location of the transfer zone (pole, platform) which might cause
    * mismatches compared to GTFS STOP locations */
-  private Map<TransferZone,Set<DirectedConnectoid>> transferZoneConnectoidIndex;
+  private Map<TransferZone,Set<TransferConnectoid>> transferZoneConnectoidIndex;
 
   /** track existing transfer zones present geo spatially to be able to fuse with GTFS data when appropriate */
   private Quadtree geoIndexPreExistingTransferZones;
@@ -211,7 +211,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
   public void registerTransferZoneToConnectoidModes(
       TransferZone transferZone,
       ZoneConnectoidType type,
-      DirectedConnectoid directedConnectoid,
+      TransferConnectoid directedConnectoid,
       Collection<Mode> activatedPlanitModes) {
     activatedPlanitModes.forEach(
         m -> registerTransferZoneToConnectoidMode(transferZone, type, directedConnectoid, m));
@@ -228,7 +228,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
   public void registerTransferZoneToConnectoidMode(
       TransferZone transferZone,
       ZoneConnectoidType type,
-      DirectedConnectoid directedConnectoid,
+      TransferConnectoid directedConnectoid,
       Mode activatedPlanitMode) {
 
     /* remove all non service modes */
@@ -247,7 +247,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    * @param transferZone to extract for
    * @return known connectoids
    */
-  public Set<DirectedConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
+  public Set<TransferConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
     return transferZoneConnectoidIndex.get(transferZone);
   }
 

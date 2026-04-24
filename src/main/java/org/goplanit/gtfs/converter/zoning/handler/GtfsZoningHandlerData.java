@@ -15,7 +15,7 @@ import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.service.ServiceNode;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
@@ -272,7 +272,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    * @param networkLayer to use
    * @return registered directed connectoids indexed by location
    */
-  public Map<Point, List<DirectedConnectoid>> getDirectedConnectoidsByLocation(MacroscopicNetworkLayer networkLayer) {
+  public Map<Point, List<TransferConnectoid>> getDirectedConnectoidsByLocation(MacroscopicNetworkLayer networkLayer) {
     return connectoidData.getDirectedConnectoidsByLocation(networkLayer);
   }
 
@@ -282,7 +282,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    * @param networkLayer to extract from
    * @return found connectoids (if any), otherwise null or empty set
    */
-  public List<DirectedConnectoid> getDirectedConnectoidsByLocation(Point nodeLocation, MacroscopicNetworkLayer networkLayer) {
+  public List<TransferConnectoid> getDirectedConnectoidsByLocation(Point nodeLocation, MacroscopicNetworkLayer networkLayer) {
     return connectoidData.getDirectedConnectoidsByLocation(nodeLocation, networkLayer);
   }
 
@@ -293,7 +293,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    * @param connectoid to add
    * @return true when successful, false otherwise
    */
-  public boolean addDirectedConnectoidByLocation(MacroscopicNetworkLayer networkLayer, Point connectoidLocation , DirectedConnectoid connectoid) {
+  public boolean addDirectedConnectoidByLocation(MacroscopicNetworkLayer networkLayer, Point connectoidLocation , TransferConnectoid connectoid) {
     return connectoidData.addDirectedConnectoidByLocation(networkLayer, connectoidLocation, connectoid);
   }
 
@@ -381,7 +381,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   public void registerTransferZoneToConnectoidModes(
       TransferZone transferZone,
       ZoneConnectoidType type,
-      DirectedConnectoid directedConnectoid,
+      TransferConnectoid directedConnectoid,
       Set<Mode> activatedPlanitModes) {
     activatedPlanitModes.forEach(
         m -> registerTransferZoneToConnectoidMode(transferZone, type, directedConnectoid, m));
@@ -397,7 +397,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   public void registerTransferZoneToConnectoidMode(
       TransferZone transferZone,
       ZoneConnectoidType type,
-      DirectedConnectoid directedConnectoid,
+      TransferConnectoid directedConnectoid,
       Mode activatedPlanitMode) {
     transferZoneData.registerTransferZoneToConnectoidMode(transferZone, type, directedConnectoid, activatedPlanitMode);
   }
@@ -407,7 +407,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    * @param transferZone to extract for
    * @return known connectoids
    */
-  public Set<DirectedConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
+  public Set<TransferConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
     return transferZoneData.getTransferZoneConnectoids(transferZone);
   }
 

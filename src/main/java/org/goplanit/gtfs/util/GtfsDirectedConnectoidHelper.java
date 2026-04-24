@@ -2,17 +2,15 @@ package org.goplanit.gtfs.util;
 
 import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.ZoneConnectoidType;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -40,7 +38,7 @@ public class GtfsDirectedConnectoidHelper {
    * @param data containing state
    * @return created connectoids (should not retun null)
    */
-  public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(
+  public static Collection<TransferConnectoid> createAndRegisterDirectedConnectoids(
       final TransferZone transferZone,
       final MacroscopicNetworkLayer networkLayer,
       final ZoneConnectoidType type,
@@ -48,8 +46,8 @@ public class GtfsDirectedConnectoidHelper {
       final Iterable<? extends EdgeSegment> linkSegments,
       final Set<Mode> allowedModes, GtfsZoningHandlerData data){
 
-    Collection<DirectedConnectoid> createdConnectoids =
-        ZoningConverterUtils.createAndRegisterDirectedConnectoids(
+    Collection<TransferConnectoid> createdConnectoids =
+        ZoningConverterUtils.createAndRegisterTransferConnectoids(
             GTFS_CONNECTOID_EXTERNAL_INFERRED_ID,
             data.getZoning(),
             transferZone,
@@ -62,7 +60,7 @@ public class GtfsDirectedConnectoidHelper {
 
       /* 1) index by access node's location */
       data.addDirectedConnectoidByLocation(
-              networkLayer, newConnectoid.getAccessVertex().getPosition() ,newConnectoid);
+              networkLayer, newConnectoid.getReferenceVertex().getPosition() ,newConnectoid);
       /* 2) index connectoids on transfer zone, so we can collect it by transfer zone as well */
       data.registerTransferZoneToConnectoidModes(transferZone, type, newConnectoid, allowedModes);
 

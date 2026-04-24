@@ -111,7 +111,7 @@ public class GtfsTransferZoneHelper {
       if(!connectoid.hasAccessZoneEntry(transferZone)){
         continue;
       }
-      var entry = connectoid.getAccessZoneEntry(transferZone, PT_VEHICLE_STOP);
+      var entry = connectoid.getAsDirectedAccessZoneEntry(transferZone, PT_VEHICLE_STOP);
       for(var accessSegment : entry.getAccessLinkSegments()){
         var localProjection = PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
         success = success ||
@@ -162,7 +162,7 @@ public class GtfsTransferZoneHelper {
       } else {
         /* connectoid access node based */
         for (var dirConnectoid : directedConnectoids) {
-          var planitTransferZoneStopLocation = dirConnectoid.getAccessVertex().getPosition().getCoordinate();
+          var planitTransferZoneStopLocation = dirConnectoid.getReferenceVertex().getPosition().getCoordinate();
           double distance = data.getGeoTools().getDistanceInMetres(gtfsStopLocation, planitTransferZoneStopLocation);
           if (minDistance > distance) {
             closest = transferZone;

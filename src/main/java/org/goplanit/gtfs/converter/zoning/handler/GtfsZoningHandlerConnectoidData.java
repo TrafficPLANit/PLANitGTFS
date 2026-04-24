@@ -3,7 +3,7 @@ package org.goplanit.gtfs.converter.zoning.handler;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Point;
 
@@ -21,7 +21,7 @@ public class GtfsZoningHandlerConnectoidData {
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningHandlerConnectoidData.class.getCanonicalName());
 
   /** track created connectoids by their location and layer they reside on, needed to avoid creating duplicates when dealing with multiple modes/layers */
-  private final Map<MacroscopicNetworkLayer,Map<Point, List<DirectedConnectoid>>> directedConnectoidsByLocation;
+  private final Map<MacroscopicNetworkLayer,Map<Point, List<TransferConnectoid>>> directedConnectoidsByLocation;
 
   /**
    * Constructor
@@ -34,7 +34,7 @@ public class GtfsZoningHandlerConnectoidData {
 
     /* locate by position (point) so we can use it even if the entities/ids change */
     directedConnectoidsByLocation = referenceZoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(
-        serviceNetwork.getParentNetwork().getTransportLayers(), d -> d.getAccessVertex().getPosition());
+        serviceNetwork.getParentNetwork().getTransportLayers(), d -> d.getReferenceVertex().getPosition());
   }
 
   /**
@@ -49,7 +49,7 @@ public class GtfsZoningHandlerConnectoidData {
    * @param networkLayer to use
    * @return registered directed connectoids indexed by location
    */
-  public Map<Point, List<DirectedConnectoid>> getDirectedConnectoidsByLocation(MacroscopicNetworkLayer networkLayer) {
+  public Map<Point, List<TransferConnectoid>> getDirectedConnectoidsByLocation(MacroscopicNetworkLayer networkLayer) {
     directedConnectoidsByLocation.putIfAbsent(networkLayer, new HashMap<>());
     return Collections.unmodifiableMap(directedConnectoidsByLocation.get(networkLayer));
   }
@@ -60,7 +60,7 @@ public class GtfsZoningHandlerConnectoidData {
    * @param networkLayer to extract from
    * @return found connectoids (if any), otherwise null or empty set
    */
-  public List<DirectedConnectoid> getDirectedConnectoidsByLocation(
+  public List<TransferConnectoid> getDirectedConnectoidsByLocation(
           Point nodeLocation, MacroscopicNetworkLayer networkLayer) {
     return getDirectedConnectoidsByLocation(networkLayer).get(nodeLocation);
   }
@@ -73,11 +73,11 @@ public class GtfsZoningHandlerConnectoidData {
    * @return true when successful, false otherwise
    */
   public boolean addDirectedConnectoidByLocation(
-          MacroscopicNetworkLayer networkLayer, Point connectoidLocation , DirectedConnectoid connectoid) {
+          MacroscopicNetworkLayer networkLayer, Point connectoidLocation , TransferConnectoid connectoid) {
     directedConnectoidsByLocation.putIfAbsent(networkLayer, new HashMap<>());
-    Map<Point, List<DirectedConnectoid>> connectoidsForLayer = directedConnectoidsByLocation.get(networkLayer);
+    Map<Point, List<TransferConnectoid>> connectoidsForLayer = directedConnectoidsByLocation.get(networkLayer);
     connectoidsForLayer.putIfAbsent(connectoidLocation, new ArrayList<>(1));
-    List<DirectedConnectoid> connectoids = connectoidsForLayer.get(connectoidLocation);
+    List<TransferConnectoid> connectoids = connectoidsForLayer.get(connectoidLocation);
     if(!connectoids.contains(connectoid)) {
       return connectoids.add(connectoid);
     }
@@ -105,7 +105,7 @@ public class GtfsZoningHandlerConnectoidData {
    * @return true when present, false otherwise
    */
   public boolean hasDirectedConnectoidForLocation(NetworkLayer networkLayer, Point point) {
-    Map<Point, List<DirectedConnectoid>>  connectoidsForLayer = directedConnectoidsByLocation.get(networkLayer);
+    Map<Point, List<TransferConnectoid>>  connectoidsForLayer = directedConnectoidsByLocation.get(networkLayer);
     return connectoidsForLayer != null && connectoidsForLayer.get(point) != null &&
             !connectoidsForLayer.get(point).isEmpty();
   }

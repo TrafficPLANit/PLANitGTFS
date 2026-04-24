@@ -12,7 +12,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceNode;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
@@ -35,7 +35,7 @@ public class AStarBatchExecutionData {
   private final GtfsConverterModeMappingData modeMappingData;
 
   // local data during execution
-  private Map<Zone, Set<DirectedConnectoid>> connectoidsByAccessZone;
+  private Map<Zone, Set<TransferConnectoid>> connectoidsByAccessZone;
 
   private final Map<Mode, double[]> linkSegmentCostsByMode;
 
@@ -200,7 +200,7 @@ public class AStarBatchExecutionData {
     return modeMappingData.expandWithCompatibleModes(planitMode);
   }
 
-  public Set<DirectedConnectoid> getConnectoidsByAccessZone(TransferZone transferZone) {
+  public Set<TransferConnectoid> getConnectoidsByAccessZone(TransferZone transferZone) {
     return connectoidsByAccessZone.get(transferZone);
   }
 

@@ -17,9 +17,8 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.utils.path.SimpleDirectedPathImpl;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
-import org.goplanit.utils.zoning.ZoneConnectoidType;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -173,14 +172,14 @@ public final class AStarPtLegSegmentBatchExecutorService {
    * @param transferZone       to use
    * @return connectoids found, grouped by access node
    */
-  private Map<DirectedVertex, List<DirectedConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(
+  private Map<DirectedVertex, List<TransferConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(
           String gtfsStopId, TransferZone transferZone, ServiceNode gtfsStopServiceNode) {
     var transferZoneConnectoids = sharedData.getConnectoidsByAccessZone(transferZone);
 
     /* it is possible multiple connectoids exist, e.g., train platforms with access on both sides in either direction,
     therefore we group by access node */
     var resultByAccessNode = transferZoneConnectoids.stream().collect(
-            Collectors.groupingBy(DirectedConnectoid::getAccessVertex));
+            Collectors.groupingBy(TransferConnectoid::getReferenceVertex));
 
     /* When GTFS stop has been linked to a service node which in turn has already been mapped to a physical node,
      * then we must limit the connectoids we consider to access nodes matching the physical node that is related to
@@ -372,9 +371,9 @@ public final class AStarPtLegSegmentBatchExecutorService {
    */
   private Collection<SimpleDirectedPath> createShortestPathsBetweenAccessNodes(
           Mode mode,
-          List<DirectedConnectoid> upstreamAccessNodeConnectoids,
+          List<TransferConnectoid> upstreamAccessNodeConnectoids,
           TransferZone transferZoneUpstream,
-          List<DirectedConnectoid> downstreamAccessNodeConnectoids,
+          List<TransferConnectoid> downstreamAccessNodeConnectoids,
           TransferZone transferZoneDownstream,
           ShortestPathAStar shortestPathAlgo) {
 
@@ -383,7 +382,8 @@ public final class AStarPtLegSegmentBatchExecutorService {
       if (!upstreamConnectoid.isModeAllowed(transferZoneUpstream, PT_VEHICLE_STOP, mode)) {
         continue;
       }
-      var upstreamAccessEntry = upstreamConnectoid.getAccessZoneEntry(transferZoneUpstream, PT_VEHICLE_STOP);
+      var upstreamAccessEntry =
+          upstreamConnectoid.getAsDirectedAccessZoneEntry(transferZoneUpstream, PT_VEHICLE_STOP);
       for(var upstreamAccessSegment : upstreamAccessEntry.getAccessLinkSegments()) {
         if (!((MacroscopicLinkSegment)upstreamAccessSegment).isModeAllowed(mode)) {
           continue;
@@ -392,7 +392,8 @@ public final class AStarPtLegSegmentBatchExecutorService {
           if (!downstreamConnectoid.isModeAllowed(transferZoneDownstream, PT_VEHICLE_STOP, mode)) {
             continue;
           }
-          var downstreamAccessEntry = downstreamConnectoid.getAccessZoneEntry(transferZoneDownstream, PT_VEHICLE_STOP);
+          var downstreamAccessEntry =
+              downstreamConnectoid.getAsDirectedAccessZoneEntry(transferZoneDownstream, PT_VEHICLE_STOP);
           for (var downstreamAccessSegment : downstreamAccessEntry.getAccessLinkSegments()) {
             if (!((MacroscopicLinkSegment) downstreamAccessSegment).isModeAllowed(mode)) {
               continue;
@@ -419,12 +420,12 @@ public final class AStarPtLegSegmentBatchExecutorService {
 
               /* execute shortest path */
               ShortestPathResult result = shortestPathAlgo.executeOneToOne(
-                  upstreamConnectoid.getAccessVertex(),
+                  upstreamConnectoid.getReferenceVertex(),
                   downstreamAccessSegment.getUpstreamVertex(),
                   bannedLinkSegments);
               var foundPath = (SimpleDirectedPathImpl) result.createPath(
                   new SimpleDirectedPathFactoryImpl(),
-                  upstreamConnectoid.getAccessVertex(),
+                  upstreamConnectoid.getReferenceVertex(),
                   downstreamAccessSegment.getUpstreamVertex());
 
               foundPath.append(downstreamAccessSegment);
