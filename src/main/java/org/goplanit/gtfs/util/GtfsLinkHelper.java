@@ -43,7 +43,8 @@ public class GtfsLinkHelper {
     // with the utils class
     var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
     searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
-    return GeoContainerUtils.queryEdgeQuadtree(data.getGeoIndexedLinks(), searchEnvelope);
+
+    return data.getConverterData().findLinksSpatiallyAcrossLayers(searchEnvelope);
   }
 
   /** Extract/create a PLANit node based on the given location. Either it already exists as a PLANit node, or it
@@ -111,7 +112,8 @@ public class GtfsLinkHelper {
     Set<TransferConnectoid> connectoidsAccessNodeLocationBeforeBreakLink =
         ConnectoidUtils.findDirectedConnectoidsReferencingLinks(
             List.of(referenceLink),
-            data.getDirectedConnectoidsByLocation(networkLayer).values().stream().flatMap(Collection::stream));
+            data.getConverterData().getConnectoidData().getTransferConnectoidsByLocation(
+                networkLayer).values().stream().flatMap(Collection::stream));
     GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(
         connectoidsAccessNodeLocationBeforeBreakLink);
 
@@ -153,7 +155,7 @@ public class GtfsLinkHelper {
       {
         /* remove links from spatial index when they are broken up and their geometry changes, after breaking
         more links exist with smaller geometries... insert those after as replacements*/
-        data.removeGeoIndexedLink(linkToBreak);
+        data.getConverterData().removeLinkFromSpatialLinkIndex(linkToBreak);
       }
 
       /* break links */
@@ -164,7 +166,8 @@ public class GtfsLinkHelper {
       /* AFTER - TRACKING DATA CONSISTENCY */
       {
         /* insert created/updated links and their geometries to spatial index instead */
-        newlyBrokenLinks.forEach( (id, linkPair) -> data.addGeoIndexedLinks(linkPair.first(), linkPair.second()));
+        newlyBrokenLinks.forEach( (id, linkPair) ->
+            data.getConverterData().addLinksToSpatialLinkIndex(networkLayer, linkPair.first(), linkPair.second()));
       }
     }
 

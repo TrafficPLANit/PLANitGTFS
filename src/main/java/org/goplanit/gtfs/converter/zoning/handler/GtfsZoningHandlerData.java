@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
+import org.goplanit.converter.zoning.ZoningConverterCommonData;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
@@ -46,25 +47,25 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   /** profiler stats to update across applying of various zoning handlers that use this data instance */
   private final GtfsZoningHandlerProfiler handlerProfiler;
 
-  /** All pre-existing service nodes and the modes this node supports by means of the routed services that visit id by their GTFS stop id.
-   * Note that service nodes might reside in a layer supporting many modes, while the service node itself only covers a few routed services with a subset
-   * of modes, therefore we identify those separately for better matching results when mapping service nodes/stops to GTFS STOPS here*/
+  /** All pre-existing service nodes and the modes this node supports by means of the routed services that visit id
+   * by their GTFS stop id. Note that service nodes might reside in a layer supporting many modes, while the
+   * service node itself only covers a few routed services with a subset of modes, therefore we identify
+   * those separately for better matching results when mapping service nodes/stops to GTFS STOPS here*/
   private Map<String, Pair<ServiceNode, List<Mode>>> serviceNodeModesByGtfsStopId;
 
   // LOCAL DATA TRACKING - UPDATED WHILE PROCESSING
 
-  /** track connectoid data */
-  private GtfsZoningHandlerConnectoidData connectoidData;
+  /** track spatially indexed links and connectoids by location and other common data using the PLANit core
+   * functionality out of the box */
+  ZoningConverterCommonData commonConverterData;
 
   /** track transfer zone data */
   private GtfsZoningHandlerTransferZoneData transferZoneData;
 
-  /** track link geospatially to identify nearby links for GTFS Stops and be able to discern if a matched transfer zone (its access link segment) is appropriate */
-  private Quadtree geoIndexedLinks;
-
   // STATIC INFORMATION DURING PROCESSING
 
-  /** created envelope for the rectangular bounding box of the reference network, can be used to discard unusable GTFS entities that fall outside this area */
+  /** created envelope for the rectangular bounding box of the reference network, can be used to discard unusable
+   * GTFS entities that fall outside this area */
   private Envelope referenceNetworkBoundingBox;
 
   /** geo tools with CRS based configuration to apply */
@@ -84,22 +85,24 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   protected void initialise(){
     this.serviceNodeModesByGtfsStopId = new HashMap<>();
 
+    var connectoidData = new GtfsZoningHandlerConnectoidData(getServiceNetwork(), getZoning());
+    this.commonConverterData = new ZoningConverterCommonData(
+        getServiceNetwork().getParentNetwork(), getZoning(), connectoidData);
     /* all links across all used layers for activated modes in geoindexed format */
-    Set<MacroscopicNetworkLayer> usedLayers = new HashSet<>();
-    getActivatedPlanitModes().forEach(m -> usedLayers.add(getServiceNetwork().getParentNetwork().getLayerByMode(m)));
-    Collection<MacroscopicLinks> linksCollection = new ArrayList<>();
-    usedLayers.forEach( l -> linksCollection.add(l.getLinks()));
-    this.geoIndexedLinks = GeoContainerUtils.toGeoIndexed(linksCollection);
+    commonConverterData.recreateSpatiallyIndexedLinks();
 
     this.geoTools = new PlanitJtsCrsUtils(getServiceNetwork().getParentNetwork().getCoordinateReferenceSystem());
-    this.crsTransform = PlanitJtsUtils.findMathTransform(PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
+    this.crsTransform = PlanitJtsUtils.findMathTransform(
+        PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
 
     /* index: MODE -> (pre-existing) SERVICE NODE */
     for(var routedServiceLayer : getRoutedServices().getLayers()){
       for(var routedModeServices : routedServiceLayer) {
         for(var routedService : routedModeServices){
           if(!routedService.getTripInfo().hasAnyTrips()){
-            LOGGER.warning(String.format("Found empty routed service %s %s, indicating sub-optimal or corrupt PLANit routed services, this shouldn't happen", routedService.getXmlId(), routedService.getName()));
+            LOGGER.warning(String.format("Found empty routed service %s %s, indicating sub-optimal or " +
+                "corrupt PLANit routed services, this shouldn't happen",
+                routedService.getXmlId(), routedService.getName()));
             continue;
           }
 
@@ -122,10 +125,12 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
       }
     }
 
-    /* extract bounding box of the reference network, used to reduce warnings in case GTFS source exceeds area covered by PLANit network */
+    /* extract bounding box of the reference network, used to reduce warnings in case GTFS source exceeds
+    area covered by PLANit network */
     this.referenceNetworkBoundingBox = getServiceNetwork().getParentNetwork().createBoundingBox();
     if(referenceNetworkBoundingBox == null){
-      LOGGER.severe("No bounding box could be created for reference network in GTFS zoning handler, likely network is empty");
+      LOGGER.severe("No bounding box could be created for reference network in GTFS zoning handler, " +
+          "likely network is empty");
     }
 
   }
@@ -151,7 +156,6 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
     this.handlerProfiler = handlerProfiler;
 
     initialise();
-    this.connectoidData = new GtfsZoningHandlerConnectoidData(serviceNetwork, zoningToPopulate);
     this.transferZoneData = new GtfsZoningHandlerTransferZoneData(serviceNetwork, settings, zoningToPopulate);
   }
 
@@ -218,102 +222,19 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
     return this.crsTransform;
   }
 
-  /**
-   * Get all the geo indexed links as a quad tree
-   *
-   * @return registered geo indexed links
-   */
-  public Quadtree getGeoIndexedLinks() {
-    return this.geoIndexedLinks;
-  }
-
-  /** Remove link from local spatial index based on links
-   *
-   * @param link to remove
-   */
-  public void removeGeoIndexedLink(MacroscopicLink link) {
-    if(link != null) {
-      geoIndexedLinks.remove(link.createEnvelope(), link);
-    }
-  }
-
-  /** Add provided link to local spatial index based on their bounding box
-   *
-   * @param link to add
-   */
-  public void addGeoIndexedLink(MacroscopicLink link) {
-    if(link != null) {
-      geoIndexedLinks.insert(link.createEnvelope(), link);
-    }
-  }
-
-  /** Add provided link to local spatial index based on their bounding box
-   *
-   * @param links to add
-   */
-  public void addGeoIndexedLinks(MacroscopicLink... links) {
-    if(links != null) {
-      for(var link : links) {
-        geoIndexedLinks.insert(link.createEnvelope(), link);
-      }
-    }
-  }
-
-  // CONNECTOID METHODS
-
-  /**
+    /**
    * @return bounding box of used reference network */
   public Envelope getReferenceNetworkBoundingBox() {
     return referenceNetworkBoundingBox;
   }
 
-  /** collect the registered connectoids indexed by their locations for a given network layer (unmodifiable)
+  /**
+   * Access to common converter tracking data
    *
-   * @param networkLayer to use
-   * @return registered directed connectoids indexed by location
+   * @return instance
    */
-  public Map<Point, List<TransferConnectoid>> getDirectedConnectoidsByLocation(MacroscopicNetworkLayer networkLayer) {
-    return connectoidData.getDirectedConnectoidsByLocation(networkLayer);
-  }
-
-  /** Collect the registered connectoids by given locations and network layer (unmodifiable)
-   *
-   * @param nodeLocation to verify
-   * @param networkLayer to extract from
-   * @return found connectoids (if any), otherwise null or empty set
-   */
-  public List<TransferConnectoid> getDirectedConnectoidsByLocation(Point nodeLocation, MacroscopicNetworkLayer networkLayer) {
-    return connectoidData.getDirectedConnectoidsByLocation(nodeLocation, networkLayer);
-  }
-
-  /** Add a connectoid to the registered connectoids indexed by their OSM id
-   *
-   * @param networkLayer to register for
-   * @param connectoidLocation this connectoid relates to
-   * @param connectoid to add
-   * @return true when successful, false otherwise
-   */
-  public boolean addDirectedConnectoidByLocation(MacroscopicNetworkLayer networkLayer, Point connectoidLocation , TransferConnectoid connectoid) {
-    return connectoidData.addDirectedConnectoidByLocation(networkLayer, connectoidLocation, connectoid);
-  }
-
-  /** Check if any connectoids have been registered for the given location on any layer
-   *
-   * @param location to verify
-   * @return true when present, false otherwise
-   */
-  public boolean hasAnyDirectedConnectoidsForLocation(Point location) {
-    return connectoidData.hasAnyDirectedConnectoidsForLocation(location);
-  }
-
-  /** Check if any connectoid has been registered for the given location for this layer
-   *
-   * @param networkLayer to check for
-   * @param point to use
-   * @return true when present, false otherwise
-   */
-  public boolean hasDirectedConnectoidForLocation(NetworkLayer networkLayer, Point point) {
-    return connectoidData.hasDirectedConnectoidForLocation(networkLayer, point);
+  public ZoningConverterCommonData getConverterData(){
+    return commonConverterData;
   }
 
   // TRANSFER ZONE METHODS
