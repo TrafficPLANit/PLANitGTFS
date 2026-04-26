@@ -2,11 +2,7 @@ package org.goplanit.gtfs.converter.zoning.handler;
 
 import org.goplanit.converter.zoning.ZoningConverterConnectoidData;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.NetworkLayer;
-import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.zoning.Zoning;
-import org.locationtech.jts.geom.Point;
 
 import java.util.*;
 import java.util.logging.Logger;
