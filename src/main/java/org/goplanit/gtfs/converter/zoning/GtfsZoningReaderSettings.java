@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.zoning;
 
+import org.goplanit.converter.zoning.AccessEgressInjectionSettings;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
@@ -41,6 +42,10 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * search radius used when mapping GTFS stops to PLANit road network, which given that GTFS stop is the vehicle stop location, should be less than distance to pole
    */
   private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
+
+
+  /** bundles a number of settings regarding attaching access/egress settings for transfer zones */
+  AccessEgressInjectionSettings accessEgressInjectionSettings = new AccessEgressInjectionSettings();
 
   /**
    * Provide explicit mapping from GTFS stop (by GTFS stop id) to existing PLANit transfer zone(s) based on an id (XML or external id (third party source ide.g., OSM id)),
@@ -528,6 +533,84 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   public boolean isForceCreateNewTransferZoneForGtfsStop(final String gtfsStopId) {
     return forceCreateNewTransferZoneForGtfsStops.contains(gtfsStopId);
+  }
+
+  /**
+   * flag for connecting ferry stops to nearby land network if not already connected
+   * @return true when active, false otherwise
+   */
+  public boolean isConnectFerryStopsToNearbyLandNetwork() {
+    return accessEgressInjectionSettings.isConnectFerryStopsToNearbyLandNetwork();
+  }
+
+  /** Decide whether to connect ferry stops to nearby land network if not already connected
+   *
+   * @param connectFerryStopToNearbyLandNetwork when true do this, when false do not
+   */
+  public void setConnectFerryStopsToNearbyLandNetwork(boolean connectFerryStopToNearbyLandNetwork) {
+    this.accessEgressInjectionSettings.setConnectFerryStopsToNearbyLandNetwork(connectFerryStopToNearbyLandNetwork);
+  }
+
+  /**
+   * Access to search radius for ferry stop to ferry route
+   * @return search radius
+   */
+  public double getFerryStopToNearbyLandNetworkSearchRadiusMeters() {
+    return accessEgressInjectionSettings.getFerryStopToNearbyLandNetworkSearchRadiusMeters();
+  }
+
+  /**
+   * flag for connecting rail based stops to nearby road network if not already connected
+   * @return true when active, false otherwise
+   */
+  public boolean isConnectRailBasedStopsToPassengerNetwork() {
+    return accessEgressInjectionSettings.isConnectRailBasedStopsToPassengerNetwork();
+  }
+
+  /** Decide whether to connect ferry stops to nearby land network if not already connected
+   *
+   * @param connectRailBasedStopToPassengerNetwork when true do this, when false do not
+   */
+  public void setConnectRailBasedStopsToPassengerNetwork(boolean connectRailBasedStopToPassengerNetwork) {
+    accessEgressInjectionSettings.setConnectRailBasedStopsToPassengerNetwork(connectRailBasedStopToPassengerNetwork);
+  }
+
+  /**
+   * Access to search radius for rail based stop to road network
+   * @return search radius
+   */
+  public double getRailBasedStopToPassengerNetworkSearchRadiusMeters() {
+    return accessEgressInjectionSettings.getRailBasedStopToPassengerNetworkSearchRadiusMeters();
+  }
+
+  /**
+   * Set  search radius for ferry stop to land network
+   * @param searchRadiusFerryStopToLandNetworkMeters  search radius
+   */
+  public void setFerryStopToLandNetworkSearchRadiusMeters(Number searchRadiusFerryStopToLandNetworkMeters) {
+    if(searchRadiusFerryStopToLandNetworkMeters == null){
+      LOGGER.severe("Unable to set ferry stop to land network search radius as parameter is null");
+      return;
+    }
+    accessEgressInjectionSettings.setFerryStopToLandNetworkSearchRadiusMeters(
+        searchRadiusFerryStopToLandNetworkMeters.doubleValue());
+  }
+
+  /**
+   * flag for connecting bus based stops to nearby passenger network if not already connected
+   * @return true when active, false otherwise
+   */
+  public boolean isConnectBusBasedStopsToPassengerNetwork() {
+    return accessEgressInjectionSettings.isConnectBusBasedStopsToPassengerNetwork();
+  }
+
+  /** Decide whether to connect bus based stops to nearby road network if not already connected for access egress modes
+   *
+   * @param connectBusBasedStopToPassengerNetwork when true do this, when false do not
+   */
+  public void setConnectBusBasedStopsToPassengerNetwork(boolean connectBusBasedStopToPassengerNetwork) {
+    this.accessEgressInjectionSettings.setConnectBusBasedStopsToPassengerNetwork(
+        connectBusBasedStopToPassengerNetwork);
   }
 
 }
