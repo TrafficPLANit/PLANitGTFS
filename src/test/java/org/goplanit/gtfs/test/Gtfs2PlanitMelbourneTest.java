@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Envelope;
 
 import java.nio.file.Path;
 import java.time.DayOfWeek;
@@ -45,6 +46,10 @@ public class Gtfs2PlanitMelbourneTest {
 
   public static final Path GTFS_VIC_NO_SHAPES =
       Path.of("GTFS", "VIC", "melbourne_gtfs_9_3_2023_no_shapes.zip");
+
+  /** bounding area to apply */
+  public static final Envelope MELBOURNE_SIMPLE_BOUNDING_BOX =
+      new Envelope(144.995842, 144.921341, -37.855068,-37.786996);
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -101,7 +106,8 @@ public class Gtfs2PlanitMelbourneTest {
           LocalTime.of(9, 59,59));
 
       MelbourneGtfsServicesSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getServiceSettings());
-      MelbourneGtfsZoningSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getZoningSettings(), true);
+      MelbourneGtfsZoningSettingsUtils.minimiseVerifiedWarnings2023(
+          inputSettings.getZoningSettings(), true);
 
       /* debugging option examples*/
       {

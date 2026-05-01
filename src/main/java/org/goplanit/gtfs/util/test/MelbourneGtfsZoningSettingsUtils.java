@@ -125,5 +125,8 @@ public class MelbourneGtfsZoningSettingsUtils {
     settings.overwriteGtfsStopToLinkMapping("6530","984811437", IdMapperType.EXTERNAL_ID);
     settings.overwriteGtfsStopToLinkMapping("7575","9124321", IdMapperType.EXTERNAL_ID);
 
+    /* discarded for valid reasons, checked so remove */
+    settings.excludeGtfsStopsById("103", "16771", "20709");
+
   }
 }

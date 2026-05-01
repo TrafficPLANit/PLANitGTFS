@@ -1,27 +1,25 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
+import org.geotools.geometry.jts.JTS;
+import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
 import org.goplanit.converter.zoning.ZoningConverterCommonData;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.utils.geo.GeoContainerUtils;
+import org.goplanit.utils.geo.PlanitCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.NetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.index.quadtree.Quadtree;
 import org.geotools.api.referencing.operation.MathTransform;
 
@@ -64,15 +62,14 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
 
   // STATIC INFORMATION DURING PROCESSING
 
-  /** created envelope for the rectangular bounding box of the reference network, can be used to discard unusable
-   * GTFS entities that fall outside this area */
-  private Envelope referenceNetworkBoundingBox;
+  /** bounding area helper to use either based on configured bounding area, or inferred from PLANit network */
+  ProjectedBoundingAreaHelper boundingAreaHelper;
 
   /** geo tools with CRS based configuration to apply */
-  private PlanitJtsCrsUtils geoTools;
+  private PlanitJtsCrsUtils geoToolsInPlanitCrs;
 
   /** apply this transformation to all coordinates so they are consistent with the underlying PLANit entities */
-  private MathTransform crsTransform;
+  private MathTransform crsTransformGtfsToPlanit;
 
   // TO POPULATE
 
@@ -82,7 +79,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   /**
    * Initialise the tracking of data
    */
-  protected void initialise(){
+  protected void initialise(GtfsZoningReaderSettings settings){
     this.serviceNodeModesByGtfsStopId = new HashMap<>();
 
     var connectoidData = new GtfsZoningHandlerConnectoidData(getServiceNetwork(), getZoning());
@@ -91,9 +88,12 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
     /* all links across all used layers for activated modes in geoindexed format */
     commonConverterData.recreateSpatiallyIndexedLinks();
 
-    this.geoTools = new PlanitJtsCrsUtils(getServiceNetwork().getParentNetwork().getCoordinateReferenceSystem());
-    this.crsTransform = PlanitJtsUtils.findMathTransform(
-        PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoTools.getCoordinateReferenceSystem());
+    // geotools in network CRS
+    this.geoToolsInPlanitCrs =
+        new PlanitJtsCrsUtils(getServiceNetwork().getParentNetwork().getCoordinateReferenceSystem());
+    // transform from GTFS native WGS84 to network CRS
+    this.crsTransformGtfsToPlanit = PlanitJtsUtils.findMathTransform(
+        PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoToolsInPlanitCrs.getCoordinateReferenceSystem());
 
     /* index: MODE -> (pre-existing) SERVICE NODE */
     for(var routedServiceLayer : getRoutedServices().getLayers()){
@@ -125,13 +125,27 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
       }
     }
 
-    /* extract bounding box of the reference network, used to reduce warnings in case GTFS source exceeds
-    area covered by PLANit network */
-    this.referenceNetworkBoundingBox = getServiceNetwork().getParentNetwork().createBoundingBox();
-    if(referenceNetworkBoundingBox == null){
-      LOGGER.severe("No bounding box could be created for reference network in GTFS zoning handler, " +
-          "likely network is empty");
+    // base on user defined polygon or alternatively use underlying network "rough" bounding area to
+    // reduce warnings around edges at least, but then no GTFS entities will be discarded based on it
+    Polygon boundingPolygonInGtfsCrs = null;
+    if(!settings.hasBoundingBoundary()){
+      var boundingPolygonInPlanitCrs =
+          PlanitJtsUtils.create2DPolygon(getServiceNetwork().getParentNetwork().createBoundingBox());
+      try{
+        boundingPolygonInGtfsCrs = (Polygon) JTS.transform(
+            boundingPolygonInPlanitCrs, getCrsTransformGtfsToPlanit().inverse());
+      }catch (Exception e){}
+    }else{
+      boundingPolygonInGtfsCrs = settings.getBoundingArea();
     }
+
+    // use helper for quick indexed checks
+    this.boundingAreaHelper = ProjectedBoundingAreaHelper.of(
+        boundingPolygonInGtfsCrs,
+        PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS,
+        geoToolsInPlanitCrs.getCoordinateReferenceSystem(),
+        settings.getMaximumDistanceFerryOutsideBoundingPolygonInMeters()
+    );
 
   }
 
@@ -155,7 +169,7 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
     this.routedServices = routedServices;
     this.handlerProfiler = handlerProfiler;
 
-    initialise();
+    initialise(settings);
     this.transferZoneData = new GtfsZoningHandlerTransferZoneData(serviceNetwork, settings, zoningToPopulate);
   }
 
@@ -209,8 +223,8 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    *
    * @return geo tools
    */
-  public PlanitJtsCrsUtils getGeoTools(){
-    return this.geoTools;
+  public PlanitJtsCrsUtils getGeoToolsInPlanitCrs(){
+    return this.geoToolsInPlanitCrs;
   }
 
   /**
@@ -218,14 +232,8 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    *
    * @return transformation
    */
-  public MathTransform getCrsTransform() {
-    return this.crsTransform;
-  }
-
-    /**
-   * @return bounding box of used reference network */
-  public Envelope getReferenceNetworkBoundingBox() {
-    return referenceNetworkBoundingBox;
+  public MathTransform getCrsTransformGtfsToPlanit() {
+    return this.crsTransformGtfsToPlanit;
   }
 
   /**
@@ -360,4 +368,12 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
     return transferZoneData.createGtfsStopToTransferZonesMappingFunction();
   }
 
+  /**
+   * Access to bounding area helper
+   *
+   * @return bounding area helper
+   */
+  public ProjectedBoundingAreaHelper getBoundingAreaHelper() {
+    return this.boundingAreaHelper;
+  }
 }

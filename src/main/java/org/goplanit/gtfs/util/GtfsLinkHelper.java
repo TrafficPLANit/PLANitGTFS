@@ -1,8 +1,9 @@
 package org.goplanit.gtfs.util;
 
+import org.geotools.api.geometry.Position;
+import org.geotools.geometry.Position2D;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
@@ -22,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Utils class related to GTFS and PLANit link functionality
@@ -30,20 +32,18 @@ import java.util.Set;
  */
 public class GtfsLinkHelper {
 
-  /**
+   /**
    * Find nearby links based on a given search radius
-   * @param location point location to search around (in WGS84 CRS)
+   * @param locationInPlanitCrs point location to search around
    * @param pointSearchRadiusMeters search radius to apply
    * @param data containing state
    * @return found links around this location (in network CRS)
    */
   public static Collection<MacroscopicLink> findNearbyLinks(
-      Point location, double pointSearchRadiusMeters, GtfsZoningHandlerData data) {
-    //todo change implementation so it does not necessarily require WGS84 input locations as it is inconsistent
-    // with the utils class
-    var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
-    searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
+      Point locationInPlanitCrs, double pointSearchRadiusMeters, GtfsZoningHandlerData data) {
 
+    var searchEnvelope = data.getGeoToolsInPlanitCrs().createBoundingBox(
+        locationInPlanitCrs.getX(), locationInPlanitCrs.getY() ,pointSearchRadiusMeters);
     return data.getConverterData().findLinksSpatiallyAcrossLayers(searchEnvelope);
   }
 
@@ -52,7 +52,8 @@ public class GtfsLinkHelper {
    * the former case, we simply collect the PLANit node. When we break the link all relevant GTFS relate state
    * data is also updated to reflect the enw situation appropriately
    *
-   * @param gtfsStopNodeLocation to collect/create PLANit node for (can be slightly altered in case of rounding/syncing
+   * @param stopLocationInPlanitCrs to collect/create PLANit node for (can be slightly altered in case of
+   *                                rounding/syncing
    *                             with reference link geometry)
    * @param referenceLink the location is related to, can be internal can be an extreme node
    * @param networkLayer to extract node on
@@ -61,48 +62,51 @@ public class GtfsLinkHelper {
    * newly created (true), false otherwise
    */
   public static Pair<Node,Boolean> extractNodeByLinkGeometryLocation(
-      Point gtfsStopNodeLocation,
+      Point stopLocationInPlanitCrs,
       final MacroscopicLink referenceLink,
       final MacroscopicNetworkLayer networkLayer,
       final GtfsZoningHandlerData data){
 
-    PlanItRunTimeException.throwIfNull(gtfsStopNodeLocation, "Stop node location is null, not allowed");
-    PlanItRunTimeException.throwIfNull(referenceLink, "Designated access link for GTFS stop is null, not allowed");
+    PlanItRunTimeException.throwIfNull(stopLocationInPlanitCrs,
+        "Stop node location is null, not allowed");
+    PlanItRunTimeException.throwIfNull(referenceLink,
+        "Designated access link for GTFS stop is null, not allowed");
 
     /* prefer to use extreme node of access link which avoids breaking links, but it should be the same or extremely
     close to the extreme node to be eligible */
     final double extremeNodeMaxDistanceMeters = 5.0;
-    Node planitNode = data.getGeoTools().isDistanceWithinMetres(referenceLink.getNodeA().getPosition(),
-        gtfsStopNodeLocation, extremeNodeMaxDistanceMeters) ? referenceLink.getNodeA() : null;
-    planitNode = data.getGeoTools().isDistanceWithinMetres(referenceLink.getNodeB().getPosition(),
-        gtfsStopNodeLocation, extremeNodeMaxDistanceMeters) ?  referenceLink.getNodeB() : planitNode;
+    Node planitNode = data.getGeoToolsInPlanitCrs().isDistanceWithinMetres(referenceLink.getNodeA().getPosition(),
+        stopLocationInPlanitCrs, extremeNodeMaxDistanceMeters) ? referenceLink.getNodeA() : null;
+    planitNode = data.getGeoToolsInPlanitCrs().isDistanceWithinMetres(referenceLink.getNodeB().getPosition(),
+        stopLocationInPlanitCrs, extremeNodeMaxDistanceMeters) ?  referenceLink.getNodeB() : planitNode;
     if(planitNode != null) {
       return Pair.of(planitNode, Boolean.FALSE);
     }
 
     // New node required
 
-    /* in case location is not yet an explicit point on the link's geometry, we explicitly inject it to allow for link breaking at this point (search with minimal margin to avoid missing a match due to
-       precision issues in case the link was persisted to disk and parsed with reduced precision */
+    /* in case location is not yet an explicit point on the link's geometry, we explicitly inject it to allow
+    for link breaking at this point (search with minimal margin to avoid missing a match due to
+    precision issues in case the link was persisted to disk and parsed with reduced precision */
     int existingCoordinatePosition = PlanitJtsUtils.findFirstCoordinatePosition(
-        gtfsStopNodeLocation.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
+        stopLocationInPlanitCrs.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
     if(existingCoordinatePosition<0){
       LinearLocation projectedLinearLocationOnLink =
           PlanitEntityGeoUtils.extractClosestProjectedLinearLocationToGeometryFromEdge(
-              gtfsStopNodeLocation, referenceLink, data.getGeoTools());
+              stopLocationInPlanitCrs, referenceLink, data.getGeoToolsInPlanitCrs());
       referenceLink.updateGeometryInjectCoordinateAtProjectedLocation(projectedLinearLocationOnLink);
       /* update coordinate position */
       existingCoordinatePosition = PlanitJtsUtils.findFirstCoordinatePosition(
-          gtfsStopNodeLocation.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
+          stopLocationInPlanitCrs.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
     }
     /* to make sure the location of the node and that of the link is exactly the same (avoid rounding due to tolerance
      used above in matching we update the location used to the link's internal location that was created/existed. */
-    gtfsStopNodeLocation =
+    stopLocationInPlanitCrs =
         PlanitJtsUtils.createPoint(referenceLink.getGeometry().getCoordinateN(existingCoordinatePosition));
 
     /* location is internal to an existing link, create new PLANit node at this location to serve as the new point
     of demarcation for the link that is to be broken */
-    planitNode = networkLayer.getNodes().getFactory().registerNew(gtfsStopNodeLocation, true);
+    planitNode = networkLayer.getNodes().getFactory().registerNew(stopLocationInPlanitCrs, true);
 
     /* register additional actions on breaking link via listener for connectoid update (see above) as connectoids
     and their access links might be affected/invalidated when
@@ -160,7 +164,7 @@ public class GtfsLinkHelper {
 
       /* break links */
       Map<Long, Pair<MacroscopicLink, MacroscopicLink>> newlyBrokenLinks = networkLayer.getLayerModifier().breakAt(
-          linkToBreak, planitNode, data.getGeoTools().getCoordinateReferenceSystem());
+          linkToBreak, planitNode, data.getGeoToolsInPlanitCrs().getCoordinateReferenceSystem());
 
 
       /* AFTER - TRACKING DATA CONSISTENCY */

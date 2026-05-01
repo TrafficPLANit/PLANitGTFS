@@ -235,8 +235,11 @@ public abstract class GtfsFileReaderBase {
 
     // use Univocity as it is faster than Commons CSV parser
     CsvParserSettings csvParserSettings = new CsvParserSettings();
-    csvParserSettings.setHeaderExtractionEnabled(false); // does not work intuitively, do it manually instead
+    // does not work intuitively, do it manually instead
+    csvParserSettings.setHeaderExtractionEnabled(false);
     csvParserSettings.setLineSeparatorDetectionEnabled(true);
+    // to avoid race conditions, we force to read on same thread, otherwise we see occasional problems here
+    csvParserSettings.setReadInputOnSeparateThread(false);
 
     // Dialect tuned to GTFS expectations:
     CsvFormat format = csvParserSettings.getFormat();
@@ -249,8 +252,6 @@ public abstract class GtfsFileReaderBase {
 //    settings.setIgnoreTrailingWhitespaces(false);
 //    settings.setNullValue("");
 //    settings.setEmptyValue("");
-
-
 
     // Create the parser
     CsvParser parser = new CsvParser(csvParserSettings);

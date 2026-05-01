@@ -35,15 +35,15 @@ public class GtfsTransferZoneHelper {
    * Helper method to create and register a new transfer zone based on a GTFS stop
    *
    * @param gtfsStop to use
-   * @param projectedGtfsStopLocation projected location to use
+   * @param stopLocationInPlanitCrs projected location to use
    * @param type type of transfer zone
    * @param data containing state
    * @return created and registered transfer zone
    */
   public static TransferZone createAndRegisterNewTransferZone(
-          GtfsStop gtfsStop, Point projectedGtfsStopLocation, TransferZoneType type, GtfsZoningHandlerData data) {
+          GtfsStop gtfsStop, Point stopLocationInPlanitCrs, TransferZoneType type, GtfsZoningHandlerData data) {
     TransferZone transferZone = data.getZoning().getTransferZones().getFactory().registerNew(type, true);
-    transferZone.setGeometry(projectedGtfsStopLocation);
+    transferZone.setGeometry(stopLocationInPlanitCrs);
 
     /* external id  = GTFS stop id*/
     transferZone.setExternalId(gtfsStop.getStopId());
@@ -101,10 +101,14 @@ public class GtfsTransferZoneHelper {
 
     /* only consider connectoids that are mode compatible */
     connectoids = connectoids.stream().filter(c ->
-        c.isModeAllowed(transferZone, PT_VEHICLE_STOP, gtfsMode)).collect(Collectors.toUnmodifiableSet());
+        c.isModeAllowed(transferZone, PT_VEHICLE_STOP, gtfsMode, false)).collect(
+            Collectors.toUnmodifiableSet());
     if(connectoids.isEmpty()){
       return false;
     }
+
+    var localProjection = PlanitJtsUtils.transformGeometry(
+        gtfsStop.getLocationAsPoint(), data.getCrsTransformGtfsToPlanit());
 
     boolean success = false;
     for (var connectoid : connectoids) {
@@ -113,11 +117,9 @@ public class GtfsTransferZoneHelper {
       }
       var entry = connectoid.getAsDirectedAccessZoneEntry(transferZone, PT_VEHICLE_STOP);
       for(var accessSegment : entry.getAccessLinkSegments()){
-        var localProjection = PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
         success = success ||
-            localProjection!=null &&
-                GtfsLinkSegmentHelper.isGeometryOnCorrectSideOfLinkSegment(
-                    localProjection, (LinkSegment) accessSegment, leftHandDrive, data.getGeoTools());
+            (localProjection!=null && GtfsLinkSegmentHelper.isGeometryOnCorrectSideOfLinkSegment(
+                    localProjection, (LinkSegment) accessSegment, leftHandDrive, data.getGeoToolsInPlanitCrs()));
         if(allConnectoidsMustMatch && !success) {
           break;
         }
@@ -131,17 +133,20 @@ public class GtfsTransferZoneHelper {
    * In case the transfer zone has no stop locations registered, we use its overall geometry to match the
    * distance to the GTFS stop location.
    *
-   * @param gtfsStopLocation to find closest transfer zone for
+   * @param stopLocationInPlanitCrs to find closest transfer zone for
    * @param nearbyTransferZones to consider
    * @param data containing state
    * @return found closest transfer zone
    */
-  public static Pair<TransferZone,Double> findTransferZoneStopLocationClosestTo(
-          Coordinate gtfsStopLocation, Collection<TransferZone> nearbyTransferZones, GtfsZoningHandlerData data) {
+  public static Pair<TransferZone,Double> findTransferZoneClosestTo(
+          Coordinate stopLocationInPlanitCrs,
+          Collection<TransferZone> nearbyTransferZones,
+          GtfsZoningHandlerData data) {
 
     TransferZone closest = nearbyTransferZones.iterator().next();
     if(nearbyTransferZones.size()==1) {
-      return Pair.of(closest, PlanitEntityGeoUtils.getDistanceToZone(gtfsStopLocation, closest, data.getGeoTools()));
+      return Pair.of(closest, PlanitEntityGeoUtils.getDistanceToZone(
+          stopLocationInPlanitCrs, closest, data.getGeoToolsInPlanitCrs()));
     }
 
     /* multiple options -> use transfer zone geometry or underlying connectoid access nodes (stop locations) */
@@ -154,7 +159,8 @@ public class GtfsTransferZoneHelper {
       if (directedConnectoids == null || directedConnectoids.isEmpty()) {
         var planitTransferZoneStopLocation =
                 transferZone.getGeometry(allowCentroidGeometry).getCentroid().getCoordinate();
-        double distance = data.getGeoTools().getDistanceInMetres(gtfsStopLocation, planitTransferZoneStopLocation);
+        double distance = data.getGeoToolsInPlanitCrs().getDistanceInMetres(
+            stopLocationInPlanitCrs, planitTransferZoneStopLocation);
         if (minDistance > distance) {
           closest = transferZone;
           minDistance = distance;
@@ -163,7 +169,8 @@ public class GtfsTransferZoneHelper {
         /* connectoid access node based */
         for (var dirConnectoid : directedConnectoids) {
           var planitTransferZoneStopLocation = dirConnectoid.getReferenceVertex().getPosition().getCoordinate();
-          double distance = data.getGeoTools().getDistanceInMetres(gtfsStopLocation, planitTransferZoneStopLocation);
+          double distance = data.getGeoToolsInPlanitCrs().getDistanceInMetres(
+              stopLocationInPlanitCrs, planitTransferZoneStopLocation);
           if (minDistance > distance) {
             closest = transferZone;
             minDistance = distance;
@@ -176,18 +183,16 @@ public class GtfsTransferZoneHelper {
 
   /**
    * Find nearby zones based on a given search radius
-   * @param location point location to search around (in WGS84 CRS)
+   * @param locationInPlanitCrs point location to search around
    * @param pointSearchRadiusMeters search radius to apply
    * @param data containing state
    * @return found transfer zones around this location (in network CRS)
    */
   public static Collection<TransferZone> findNearbyTransferZones(
-          Point location, double pointSearchRadiusMeters, GtfsZoningHandlerData data) {
+          Point locationInPlanitCrs, double pointSearchRadiusMeters, GtfsZoningHandlerData data) {
 
-    //todo change implementation so it does not necessarily require WGS84 input locations as it is inconsistent with
-    // the utils class
-    var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
-    searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
+    var searchEnvelope = data.getGeoToolsInPlanitCrs().createBoundingBox(
+        locationInPlanitCrs.getX(),locationInPlanitCrs.getY(),pointSearchRadiusMeters);
     return GeoContainerUtils.queryZoneQuadtree(data.getGeoIndexedPreExistingTransferZones(), searchEnvelope);
   }
 }

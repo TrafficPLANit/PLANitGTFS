@@ -266,12 +266,13 @@ public final class AStarPtLegSegmentBatchExecutorService {
     var shortestPathAlgo = sharedData.getShortestPathAlgoForCurrentThread(mode);
 
     /* prune to connectoids that are mode compatible for type STOP */
+    boolean defaultModeAllowedIfZoneTypeAbsent = false;
     upstreamConnectoidsByAccessNode.values().forEach(
             cList -> cList.removeIf(c ->
-                !c.isModeAllowed(transferZoneUpstream, PT_VEHICLE_STOP, mode)));
+                !c.isModeAllowed(transferZoneUpstream, PT_VEHICLE_STOP, mode, defaultModeAllowedIfZoneTypeAbsent)));
     downstreamConnectoidsByAccessNode.values().forEach(
             cList -> cList.removeIf(c ->
-                !c.isModeAllowed(transferZoneDownstream, PT_VEHICLE_STOP, mode)));
+                !c.isModeAllowed(transferZoneDownstream, PT_VEHICLE_STOP, mode, defaultModeAllowedIfZoneTypeAbsent)));
 
     // proceed when both connectoids support the mode on any of its access nodes
     if (upstreamConnectoidsByAccessNode.values().stream().flatMap(Collection::stream).findFirst().isEmpty() &&
@@ -363,37 +364,39 @@ public final class AStarPtLegSegmentBatchExecutorService {
    *
    * @param mode to consider
    * @param upstreamAccessNodeConnectoids origin connectoids
-   * @param transferZoneUpstream origin transfer zone
+   * @param tzUpstream origin transfer zone
    * @param downstreamAccessNodeConnectoids destination connectoids
-   * @param transferZoneDownstream destination transfer zone
+   * @param tzDownstream destination transfer zone
    * @param shortestPathAlgo algo to use
    * @return found paths
    */
   private Collection<SimpleDirectedPath> createShortestPathsBetweenAccessNodes(
           Mode mode,
           List<TransferConnectoid> upstreamAccessNodeConnectoids,
-          TransferZone transferZoneUpstream,
+          TransferZone tzUpstream,
           List<TransferConnectoid> downstreamAccessNodeConnectoids,
-          TransferZone transferZoneDownstream,
+          TransferZone tzDownstream,
           ShortestPathAStar shortestPathAlgo) {
 
     List<SimpleDirectedPath> createdPaths = new LinkedList<>();
+    boolean defaultModeAllowedIfZoneTypeAbsent = false;
     for(var upstreamConnectoid : upstreamAccessNodeConnectoids) {
-      if (!upstreamConnectoid.isModeAllowed(transferZoneUpstream, PT_VEHICLE_STOP, mode)) {
+      if (!upstreamConnectoid.isModeAllowed(tzUpstream, PT_VEHICLE_STOP, mode, defaultModeAllowedIfZoneTypeAbsent)) {
         continue;
       }
       var upstreamAccessEntry =
-          upstreamConnectoid.getAsDirectedAccessZoneEntry(transferZoneUpstream, PT_VEHICLE_STOP);
+          upstreamConnectoid.getAsDirectedAccessZoneEntry(tzUpstream, PT_VEHICLE_STOP);
       for(var upstreamAccessSegment : upstreamAccessEntry.getAccessLinkSegments()) {
         if (!((MacroscopicLinkSegment)upstreamAccessSegment).isModeAllowed(mode)) {
           continue;
         }
         for(var downstreamConnectoid : downstreamAccessNodeConnectoids) {
-          if (!downstreamConnectoid.isModeAllowed(transferZoneDownstream, PT_VEHICLE_STOP, mode)) {
+          if (!downstreamConnectoid.isModeAllowed(
+              tzDownstream, PT_VEHICLE_STOP, mode, defaultModeAllowedIfZoneTypeAbsent)) {
             continue;
           }
           var downstreamAccessEntry =
-              downstreamConnectoid.getAsDirectedAccessZoneEntry(transferZoneDownstream, PT_VEHICLE_STOP);
+              downstreamConnectoid.getAsDirectedAccessZoneEntry(tzDownstream, PT_VEHICLE_STOP);
           for (var downstreamAccessSegment : downstreamAccessEntry.getAccessLinkSegments()) {
             if (!((MacroscopicLinkSegment) downstreamAccessSegment).isModeAllowed(mode)) {
               continue;

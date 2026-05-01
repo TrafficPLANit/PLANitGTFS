@@ -231,8 +231,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
       TransferConnectoid directedConnectoid,
       Mode activatedPlanitMode) {
 
-    /* remove all non service modes */
-    if(!directedConnectoid.isModeAllowed(transferZone, type, activatedPlanitMode)){
+    if(!directedConnectoid.isModeAllowed(transferZone, type, activatedPlanitMode, false)){
       return;
     }
 

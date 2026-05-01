@@ -64,7 +64,8 @@ public class GtfsToPlanitSydneyTest {
     LOGGER.setLevel(Level.SEVERE);
 
     /* parse PLANit intermodal network from disk to memory */
-    PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
+    PlanitIntermodalReader planitReader =
+        PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
     var planitIntermodalNetworkTuple = planitReader.read();
     macroscopicNetwork = planitIntermodalNetworkTuple.first();
     zoning = planitIntermodalNetworkTuple.second();
@@ -112,12 +113,13 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),92381);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),92381);
 
+      var serviceLayer = routedServices.getLayers().getFirst();
       assertEquals(routedServices.getLayers().size(),1);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(BUS)).size(),7903);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(LIGHTRAIL)).size(),5);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(TRAIN)).size(),39);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(SUBWAY)).size(),0);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(FERRY)).size(),23);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(BUS)).size(),7903);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(LIGHTRAIL)).size(),5);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(TRAIN)).size(),39);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(SUBWAY)).size(),0);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(FERRY)).size(),23);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
@@ -178,7 +180,7 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(119, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(154, zoning.getTransferConnectoids().size());
+      assertEquals(177, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),99);
@@ -213,14 +215,14 @@ public class GtfsToPlanitSydneyTest {
   public void testGtfsIntermodalReaderWithPreExistingPlanitTransferZones() {
 
     try {
-      //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES.toString())).toAbsolutePath().toString();
       var GTFS_FILES_DIR = GTFS_NSW_NO_SHAPES.toString();
 
-      /* instead of using existing memory model for network and zoning, we use a PLANit intermodal reader to pass instead and
-       * let the GTFS reader perform the internal memory model construction
-       */
-      var planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
-      var gtfsSettings =  new GtfsIntermodalReaderSettings(GTFS_FILES_DIR, CountryNames.AUSTRALIA, RouteTypeChoice.EXTENDED);
+      /* instead of using existing memory model for network and zoning, we use a PLANit intermodal reader to
+      parse instead and let the GTFS reader perform the internal memory model construction */
+      var planitReader = PlanitIntermodalReaderFactory.create(
+          new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
+      var gtfsSettings =  new GtfsIntermodalReaderSettings(
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, RouteTypeChoice.EXTENDED);
 
       /* 6-10 in the morning as time period filter */
       gtfsSettings.getServiceSettings().setDayOfWeek(DayOfWeek.THURSDAY);
@@ -234,18 +236,20 @@ public class GtfsToPlanitSydneyTest {
 //    gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
 //    gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
-      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getZoningSettings(), true);
-      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getServiceSettings());
+      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getZoningSettings(), true);
+      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getServiceSettings());
 
-      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
-
+      var result = gtfsIntermodalReader.readWithServices();
       macroscopicNetwork = result.first();
       zoning = result.second();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
       /* PLANit intermodal writer --> to supply file based outputs if needed (example) */
-      final String PLANIT_OUTPUT_DIR = Path.of(RESOURCE_PATH.toString(),"testcases","sydney").toAbsolutePath().toString();
+      final String PLANIT_OUTPUT_DIR =
+          Path.of(RESOURCE_PATH.toString(),"testcases","sydney").toAbsolutePath().toString();
       PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
       planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
       planitIntermodalWriter.getSettings().setOutputDirectory(PLANIT_OUTPUT_DIR);
@@ -255,15 +259,15 @@ public class GtfsToPlanitSydneyTest {
       // has changed in how we process the same underlying data and a conscious choice has to be made whether this is
       // better or not before changing the below results
       assertEquals(macroscopicNetwork.getTransportLayers().size(),1);
-      assertEquals(1353, macroscopicNetwork.getTransportLayers().getFirst().getLinks().size());
-      assertEquals(1131, macroscopicNetwork.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2679, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(1352, macroscopicNetwork.getTransportLayers().getFirst().getLinks().size());
+      assertEquals(1130, macroscopicNetwork.getTransportLayers().getFirst().getNodes().size());
+      assertEquals(2677, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegments().size());
       assertEquals(55, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
       assertEquals(0, zoning.getOdZones().size());
-      assertEquals(143, zoning.getTransferZones().size());
+      assertEquals(142, zoning.getTransferZones().size());
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(211, zoning.getTransferConnectoids().size());
+      assertEquals(191, zoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(100, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());

@@ -153,7 +153,7 @@ public class GtfsZoningReader implements ZoningReader {
     /* post-process the addition of access/egress modes for accessing the stops generated transfer zones */
     // todo: GTFS does not yet support a bounding area, so we pass in empty, update when we implement this
     var accessEgressExecutor = new TransferZoningInjectAccessEgressExecutor(
-        ProjectedBoundingAreaHelper.empty(),
+        gtfsZoningHandlerData.getBoundingAreaHelper(),
         gtfsZoningHandlerData.getConverterData());
     accessEgressExecutor.execute(getSettings().accessEgressInjectionSettings);
   }
