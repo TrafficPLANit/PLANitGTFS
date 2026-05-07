@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.goplanit.utils.locale.DrivingDirectionDefaultByCountry.isLeftHandDrive;
-import static org.goplanit.utils.zoning.ZoneConnectoidType.PT_VEHICLE_STOP;
+import static org.goplanit.utils.zoning.connectoid.ZoneConnectoidType.PT_VEHICLE_STOP;
 
 /**
  * Utils class related to GTFS and PLANit transfer zone functionality

@@ -17,7 +17,7 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.utils.path.SimpleDirectedPathImpl;
-import org.goplanit.utils.zoning.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 
 import java.util.*;
@@ -25,7 +25,7 @@ import java.util.concurrent.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static org.goplanit.utils.zoning.ZoneConnectoidType.PT_VEHICLE_STOP;
+import static org.goplanit.utils.zoning.connectoid.ZoneConnectoidType.PT_VEHICLE_STOP;
 
 /**
  * Executes A* star shortest path search in threaded batch mode between Service Network Leg Segments in the desired
