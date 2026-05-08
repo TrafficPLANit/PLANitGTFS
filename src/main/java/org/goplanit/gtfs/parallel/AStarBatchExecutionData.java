@@ -107,7 +107,7 @@ public class AStarBatchExecutionData {
 
       // constant and fixed across all threads, so cache once and reuse
       this.idIndexedVerticesAllLayers =
-              TransportModelNetworkUtils.getIdIndexedVerticesAllLayers(physicalNetwork, zoning.getVirtualNetwork());
+              TransportModelNetworkUtils.createIdIndexedVerticesAllLayers(physicalNetwork, zoning.getVirtualNetwork());
 
       // constant and fixed across all threads, so cache once and reuse
       this.linkSegmentCostsByMode = new HashMap<>();
