@@ -33,8 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Unit tests for Gtfs's API basic functionality. PLANit reference network and zoning are expected to be identical to
- * the results produced in the PLANitOSM repo so they can easily be updated/synced
+ * Unit tests for Gtfs's API basic functionality. PLANit reference network and zoning are expected to be synced with
+ * the results produced in the PLANitOSM
+ * repo (Sydney: src/test/resources/planit/sydney/osm_intermodal_no_services_access_egress_attach so they can easily be
+ * updated
  * 
  * @author markr
  *
@@ -84,8 +86,8 @@ public class GtfsToPlanitSydneyTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on underlying networks/zoning,
-   * just collate all data for a given reference day
+   * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on
+   * underlying networks/zoning, just collate all data for a given reference day
    */
   @Test
   public void testGtfsRoutedServicesReader() {
@@ -136,7 +138,7 @@ public class GtfsToPlanitSydneyTest {
    * GTFS data only.
    */
   @Test
-  public void testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones() {
+  public void testGtfsIntermodalReaderIgnorePreExistingPlanitTransferZones() {
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
@@ -172,10 +174,10 @@ public class GtfsToPlanitSydneyTest {
       // has changed in how we process the same underlying data and a conscious choice has to be made whether this is
       // better or not before changing the below results
       assertEquals(1, network.getTransportLayers().size());
-      assertEquals(1383, network.getTransportLayers().getFirst().getLinks().size());
-      assertEquals(1161, network.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2739, network.getTransportLayers().getFirst().getLinkSegments().size());
-      assertEquals(55, network.getTransportLayers().getFirst().getLinkSegmentTypes().size());
+      assertEquals(1383, network.getTransportLayers().getFirst().getNumberOfLinks());
+      assertEquals(1161, network.getTransportLayers().getFirst().getNumberOfNodes());
+      assertEquals(2739, network.getTransportLayers().getFirst().getNumberOfLinkSegments());
+      assertEquals(60, network.getTransportLayers().getFirst().getNumberOfBannedMovements());
 
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(119, zoning.getTransferZones().size());

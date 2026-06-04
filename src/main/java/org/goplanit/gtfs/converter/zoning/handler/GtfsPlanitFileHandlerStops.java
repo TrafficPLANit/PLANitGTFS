@@ -1084,9 +1084,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(
         gtfsStop.getLocationAsPoint(),data.getCrsTransformGtfsToPlanit());
 
-    if(gtfsStop.getStopId().equals("2000435")){
-      int bla = 4;
-    }
     var nearbyTransferZones = GtfsTransferZoneHelper.findNearbyTransferZones(
         projectedGtfsStopLocation, data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
 
