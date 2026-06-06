@@ -10,7 +10,6 @@ import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.connectoid.ConnectoidUtils;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
