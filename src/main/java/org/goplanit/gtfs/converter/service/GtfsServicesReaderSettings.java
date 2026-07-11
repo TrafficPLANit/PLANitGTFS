@@ -6,6 +6,7 @@ import org.goplanit.gtfs.converter.RouteTypeExtendedToPredefinedPlanitModeMappin
 import org.goplanit.gtfs.converter.RouteTypeOriginalToPlanitModeMappingCreator;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.misc.ComparablePair;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.UrlUtils;
@@ -26,18 +27,22 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithModeMapping implements ConverterReaderSettings {
+public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithModeMapping
+    implements ConverterReaderSettings {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReaderSettings.class.getCanonicalName());
 
   /* configure how to obtain GTFS_STOP_IDs from PLANit service nodes */
-  private static final Function<ServiceNode, String> GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION = sn -> sn.getExternalId();
+  private static final Function<ServiceNode, String> GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION =
+      ExternalIdAble::getExternalId;
 
-  /** when true all GTFS trips which are identical except for their departure time will be grouped into a single PLANitTripSchedule, when false they are kept separate */
+  /** when true all GTFS trips which are identical except for their departure time will be grouped into a single
+   * PLANitTripSchedule, when false they are kept separate */
   private boolean groupIdenticalGtfsTrips = DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS;
 
-  /** currently the GTFS parser will only generate PLANit services and service network based on a single reference day provided. If multiple are required
+  /** currently the GTFS parser will only generate PLANit services and service network based on a single
+   * reference day provided. If multiple are required
    * the parser needs to be run multiple times.
    *
    * todo: allow additional functionality to generate multiple results in one go
@@ -53,9 +58,11 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   /** when non-empty we exclude the provided GTFS routes from parsing */
   private final Set<String> excludeGtfsRoutesByShortName = new HashSet<>();
 
-  /** flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
+  /** flag allowing users to include partial trips from the moment their stop times enter the eligible
+   * time period filter despite the trip departure time
    * falling outside this window */
-  private  boolean includePartialGtfsTripsWithInvalidDepartureIfStopsInTimePeriod = DEFAULT_INCLUDE_PARTIAL_GTFS_TRIPS_IF_STOPS_IN_TIME_PERIOD;
+  private  boolean includePartialGtfsTripsWithInvalidDepartureIfStopsInTimePeriod =
+      DEFAULT_INCLUDE_PARTIAL_GTFS_TRIPS_IF_STOPS_IN_TIME_PERIOD;
 
   /** allow explicit logging of all trips of a GTFS route by means of its short name */
   private Set<String> logGtfsRouteInformationByShortName = new HashSet<>();
@@ -97,14 +104,16 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     return true;
   }
 
-  /** by default group all identical Gtfs trips in a single PLANit trip (with a departure listing per original Gtfs trip) */
+  /** by default group all identical Gtfs trips in a single PLANit trip (with a departure listing per
+   * original Gtfs trip) */
   public static final boolean DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS = true;
 
   /** by default, we include GTFS trips from the moment a stop falls within the eligible time period */
   public static final boolean DEFAULT_INCLUDE_PARTIAL_GTFS_TRIPS_IF_STOPS_IN_TIME_PERIOD = true;
 
   /**
-   * Provides access to how GTFS STOP IDS can be extracted from service nodes when service nodes are created using these settings
+   * Provides access to how GTFS STOP IDS can be extracted from service nodes when service nodes are
+   * created using these settings
    *
    * @return function that maps service node to its GTFS_STOP_ID
    */
@@ -112,7 +121,7 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     return GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION;
   }
 
-  /** Constructor with user defined source locale, the input source and other settings are reuqired to be populated by
+  /** Constructor with user defined source locale, the input source and other settings are required to be populated by
    * the user afterwards
    *
    * @param countryName to base source locale on
@@ -138,8 +147,10 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * @param dayOfWeekFilter to use
    * @param routeTypeChoice to apply
    */
-  public GtfsServicesReaderSettings(String inputSource, String countryName, DayOfWeek dayOfWeekFilter, RouteTypeChoice routeTypeChoice) {
-    this( (URL) (inputSource==null ? null : UrlUtils.createFrom(inputSource)), countryName, dayOfWeekFilter, routeTypeChoice);
+  public GtfsServicesReaderSettings(
+      String inputSource, String countryName, DayOfWeek dayOfWeekFilter, RouteTypeChoice routeTypeChoice) {
+    this( (URL) (inputSource==null ? null : UrlUtils.createFrom(inputSource)),
+        countryName, dayOfWeekFilter, routeTypeChoice);
   }
 
   /** Constructor with user defined source locale
@@ -149,14 +160,16 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * @param dayOfWeekFilter to use
    * @param routeTypeChoice to apply
    */
-  public GtfsServicesReaderSettings(URL inputSource, String countryName, DayOfWeek dayOfWeekFilter, RouteTypeChoice routeTypeChoice) {
+  public GtfsServicesReaderSettings(
+      URL inputSource, String countryName, DayOfWeek dayOfWeekFilter, RouteTypeChoice routeTypeChoice) {
     super(inputSource, countryName, routeTypeChoice);
     this.dayOfWeek = dayOfWeekFilter;
     this.timePeriodFilters = new TreeSet<>();
   }
 
   /**
-   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method,
+   * so only the provided
    * listing is considered
    *
    * @param gtfsShortNames the only routes not to exclude
@@ -166,7 +179,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   }
 
   /**
-   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method,
+   * so only the provided
    * listing is considered
    *
    * @param gtfsShortNames the only routes not to exclude
@@ -183,11 +197,13 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    */
   public boolean isGtfsRouteIncludedByShortName(String gtfsShortName){
     return !excludeGtfsRoutesByShortName.contains(gtfsShortName) &&
-        (exceptionsToBlanketBlackListByShortName.isEmpty() || exceptionsToBlanketBlackListByShortName.contains(gtfsShortName));
+        (exceptionsToBlanketBlackListByShortName.isEmpty() ||
+            exceptionsToBlanketBlackListByShortName.contains(gtfsShortName));
   }
 
   /**
-   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method,
+   * so only the provided
    * listing is considered
    *
    * @param gtfsShortNames the only routes not to exclude
@@ -197,7 +213,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   }
 
   /**
-   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method, so only the provided
+   * Exclude all GTFS routes, except the ones provided here. Overrides any previous calls to this method,
+   * so only the provided
    * listing is considered
    *
    * @param gtfsShortNames the only routes not to exclude
@@ -235,7 +252,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     return Collections.unmodifiableSet(logGtfsRouteInformationByShortName);
   }
 
-  /** Add a time period filter. When one or more filters are set, not full day of chosen day of week is parsed but only the trips that
+  /** Add a time period filter. When one or more filters are set, not full day of chosen day of week is
+   * parsed but only the trips that
    * departure within the registered time periods
    *
    * @param startTimeWithinDay within day start time (inclusive)
@@ -244,11 +262,13 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   public void addTimePeriodFilter(LocalTime startTimeWithinDay, LocalTime endTimeWithinDay) {
     var newEntry = ComparablePair.of(startTimeWithinDay, endTimeWithinDay);
     boolean overlap = timePeriodFilters.stream().anyMatch(
-        e -> !startTimeWithinDay.isBefore(e.first()) && !startTimeWithinDay.isAfter(e.second()) ||
+        e -> !startTimeWithinDay.isBefore(e.first()) &&
+            !startTimeWithinDay.isAfter(e.second()) ||
         !endTimeWithinDay.isBefore(e.first()) && !endTimeWithinDay.isAfter(e.second()));
     if(overlap){
       LOGGER.warning(String.format("[DISCARD] overlapping time period filter, consider revising filter (%s to %s)",
-          startTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME), endTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME)));
+          startTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME),
+          endTimeWithinDay.format(DateTimeFormatter.ISO_LOCAL_TIME)));
       return;
     }
 
@@ -256,7 +276,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   }
 
   /**
-   * Collect the currently configured time period filters. If no filters are applied, an empty set is provided, representing
+   * Collect the currently configured time period filters. If no filters are applied, an empty
+   * set is provided, representing
    * all times are included
    *
    * @return map of eligible time periods by start, end time pairs
@@ -311,11 +332,13 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     }
 
     if(!exceptionsToBlanketBlackListByShortName.isEmpty()){
-      LOGGER.info(String.format("Filtering GTFS routes to only include: %s", String.join(",", exceptionsToBlanketBlackListByShortName)));
+      LOGGER.info(String.format("Filtering GTFS routes to only include: %s",
+          String.join(",", exceptionsToBlanketBlackListByShortName)));
     }
 
-    LOGGER.info(String.format("Consolidate identical GTFS trips: %s ", String.valueOf(isGroupIdenticalGtfsTrips())));
-    LOGGER.info(String.format("Including partial GTFS trips for portion within time period: %s ", String.valueOf(isIncludePartialGtfsTripsIfStopsInTimePeriod())));
+    LOGGER.info(String.format("Consolidate identical GTFS trips: %s ", isGroupIdenticalGtfsTrips()));
+    LOGGER.info(String.format("Including partial GTFS trips for portion within time period: %s ",
+        isIncludePartialGtfsTripsIfStopsInTimePeriod()));
 
     for(var entry : logGtfsRouteInformationByShortName) {
       LOGGER.info(String.format("Tracking GTFS route %s information while parsing", entry));
@@ -331,14 +354,16 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   }
 
   /**
-   * Set flag indicating to group GtfsTrips into single PLANit Trip schedule as long as they are identical except for departure time (which is listed separately)
+   * Set flag indicating to group GtfsTrips into single PLANit Trip schedule as long as they are identical
+   * except for departure time (which is listed separately)
    * @param groupIdenticalGtfsTrips flag to set
    */
   public void setGroupIdenticalGtfsTrips(boolean groupIdenticalGtfsTrips) {
     this.groupIdenticalGtfsTrips = groupIdenticalGtfsTrips;
   }
 
-  /** get flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
+  /** get flag allowing users to include partial trips from the moment their stop times enter the
+   * eligible time period filter despite the trip departure time
    * falling outside this window
    *
    * @return flag state
@@ -347,7 +372,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
     return includePartialGtfsTripsWithInvalidDepartureIfStopsInTimePeriod;
   }
 
-  /** set flag allowing users to include partial trips from the moment their stop times enter the eligible time period filter despite the trip departure time
+  /** set flag allowing users to include partial trips from the moment their stop times enter the
+   * eligible time period filter despite the trip departure time
    * falling outside this window
    *
    * @param includePartialGtfsTripsIfStopsInTimePeriod flag to set

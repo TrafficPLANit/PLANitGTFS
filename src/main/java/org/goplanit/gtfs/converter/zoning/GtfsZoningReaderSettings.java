@@ -45,7 +45,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
 
   /**
-   * search radius used when mapping GTFS stops to PLANit road network, which given that GTFS stop is the vehicle stop location, should be less than distance to pole
+   * search radius used when mapping GTFS stops to PLANit road network, which given that GTFS stop is the
+   * vehicle stop location, should be less than distance to pole
    */
   private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
 
@@ -54,7 +55,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   AccessEgressInjectionSettings accessEgressInjectionSettings = new AccessEgressInjectionSettings();
 
   /**
-   * Provide explicit mapping from GTFS stop (by GTFS stop id) to existing PLANit transfer zone(s) based on an id (XML or external id (third party source ide.g., OSM id)),
+   * Provide explicit mapping from GTFS stop (by GTFS stop id) to existing PLANit transfer zone(s) based on an id
+   * (XML or external id (third party source ide.g., OSM id)),
    * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
    */
   private final Map<String, List<Pair<Object, IdMapperType>>> overwriteGtfsStopTransferZoneExternalIdMapping =
@@ -67,13 +69,15 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   private final Map<String, Coordinate> overwriteGtfsStopLocationMapping = new HashMap<>();
 
   /**
-   * Indicate disallowing certain GTFS stops to be jointly mapped to the same transfer zone. In such cases, new (disjoint) transfer zones
+   * Indicate disallowing certain GTFS stops to be jointly mapped to the same transfer zone.
+   * In such cases, new (disjoint) transfer zones
    * will be created
    */
   private final Set<String> disallowGtfsTop2TransferZoneJointMapping = new HashSet<>();
 
   /**
-   * Indicate to not match a GTFS stop to any existing transfer zones in PLANit network, but instead always create a new transfer zone
+   * Indicate to not match a GTFS stop to any existing transfer zones in PLANit network,
+   * but instead always create a new transfer zone
    */
   private final Set<String> forceCreateNewTransferZoneForGtfsStops = new HashSet<>();
 
@@ -99,10 +103,12 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * We do so because often water bodies are not part of a zoning system and would therefore not include connecting
    * ferries. This is generally unwanted behaviour and therefore we automatically include all ferries within
    * the specified distance outside the bounding polygon and still be included. */
-  private double maximumDistanceFerryOutsideBoundingPolygonInMeters = DEFAULT_MAX_FERRY_DISTANCE_OUTSIDE_BOUNDING_AREA_M;
+  private double maximumDistanceFerryOutsideBoundingPolygonInMeters =
+      DEFAULT_MAX_FERRY_DISTANCE_OUTSIDE_BOUNDING_AREA_M;
 
   /**
-   * flag to indicate if transfer zones that have no services stopping after parsing is complete, are to be removed or not
+   * flag to indicate if transfer zones that have no services stopping after parsing is complete, are to
+   * be removed or not
    */
   private boolean removeUnusedTransferZones = DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES;
 
@@ -116,7 +122,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
 
-  /** track extended logging on how particular GTFS stops are being created and/or matched to an existing PLANit transferzone */
+  /** track extended logging on how particular GTFS stops are being created and/or matched to an existing
+   * PLANit transferzone */
   private Set<String> extendedLoggingByGtfsStopId = new HashSet<>();
 
   /**
@@ -146,14 +153,17 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
 
 
   /**
-   * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop to create connectoids (stop_locations).
-   * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple candidates via this buffer, we can then use more sophisticated ways than proximity
+   * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop
+   * to create connectoids (stop_locations).
+   * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple
+   * candidates via this buffer, we can then use more sophisticated ways than proximity
    * to determine the best candidate
    */
   public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 8;
 
   /**
-   * Copy constructor creating a shallow copy of the underlying mode mapping so it is synced with the provided settings. Useful when both settings are used
+   * Copy constructor creating a shallow copy of the underlying mode mapping so it is synced with the
+   * provided settings. Useful when both settings are used
    * in conjunction and we want to avoid having to sync information
    *
    * @param settings to obtain mode mapping information from
@@ -256,8 +266,10 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Provide explicit mapping for GTFS stop id to an alternative location. USeful in case the original location is slightly off compared
-   * to underlying network making finding an automated mapping to the network problematic. Often, moving the location slghty further away from the road
+   * Provide explicit mapping for GTFS stop id to an alternative location. USeful in case the original location
+   * is slightly off compared
+   * to underlying network making finding an automated mapping to the network problematic. Often, moving the
+   * location slighty further away from the road
    * will solve this problem.
    *
    * @param gtfsStopId id of stop location
@@ -337,7 +349,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * @param logCreatedGtfsZones when true, each newly created (unmapped) transfer zones based on GTFS stops are logged, otherwise not
+   * @param logCreatedGtfsZones when true, each newly created (unmapped) transfer zones based on GTFS stops are
+   *                            logged, otherwise not
    */
   public void setLogCreatedGtfsZones(boolean logCreatedGtfsZones) {
     this.logCreatedGtfsZones = logCreatedGtfsZones;
@@ -436,7 +449,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param linkId       link id to map to
    * @param idMapperType which id of the link to use
    */
-  public void overwriteGtfsStopToLinkMapping(final String gtfsStopId, final Object linkId, final IdMapperType idMapperType) {
+  public void overwriteGtfsStopToLinkMapping(
+      final String gtfsStopId, final Object linkId, final IdMapperType idMapperType) {
     overwriteGtfsStop2LinkMapping.put(gtfsStopId, Pair.of(linkId, idMapperType));
   }
 
@@ -454,7 +468,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * Collect overwritten link id information for GTFS stop id (if present)
    *
    * @param gtfsStopId GTFS stop id to get mapping for
-   * @return true when present, false otherwise
+   * @return mapping found
    */
   public Pair<Object, IdMapperType> getOverwrittenGtfsStopToLinkMapping(final String gtfsStopId) {
     return overwriteGtfsStop2LinkMapping.get(gtfsStopId);
@@ -477,7 +491,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param gtfsStopIds to log mapping for
    */
   public void addLogGtfsStopToLinkMapping(final List<String> gtfsStopIds) {
-    logGtfsStop2PlanitLinkMapping.addAll(gtfsStopIds.stream().collect(Collectors.toSet()));
+    logGtfsStop2PlanitLinkMapping.addAll(new HashSet<>(gtfsStopIds));
   }
 
   /**
@@ -491,7 +505,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop. If such a situation
+   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop.
+   * If such a situation
    * is identified, a new transfer zone is created instead
    *
    * @param gtfsStopIds GTFS stop id to provide link mapping for
@@ -501,7 +516,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop. If such a situation
+   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop.
+   * If such a situation
    * is identified, a new transfer zone is created instead
    *
    * @param gtfsStopIds GTFS stop id to provide link mapping for
