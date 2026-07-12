@@ -8,6 +8,7 @@ import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.misc.ComparablePair;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -316,32 +317,48 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * Log settings used
    */
   public void logSettings() {
+    LOGGER.info(LoggingUtils.settingsHeader("GTFS Services Reader"));
     super.logSettings();
 
-    LOGGER.info(String.format("Activated day of week: %s", dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Day of week",
+        dayOfWeek == null ? null : dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH),
+        0));
 
     if(hasTimePeriodFilters()) {
-      LOGGER.info("Activated time periods:");
-      getTimePeriodFilters().forEach( e -> LOGGER.info(
+      LOGGER.info(LoggingUtils.settingsSection("Time periods", 0));
+      getTimePeriodFilters().forEach(e -> LOGGER.info(LoggingUtils.settingsEntry(
           String.format("Start-time: %s End-time: %s",
               e.first().format(DateTimeFormatter.ISO_LOCAL_TIME),
-              e.second().format(DateTimeFormatter.ISO_LOCAL_TIME))));
-
+              e.second().format(DateTimeFormatter.ISO_LOCAL_TIME)),
+          1)));
     }else{
-      LOGGER.info("Activated time periods: ALL - NO FILTER");
+      LOGGER.info(LoggingUtils.settingsValue("Time periods", "ALL - NO FILTER", 0));
     }
 
     if(!exceptionsToBlanketBlackListByShortName.isEmpty()){
-      LOGGER.info(String.format("Filtering GTFS routes to only include: %s",
-          String.join(",", exceptionsToBlanketBlackListByShortName)));
+      LOGGER.info(LoggingUtils.settingsValue(
+          "Only include GTFS routes",
+          String.join(",", exceptionsToBlanketBlackListByShortName),
+          0));
     }
 
-    LOGGER.info(String.format("Consolidate identical GTFS trips: %s ", isGroupIdenticalGtfsTrips()));
-    LOGGER.info(String.format("Including partial GTFS trips for portion within time period: %s ",
-        isIncludePartialGtfsTripsIfStopsInTimePeriod()));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Consolidate identical GTFS trips",
+        isGroupIdenticalGtfsTrips(),
+        0));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Include partial GTFS trips in time period",
+        isIncludePartialGtfsTripsIfStopsInTimePeriod(),
+        0));
 
-    for(var entry : logGtfsRouteInformationByShortName) {
-      LOGGER.info(String.format("Tracking GTFS route %s information while parsing", entry));
+    if(!logGtfsRouteInformationByShortName.isEmpty()) {
+      LOGGER.info(LoggingUtils.settingsSection("Tracked GTFS routes", 0));
+      for(var entry : logGtfsRouteInformationByShortName) {
+        LOGGER.info(LoggingUtils.settingsEntry(
+            String.format("Tracking GTFS route %s information while parsing", entry),
+            1));
+      }
     }
   }
 

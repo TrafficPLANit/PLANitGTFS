@@ -3,6 +3,7 @@ package org.goplanit.gtfs.converter;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.mode.PredefinedModeType;
 
@@ -224,7 +225,7 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   public Set<PredefinedModeType> getAcivatedPlanitPredefinedModes() {
     return activatedGtfsModes.stream().flatMap(
         gtfsMode -> defaultGtfsMode2PrefinedModeTypeMap.getOrDefault(
-            gtfsMode, Collections.emptyList()).stream()).filter( e -> e != null).collect(Collectors.toSet());
+            gtfsMode, Collections.emptyList()).stream()).filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   /**
@@ -249,7 +250,7 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   public List<RouteType> getAcivatedGtfsModes(PredefinedModeType planitModeType) {
     /* find gtfs modes for the give planit mode */
     var mappedGtfsModes = defaultGtfsMode2PrefinedModeTypeMap.entrySet().stream().filter( e ->
-        e.getValue().contains(planitModeType)).map( e-> e.getKey()).collect(Collectors.toSet());
+        e.getValue().contains(planitModeType)).map(Map.Entry::getKey).collect(Collectors.toSet());
 
     /* prune by active ones */
     return mappedGtfsModes.stream().filter(activatedGtfsModes::contains).distinct().collect(Collectors.toList());
@@ -279,16 +280,17 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   public void logSettings() {
     super.logSettings();
 
-    LOGGER.info(String.format("Route type choice set to: %s ", this.routeTypeChoice));
+    LOGGER.info(LoggingUtils.settingsValue("Route type choice", getRouteTypeChoice(), 0));
+    LOGGER.info(LoggingUtils.settingsSection("GTFS mode mappings", 0));
 
-    /* mode mappings GTFS -> PLANit */
     for(var entry : defaultGtfsMode2PrefinedModeTypeMap.entrySet()){
       if(activatedGtfsModes.contains(entry.getKey())){
-        LOGGER.info(
-            String.format("[ACTIVATED] %s --> %s",
-                entry.getKey(), entry.getValue().stream().map(e -> e.toString()).collect(Collectors.joining(","))));
+        LOGGER.info(LoggingUtils.settingsMapping(
+            String.format("[ACTIVATED] %s", entry.getKey()),
+            entry.getValue().stream().map(Object::toString).collect(Collectors.joining(",")),
+            1));
       }else{
-        LOGGER.info(String.format("[DEACTIVATED] %s", entry.getKey()));
+        LOGGER.info(LoggingUtils.settingsEntry(String.format("[DEACTIVATED] %s", entry.getKey()), 1));
       }
     }
   }

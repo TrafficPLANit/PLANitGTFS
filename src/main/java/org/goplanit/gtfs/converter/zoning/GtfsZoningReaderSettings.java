@@ -6,6 +6,7 @@ import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Coordinate;
@@ -374,13 +375,18 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * {@inheritDoc}
    */
   public void logSettings() {
-    LOGGER.info("GTFS zoning reader settings:");
-    LOGGER.info(String.format("GTFS stop-to-transfer zone mappings are %slogged",
-            isLogMappedGtfsZones() ? "" : "not "));
-    LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f",
-            getGtfsStopToTransferZoneSearchRadiusMeters()));
-    LOGGER.info(String.format("GTFS stop-to-link search radius (m): %.1f", getGtfsStopToLinkSearchRadiusMeters()));
-    LOGGER.info(String.format("GTFS remove unused transfer zones (stops): %s", isRemoveUnusedTransferZones()));
+    LOGGER.info(LoggingUtils.settingsHeader("GTFS Zoning Reader"));
+    super.logSettings();
+    LOGGER.info(LoggingUtils.settingsValue("Log GTFS stop-transfer mappings", isLogMappedGtfsZones(), 0));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "GTFS stop-transfer search radius (m)",
+        String.format("%.1f", getGtfsStopToTransferZoneSearchRadiusMeters()),
+        0));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "GTFS stop-link search radius (m)",
+        String.format("%.1f", getGtfsStopToLinkSearchRadiusMeters()),
+        0));
+    LOGGER.info(LoggingUtils.settingsValue("Remove unused transfer zones", isRemoveUnusedTransferZones(), 0));
   }
 
   /**

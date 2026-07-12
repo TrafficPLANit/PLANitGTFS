@@ -6,10 +6,12 @@ import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
 
 import java.net.URL;
 import java.time.DayOfWeek;
+import java.util.logging.Logger;
 
 /**
  * Settings of GtfsIntermodalReader
@@ -18,6 +20,8 @@ import java.time.DayOfWeek;
  *
  */
 public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
+
+  private static final Logger LOGGER = Logger.getLogger(GtfsIntermodalReaderSettings.class.getCanonicalName());
 
   /** default search for cheapest paths is based on free flow approach */
   public final String DEFAULT_STOP_TO_STOP_COST_APPROACH = PhysicalCost.FREEFLOW;
@@ -92,6 +96,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    */
   @Override
   public void logSettings() {
+    LOGGER.info(LoggingUtils.settingsHeader("GTFS Intermodal Reader"));
     getServiceSettings().logSettings();
     getZoningSettings().logSettings();
   }

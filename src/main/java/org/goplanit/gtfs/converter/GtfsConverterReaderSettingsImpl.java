@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
 
 import java.net.URL;
@@ -93,8 +94,8 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
    */
   @Override
   public void logSettings() {
-    LOGGER.info(String.format("GTFS input source: %s", getInputSource()));
-    LOGGER.info(String.format("Country: %s", getCountryName()));
+    LOGGER.info(LoggingUtils.settingsValue("Input source", getInputSource(), 0));
+    LOGGER.info(LoggingUtils.settingsValue("Country", getCountryName(), 0));
   }
 
 }
