@@ -95,10 +95,10 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    * {@inheritDoc}
    */
   @Override
-  public void logSettings() {
-    LOGGER.info(LoggingUtils.settingsHeader("GTFS Intermodal Reader"));
-    getServiceSettings().logSettings();
-    getZoningSettings().logSettings();
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsHeader("GTFS Intermodal Reader Settings"));
+    getServiceSettings().logSettings(level+1);
+    getZoningSettings().logSettings(level+1);
   }
 
   /** provide access to the service reader settings

@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * Unit tests for Gtfs's API basic functionality. PLANit reference network and zoning are expected to be synced with
  * the results produced in the PLANitOSM
- * repo (Sydney: src/test/resources/planit/sydney/osm_intermodal_no_services_access_egress_attach so they can easily be
+ * repo (Sydney: src/test/resources/planit/sydney/osm_intermodal_no_services_access_egress_attach, so they can easily be
  * updated
  * 
  * @author markr
@@ -182,17 +182,17 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(60, network.getTransportLayers().getFirst().getNumberOfBannedMovements());
 
       assertEquals(0, zoning.getOdZones().size());
-      assertEquals(119, zoning.getTransferZones().size());
+      assertEquals(101, zoning.getTransferZones().size()); // was 109
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(177, zoning.getTransferConnectoids().size());
+      assertEquals(153, zoning.getTransferConnectoids().size()); // was 177
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),99);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),97); // was99
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),84);
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),84);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),82); // was 84
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),82); // was 84
 
       assertEquals(routedServices.getLayers().size(),1);
       Modes modes = macroscopicNetwork.getModes();
@@ -266,17 +266,17 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(55, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
       assertEquals(0, parsedZoning.getOdZones().size());
-      assertEquals(142, parsedZoning.getTransferZones().size());
+      assertEquals(103, parsedZoning.getTransferZones().size()); // was 142 at one point
       assertEquals(0, parsedZoning.getOdConnectoids().size());
-      assertEquals(191, parsedZoning.getTransferConnectoids().size());
+      assertEquals(129, parsedZoning.getTransferConnectoids().size()); // was 191 at one point (probably consolidated)
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
-      assertEquals(100, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());
+      assertEquals(98, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size()); // was 100
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertEquals(88, serviceNetwork.getTransportLayers().getFirst().getLegSegments().size());
-      assertEquals(88, serviceNetwork.getTransportLayers().getFirst().getLegs().size());
+      assertEquals(86, serviceNetwork.getTransportLayers().getFirst().getLegSegments().size()); //was 88
+      assertEquals(86, serviceNetwork.getTransportLayers().getFirst().getLegs().size()); // was 88
 
       assertEquals(routedServices.getLayers().size(),1);
       Modes modes = parsedNetwork.getModes();

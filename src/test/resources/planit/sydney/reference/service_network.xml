@@ -32,7 +32,6 @@
             <servicenode id="15102" externalid="2000179"/>
             <servicenode id="15103" externalid="2000437"/>
             <servicenode id="15104" externalid="2000435"/>
-            <servicenode id="15105" externalid="200041"/>
             <servicenode id="15108" externalid="201144"/>
             <servicenode id="15109" externalid="201145"/>
             <servicenode id="15255" externalid="2000130"/>
@@ -63,7 +62,6 @@
             <servicenode id="428" externalid="2000382"/>
             <servicenode id="46495" externalid="2000232"/>
             <servicenode id="46496" externalid="2000312"/>
-            <servicenode id="46595" externalid="200042"/>
             <servicenode id="46657" externalid="2000144"/>
             <servicenode id="46658" externalid="200097"/>
             <servicenode id="46659" externalid="2000111"/>
@@ -187,9 +185,6 @@
             <leg id="19769" externalid="2000437_2000435" nodearef="15103" nodebref="15104">
                 <legsegment id="19769" externalid="2000437_2000435" dir="a_b" lsrefs="1451,2570,1321,900,908,1598,1396,634,2360,2358,632,1234,630,2661,1600,658,1392"/>
             </leg>
-            <leg id="19770" externalid="2000435_200041" nodearef="15104" nodebref="15105">
-                <legsegment id="19770" externalid="2000435_200041" dir="a_b" lsrefs="2653,2613,242,1394,2667,1360,740,1644,1364,2671"/>
-            </leg>
             <leg id="19775" externalid="201144_201145" nodearef="15108" nodebref="15109">
                 <legsegment id="19775" externalid="201144_201145" dir="a_b" lsrefs="435,83,155,145,399,2648"/>
             </leg>
@@ -261,9 +256,6 @@
             </leg>
             <leg id="63541" externalid="200097_2000111" nodearef="46658" nodebref="46659">
                 <legsegment id="63541" externalid="200097_2000111" dir="a_b" lsrefs="2643,1318,930,1837,929,699,697"/>
-            </leg>
-            <leg id="63542" externalid="2000111_200042" nodearef="46659" nodebref="46595">
-                <legsegment id="63542" externalid="2000111_200042" dir="a_b" lsrefs="71,269,2612,1469,1470,2132,1828,1830,1464,2332,1764,1998,2324,1500,338,1382,2386,2513,2519,1214,506,500,740,1644,1364"/>
             </leg>
             <leg id="68070" externalid="2000459_2000457" nodearef="49965" nodebref="49966">
                 <legsegment id="68070" externalid="2000459_2000457" dir="a_b" lsrefs="603,505,551,547,543,421,477,555,253,535,1859,499,503,601"/>

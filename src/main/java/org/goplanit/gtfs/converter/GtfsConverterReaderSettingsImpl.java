@@ -93,9 +93,9 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
    * {@inheritDoc}
    */
   @Override
-  public void logSettings() {
-    LOGGER.info(LoggingUtils.settingsValue("Input source", getInputSource(), 0));
-    LOGGER.info(LoggingUtils.settingsValue("Country", getCountryName(), 0));
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue("Input source", getInputSource(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Country", getCountryName(), level));
   }
 
 }

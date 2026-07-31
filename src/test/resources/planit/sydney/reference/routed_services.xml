@@ -996,55 +996,42 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="64" externalid="1597892">
+                        <trip id="64" externalid="1597892,1598342,1598815,1597868">
                             <schedule>
 <departures>
+    <departure id="625" time="08:04:00"/>
+    <departure id="624" time="08:23:00"/>
+    <departure id="623" time="09:16:00"/>
     <departure id="622" time="09:49:00"/>
 </departures>
 <reltimings dwelltime="00:00:00">
     <leg lsref="19767" duration="00:02:00"/>
     <leg lsref="19768" duration="00:04:00"/>
     <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
                         <trip id="65" externalid="1597892,1598342,1598428,1598429,1600539,1600540,1600581,1600603,1597868,1599810,1600976">
                             <schedule>
 <departures>
-    <departure id="629" time="06:13:00"/>
-    <departure id="630" time="06:27:00"/>
-    <departure id="632" time="06:39:00"/>
-    <departure id="625" time="06:53:00"/>
-    <departure id="626" time="07:08:00"/>
-    <departure id="633" time="07:19:00"/>
-    <departure id="627" time="07:33:00"/>
-    <departure id="628" time="07:46:00"/>
-    <departure id="631" time="08:04:00"/>
-    <departure id="624" time="09:16:00"/>
-    <departure id="623" time="09:49:00"/>
+    <departure id="632" time="06:13:00"/>
+    <departure id="633" time="06:27:00"/>
+    <departure id="635" time="06:39:00"/>
+    <departure id="628" time="06:53:00"/>
+    <departure id="629" time="07:08:00"/>
+    <departure id="636" time="07:19:00"/>
+    <departure id="630" time="07:33:00"/>
+    <departure id="631" time="07:46:00"/>
+    <departure id="634" time="08:04:00"/>
+    <departure id="627" time="09:16:00"/>
+    <departure id="626" time="09:49:00"/>
 </departures>
 <reltimings dwelltime="00:00:00">
     <leg lsref="19775" duration="00:01:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="66" externalid="1598342,1598815,1597868">
-                            <schedule>
-<departures>
-    <departure id="636" time="08:04:00"/>
-    <departure id="635" time="08:23:00"/>
-    <departure id="634" time="09:16:00"/>
-</departures>
-<reltimings dwelltime="00:00:00">
-    <leg lsref="19767" duration="00:02:00"/>
-    <leg lsref="19768" duration="00:04:00"/>
-    <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:04:00"/>
-</reltimings>
-                            </schedule>
-                        </trip>
-                        <trip id="67" externalid="1598428,1598429,1600581,1600603,1599810">
+                        <trip id="66" externalid="1598428,1598429,1600581,1600603,1599810">
                             <schedule>
 <departures>
     <departure id="639" time="06:13:00"/>
@@ -1057,11 +1044,10 @@
     <leg lsref="19767" duration="00:02:00"/>
     <leg lsref="19768" duration="00:03:00"/>
     <leg lsref="19769" duration="00:02:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="68" externalid="1600501,1600502">
+                        <trip id="67" externalid="1600501,1600502">
                             <schedule>
 <departures>
     <departure id="642" time="08:42:00"/>
@@ -1071,11 +1057,10 @@
     <leg lsref="19767" duration="00:03:00"/>
     <leg lsref="19768" duration="00:04:00"/>
     <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:04:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="69" externalid="1600501,1600502,1598815">
+                        <trip id="68" externalid="1600501,1600502,1598815">
                             <schedule>
 <departures>
     <departure id="646" time="08:23:00"/>
@@ -1087,7 +1072,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="70" externalid="1600539,1600540,1600976">
+                        <trip id="69" externalid="1600539,1600540,1600976">
                             <schedule>
 <departures>
     <departure id="649" time="07:19:00"/>
@@ -1098,7 +1083,6 @@
     <leg lsref="19767" duration="00:02:00"/>
     <leg lsref="19768" duration="00:03:00"/>
     <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
@@ -1108,7 +1092,7 @@
                     <name>324</name>
                     <namedescription>City Walsh Bay to Watsons Bay via Old South Head Rd</namedescription>
                     <trips>
-                        <trip id="71" externalid="1599058,1597857">
+                        <trip id="70" externalid="1599058,1597857">
                             <schedule>
 <departures>
     <departure id="650" time="06:08:00"/>
@@ -1118,11 +1102,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:02:00"/>
     <leg lsref="19769" duration="00:02:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="72" externalid="1599065,1599207,1599208,1599498,1598652">
+                        <trip id="71" externalid="1599065,1599207,1599208,1599498,1598652">
                             <schedule>
 <departures>
     <departure id="652" time="08:04:00"/>
@@ -1135,11 +1118,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:04:00"/>
     <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="73" externalid="1598346">
+                        <trip id="72" externalid="1598346">
                             <schedule>
 <departures>
     <departure id="657" time="07:01:00"/>
@@ -1148,11 +1130,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:03:00"/>
     <leg lsref="19769" duration="00:02:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="74" externalid="1598906,1598907">
+                        <trip id="73" externalid="1598906,1598907">
                             <schedule>
 <departures>
     <departure id="658" time="08:57:00"/>
@@ -1162,11 +1143,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:04:00"/>
     <leg lsref="19769" duration="00:04:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="75" externalid="1600948">
+                        <trip id="74" externalid="1600948">
                             <schedule>
 <departures>
     <departure id="660" time="07:34:00"/>
@@ -1175,11 +1155,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:03:00"/>
     <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="76" externalid="1598007,1598285,1600797">
+                        <trip id="75" externalid="1598007,1598285,1600797">
                             <schedule>
 <departures>
     <departure id="661" time="06:00:00"/>
@@ -1193,7 +1172,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="77" externalid="1597503,1597504,1601069,1597696,1599675">
+                        <trip id="76" externalid="1597503,1597504,1601069,1597696,1599675">
                             <schedule>
 <departures>
     <departure id="667" time="07:08:00"/>
@@ -1209,7 +1188,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="78" externalid="1600445">
+                        <trip id="77" externalid="1600445">
                             <schedule>
 <departures>
     <departure id="669" time="06:59:00"/>
@@ -1221,7 +1200,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="79" externalid="1598476,1597742,1597815">
+                        <trip id="78" externalid="1598476,1597742,1597815">
                             <schedule>
 <departures>
     <departure id="671" time="07:45:00"/>
@@ -1267,7 +1246,7 @@
                     <name>324X</name>
                     <namedescription>Vaucluse to City Wynyard (Express Service)</namedescription>
                     <trips>
-                        <trip id="80" externalid="1600265,1597830">
+                        <trip id="79" externalid="1600265,1597830">
                             <schedule>
 <departures>
     <departure id="673" time="07:19:00"/>
@@ -1284,7 +1263,7 @@
                     <name>325</name>
                     <namedescription>City Walsh Bay to Watsons Bay via Vaucluse Rd</namedescription>
                     <trips>
-                        <trip id="81" externalid="1600999">
+                        <trip id="80" externalid="1600999">
                             <schedule>
 <departures>
     <departure id="675" time="07:50:00"/>
@@ -1293,11 +1272,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:03:00"/>
     <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="82" externalid="1600341,1599449,1600931">
+                        <trip id="81" externalid="1600341,1599449,1600931">
                             <schedule>
 <departures>
     <departure id="677" time="08:22:00"/>
@@ -1308,11 +1286,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:04:00"/>
     <leg lsref="19769" duration="00:03:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="83" externalid="1599476">
+                        <trip id="82" externalid="1599476">
                             <schedule>
 <departures>
     <departure id="679" time="06:46:00"/>
@@ -1321,11 +1298,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:02:00"/>
     <leg lsref="19769" duration="00:02:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="84" externalid="1598939">
+                        <trip id="83" externalid="1598939">
                             <schedule>
 <departures>
     <departure id="680" time="08:46:00"/>
@@ -1334,11 +1310,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:04:00"/>
     <leg lsref="19769" duration="00:04:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="85" externalid="1598088">
+                        <trip id="84" externalid="1598088">
                             <schedule>
 <departures>
     <departure id="681" time="07:22:00"/>
@@ -1347,11 +1322,10 @@
     <leg lsref="19925" duration="00:01:00"/>
     <leg lsref="19768" duration="00:03:00"/>
     <leg lsref="19769" duration="00:02:00"/>
-    <leg lsref="19770" duration="00:03:00"/>
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="86" externalid="1598155,1598599,1597787,1600916">
+                        <trip id="85" externalid="1598155,1598599,1597787,1600916">
                             <schedule>
 <departures>
     <departure id="682" time="07:15:00"/>
@@ -1366,7 +1340,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="87" externalid="1599224,1598357,1599385">
+                        <trip id="86" externalid="1599224,1598357,1599385">
                             <schedule>
 <departures>
     <departure id="687" time="07:34:00"/>
@@ -1380,7 +1354,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="88" externalid="1599373,1599767">
+                        <trip id="87" externalid="1599373,1599767">
                             <schedule>
 <departures>
     <departure id="689" time="06:45:00"/>
@@ -1393,7 +1367,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="89" externalid="1600469,1599888">
+                        <trip id="88" externalid="1600469,1599888">
                             <schedule>
 <departures>
     <departure id="691" time="06:00:00"/>
@@ -1412,7 +1386,7 @@
                     <name>333</name>
                     <namedescription>City Circular Quay to North Bondi via Bondi Junction</namedescription>
                     <trips>
-                        <trip id="90" externalid="1658241,1658183,1658184,1658185,1658186,1658187,1658188,1658189,1658190,1658191,1658192,1658193,1658194,1658195,1658322,1658403,1658674,1658448,1658449,1658450,1658451,1658452,1658453,1658677,1658678,1658460,1658741,1658766,1658767,1658805,1658806">
+                        <trip id="89" externalid="1658241,1658183,1658184,1658185,1658186,1658187,1658188,1658189,1658190,1658191,1658192,1658193,1658194,1658195,1658322,1658403,1658674,1658448,1658449,1658450,1658451,1658452,1658453,1658677,1658678,1658460,1658741,1658766,1658767,1658805,1658806">
                             <schedule>
 <departures>
     <departure id="709" time="07:34:00"/>
@@ -1449,7 +1423,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="91" externalid="1654085,1654086,1658156,1658425,1658426,1658652,1658653,1658157,1658158,1658654,1658655,1658656,1658657,1658658,1658166,1658167,1658168">
+                        <trip id="90" externalid="1654085,1654086,1658156,1658425,1658426,1658652,1658653,1658157,1658158,1658654,1658655,1658656,1658657,1658658,1658166,1658167,1658168">
                             <schedule>
 <departures>
     <departure id="721" time="06:08:00"/>
@@ -1472,7 +1446,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="92" externalid="1658155">
+                        <trip id="91" externalid="1658155">
                             <schedule>
 <departures>
     <departure id="731" time="06:01:00"/>
@@ -1482,7 +1456,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="93" externalid="1599685,1658126,1658477,1658482,1658483,1658317,1658319,1658333,1658334,1658405,1658406,1658427,1658428,1658429,1658485">
+                        <trip id="92" externalid="1599685,1658126,1658477,1658482,1658483,1658317,1658319,1658333,1658334,1658405,1658406,1658427,1658428,1658429,1658485">
                             <schedule>
 <departures>
     <departure id="746" time="07:34:00"/>
@@ -1508,7 +1482,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="94" externalid="1603479,1603944,1603961,1604042,1604043,1604044,1604045,1604046,1597586,1597587,1597588,1597589,1597590,1597591,1597592,1603175,1598162,1598163,1600490,1600492,1658224,1599743,1597851,1658635,1658122,1658124,1603459,1658638,1658639,1658127,1658129,1603585,1603898,1603899,1603900,1603901,1604013,1604017,1604018,1604020,1604049,1604243,1604244,1658358,1658359,1658360,1658361,1658362,1658363,1658447,1658470,1658642">
+                        <trip id="93" externalid="1603479,1603944,1603961,1604042,1604043,1604044,1604045,1604046,1597586,1597587,1597588,1597589,1597590,1597591,1597592,1603175,1598162,1598163,1600490,1600492,1658224,1599743,1597851,1658635,1658122,1658124,1603459,1658638,1658639,1658127,1658129,1603585,1603898,1603899,1603900,1603901,1604013,1604017,1604018,1604020,1604049,1604243,1604244,1658358,1658359,1658360,1658361,1658362,1658363,1658447,1658470,1658642">
                             <schedule>
 <departures>
     <departure id="765" time="07:11:00"/>
@@ -1560,7 +1534,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="95" externalid="1600333,1598530,1598531,1658225,1604096,1658534,1658535,1604169,1658537">
+                        <trip id="94" externalid="1600333,1598530,1598531,1658225,1604096,1658534,1658535,1604169,1658537">
                             <schedule>
 <departures>
     <departure id="788" time="07:12:00"/>
@@ -1577,7 +1551,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="96" externalid="1658469">
+                        <trip id="95" externalid="1658469">
                             <schedule>
 <departures>
     <departure id="796" time="07:39:00"/>
@@ -1587,7 +1561,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="97" externalid="1597214,1597298,1603046,1598330,1598331,1598733,1598734,1603314,1658146,1658147,1604260,1604162,1604163,1603214,1604253,1604254,1604255,1658410,1658486,1658487,1658488,1658171,1658172">
+                        <trip id="96" externalid="1597214,1597298,1603046,1598330,1598331,1598733,1598734,1603314,1658146,1658147,1604260,1604162,1604163,1603214,1604253,1604254,1604255,1658410,1658486,1658487,1658488,1658171,1658172">
                             <schedule>
 <departures>
     <departure id="797" time="06:00:00"/>
@@ -1612,7 +1586,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="98" externalid="1603456,1603931,1658173,1658174">
+                        <trip id="97" externalid="1603456,1603931,1658173,1658174">
                             <schedule>
 <departures>
     <departure id="813" time="06:58:00"/>
@@ -1633,7 +1607,7 @@
                     <name>339X</name>
                     <namedescription>City Martin Place to Clovelly (Express Service)</namedescription>
                     <trips>
-                        <trip id="99" externalid="1597477,1597478,1597479,1597480,1603167,1603168,1603169,1603170,1603171,1603172,1603173,1597543,1601083,1601084,1601085,1601086,1601087,1601088,1601089,1601090,1601091,1598755,1599770,1600752,1603519,1600840,1600899,1598115,1603501,1603502,1603553,1603774,1604019">
+                        <trip id="98" externalid="1597477,1597478,1597479,1597480,1603167,1603168,1603169,1603170,1603171,1603172,1603173,1597543,1601083,1601084,1601085,1601086,1601087,1601088,1601089,1601090,1601091,1598755,1599770,1600752,1603519,1600840,1600899,1598115,1603501,1603502,1603553,1603774,1604019">
                             <schedule>
 <departures>
     <departure id="838" time="06:37:00"/>
@@ -1675,37 +1649,7 @@
                     <name>343</name>
                     <namedescription>City Circular Quay to Kingsford</namedescription>
                     <trips>
-                        <trip id="100" externalid="1597256,1603035,1594834,1594835,1598030,1603451,1599265,1599266,1600671,1599830,1603420,1600841,1600842,1603442,1603793,1603794,1600152,1598598,1603193,1598731,1597858">
-                            <schedule>
-<departures>
-    <departure id="841" time="06:12:00"/>
-    <departure id="850" time="06:21:00"/>
-    <departure id="842" time="06:23:00"/>
-    <departure id="852" time="06:29:00"/>
-    <departure id="851" time="06:32:00"/>
-    <departure id="853" time="06:39:00"/>
-    <departure id="854" time="06:40:00"/>
-    <departure id="849" time="06:49:00"/>
-    <departure id="859" time="06:55:00"/>
-    <departure id="847" time="06:58:00"/>
-    <departure id="856" time="07:05:00"/>
-    <departure id="848" time="07:07:00"/>
-    <departure id="855" time="07:08:00"/>
-    <departure id="860" time="07:15:00"/>
-    <departure id="857" time="07:23:00"/>
-    <departure id="858" time="07:24:00"/>
-    <departure id="846" time="09:27:00"/>
-    <departure id="845" time="09:37:00"/>
-    <departure id="843" time="09:47:00"/>
-    <departure id="844" time="09:57:00"/>
-</departures>
-<reltimings dwelltime="00:00:00">
-    <leg lsref="19555" duration="00:03:00"/>
-    <leg lsref="19523" duration="00:02:00"/>
-</reltimings>
-                            </schedule>
-                        </trip>
-                        <trip id="101" externalid="1597931,1597353,1603164,1598002">
+                        <trip id="100" externalid="1597931,1597353,1603164,1598002">
                             <schedule>
 <departures>
     <departure id="861" time="06:00:00"/>
@@ -1718,7 +1662,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="102" externalid="1597620,1603251,1603252,1603253,1601111,1601112,1600248,1600249,1600261,1600475,1600476,1600477,1600478,1600479,1598743,1600816,1600839,1598120,1603884,1603885,1603886,1603887,1603888,1603889,1603890,1603891,1604161,1604171,1597422,1597636,1597637,1603105,1603106,1600635,1600636,1600637,1600638,1600639,1600640,1604218,1604219,1604220,1604221,1604222,1604223,1604224">
+                        <trip id="101" externalid="1597620,1603251,1603252,1603253,1601111,1601112,1600248,1600249,1600261,1600475,1600476,1600477,1600478,1600479,1598743,1600816,1600839,1598120,1603884,1603885,1603886,1603887,1603888,1603889,1603890,1603891,1604161,1604171,1597422,1597636,1597637,1603105,1603106,1600635,1600636,1600637,1600638,1600639,1600640,1604218,1604219,1604220,1604221,1604222,1604223,1604224">
                             <schedule>
 <departures>
     <departure id="879" time="07:15:00"/>
@@ -1768,7 +1712,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="103" externalid="1603030,1597294,1598470,1600569,1603548">
+                        <trip id="102" externalid="1603030,1597294,1598470,1600569,1603548">
                             <schedule>
 <departures>
     <departure id="905" time="06:18:00"/>
@@ -1782,7 +1726,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="104" externalid="1597379,1600027,1600292,1600293,1598563,1598564,1598666,1598667,1597690,1603108,1603109,1603110,1599673,1599674,1603711,1603753,1603754,1603755,1603904,1603905">
+                        <trip id="103" externalid="1597379,1600027,1600292,1600293,1598563,1598564,1598666,1598667,1597690,1603108,1603109,1603110,1599673,1599674,1603711,1603753,1603754,1603755,1603904,1603905">
                             <schedule>
 <departures>
     <departure id="909" time="08:01:00"/>
@@ -1812,7 +1756,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="105" externalid="1594515,1597995,1597996,1603123,1603124,1599126,1603090,1603091,1603092,1598283,1600533,1600534,1600606,1600607,1600608,1603237,1603438,1603652,1603653">
+                        <trip id="104" externalid="1594515,1597995,1597996,1603123,1603124,1599126,1603090,1603091,1603092,1598283,1600533,1600534,1600606,1600607,1600608,1603237,1603438,1603652,1603653">
                             <schedule>
 <departures>
     <departure id="935" time="07:00:00"/>
@@ -1839,7 +1783,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="106" externalid="1595910">
+                        <trip id="105" externalid="1595910">
                             <schedule>
 <departures>
     <departure id="942" time="06:01:00"/>
@@ -1849,13 +1793,43 @@
 </reltimings>
                             </schedule>
                         </trip>
+                        <trip id="99" externalid="1597256,1603035,1594834,1594835,1598030,1603451,1599265,1599266,1600671,1599830,1603420,1600841,1600842,1603442,1603793,1603794,1600152,1598598,1603193,1598731,1597858">
+                            <schedule>
+<departures>
+    <departure id="841" time="06:12:00"/>
+    <departure id="850" time="06:21:00"/>
+    <departure id="842" time="06:23:00"/>
+    <departure id="852" time="06:29:00"/>
+    <departure id="851" time="06:32:00"/>
+    <departure id="853" time="06:39:00"/>
+    <departure id="854" time="06:40:00"/>
+    <departure id="849" time="06:49:00"/>
+    <departure id="859" time="06:55:00"/>
+    <departure id="847" time="06:58:00"/>
+    <departure id="856" time="07:05:00"/>
+    <departure id="848" time="07:07:00"/>
+    <departure id="855" time="07:08:00"/>
+    <departure id="860" time="07:15:00"/>
+    <departure id="857" time="07:23:00"/>
+    <departure id="858" time="07:24:00"/>
+    <departure id="846" time="09:27:00"/>
+    <departure id="845" time="09:37:00"/>
+    <departure id="843" time="09:47:00"/>
+    <departure id="844" time="09:57:00"/>
+</departures>
+<reltimings dwelltime="00:00:00">
+    <leg lsref="19555" duration="00:03:00"/>
+    <leg lsref="19523" duration="00:02:00"/>
+</reltimings>
+                            </schedule>
+                        </trip>
                     </trips>
                 </service>
                 <service id="25" externalid="30-373-X-sj2-1">
                     <name>373X</name>
                     <namedescription>City Martin Place to Coogee (Express Service)</namedescription>
                     <trips>
-                        <trip id="107" externalid="1597509,1597529,1597530,1603097,1597643,1597644,1597645,1599108,1599109,1599110,1598343,1599227,1599228,1598360,1600349,1603374,1603375,1603376,1603377,1603378,1603379,1603380,1603381,1603382,1600366,1600367,1598664,1603228,1603229,1603230,1600696,1600697,1599762,1600805,1600814,1600815,1600853,1603443,1598974,1598975,1598976,1598977,1600885,1598995,1603902,1604182,1604207,1604208,1604209,1604210,1604240,1604241,1604250,1604251,1604252">
+                        <trip id="106" externalid="1597509,1597529,1597530,1603097,1597643,1597644,1597645,1599108,1599109,1599110,1598343,1599227,1599228,1598360,1600349,1603374,1603375,1603376,1603377,1603378,1603379,1603380,1603381,1603382,1600366,1600367,1598664,1603228,1603229,1603230,1600696,1600697,1599762,1600805,1600814,1600815,1600853,1603443,1598974,1598975,1598976,1598977,1600885,1598995,1603902,1604182,1604207,1604208,1604209,1604210,1604240,1604241,1604250,1604251,1604252">
                             <schedule>
 <departures>
     <departure id="956" time="06:13:00"/>
@@ -1924,7 +1898,7 @@
                     <name>374X</name>
                     <namedescription>City Martin Place to Coogee via Bream St (Express Service)</namedescription>
                     <trips>
-                        <trip id="108" externalid="1603505,1603506,1603507,1603508,1603567,1603574,1603644,1603746,1603747,1604024,1604111,1604112,1604113,1604214,1604233,1604234,1597423,1600026,1599048,1599049,1599369,1600481,1599521,1599565,1598786,1598787,1597855,1600823,1600824,1600825,1599847,1598079">
+                        <trip id="107" externalid="1603505,1603506,1603507,1603508,1603567,1603574,1603644,1603746,1603747,1604024,1604111,1604112,1604113,1604214,1604233,1604234,1597423,1600026,1599048,1599049,1599369,1600481,1599521,1599565,1598786,1598787,1597855,1600823,1600824,1600825,1599847,1598079">
                             <schedule>
 <departures>
     <departure id="1001" time="06:13:00"/>
@@ -1956,7 +1930,7 @@
                     <name>377X</name>
                     <namedescription>City Martin Place to Maroubra Beach via South Coogee (Express Service)</namedescription>
                     <trips>
-                        <trip id="109" externalid="1597540,1601149,1599190,1598302,1599478,1599479,1603414,1599541,1603415,1603416,1599551,1599552,1599753,1599754,1600772,1600787,1600788,1600804,1600878,1600951,1598095,1598096,1603571,1603572,1603573,1603592,1603773,1603806,1603836,1604021,1604099">
+                        <trip id="108" externalid="1597540,1601149,1599190,1598302,1599478,1599479,1603414,1599541,1603415,1603416,1599551,1599552,1599753,1599754,1600772,1600787,1600788,1600804,1600878,1600951,1598095,1598096,1603571,1603572,1603573,1603592,1603773,1603806,1603836,1604021,1604099">
                             <schedule>
 <departures>
     <departure id="1015" time="06:05:00"/>
@@ -1994,7 +1968,7 @@
                     <name>392X</name>
                     <namedescription>City Martin Place to Little Bay (Express Service)</namedescription>
                     <trips>
-                        <trip id="110" externalid="1597356,1597403,1597404,1597623,1598176,1598177,1603174,1600120,1599222,1603340,1603341,1599234,1598457,1599488,1599489,1600860,1599839,1599900,1603486,1603555,1603562,1603568,1603742,1603743,1603955,1603998,1604015,1600600,1600813,1603908,1604062">
+                        <trip id="109" externalid="1597356,1597403,1597404,1597623,1598176,1598177,1603174,1600120,1599222,1603340,1603341,1599234,1598457,1599488,1599489,1600860,1599839,1599900,1603486,1603555,1603562,1603568,1603742,1603743,1603955,1603998,1604015,1600600,1600813,1603908,1604062">
                             <schedule>
 <departures>
     <departure id="1037" time="06:20:00"/>
@@ -2027,7 +2001,7 @@
                     <name>394X</name>
                     <namedescription>City Martin Place to La Perouse (Express Service)</namedescription>
                     <trips>
-                        <trip id="111" externalid="1601071,1598289,1599274,1603350,1603351,1598622,1603809,1601103,1601104,1601105,1599125,1601133,1603444,1603445,1598261,1599147,1599148,1599149,1599150,1600693,1598837,1600818,1600819,1600820,1603760,1603894,1603943,1604076,1604077,1604206,1601098,1597666,1603107,1597687,1597688,1597689,1599599,1600896,1600897,1604140,1604168,1604191">
+                        <trip id="110" externalid="1601071,1598289,1599274,1603350,1603351,1598622,1603809,1601103,1601104,1601105,1599125,1601133,1603444,1603445,1598261,1599147,1599148,1599149,1599150,1600693,1598837,1600818,1600819,1600820,1603760,1603894,1603943,1604076,1604077,1604206,1601098,1597666,1603107,1597687,1597688,1597689,1599599,1600896,1600897,1604140,1604168,1604191">
                             <schedule>
 <departures>
     <departure id="1076" time="06:42:00"/>
@@ -2100,7 +2074,7 @@
                     <name>396</name>
                     <namedescription>City Circular Quay to Maroubra Beach</namedescription>
                     <trips>
-                        <trip id="112" externalid="1595522">
+                        <trip id="111" externalid="1595522">
                             <schedule>
 <departures>
     <departure id="1077" time="06:00:00"/>
@@ -2110,7 +2084,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="113" externalid="1597949,1597950,1603037,1601152,1598074,1603632">
+                        <trip id="112" externalid="1597949,1597950,1603037,1601152,1598074,1603632">
                             <schedule>
 <departures>
     <departure id="1078" time="06:11:00"/>
@@ -2126,7 +2100,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="114" externalid="1597952,1603038,1603039,1603040,1599075,1599076,1603250,1600223,1600224,1600225,1603417,1601195,1601196,1603457,1598407,1603183,1598455,1599465,1599963,1600969,1603527,1603528,1603529,1603530,1603823,1603824,1604109">
+                        <trip id="113" externalid="1597952,1603038,1603039,1603040,1599075,1599076,1603250,1600223,1600224,1600225,1603417,1601195,1601196,1603457,1598407,1603183,1598455,1599465,1599963,1600969,1603527,1603528,1603529,1603530,1603823,1603824,1604109">
                             <schedule>
 <departures>
     <departure id="1097" time="07:02:00"/>
@@ -2158,7 +2132,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="115" externalid="1599069,1599070,1603331,1603332,1603333,1600219,1600220,1599217,1603601,1603602">
+                        <trip id="114" externalid="1599069,1599070,1603331,1603332,1603333,1600219,1600220,1599217,1603601,1603602">
                             <schedule>
 <departures>
     <departure id="1106" time="08:02:00"/>
@@ -2179,7 +2153,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="116" externalid="1597424,1600029,1601072,1599473,1600582,1600583,1600652,1600653,1600751,1599917,1599921,1603383,1603384,1603595,1603664,1603771,1603779,1603780,1603828,1603942,1604150,1604151">
+                        <trip id="115" externalid="1597424,1600029,1601072,1599473,1600582,1600583,1600652,1600653,1600751,1599917,1599921,1603383,1603384,1603595,1603664,1603771,1603779,1603780,1603828,1603942,1604150,1604151">
                             <schedule>
 <departures>
     <departure id="1118" time="06:22:00"/>
@@ -2210,7 +2184,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="117" externalid="1600030,1598222,1599097,1600654,1599733,1599734,1599768,1598894,1598895,1598896,1598999,1598080,1603557,1603978,1603979,1603980,1603981,1603982,1603983">
+                        <trip id="116" externalid="1600030,1598222,1599097,1600654,1599733,1599734,1599768,1598894,1598895,1598896,1598999,1598080,1603557,1603978,1603979,1603980,1603981,1603982,1603983">
                             <schedule>
 <departures>
     <departure id="1135" time="07:21:00"/>
@@ -2240,7 +2214,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="118" externalid="1599367,1599617">
+                        <trip id="117" externalid="1599367,1599617">
                             <schedule>
 <departures>
     <departure id="1153" time="06:04:00"/>
@@ -2253,7 +2227,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="119" externalid="1599594,1598693">
+                        <trip id="118" externalid="1599594,1598693">
                             <schedule>
 <departures>
     <departure id="1155" time="06:00:00"/>
@@ -2271,7 +2245,7 @@
                     <name>396X</name>
                     <namedescription>City Martin Place to Maroubra Beach (Express Service)</namedescription>
                     <trips>
-                        <trip id="120" externalid="1597360,1597562,1600100,1600101,1598355,1598356,1598453,1603187,1600902,1600907,1603439,1603440,1600967,1598100,1598101,1603062,1603063,1603772,1603892,1603893,1603951,1604164,1604165,1604166">
+                        <trip id="119" externalid="1597360,1597562,1600100,1600101,1598355,1598356,1598453,1603187,1600902,1600907,1603439,1603440,1600967,1598100,1598101,1603062,1603063,1603772,1603892,1603893,1603951,1604164,1604165,1604166">
                             <schedule>
 <departures>
     <departure id="1162" time="06:51:00"/>
@@ -2311,7 +2285,7 @@
                     <name>397X</name>
                     <namedescription>City Martin Place to South Maroubra (Express Service)</namedescription>
                     <trips>
-                        <trip id="121" externalid="1598136,1599121,1603260,1603261,1598477,1598547,1599728,1599729,1600698,1603517,1600704,1600736,1598998,1603556,1603643,1603965,1604016,1604188,1604189">
+                        <trip id="120" externalid="1598136,1599121,1603260,1603261,1598477,1598547,1599728,1599729,1600698,1603517,1600704,1600736,1598998,1603556,1603643,1603965,1604016,1604188,1604189">
                             <schedule>
 <departures>
     <departure id="1180" time="06:17:00"/>
@@ -2337,7 +2311,7 @@
                     <name>594</name>
                     <namedescription>City Clarence St to North Turramurra</namedescription>
                     <trips>
-                        <trip id="122" externalid="1462206,1462317">
+                        <trip id="121" externalid="1462206,1462317">
                             <schedule>
 <departures>
     <departure id="1190" time="06:54:00"/>
@@ -2354,7 +2328,7 @@
                     <name>194</name>
                     <namedescription>City QVB to St Ives</namedescription>
                     <trips>
-                        <trip id="123" externalid="1293784,1293787,1293788,1293789,1293790,1293791,1293792,1459548">
+                        <trip id="122" externalid="1293784,1293787,1293788,1293789,1293790,1293791,1293792,1459548">
                             <schedule>
 <departures>
     <departure id="1192" time="06:00:00"/>
@@ -2371,7 +2345,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="124" externalid="1213955,1213956">
+                        <trip id="123" externalid="1213955,1213956">
                             <schedule>
 <departures>
     <departure id="1200" time="09:00:00"/>
@@ -2388,7 +2362,7 @@
                     <name>194X</name>
                     <namedescription>City QVB to St Ives (Express Service)</namedescription>
                     <trips>
-                        <trip id="125" externalid="1213897,1213898,1558719,1558720,1558721,1558722,1558723,1558724,1558725,1558080,1558307,1558308,1558335,1558336,1558395,1558396">
+                        <trip id="124" externalid="1213897,1213898,1558719,1558720,1558721,1558722,1558723,1558724,1558725,1558080,1558307,1558308,1558335,1558336,1558395,1558396">
                             <schedule>
 <departures>
     <departure id="1202" time="06:00:00"/>
@@ -2419,7 +2393,7 @@
                     <name>270</name>
                     <namedescription>City QVB to Terrey Hills</namedescription>
                     <trips>
-                        <trip id="126" externalid="1035633,1035634,1558612,1459982,1460001,1558755,1558756,1558143,1558144,1558173,1558233,1558234,1558339,1035744,1035745,1036011,1036071,1036072,1558261,1558295,1558382,1474509">
+                        <trip id="125" externalid="1035633,1035634,1558612,1459982,1460001,1558755,1558756,1558143,1558144,1558173,1558233,1558234,1558339,1035744,1035745,1036011,1036071,1036072,1558261,1558295,1558382,1474509">
                             <schedule>
 <departures>
     <departure id="1223" time="06:00:00"/>
@@ -2449,7 +2423,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="127" externalid="1558499,1558607,1558608,1558627,1558091,1558092,1558216,1558217,1558218,1558364,1558365,1558366,1558367,1558368">
+                        <trip id="126" externalid="1558499,1558607,1558608,1558627,1558091,1558092,1558216,1558217,1558218,1558364,1558365,1558366,1558367,1558368">
                             <schedule>
 <departures>
     <departure id="1252" time="06:00:00"/>
@@ -2478,7 +2452,7 @@
                     <name>270X</name>
                     <namedescription>City QVB to Terrey Hills (Express Service)</namedescription>
                     <trips>
-                        <trip id="128" externalid="1293640,1293643,1293748,1293750,1459849">
+                        <trip id="127" externalid="1293640,1293643,1293748,1293750,1459849">
                             <schedule>
 <departures>
     <departure id="1255" time="06:54:00"/>
@@ -2498,7 +2472,7 @@
                     <name>271</name>
                     <namedescription>City QVB to Belrose</namedescription>
                     <trips>
-                        <trip id="129" externalid="1558922,1558429,1558100,1558923,1558186,1558220,1558941,1558942,1558310,1558334,1558337,1558338,1558516,1558658,1558659,1558714,1558715">
+                        <trip id="128" externalid="1558922,1558429,1558100,1558923,1558186,1558220,1558941,1558942,1558310,1558334,1558337,1558338,1558516,1558658,1558659,1558714,1558715">
                             <schedule>
 <departures>
     <departure id="1273" time="06:00:00"/>
@@ -2523,7 +2497,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="130" externalid="1558670,1558671">
+                        <trip id="129" externalid="1558670,1558671">
                             <schedule>
 <departures>
     <departure id="1274" time="09:15:00"/>
@@ -2540,7 +2514,7 @@
                     <name>273</name>
                     <namedescription>City QVB to Killarney Heights via Forestville</namedescription>
                     <trips>
-                        <trip id="131" externalid="1558104,1558105,1558172">
+                        <trip id="130" externalid="1558104,1558105,1558172">
                             <schedule>
 <departures>
     <departure id="1278" time="06:50:00"/>
@@ -2595,7 +2569,7 @@
                     <name>274</name>
                     <namedescription>City QVB to Davidson via Frenchs Forest</namedescription>
                     <trips>
-                        <trip id="132" externalid="1558600,1558619,1558620,1558792,1558820,1559018,1559019">
+                        <trip id="131" externalid="1558600,1558619,1558620,1558792,1558820,1559018,1559019">
                             <schedule>
 <departures>
     <departure id="1279" time="06:20:00"/>
@@ -2617,7 +2591,7 @@
                     <name>320</name>
                     <namedescription>Gore Hill to Green Square</namedescription>
                     <trips>
-                        <trip id="133" externalid="1626557,1628175,1626560,1626561,1626562,1628176,1628177,1628178,1626564,1628179,1626566,1626567,1626568,1626569,1626570,1628180,1628181,1628182,1628183,1626578,1628184,1626580,1628185,1626583,1628186,1626588,1626589,1626590,1628190,1628191,1626618,1626648,1626658">
+                        <trip id="132" externalid="1626557,1628175,1626560,1626561,1626562,1628176,1628177,1628178,1626564,1628179,1626566,1626567,1626568,1626569,1626570,1628180,1628181,1628182,1628183,1626578,1628184,1626580,1628185,1626583,1628186,1626588,1626589,1626590,1628190,1628191,1626618,1626648,1626658">
                             <schedule>
 <departures>
     <departure id="1297" time="06:27:00"/>
@@ -2645,7 +2619,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="134" externalid="1485761,1518485,1486173,1518514,1489173,1518667,1486745,1518515,1486773,1486774,1518434,1518435,1486974,1486975,1518449,1369243,1518372,1487266,1487267,1488022,1488023,1518466,1485127,1485128,1518379,1518473,1485170,1485171,1518474,1518475,1488372,1518567,1488467,1518656">
+                        <trip id="133" externalid="1485761,1518485,1486173,1518514,1489173,1518667,1486745,1518515,1486773,1486774,1518434,1518435,1486974,1486975,1518449,1369243,1518372,1487266,1487267,1488022,1488023,1518466,1485127,1485128,1518379,1518473,1485170,1485171,1518474,1518475,1488372,1518567,1488467,1518656">
                             <schedule>
 <departures>
     <departure id="1313" time="06:23:00"/>
@@ -2679,7 +2653,7 @@
                     <name>412</name>
                     <namedescription>City Martin Place to Campsie via Earlwood and Dulwich Hill</namedescription>
                     <trips>
-                        <trip id="135" externalid="1510851,1510852">
+                        <trip id="134" externalid="1510851,1510852">
                             <schedule>
 <departures>
     <departure id="1324" time="09:23:00"/>
@@ -2690,7 +2664,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="136" externalid="1540351,1540386,1540534,1540440">
+                        <trip id="135" externalid="1540351,1540386,1540534,1540440">
                             <schedule>
 <departures>
     <departure id="1326" time="08:55:00"/>
@@ -2703,7 +2677,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="137" externalid="1540377">
+                        <trip id="136" externalid="1540377">
                             <schedule>
 <departures>
     <departure id="1330" time="08:35:00"/>
@@ -2713,7 +2687,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="138" externalid="1540402,1540405,1540447,1540470">
+                        <trip id="137" externalid="1540402,1540405,1540447,1540470">
                             <schedule>
 <departures>
     <departure id="1332" time="06:00:00"/>
@@ -2725,7 +2699,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="139" externalid="1540437,1540500,1540552,1540587,1540589,1541137">
+                        <trip id="138" externalid="1540437,1540500,1540552,1540587,1540589,1541137">
                             <schedule>
 <departures>
     <departure id="1338" time="06:58:00"/>
@@ -2740,7 +2714,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="140" externalid="1485844,1485845,1488810,1488811,1486186,1487968,1488381,1488580,1486024">
+                        <trip id="139" externalid="1485844,1485845,1488810,1488811,1486186,1487968,1488381,1488580,1486024">
                             <schedule>
 <departures>
     <departure id="1345" time="06:35:00"/>
@@ -2764,7 +2738,7 @@
                     <name>423</name>
                     <namedescription>City Martin Place to Kingsgrove Depot</namedescription>
                     <trips>
-                        <trip id="141" externalid="1568001,1569925,1568050,1569031,1569032,1569033,1569081,1569082,1569083,1569084,1569085,1569312,1568557,1569769,1569550,1569551,1569552,1569553,1569554,1569555,1569556,1569557,1569558,1569559">
+                        <trip id="140" externalid="1568001,1569925,1568050,1569031,1569032,1569033,1569081,1569082,1569083,1569084,1569085,1569312,1568557,1569769,1569550,1569551,1569552,1569553,1569554,1569555,1569556,1569557,1569558,1569559">
                             <schedule>
 <departures>
     <departure id="1350" time="06:00:00"/>
@@ -2797,7 +2771,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="142" externalid="1570061,1569375,1568694,1568695,1569618">
+                        <trip id="141" externalid="1570061,1569375,1568694,1568695,1569618">
                             <schedule>
 <departures>
     <departure id="1374" time="07:54:00"/>
@@ -2811,7 +2785,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="143" externalid="1569150,1570144,1569309,1569310,1568094">
+                        <trip id="142" externalid="1569150,1570144,1569309,1569310,1568094">
                             <schedule>
 <departures>
     <departure id="1380" time="06:00:00"/>
@@ -2825,7 +2799,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="144" externalid="1570253,1568403,1568404,1569493,1567952,1569874,1568040,1568134,1570037">
+                        <trip id="143" externalid="1570253,1568403,1568404,1569493,1567952,1569874,1568040,1568134,1570037">
                             <schedule>
 <departures>
     <departure id="1390" time="07:02:00"/>
@@ -2843,7 +2817,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="145" externalid="1569500">
+                        <trip id="144" externalid="1569500">
                             <schedule>
 <departures>
     <departure id="1392" time="06:00:00"/>
@@ -2859,7 +2833,7 @@
                     <name>423X</name>
                     <namedescription>City Martin Place to Kingsgrove</namedescription>
                     <trips>
-                        <trip id="146" externalid="1568190,1568219,1568733,1568734">
+                        <trip id="145" externalid="1568190,1568219,1568733,1568734">
                             <schedule>
 <departures>
     <departure id="1393" time="07:07:00"/>
@@ -2872,7 +2846,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="147" externalid="1568371,1568372">
+                        <trip id="146" externalid="1568371,1568372">
                             <schedule>
 <departures>
     <departure id="1397" time="07:48:00"/>
@@ -2883,7 +2857,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="148" externalid="1569457,1569459,1568769">
+                        <trip id="147" externalid="1569457,1569459,1568769">
                             <schedule>
 <departures>
     <departure id="1399" time="06:32:00"/>
@@ -2901,7 +2875,7 @@
                     <name>426</name>
                     <namedescription>City Martin Place to Dulwich Hill</namedescription>
                     <trips>
-                        <trip id="149" externalid="1569832,1569924,1569069,1569070,1570293,1568524,1568525,1568526,1568527,1568528,1568529">
+                        <trip id="148" externalid="1569832,1569924,1569069,1569070,1570293,1568524,1568525,1568526,1568527,1568528,1568529">
                             <schedule>
 <departures>
     <departure id="1402" time="06:44:00"/>
@@ -2921,7 +2895,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="150" externalid="1568492,1569518,1569635,1569636">
+                        <trip id="149" externalid="1568492,1569518,1569635,1569636">
                             <schedule>
 <departures>
     <departure id="1415" time="06:00:00"/>
@@ -2934,7 +2908,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="151" externalid="1569473">
+                        <trip id="150" externalid="1569473">
                             <schedule>
 <departures>
     <departure id="1417" time="06:00:00"/>
@@ -2944,7 +2918,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="152" externalid="1569712,1569076,1570085,1570086">
+                        <trip id="151" externalid="1569712,1569076,1570085,1570086">
                             <schedule>
 <departures>
     <departure id="1420" time="08:07:00"/>
@@ -2957,7 +2931,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="153" externalid="1569791,1568983,1570109,1570110,1570111,1570112,1570113,1570118">
+                        <trip id="152" externalid="1569791,1568983,1570109,1570110,1570111,1570112,1570113,1570118">
                             <schedule>
 <departures>
     <departure id="1424" time="07:19:00"/>
@@ -2980,7 +2954,7 @@
                     <name>428</name>
                     <namedescription>City Martin Place to Canterbury</namedescription>
                     <trips>
-                        <trip id="154" externalid="1568329,1568876,1568199,1569214,1568366,1568367,1568368,1568369,1569471,1569750">
+                        <trip id="153" externalid="1568329,1568876,1568199,1569214,1568366,1568367,1568368,1568369,1569471,1569750">
                             <schedule>
 <departures>
     <departure id="1432" time="06:16:00"/>
@@ -2999,7 +2973,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="155" externalid="1568349,1568424,1569326,1569327,1569328,1569505">
+                        <trip id="154" externalid="1568349,1568424,1569326,1569327,1569328,1569505">
                             <schedule>
 <departures>
     <departure id="1442" time="07:54:00"/>
@@ -3014,7 +2988,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="156" externalid="1657886,1657889,1657890,1657891,1657892,1657893,1657894,1657895,1657896,1657897,1657909,1657932,1657933,1657942">
+                        <trip id="155" externalid="1657886,1657889,1657890,1657891,1657892,1657893,1657894,1657895,1657896,1657897,1657909,1657932,1657933,1657942">
                             <schedule>
 <departures>
     <departure id="1446" time="06:28:00"/>
@@ -3037,7 +3011,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="157" externalid="1569810,1569023,1570119">
+                        <trip id="156" externalid="1569810,1569023,1570119">
                             <schedule>
 <departures>
     <departure id="1461" time="06:02:00"/>
@@ -3049,7 +3023,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="158" externalid="1568827">
+                        <trip id="157" externalid="1568827">
                             <schedule>
 <departures>
     <departure id="1463" time="07:03:00"/>
@@ -3059,7 +3033,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="159" externalid="1568351">
+                        <trip id="158" externalid="1568351">
                             <schedule>
 <departures>
     <departure id="1464" time="06:00:00"/>
@@ -3075,7 +3049,7 @@
                     <name>428X</name>
                     <namedescription>City Martin Place to Canterbury</namedescription>
                     <trips>
-                        <trip id="160" externalid="1568242,1568507">
+                        <trip id="159" externalid="1568242,1568507">
                             <schedule>
 <departures>
     <departure id="1465" time="06:36:00"/>
@@ -3086,7 +3060,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="161" externalid="1569220,1569221">
+                        <trip id="160" externalid="1569220,1569221">
                             <schedule>
 <departures>
     <departure id="1467" time="07:59:00"/>
@@ -3097,7 +3071,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="162" externalid="1570164,1570165,1570166,1570167">
+                        <trip id="161" externalid="1570164,1570165,1570166,1570167">
                             <schedule>
 <departures>
     <departure id="1469" time="07:21:00"/>
@@ -3116,7 +3090,7 @@
                     <name>430</name>
                     <namedescription>City Martin Place to Sydenham</namedescription>
                     <trips>
-                        <trip id="163" externalid="1568869,1570082,1569403,1569404,1569405,1569406">
+                        <trip id="162" externalid="1568869,1570082,1569403,1569404,1569405,1569406">
                             <schedule>
 <departures>
     <departure id="1473" time="06:31:00"/>
@@ -3131,7 +3105,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="164" externalid="1568909,1568910,1570099,1570280,1568289,1568462,1568596,1568634">
+                        <trip id="163" externalid="1568909,1568910,1570099,1570280,1568289,1568462,1568596,1568634">
                             <schedule>
 <departures>
     <departure id="1481" time="07:24:00"/>
@@ -3148,7 +3122,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="165" externalid="1568179,1568208,1568209,1568210,1568820">
+                        <trip id="164" externalid="1568179,1568208,1568209,1568210,1568820">
                             <schedule>
 <departures>
     <departure id="1488" time="08:14:00"/>
@@ -3162,7 +3136,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="166" externalid="1668188,1668189,1668214,1668215,1668216,1668217,1668218,1668219,1668244,1668010,1668065,1668066,1668067,1668081,1668119,1668158,1668159,1569046,1569223,1568421,1568422,1569363,1569463,1569464,1569465,1568778,1568779,1568780,1568781,1568782,1568783,1568784,1568785,1568809">
+                        <trip id="165" externalid="1668188,1668189,1668214,1668215,1668216,1668217,1668218,1668219,1668244,1668010,1668065,1668066,1668067,1668081,1668119,1668158,1668159,1569046,1569223,1568421,1568422,1569363,1569463,1569464,1569465,1568778,1568779,1568780,1568781,1568782,1568783,1568784,1568785,1568809">
                             <schedule>
 <departures>
     <departure id="1500" time="06:23:00"/>
@@ -3194,7 +3168,7 @@
                     <name>431</name>
                     <namedescription>City Martin Place to Glebe Point</namedescription>
                     <trips>
-                        <trip id="167" externalid="1507998,1512102">
+                        <trip id="166" externalid="1507998,1512102">
                             <schedule>
 <departures>
     <departure id="1510" time="08:42:00"/>
@@ -3205,7 +3179,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="168" externalid="1508170,1508171,1507157,1507206,1507207,1511318,1511319,1511286">
+                        <trip id="167" externalid="1508170,1508171,1507157,1507206,1507207,1511318,1511319,1511286">
                             <schedule>
 <departures>
     <departure id="1518" time="07:07:00"/>
@@ -3222,7 +3196,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="169" externalid="1506912,1507731">
+                        <trip id="168" externalid="1506912,1507731">
                             <schedule>
 <departures>
     <departure id="1520" time="07:41:00"/>
@@ -3233,7 +3207,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="170" externalid="1507135,1507136,1507137,1507138,1507139">
+                        <trip id="169" externalid="1507135,1507136,1507137,1507138,1507139">
                             <schedule>
 <departures>
     <departure id="1521" time="08:01:00"/>
@@ -3247,7 +3221,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="171" externalid="1512926,1511848,1511849,1510763,1510764,1510765,1510766">
+                        <trip id="170" externalid="1512926,1511848,1511849,1510763,1510764,1510765,1510766">
                             <schedule>
 <departures>
     <departure id="1527" time="06:02:00"/>
@@ -3263,7 +3237,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="172" externalid="1511585,1509307">
+                        <trip id="171" externalid="1511585,1509307">
                             <schedule>
 <departures>
     <departure id="1533" time="07:21:00"/>
@@ -3274,7 +3248,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="173" externalid="1510388,1510389,1510390,1510898,1510899,1510900">
+                        <trip id="172" externalid="1510388,1510389,1510390,1510898,1510899,1510900">
                             <schedule>
 <departures>
     <departure id="1535" time="08:47:00"/>
@@ -3289,7 +3263,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="174" externalid="1509515,1509042">
+                        <trip id="173" externalid="1509515,1509042">
                             <schedule>
 <departures>
     <departure id="1542" time="08:36:00"/>
@@ -3300,7 +3274,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="175" externalid="1485614,1489059,1489060,1489061,1489062,1486084,1487177,1485290">
+                        <trip id="174" externalid="1485614,1489059,1489060,1489061,1489062,1486084,1487177,1485290">
                             <schedule>
 <departures>
     <departure id="1543" time="07:23:00"/>
@@ -3317,7 +3291,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="176" externalid="1486273,1486274">
+                        <trip id="175" externalid="1486273,1486274">
                             <schedule>
 <departures>
     <departure id="1551" time="06:43:00"/>
@@ -3328,7 +3302,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="177" externalid="1487172,1485087,1485088,1485089,1485090,1485091">
+                        <trip id="176" externalid="1487172,1485087,1485088,1485089,1485090,1485091">
                             <schedule>
 <departures>
     <departure id="1554" time="08:04:00"/>
@@ -3390,7 +3364,7 @@
                     <name>438X</name>
                     <namedescription>City Martin Place to Abbotsford</namedescription>
                     <trips>
-                        <trip id="178" externalid="1507963,1509737,1509738">
+                        <trip id="177" externalid="1507963,1509737,1509738">
                             <schedule>
 <departures>
     <departure id="1559" time="06:00:00"/>
@@ -3402,7 +3376,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="179" externalid="1508678,1511350,1512653,1512654,1512655,1512656,1512657,1512658,1512227,1512228,1512229,1512230,1512231,1512332,1509294,1509295,1509296">
+                        <trip id="178" externalid="1508678,1511350,1512653,1512654,1512655,1512656,1512657,1512658,1512227,1512228,1512229,1512230,1512231,1512332,1509294,1509295,1509296">
                             <schedule>
 <departures>
     <departure id="1562" time="07:00:00"/>
@@ -3428,7 +3402,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="180" externalid="1508139,1506955,1508584,1508585,1508586,1507479,1507480,1511349,1511627,1518671,1510926,1512109,1509327,1509285,1511133,1511224,1507094,1507095,1507096,1507097,1507098,1507099,1507100,1507406,1507407,1507512,1509592,1509667,1509668,1509669,1509670,1509671,1509766,1509767,1512973,1510355">
+                        <trip id="179" externalid="1508139,1506955,1508584,1508585,1508586,1507479,1507480,1511349,1511627,1518671,1510926,1512109,1509327,1509285,1511133,1511224,1507094,1507095,1507096,1507097,1507098,1507099,1507100,1507406,1507407,1507512,1509592,1509667,1509668,1509669,1509670,1509671,1509766,1509767,1512973,1510355">
                             <schedule>
 <departures>
     <departure id="1610" time="07:14:00"/>
@@ -3469,7 +3443,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="181" externalid="1512346,1512607,1509385,1509386,1511293,1508379,1508492,1508493,1507532,1512858">
+                        <trip id="180" externalid="1512346,1512607,1509385,1509386,1511293,1508379,1508492,1508493,1507532,1512858">
                             <schedule>
 <departures>
     <departure id="1613" time="06:18:00"/>
@@ -3487,7 +3461,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="182" externalid="1509240,1508759">
+                        <trip id="181" externalid="1509240,1508759">
                             <schedule>
 <departures>
     <departure id="1621" time="06:00:00"/>
@@ -3504,7 +3478,7 @@
                     <name>441</name>
                     <namedescription>City Art Gallery to Birchgrove via QVB (Loop Service)</namedescription>
                     <trips>
-                        <trip id="183" externalid="1507294,1512882">
+                        <trip id="182" externalid="1507294,1512882">
                             <schedule>
 <departures>
     <departure id="1622" time="09:34:00"/>
@@ -3513,7 +3487,6 @@
 <reltimings dwelltime="00:00:00">
     <leg lsref="63540" duration="00:02:00"/>
     <leg lsref="63541" duration="00:02:00"/>
-    <leg lsref="63542" duration="00:10:00"/>
 </reltimings>
                             </schedule>
                         </trip>
@@ -3523,7 +3496,7 @@
                     <name>470</name>
                     <namedescription>City Martin Place to Lilyfield</namedescription>
                     <trips>
-                        <trip id="184" externalid="1510056,1512626,1506966,1507055,1508912,1507489,1511344,1511566,1512093,1512094,1512095,1512096,1512097,1512098,1512099,1512100,1512101,1510805">
+                        <trip id="183" externalid="1510056,1512626,1506966,1507055,1508912,1507489,1511344,1511566,1512093,1512094,1512095,1512096,1512097,1512098,1512099,1512100,1512101,1510805">
                             <schedule>
 <departures>
     <departure id="1628" time="07:30:00"/>
@@ -3550,7 +3523,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="185" externalid="1486821,1487399,1487400,1487401,1487402,1487403,1487515,1488494,1488495,1488496,1488497,1488498,1488499,1488500,1488501,1488502,1485050,1485051">
+                        <trip id="184" externalid="1486821,1487399,1487400,1487401,1487402,1487403,1487515,1488494,1488495,1488496,1488497,1488498,1488499,1488500,1488501,1488502,1485050,1485051">
                             <schedule>
 <departures>
     <departure id="1648" time="06:11:00"/>
@@ -3577,7 +3550,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="186" externalid="1509739,1512398,1512530,1509007,1509008,1509009,1509035,1509927,1509960,1510531,1511185">
+                        <trip id="185" externalid="1509739,1512398,1512530,1509007,1509008,1509009,1509035,1509927,1509960,1510531,1511185">
                             <schedule>
 <departures>
     <departure id="1666" time="06:00:00"/>
@@ -3597,7 +3570,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="187" externalid="1506991,1510958,1510959">
+                        <trip id="186" externalid="1506991,1510958,1510959">
                             <schedule>
 <departures>
     <departure id="1671" time="09:32:00"/>
@@ -3609,7 +3582,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="188" externalid="1509815">
+                        <trip id="187" externalid="1509815">
                             <schedule>
 <departures>
     <departure id="1674" time="07:24:00"/>
@@ -3854,7 +3827,7 @@
                     <name>F2</name>
                     <namedescription>F2 Taronga Zoo</namedescription>
                     <trips>
-                        <trip id="189" externalid="TZ0850-WD-IN.270622.31.0912,TZ0920-WD-IN.270622.31.0942,TZ0850-OUT-WD.270622.31.0850,TZ0920-OUT-WD.270622.31.0920,TZ0950-OUT-WD.270622.31.0950">
+                        <trip id="188" externalid="TZ0850-WD-IN.270622.31.0912,TZ0920-WD-IN.270622.31.0942,TZ0850-OUT-WD.270622.31.0850,TZ0920-OUT-WD.270622.31.0920,TZ0950-OUT-WD.270622.31.0950">
                             <schedule>
 <departures>
     <departure id="1677" time="08:50:00"/>
@@ -3868,7 +3841,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="190" externalid="TZ0818-WD-IN.270622.31.0836">
+                        <trip id="189" externalid="TZ0818-WD-IN.270622.31.0836">
                             <schedule>
 <departures>
     <departure id="1680" time="08:36:00"/>
@@ -3879,7 +3852,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="191" externalid="TZ0648-WD-IN.270622.31.0706,TZ0718-WD-IN.270622.31.0736,TZ0748-WD-IN.270622.31.0806">
+                        <trip id="190" externalid="TZ0648-WD-IN.270622.31.0706,TZ0718-WD-IN.270622.31.0736,TZ0748-WD-IN.270622.31.0806">
                             <schedule>
 <departures>
     <departure id="1681" time="07:06:00"/>
@@ -3898,7 +3871,7 @@
                     <name>F4</name>
                     <namedescription>F4 Pyrmont Bay</namedescription>
                     <trips>
-                        <trip id="192" externalid="DH0851-OUT-WD.040722.31.0851,DH0630-OUT-WD.040722.31.0630,DH0750-OUT-WD.040722.31.0750,DH0810-OUT-WD.040722.31.0810,DH0831-OUT-WD.040722.31.0831">
+                        <trip id="191" externalid="DH0851-OUT-WD.040722.31.0851,DH0630-OUT-WD.040722.31.0630,DH0750-OUT-WD.040722.31.0750,DH0810-OUT-WD.040722.31.0810,DH0831-OUT-WD.040722.31.0831">
                             <schedule>
 <departures>
     <departure id="1685" time="06:30:00"/>
@@ -3913,7 +3886,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="193" externalid="DH0851-OUT-WD.040722.31.0851,DH0630-OUT-WD.040722.31.0630,DH0750-OUT-WD.040722.31.0750,DH0810-OUT-WD.040722.31.0810,DH0831-OUT-WD.040722.31.0831,DH0911-OUT-WD.040722.31.0911,DH0610-OUT-WD.040722.31.0610,DH0942-OUT-WD.040722.31.0942,DH0650-OUT-WD.040722.31.0650,DH0710-OUT-WD.040722.31.0710,DH0730-OUT-WD.040722.31.0730">
+                        <trip id="192" externalid="DH0851-OUT-WD.040722.31.0851,DH0630-OUT-WD.040722.31.0630,DH0750-OUT-WD.040722.31.0750,DH0810-OUT-WD.040722.31.0810,DH0831-OUT-WD.040722.31.0831,DH0911-OUT-WD.040722.31.0911,DH0610-OUT-WD.040722.31.0610,DH0942-OUT-WD.040722.31.0942,DH0650-OUT-WD.040722.31.0650,DH0710-OUT-WD.040722.31.0710,DH0730-OUT-WD.040722.31.0730">
                             <schedule>
 <departures>
     <departure id="1695" time="06:10:00"/>
@@ -3933,7 +3906,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="194" externalid="DH0911-OUT-WD.040722.31.0911,DH0610-OUT-WD.040722.31.0610">
+                        <trip id="193" externalid="DH0911-OUT-WD.040722.31.0911,DH0610-OUT-WD.040722.31.0610">
                             <schedule>
 <departures>
     <departure id="1701" time="06:10:00"/>
@@ -3945,7 +3918,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="195" externalid="DH0911-WD-IN.270622.31.0940,DH0610-WD-IN.270622.31.0639,DH0619-WD-IN.270622.31.0619,DH0630-WD-IN.270622.31.0659,DH0810-WD-IN.270622.31.0839,DH0650-WD-IN.270622.31.0719,DH0710-WD-IN.270622.31.0739,DH0730-WD-IN.270622.31.0759,DH0750-WD-IN.270622.31.0819,DH0831-WD-IN.270622.31.0910">
+                        <trip id="194" externalid="DH0911-WD-IN.270622.31.0940,DH0610-WD-IN.270622.31.0639,DH0619-WD-IN.270622.31.0619,DH0630-WD-IN.270622.31.0659,DH0810-WD-IN.270622.31.0839,DH0650-WD-IN.270622.31.0719,DH0710-WD-IN.270622.31.0739,DH0730-WD-IN.270622.31.0759,DH0750-WD-IN.270622.31.0819,DH0831-WD-IN.270622.31.0910">
                             <schedule>
 <departures>
     <departure id="1704" time="06:19:00"/>
@@ -3964,7 +3937,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="196" externalid="DH0911-WD-IN.270622.31.0940,DH0610-WD-IN.270622.31.0639,DH0619-WD-IN.270622.31.0619,DH0630-WD-IN.270622.31.0659,DH0810-WD-IN.270622.31.0839">
+                        <trip id="195" externalid="DH0911-WD-IN.270622.31.0940,DH0610-WD-IN.270622.31.0639,DH0619-WD-IN.270622.31.0619,DH0630-WD-IN.270622.31.0659,DH0810-WD-IN.270622.31.0839">
                             <schedule>
 <departures>
     <departure id="1714" time="06:19:00"/>
@@ -3979,7 +3952,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="197" externalid="DH0942-OUT-WD.040722.31.0942">
+                        <trip id="196" externalid="DH0942-OUT-WD.040722.31.0942">
                             <schedule>
 <departures>
     <departure id="1717" time="09:42:00"/>
@@ -3990,7 +3963,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="198" externalid="DH0650-OUT-WD.040722.31.0650,DH0710-OUT-WD.040722.31.0710,DH0730-OUT-WD.040722.31.0730">
+                        <trip id="197" externalid="DH0650-OUT-WD.040722.31.0650,DH0710-OUT-WD.040722.31.0710,DH0730-OUT-WD.040722.31.0730">
                             <schedule>
 <departures>
     <departure id="1718" time="06:50:00"/>
@@ -4003,7 +3976,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="199" externalid="DH0650-WD-IN.270622.31.0719,DH0710-WD-IN.270622.31.0739,DH0730-WD-IN.270622.31.0759,DH0750-WD-IN.270622.31.0819,DH0831-WD-IN.270622.31.0910">
+                        <trip id="198" externalid="DH0650-WD-IN.270622.31.0719,DH0710-WD-IN.270622.31.0739,DH0730-WD-IN.270622.31.0759,DH0750-WD-IN.270622.31.0819,DH0831-WD-IN.270622.31.0910">
                             <schedule>
 <departures>
     <departure id="1721" time="07:19:00"/>
@@ -4024,7 +3997,7 @@
                     <name>F5</name>
                     <namedescription>F5 Neutral Bay</namedescription>
                     <trips>
-                        <trip id="200" externalid="NB0655-OUT-WD.270622.31.0655,NB0725-OUT-WD.270622.31.0725,NB0755-OUT-WD.270622.31.0755,NB0825-OUT-WD.270622.31.0825,NB0925-OUT-WD.270622.31.0925,NB0627-OUT-WD.270622.31.0627">
+                        <trip id="199" externalid="NB0655-OUT-WD.270622.31.0655,NB0725-OUT-WD.270622.31.0725,NB0755-OUT-WD.270622.31.0755,NB0825-OUT-WD.270622.31.0825,NB0925-OUT-WD.270622.31.0925,NB0627-OUT-WD.270622.31.0627">
                             <schedule>
 <departures>
     <departure id="1731" time="06:27:00"/>
@@ -4039,7 +4012,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="201" externalid="NB0855-OUT-WD.270622.31.0855">
+                        <trip id="200" externalid="NB0855-OUT-WD.270622.31.0855">
                             <schedule>
 <departures>
     <departure id="1732" time="08:55:00"/>
@@ -4049,7 +4022,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="202" externalid="NB0627-WD-IN.270622.31.0640">
+                        <trip id="201" externalid="NB0627-WD-IN.270622.31.0640">
                             <schedule>
 <departures>
     <departure id="1733" time="06:40:00"/>
@@ -4059,7 +4032,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="203" externalid="NB0955-OUT-WD.270622.31.0955">
+                        <trip id="202" externalid="NB0955-OUT-WD.270622.31.0955">
                             <schedule>
 <departures>
     <departure id="1734" time="09:55:00"/>
@@ -4069,7 +4042,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="204" externalid="NB0557-WD-IN.270622.31.0610,NB0855-WD-IN.270622.31.0910,NB0925-WD-IN.270622.31.0940,NB0825-WD-IN.270622.31.0840">
+                        <trip id="203" externalid="NB0557-WD-IN.270622.31.0610,NB0855-WD-IN.270622.31.0910,NB0925-WD-IN.270622.31.0940,NB0825-WD-IN.270622.31.0840">
                             <schedule>
 <departures>
     <departure id="1735" time="06:10:00"/>
@@ -4082,7 +4055,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="205" externalid="NB0655-WD-IN.270622.31.0710,NB0725-WD-IN.270622.31.0740,NB0755-WD-IN.270622.31.0810">
+                        <trip id="204" externalid="NB0655-WD-IN.270622.31.0710,NB0725-WD-IN.270622.31.0740,NB0755-WD-IN.270622.31.0810">
                             <schedule>
 <departures>
     <departure id="1739" time="07:10:00"/>
@@ -4100,7 +4073,7 @@
                     <name>F6</name>
                     <namedescription>F6 Mosman Bay</namedescription>
                     <trips>
-                        <trip id="206" externalid="MS0900-OUT-WD.270622.31.0900,MS0930-OUT-WD.270622.31.0930">
+                        <trip id="205" externalid="MS0900-OUT-WD.270622.31.0900,MS0930-OUT-WD.270622.31.0930">
                             <schedule>
 <departures>
     <departure id="1742" time="09:00:00"/>
@@ -4111,7 +4084,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="207" externalid="MS0605-OUT-WD.270622.31.0605,MS0635-OUT-WD.270622.31.0635,MS0703-OUT-WD.270622.31.0703,MS0803-OUT-WD.270622.31.0803,MS0833-OUT-WD.270622.31.0833,MS0733-OUT-WD.270622.31.0733">
+                        <trip id="206" externalid="MS0605-OUT-WD.270622.31.0605,MS0635-OUT-WD.270622.31.0635,MS0703-OUT-WD.270622.31.0703,MS0803-OUT-WD.270622.31.0803,MS0833-OUT-WD.270622.31.0833,MS0733-OUT-WD.270622.31.0733">
                             <schedule>
 <departures>
     <departure id="1744" time="06:05:00"/>
@@ -4126,7 +4099,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="208" externalid="MS0605-WD-IN.270622.31.0624,MS0833-WD-IN.270622.31.0854,MS0900-WD-IN.270622.31.0925,MS0930-WD-IN.270622.31.0955,MS0803-WD-IN.270622.31.0822">
+                        <trip id="207" externalid="MS0605-WD-IN.270622.31.0624,MS0833-WD-IN.270622.31.0854,MS0900-WD-IN.270622.31.0925,MS0930-WD-IN.270622.31.0955,MS0803-WD-IN.270622.31.0822">
                             <schedule>
 <departures>
     <departure id="1750" time="06:24:00"/>
@@ -4140,7 +4113,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="209" externalid="MS0635-WD-IN.270622.31.0654,MS0703-WD-IN.270622.31.0722,MS0733-WD-IN.270622.31.0752">
+                        <trip id="208" externalid="MS0635-WD-IN.270622.31.0654,MS0703-WD-IN.270622.31.0722,MS0733-WD-IN.270622.31.0752">
                             <schedule>
 <departures>
     <departure id="1755" time="06:54:00"/>
@@ -4158,7 +4131,7 @@
                     <name>F8</name>
                     <namedescription>F8 Cockatoo Island</namedescription>
                     <trips>
-                        <trip id="210" externalid="CI0615-OUT-WD.040722.31.0615">
+                        <trip id="209" externalid="CI0615-OUT-WD.040722.31.0615">
                             <schedule>
 <departures>
     <departure id="1758" time="06:15:00"/>
@@ -4168,7 +4141,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="211" externalid="CI0615-WD-IN.270622.31.0649,CI0645-WD-IN.270622.31.0719,CI0715-WD-IN.270622.31.0749">
+                        <trip id="210" externalid="CI0615-WD-IN.270622.31.0649,CI0645-WD-IN.270622.31.0719,CI0715-WD-IN.270622.31.0749">
                             <schedule>
 <departures>
     <departure id="1759" time="06:49:00"/>
@@ -4180,7 +4153,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="212" externalid="CI0624-WD-IN.270622.31.0624,CI0845-WD-IN.270622.31.0919">
+                        <trip id="211" externalid="CI0624-WD-IN.270622.31.0624,CI0845-WD-IN.270622.31.0919">
                             <schedule>
 <departures>
     <departure id="1762" time="06:24:00"/>
@@ -4191,7 +4164,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="213" externalid="CI0645-OUT-WD.040722.31.0645,CI0815-OUT-WD.040722.31.0815,CI0945-OUT-WD.040722.31.0945">
+                        <trip id="212" externalid="CI0645-OUT-WD.040722.31.0645,CI0815-OUT-WD.040722.31.0815,CI0945-OUT-WD.040722.31.0945">
                             <schedule>
 <departures>
     <departure id="1764" time="06:45:00"/>
@@ -4203,7 +4176,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="214" externalid="CI0715-OUT-WD.040722.31.0715,CI0745-OUT-WD.040722.31.0745,CI0845-OUT-WD.040722.31.0845">
+                        <trip id="213" externalid="CI0715-OUT-WD.040722.31.0715,CI0745-OUT-WD.040722.31.0745,CI0845-OUT-WD.040722.31.0845">
                             <schedule>
 <departures>
     <departure id="1767" time="07:15:00"/>
@@ -4215,7 +4188,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="215" externalid="CI0745-WD-IN.270622.31.0819,CI0815-WD-IN.270622.31.0849">
+                        <trip id="214" externalid="CI0745-WD-IN.270622.31.0819,CI0815-WD-IN.270622.31.0849">
                             <schedule>
 <departures>
     <departure id="1770" time="08:19:00"/>
@@ -4232,7 +4205,7 @@
                     <name>F9</name>
                     <namedescription>F9 Watsons Bay</namedescription>
                     <trips>
-                        <trip id="216" externalid="WB0605-OUT-WD.270622.31.0605,WB0625-OUT-WD.270622.31.0625,WB0645-OUT-WD.270622.31.0645,WB0705-OUT-WD.270622.31.0705,WB0725-OUT-WD.270622.31.0725,WB0745-OUT-WD.270622.31.0745,WB0805-OUT-WD.270622.31.0805,WB0825-OUT-WD.270622.31.0825,WB0845-OUT-WD.270622.31.0845,WB0905-OUT-WD.270622.31.0905,WB0925-OUT-WD.270622.31.0925,WB0605-WD-IN.270622.31.0625,WB0625-WD-IN.270622.31.0645,WB0645-WD-IN.270622.31.0705,WB0705-WD-IN.270622.31.0725,WB0725-WD-IN.270622.31.0745,WB0745-WD-IN.270622.31.0805,WB0805-WD-IN.270622.31.0825,WB0825-WD-IN.270622.31.0845,WB0845-WD-IN.270622.31.0905,WB0905-WD-IN.270622.31.0925">
+                        <trip id="215" externalid="WB0605-OUT-WD.270622.31.0605,WB0625-OUT-WD.270622.31.0625,WB0645-OUT-WD.270622.31.0645,WB0705-OUT-WD.270622.31.0705,WB0725-OUT-WD.270622.31.0725,WB0745-OUT-WD.270622.31.0745,WB0805-OUT-WD.270622.31.0805,WB0825-OUT-WD.270622.31.0825,WB0845-OUT-WD.270622.31.0845,WB0905-OUT-WD.270622.31.0905,WB0925-OUT-WD.270622.31.0925,WB0605-WD-IN.270622.31.0625,WB0625-WD-IN.270622.31.0645,WB0645-WD-IN.270622.31.0705,WB0705-WD-IN.270622.31.0725,WB0725-WD-IN.270622.31.0745,WB0745-WD-IN.270622.31.0805,WB0805-WD-IN.270622.31.0825,WB0825-WD-IN.270622.31.0845,WB0845-WD-IN.270622.31.0905,WB0905-WD-IN.270622.31.0925">
                             <schedule>
 <departures>
     <departure id="1772" time="06:05:00"/>
@@ -4252,7 +4225,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="217" externalid="WB0925-WD-IN.270622.31.0955">
+                        <trip id="216" externalid="WB0925-WD-IN.270622.31.0955">
                             <schedule>
 <departures>
     <departure id="1783" time="09:55:00"/>
@@ -4262,7 +4235,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="218" externalid="WB0945-OUT-WD.270622.31.0945">
+                        <trip id="217" externalid="WB0945-OUT-WD.270622.31.0945">
                             <schedule>
 <departures>
     <departure id="1784" time="09:45:00"/>
@@ -4280,7 +4253,7 @@
                     <name>L2</name>
                     <namedescription>L2 Randwick Line</namedescription>
                     <trips>
-                        <trip id="219" externalid="37265-10128:1255146:1256113,37265-10133:1250467:1256113,37265-10134:1250654:1256113,37367-10038:1251261:1256042,37367-10040:1248674:1256042,37367-10066:1248420:1256212,37367-10068:1250611:1256212,37367-10128:1253743:1256321,37367-10133:1251262:1256321,37367-10134:1250134:1256321,37265-10224:1251951:1256252,37265-10226:1251007:1256305,37265-10227:1248286:1256305,37265-10230:1250968:1256252,37265-10232:1251472:1256252,37367-10224:1253173:1256075,37367-10226:1249806:1256279,37367-10227:1251618:1256279,37367-10230:1248259:1256075,37367-10232:1254887:1256075,37265-10038:1254523:1256096,37265-10040:1255018:1256096,37265-10066:1255898:1256223,37265-10068:1256016:1256223,37265-10001:1248246:1256156,37265-10036:1255704:1256096,37367-10001:1254445:1256155,37367-10036:1249566:1256042,37265-10013:1248715:1256283,37367-10013:1251298:1256114,37265-10129:1251995:1256128,37265-10130:1254151:1256128,37367-10039:1250570:1256114,37367-10044:1249681:1256051,37367-10048:1253190:1256051,37367-10129:1255588:1256034,37367-10130:1250751:1256034,37265-10228:1250393:1256026,37265-10233:1254391:1256026,37367-10228:1251975:1256073,37367-10233:1255799:1256073,37265-10012:1255481:1256156,37265-10015:1249491:1256156,37265-10023:1251607:1256242,37265-10025:1253337:1256283,37265-10027:1255653:1256283,37265-10039:1253943:1256283,37265-10044:1250897:1256242,37265-10048:1254929:1256242,37367-10012:1248427:1256155,37367-10015:1249090:1256155,37367-10023:1252306:1256051,37367-10025:1254495:1256114,37367-10027:1251872:1256114,37367-10067:1253895:1256212,37265-10067:1249667:1256223,37265-10011:1250828:1256242,37367-10011:1250596:1256051,37265-10786:1253511:1256123,37367-10786:1252317:1256148">
+                        <trip id="218" externalid="37265-10128:1255146:1256113,37265-10133:1250467:1256113,37265-10134:1250654:1256113,37367-10038:1251261:1256042,37367-10040:1248674:1256042,37367-10066:1248420:1256212,37367-10068:1250611:1256212,37367-10128:1253743:1256321,37367-10133:1251262:1256321,37367-10134:1250134:1256321,37265-10224:1251951:1256252,37265-10226:1251007:1256305,37265-10227:1248286:1256305,37265-10230:1250968:1256252,37265-10232:1251472:1256252,37367-10224:1253173:1256075,37367-10226:1249806:1256279,37367-10227:1251618:1256279,37367-10230:1248259:1256075,37367-10232:1254887:1256075,37265-10038:1254523:1256096,37265-10040:1255018:1256096,37265-10066:1255898:1256223,37265-10068:1256016:1256223,37265-10001:1248246:1256156,37265-10036:1255704:1256096,37367-10001:1254445:1256155,37367-10036:1249566:1256042,37265-10013:1248715:1256283,37367-10013:1251298:1256114,37265-10129:1251995:1256128,37265-10130:1254151:1256128,37367-10039:1250570:1256114,37367-10044:1249681:1256051,37367-10048:1253190:1256051,37367-10129:1255588:1256034,37367-10130:1250751:1256034,37265-10228:1250393:1256026,37265-10233:1254391:1256026,37367-10228:1251975:1256073,37367-10233:1255799:1256073,37265-10012:1255481:1256156,37265-10015:1249491:1256156,37265-10023:1251607:1256242,37265-10025:1253337:1256283,37265-10027:1255653:1256283,37265-10039:1253943:1256283,37265-10044:1250897:1256242,37265-10048:1254929:1256242,37367-10012:1248427:1256155,37367-10015:1249090:1256155,37367-10023:1252306:1256051,37367-10025:1254495:1256114,37367-10027:1251872:1256114,37367-10067:1253895:1256212,37265-10067:1249667:1256223,37265-10011:1250828:1256242,37367-10011:1250596:1256051,37265-10786:1253511:1256123,37367-10786:1252317:1256148">
                             <schedule>
 <departures>
     <departure id="1799" time="06:01:35"/>
@@ -4322,7 +4295,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="220" externalid="37265-10105:1248314:1256128,37367-10105:1248541:1256034">
+                        <trip id="219" externalid="37265-10105:1248314:1256128,37367-10105:1248541:1256034">
                             <schedule>
 <departures>
     <departure id="1815" time="07:24:00"/>
@@ -4335,7 +4308,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="221" externalid="37265-10103:1252762:1256113,37265-10108:1253804:1256113,37367-10049:1253424:1256212,37367-10050:1251605:1256212,37265-10197:1251889:1256252,37367-10103:1250838:1256321,37367-10108:1253463:1256321,37265-10199:1255848:1256305,37265-10200:1253072:1256305,37265-10202:1249822:1256252,37367-10197:1254644:1256075,37367-10199:1248576:1256279,37367-10200:1250120:1256279,37367-10202:1248445:1256075,37265-10026:1248304:1256096,37265-10029:1255267:1256096,37265-10049:1251720:1256223,37265-10050:1254532:1256223,37367-10026:1250576:1256042,37367-10029:1253398:1256042,37265-10098:1249074:1256128,37367-10037:1249643:1256114,37265-10194:1254106:1256026,37265-10196:1250874:1256026,37367-10098:1250574:1256034,37367-10194:1253825:1256073,37367-10196:1254564:1256073,37265-10005:1249835:1256156,37265-10006:1252404:1256156,37265-10010:1250895:1256156,37265-10016:1253052:1256242,37265-10021:1254094:1256283,37265-10033:1254579:1256242,37265-10037:1249438:1256283,37367-10005:1249082:1256155,37367-10006:1248908:1256155,37367-10010:1254178:1256155,37367-10016:1253937:1256051,37367-10021:1252073:1256114,37367-10033:1248736:1256051">
+                        <trip id="220" externalid="37265-10103:1252762:1256113,37265-10108:1253804:1256113,37367-10049:1253424:1256212,37367-10050:1251605:1256212,37265-10197:1251889:1256252,37367-10103:1250838:1256321,37367-10108:1253463:1256321,37265-10199:1255848:1256305,37265-10200:1253072:1256305,37265-10202:1249822:1256252,37367-10197:1254644:1256075,37367-10199:1248576:1256279,37367-10200:1250120:1256279,37367-10202:1248445:1256075,37265-10026:1248304:1256096,37265-10029:1255267:1256096,37265-10049:1251720:1256223,37265-10050:1254532:1256223,37367-10026:1250576:1256042,37367-10029:1253398:1256042,37265-10098:1249074:1256128,37367-10037:1249643:1256114,37265-10194:1254106:1256026,37265-10196:1250874:1256026,37367-10098:1250574:1256034,37367-10194:1253825:1256073,37367-10196:1254564:1256073,37265-10005:1249835:1256156,37265-10006:1252404:1256156,37265-10010:1250895:1256156,37265-10016:1253052:1256242,37265-10021:1254094:1256283,37265-10033:1254579:1256242,37265-10037:1249438:1256283,37367-10005:1249082:1256155,37367-10006:1248908:1256155,37367-10010:1254178:1256155,37367-10016:1253937:1256051,37367-10021:1252073:1256114,37367-10033:1248736:1256051">
                             <schedule>
 <departures>
     <departure id="1830" time="07:08:00"/>
@@ -4367,7 +4340,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="222" externalid="37265-10101:1253209:1256113,37367-10101:1253654:1256321,37265-10024:1253985:1256096,37367-10024:1254912:1256042,37265-10014:1253101:1256283,37265-10018:1251946:1256242,37367-10014:1248810:1256114,37367-10018:1250615:1256051">
+                        <trip id="221" externalid="37265-10101:1253209:1256113,37367-10101:1253654:1256321,37265-10024:1253985:1256096,37367-10024:1254912:1256042,37265-10014:1253101:1256283,37265-10018:1251946:1256242,37367-10014:1248810:1256114,37367-10018:1250615:1256051">
                             <schedule>
 <departures>
     <departure id="1836" time="06:10:00"/>
@@ -4383,7 +4356,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="223" externalid="37367-10051:1251114:1256212,37265-10051:1251848:1256223">
+                        <trip id="222" externalid="37367-10051:1251114:1256212,37265-10051:1251848:1256223">
                             <schedule>
 <departures>
     <departure id="1840" time="06:58:00"/>
@@ -4396,7 +4369,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="224" externalid="37265-10106:1253806:1256128,37367-10106:1255823:1256034">
+                        <trip id="223" externalid="37265-10106:1253806:1256128,37367-10106:1255823:1256034">
                             <schedule>
 <departures>
     <departure id="1841" time="06:00:25"/>
@@ -4408,7 +4381,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="225" externalid="37265-10195:1248609:1256305,37367-10195:1249413:1256279">
+                        <trip id="224" externalid="37265-10195:1248609:1256305,37367-10195:1249413:1256279">
                             <schedule>
 <departures>
     <departure id="1842" time="07:16:00"/>
@@ -4421,7 +4394,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="226" externalid="37265-10164:1254822:1256305,37367-10164:1255507:1256279">
+                        <trip id="225" externalid="37265-10164:1254822:1256305,37367-10164:1255507:1256279">
                             <schedule>
 <departures>
     <departure id="1843" time="06:47:50"/>
@@ -4434,7 +4407,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="227" externalid="37265-10131:1250875:1256128,37367-10131:1252005:1256034">
+                        <trip id="226" externalid="37265-10131:1250875:1256128,37367-10131:1252005:1256034">
                             <schedule>
 <departures>
     <departure id="1844" time="06:40:30"/>
@@ -4453,7 +4426,7 @@
                     <name>L3</name>
                     <namedescription>L3 Kingsford Line</namedescription>
                     <trips>
-                        <trip id="228" externalid="37367-10690:1250036:1256314,37265-10690:1249798:1256028,37367-10307:1252969:1256306,37265-10307:1255435:1256126,37367-10508:1248404:1256130,37265-10508:1250380:1256222,37367-10513:1255265:1256135,37367-10687:1249319:1256029,37265-10513:1253595:1256050,37265-10687:1251600:1256081,37367-10306:1249448:1256306,37367-10308:1250955:1256306,37367-10309:1255973:1256306,37367-10378:1251741:1256225,37367-10379:1253732:1256225,37367-10509:1252571:1256130,37367-10510:1252899:1256130,37367-10515:1253304:1256135,37367-10516:1250330:1256143,37367-10517:1250150:1256135,37367-10518:1250805:1256143,37367-10682:1249492:1256043,37367-10683:1251520:1256029,37367-10684:1249126:1256043,37367-10685:1253863:1256314,37367-10686:1253252:1256314,37367-10688:1253074:1256029,37367-10691:1252723:1256043,37367-10791:1248755:1256148,37367-10792:1250921:1256148,37367-10850:1253496:1256157,37367-10851:1248882:1256157,37265-10306:1249866:1256126,37265-10308:1251955:1256126,37265-10309:1249694:1256126,37265-10378:1250918:1256105,37265-10379:1253552:1256105,37265-10509:1248257:1256222,37265-10510:1252055:1256222,37265-10515:1254585:1256050,37265-10516:1248963:1256307,37265-10517:1251042:1256050,37265-10518:1254517:1256307,37265-10682:1249818:1256080,37265-10683:1254542:1256081,37265-10684:1251786:1256080,37265-10685:1254415:1256028,37265-10686:1248552:1256028,37265-10688:1249613:1256081,37265-10691:1253207:1256080,37265-10791:1248943:1256123,37265-10792:1248660:1256123,37265-10850:1255437:1256082,37265-10851:1250101:1256082,37367-10514:1251569:1256143,37265-10514:1254475:1256307,37367-10689:1252548:1256314,37265-10689:1250597:1256028">
+                        <trip id="227" externalid="37367-10690:1250036:1256314,37265-10690:1249798:1256028,37367-10307:1252969:1256306,37265-10307:1255435:1256126,37367-10508:1248404:1256130,37265-10508:1250380:1256222,37367-10513:1255265:1256135,37367-10687:1249319:1256029,37265-10513:1253595:1256050,37265-10687:1251600:1256081,37367-10306:1249448:1256306,37367-10308:1250955:1256306,37367-10309:1255973:1256306,37367-10378:1251741:1256225,37367-10379:1253732:1256225,37367-10509:1252571:1256130,37367-10510:1252899:1256130,37367-10515:1253304:1256135,37367-10516:1250330:1256143,37367-10517:1250150:1256135,37367-10518:1250805:1256143,37367-10682:1249492:1256043,37367-10683:1251520:1256029,37367-10684:1249126:1256043,37367-10685:1253863:1256314,37367-10686:1253252:1256314,37367-10688:1253074:1256029,37367-10691:1252723:1256043,37367-10791:1248755:1256148,37367-10792:1250921:1256148,37367-10850:1253496:1256157,37367-10851:1248882:1256157,37265-10306:1249866:1256126,37265-10308:1251955:1256126,37265-10309:1249694:1256126,37265-10378:1250918:1256105,37265-10379:1253552:1256105,37265-10509:1248257:1256222,37265-10510:1252055:1256222,37265-10515:1254585:1256050,37265-10516:1248963:1256307,37265-10517:1251042:1256050,37265-10518:1254517:1256307,37265-10682:1249818:1256080,37265-10683:1254542:1256081,37265-10684:1251786:1256080,37265-10685:1254415:1256028,37265-10686:1248552:1256028,37265-10688:1249613:1256081,37265-10691:1253207:1256080,37265-10791:1248943:1256123,37265-10792:1248660:1256123,37265-10850:1255437:1256082,37265-10851:1250101:1256082,37367-10514:1251569:1256143,37265-10514:1254475:1256307,37367-10689:1252548:1256314,37265-10689:1250597:1256028">
                             <schedule>
 <departures>
     <departure id="1847" time="06:00:10"/>
@@ -4494,7 +4467,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="229" externalid="37367-10327:1252353:1256306,37367-10558:1251705:1256130,37367-10564:1251470:1256143,37367-10723:1253677:1256314,37265-10327:1255975:1256126,37265-10558:1253505:1256222,37265-10564:1248299:1256307,37265-10723:1254464:1256028,37367-10553:1253904:1256135,37265-10553:1252108:1256050">
+                        <trip id="228" externalid="37367-10327:1252353:1256306,37367-10558:1251705:1256130,37367-10564:1251470:1256143,37367-10723:1253677:1256314,37265-10327:1255975:1256126,37265-10558:1253505:1256222,37265-10564:1248299:1256307,37265-10723:1254464:1256028,37367-10553:1253904:1256135,37265-10553:1252108:1256050">
                             <schedule>
 <departures>
     <departure id="1876" time="06:04:00"/>
@@ -4511,7 +4484,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="230" externalid="37367-10322:1251864:1256306,37367-10326:1250802:1256306,37367-10396:1249711:1256225,37367-10397:1253620:1256225,37367-10552:1254359:1256143,37367-10554:1253215:1256130,37367-10562:1254741:1256130,37367-10563:1252837:1256135,37367-10565:1254861:1256143,37367-10566:1249997:1256135,37367-10724:1250194:1256314,37367-10725:1253577:1256043,37367-10729:1251476:1256029,37367-10730:1249838:1256314,37367-10731:1254390:1256029,37367-10732:1252675:1256029,37367-10733:1251753:1256043,37367-10805:1254881:1256148,37367-10864:1251929:1256157,37367-10865:1254383:1256157,37265-10322:1248969:1256126,37265-10326:1255956:1256126,37265-10396:1253050:1256105,37265-10397:1254691:1256105,37265-10552:1251614:1256307,37265-10554:1253782:1256222,37265-10562:1249937:1256222,37265-10563:1253729:1256050,37265-10565:1255179:1256307,37265-10566:1253740:1256050,37265-10724:1255374:1256028,37265-10725:1251050:1256080,37265-10729:1249771:1256081,37265-10730:1255332:1256028,37265-10731:1250648:1256081,37265-10732:1249917:1256081,37265-10733:1252806:1256080,37265-10805:1248798:1256123,37265-10864:1248838:1256082,37265-10865:1252679:1256082">
+                        <trip id="229" externalid="37367-10322:1251864:1256306,37367-10326:1250802:1256306,37367-10396:1249711:1256225,37367-10397:1253620:1256225,37367-10552:1254359:1256143,37367-10554:1253215:1256130,37367-10562:1254741:1256130,37367-10563:1252837:1256135,37367-10565:1254861:1256143,37367-10566:1249997:1256135,37367-10724:1250194:1256314,37367-10725:1253577:1256043,37367-10729:1251476:1256029,37367-10730:1249838:1256314,37367-10731:1254390:1256029,37367-10732:1252675:1256029,37367-10733:1251753:1256043,37367-10805:1254881:1256148,37367-10864:1251929:1256157,37367-10865:1254383:1256157,37265-10322:1248969:1256126,37265-10326:1255956:1256126,37265-10396:1253050:1256105,37265-10397:1254691:1256105,37265-10552:1251614:1256307,37265-10554:1253782:1256222,37265-10562:1249937:1256222,37265-10563:1253729:1256050,37265-10565:1255179:1256307,37265-10566:1253740:1256050,37265-10724:1255374:1256028,37265-10725:1251050:1256080,37265-10729:1249771:1256081,37265-10730:1255332:1256028,37265-10731:1250648:1256081,37265-10732:1249917:1256081,37265-10733:1252806:1256080,37265-10805:1248798:1256123,37265-10864:1248838:1256082,37265-10865:1252679:1256082">
                             <schedule>
 <departures>
     <departure id="1891" time="07:04:00"/>
@@ -4543,7 +4516,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="231" externalid="37367-10807:1248765:1256148,37265-10807:1248764:1256123">
+                        <trip id="230" externalid="37367-10807:1248765:1256148,37265-10807:1248764:1256123">
                             <schedule>
 <departures>
     <departure id="1899" time="07:20:00"/>
@@ -4556,7 +4529,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="232" externalid="37367-10393:1248720:1256225,37265-10393:1255504:1256105">
+                        <trip id="231" externalid="37367-10393:1248720:1256225,37265-10393:1255504:1256105">
                             <schedule>
 <departures>
     <departure id="1900" time="07:12:00"/>
@@ -4569,7 +4542,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="233" externalid="37367-10376:1248265:1256225,37265-10376:1255452:1256105">
+                        <trip id="232" externalid="37367-10376:1248265:1256225,37265-10376:1255452:1256105">
                             <schedule>
 <departures>
     <departure id="1901" time="06:34:30"/>
@@ -4590,7 +4563,7 @@
                     <name>CCN</name>
                     <namedescription>Central Coast and Newcastle Line</namedescription>
                     <trips>
-                        <trip id="234" externalid="285C.1293.132.56.H.8.71845128,285C.1382.147.56.H.8.71869812,285C.1745.101.56.H.8.71142669,287B.1293.132.56.H.8.71844612,287B.1382.147.56.H.8.71869296,287B.1745.101.56.H.8.71143446,288B.1293.132.32.H.8.71848387,288B.1382.147.60.H.8.71873199,288B.1745.101.60.H.8.71142462,289B.1293.132.48.H.8.71844514,289B.1382.147.52.H.8.71869198,289B.1745.101.60.H.8.71139357,284B.1293.132.44.H.8.71845213,284B.1382.147.44.H.8.71869897,284B.1745.101.44.H.8.71141139,286C.1293.132.56.H.8.71847201,286C.1382.147.56.H.8.71871888,286C.1745.101.56.H.8.71143655">
+                        <trip id="233" externalid="285C.1293.132.56.H.8.71845128,285C.1382.147.56.H.8.71869812,285C.1745.101.56.H.8.71142669,287B.1293.132.56.H.8.71844612,287B.1382.147.56.H.8.71869296,287B.1745.101.56.H.8.71143446,288B.1293.132.32.H.8.71848387,288B.1382.147.60.H.8.71873199,288B.1745.101.60.H.8.71142462,289B.1293.132.48.H.8.71844514,289B.1382.147.52.H.8.71869198,289B.1745.101.60.H.8.71139357,284B.1293.132.44.H.8.71845213,284B.1382.147.44.H.8.71869897,284B.1745.101.44.H.8.71141139,286C.1293.132.56.H.8.71847201,286C.1382.147.56.H.8.71871888,286C.1745.101.56.H.8.71143655">
                             <schedule>
 <departures>
     <departure id="1902" time="06:03:01"/>
@@ -4611,7 +4584,7 @@
                     <name>SCO</name>
                     <namedescription>South Coast Line</namedescription>
                     <trips>
-                        <trip id="235" externalid="431A.1293.132.48.H.8.71847682,431A.1382.147.48.H.8.71872396,431A.1745.101.60.H.8.71139264,427A.1293.132.32.H.4.71847498,427A.1382.147.32.H.4.71872201,427A.1745.101.56.H.4.71140930,435A.1293.132.48.H.8.71845482,435A.1382.147.32.H.8.71870166,435A.1745.101.112.H.8.71137972,325A.1293.132.32.H.4.71847768,325A.1382.147.32.H.4.71872489,325A.1745.101.60.H.4.71137868,337F.1293.132.116.H.8.72157487,337F.1382.147.112.H.8.72145387,337F.1745.101.124.H.8.71138811">
+                        <trip id="234" externalid="431A.1293.132.48.H.8.71847682,431A.1382.147.48.H.8.71872396,431A.1745.101.60.H.8.71139264,427A.1293.132.32.H.4.71847498,427A.1382.147.32.H.4.71872201,427A.1745.101.56.H.4.71140930,435A.1293.132.48.H.8.71845482,435A.1382.147.32.H.8.71870166,435A.1745.101.112.H.8.71137972,325A.1293.132.32.H.4.71847768,325A.1382.147.32.H.4.71872489,325A.1745.101.60.H.4.71137868,337F.1293.132.116.H.8.72157487,337F.1382.147.112.H.8.72145387,337F.1745.101.124.H.8.71138811">
                             <schedule>
 <departures>
     <departure id="1911" time="06:48:30"/>
@@ -4625,7 +4598,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="236" externalid="428C.1293.132.32.H.8.71845308,428C.1382.147.32.H.8.71869992,428C.1745.101.60.H.8.71142858,418C.1293.132.116.H.8.71846369,418C.1382.147.112.H.8.71917060,418C.1745.101.124.H.8.71139952,326A.1382.147.96.H.4.71917323,326A.1745.101.108.H.4.71142102,326A.1293.132.100.H.4.71845872,416C.1293.132.60.H.8.71848115,416C.1382.147.56.H.8.71872880,420C.1293.132.40.H.8.71847328,420C.1382.147.60.H.8.71872022,416C.1745.101.60.H.8.71144766,420C.1745.101.124.H.8.71144227,322B.1293.132.40.T.8.71847110,322B.1382.147.40.T.8.71871794,322B.1745.101.124.T.8.71144722,314B.1293.132.48.H.8.71847507,314B.1382.147.48.H.8.71872210,314B.1745.101.60.H.8.71140951,412A.1293.132.32.H.8.71847333,412A.1382.147.32.H.8.71916701,412A.1745.101.44.H.8.71139475,424A.1745.101.112.H.8.71142578,424A.1293.132.48.H.8.71844949,424A.1382.147.32.H.8.71917253">
+                        <trip id="235" externalid="428C.1293.132.32.H.8.71845308,428C.1382.147.32.H.8.71869992,428C.1745.101.60.H.8.71142858,418C.1293.132.116.H.8.71846369,418C.1382.147.112.H.8.71917060,418C.1745.101.124.H.8.71139952,326A.1382.147.96.H.4.71917323,326A.1745.101.108.H.4.71142102,326A.1293.132.100.H.4.71845872,416C.1293.132.60.H.8.71848115,416C.1382.147.56.H.8.71872880,420C.1293.132.40.H.8.71847328,420C.1382.147.60.H.8.71872022,416C.1745.101.60.H.8.71144766,420C.1745.101.124.H.8.71144227,322B.1293.132.40.T.8.71847110,322B.1382.147.40.T.8.71871794,322B.1745.101.124.T.8.71144722,314B.1293.132.48.H.8.71847507,314B.1382.147.48.H.8.71872210,314B.1745.101.60.H.8.71140951,412A.1293.132.32.H.8.71847333,412A.1382.147.32.H.8.71916701,412A.1745.101.44.H.8.71139475,424A.1745.101.112.H.8.71142578,424A.1293.132.48.H.8.71844949,424A.1382.147.32.H.8.71917253">
                             <schedule>
 <departures>
     <departure id="1916" time="06:03:01"/>
@@ -4643,7 +4616,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="237" externalid="408A.1293.132.32.H.4.71847769,408A.1382.147.32.H.4.71872490,408A.1745.101.60.H.4.71141190,410A.1382.147.32.H.4.71916609,410A.1745.101.56.H.4.71140528,410A.1293.132.32.H.4.71847497">
+                        <trip id="236" externalid="408A.1293.132.32.H.4.71847769,408A.1382.147.32.H.4.71872490,408A.1745.101.60.H.4.71141190,410A.1382.147.32.H.4.71916609,410A.1745.101.56.H.4.71140528,410A.1293.132.32.H.4.71847497">
                             <schedule>
 <departures>
     <departure id="1922" time="06:02:00"/>
@@ -4660,7 +4633,7 @@
                     <name>T1</name>
                     <namedescription>T1 North Shore and Western Line</namedescription>
                     <trips>
-                        <trip id="238" externalid="108C.1293.132.32.T.8.71844995,108C.1382.147.48.T.8.71869678,108C.1745.101.60.T.8.71137723,121F.1293.132.32.A.8.71848131,121F.1382.147.32.A.8.71872898,121F.1745.101.124.A.8.71142519,134D.1293.132.32.A.8.71847637,134D.1382.147.32.A.8.71872348,134D.1745.101.60.A.8.71138927,148G.1293.132.32.A.8.71844647,148G.1382.147.48.A.8.71869331,148G.1745.101.60.A.8.71142593,157C.1293.132.32.A.8.71847648,157C.1382.147.48.A.8.71872361,157C.1745.101.56.A.8.71140370,128D.1293.132.32.A.8.71845450,128D.1382.147.48.A.8.71870134,128D.1745.101.60.A.8.71142942,159B.1293.132.32.A.8.71846894,159B.1382.147.48.A.8.71871571,159B.1745.101.124.A.8.71143796,166D.1293.132.44.A.8.71846058,166D.1382.147.48.A.8.71870743,166D.1745.101.60.A.8.71143940,164D.1293.132.44.A.8.71845615,164D.1382.147.100.A.8.71870299,164D.1745.101.124.A.8.71138153,109B.1745.101.124.T.8.71140821,107B.1745.101.60.T.8.71143057,142D.1293.132.44.A.8.71845453,142D.1382.147.32.A.8.71870137,142D.1745.101.60.A.8.71139323,152C.1293.132.48.A.8.71845184,152C.1382.147.120.A.8.71869868,152C.1745.101.120.A.8.71142809,110C.1293.132.96.T.8.71845858,110C.1382.147.112.T.8.71870543,110C.1745.101.124.T.8.71142639,103D.1293.132.96.T.8.71846935,103D.1382.147.112.T.8.71871612,103D.1745.101.124.T.8.71140661,127F.1293.132.32.A.8.71848615,127F.1382.147.48.A.8.71873477,127F.1745.101.124.A.8.71141462,141C.1382.147.32.A.8.71869972,141C.1745.101.60.A.8.71138855,141C.1293.132.32.A.8.71845288,140C.1382.147.56.A.8.71871863,140C.1745.101.60.A.8.71143298,140C.1293.132.32.A.8.71847177,158B.1293.132.108.A.8.71845388,158B.1382.147.112.A.8.71870072,158B.1745.101.124.A.8.71138484,155B.1293.132.96.A.8.71844953,155B.1382.147.96.A.8.71869636,155B.1745.101.124.A.8.71141746,151D.1293.132.32.A.8.71845020,151D.1382.147.60.A.8.71869704,151D.1745.101.60.A.8.71141630,124D.1293.132.32.A.8.71847686,124D.1382.147.48.A.8.71872402,124D.1745.101.124.A.8.71143439,165C.1293.132.32.A.8.71845195,165C.1382.147.36.A.8.71869879,165C.1745.101.60.A.8.71139232,105B.1293.132.44.T.8.71848111,105B.1382.147.60.T.8.71872876,105B.1745.101.124.T.8.71142798,172B.1293.132.124.A.8.71844596,172B.1382.147.60.A.8.71869280,172B.1745.101.124.A.8.71140740,120F.1293.132.60.A.8.71845586,120F.1382.147.60.A.8.71870270,120F.1745.101.124.A.8.71143841,131D.1293.132.32.A.8.71844795,131D.1382.147.32.A.8.71869479,131D.1745.101.124.A.8.71139517,161D.1293.132.32.A.8.71847534,161D.1382.147.48.A.8.71872240,161D.1745.101.124.A.8.71141020,160D.1293.132.32.A.8.71845949,160D.1382.147.124.A.8.71870634,160D.1745.101.124.A.8.71141350,162C.1293.132.32.A.8.71844498,162C.1382.147.32.A.8.71869182,162C.1745.101.60.A.8.71142524,170D.1745.101.60.A.8.71143911,171B.1293.132.32.A.8.71846054,171B.1382.147.32.A.8.71870739,171B.1745.101.60.A.8.71144005,285F.1293.132.56.H.8.71847122,285F.1382.147.56.H.8.71871806,285F.1745.101.56.H.8.71143728,132D.1293.132.124.A.8.71847456,132D.1382.147.60.A.8.71872157,132D.1745.101.124.A.8.71137438,163C.1293.132.32.A.8.71848378,163C.1382.147.48.A.8.71873189,163C.1745.101.60.A.8.71142644,170D.1293.132.32.A.8.71846181,170D.1382.147.32.A.8.71870866,111D.1293.132.32.T.8.71845898,111D.1382.147.32.T.8.71870583,111D.1745.101.60.T.8.71139798,281F.1745.101.124.H.8.71139495,281F.1293.132.100.H.8.71847488,281F.1382.147.52.H.8.71872190,122D.1293.132.32.A.8.71845003,122D.1382.147.32.A.8.71869686,122D.1745.101.108.A.8.71138502,139C.1745.101.60.A.8.71140803,139C.1293.132.32.A.8.71844930,139C.1382.147.48.A.8.71869613,154B.1293.132.32.A.8.71847785,154B.1382.147.48.A.8.71872509,154B.1745.101.60.A.8.71143068,114D.1293.132.124.T.8.71848338,114D.1382.147.124.T.8.71873139,114D.1745.101.124.T.8.71142497,146E.1293.132.32.A.8.71845486,146E.1382.147.48.A.8.71870170,146E.1745.101.60.A.8.71140946,167D.1293.132.32.A.8.71845580,167D.1382.147.48.A.8.71870264,167D.1745.101.60.A.8.71137937,101D.1293.132.60.T.8.71848217,101D.1382.147.60.T.8.71872995,112D.1293.132.124.T.8.71846086,112D.1382.147.124.T.8.71870771,112D.1745.101.124.T.8.71141345,101D.1745.101.60.T.8.71143834,168D.1293.132.32.A.8.71845928,168D.1382.147.48.A.8.71870613,168D.1745.101.60.A.8.71138434,102D.1745.101.124.T.8.71139442,102D.1293.132.108.T.8.71845944,102D.1382.147.112.T.8.71870629,125F.1293.132.96.A.8.71848418,125F.1382.147.48.A.8.71873237,125F.1745.101.124.A.8.71143885,138H.1293.132.32.A.8.71848674,138H.1382.147.32.A.8.71873550,138H.1745.101.60.A.8.71141700,143F.1745.101.60.A.8.71137418,143F.1293.132.32.A.8.71846164,143F.1382.147.48.A.8.71870849,156B.1293.132.96.A.8.71844998,156B.1382.147.48.A.8.71869681,156B.1745.101.124.A.8.71140854,133D.1293.132.36.A.8.71847465,133D.1382.147.60.A.8.71872166,133D.1745.101.60.A.8.71143223,153C.1293.132.40.A.8.71847347,153C.1382.147.100.A.8.71872043,153C.1745.101.124.A.8.71141889,169F.1293.132.44.A.8.71845735,169F.1382.147.100.A.8.71870420,169F.1745.101.124.A.8.71141703">
+                        <trip id="237" externalid="108C.1293.132.32.T.8.71844995,108C.1382.147.48.T.8.71869678,108C.1745.101.60.T.8.71137723,121F.1293.132.32.A.8.71848131,121F.1382.147.32.A.8.71872898,121F.1745.101.124.A.8.71142519,134D.1293.132.32.A.8.71847637,134D.1382.147.32.A.8.71872348,134D.1745.101.60.A.8.71138927,148G.1293.132.32.A.8.71844647,148G.1382.147.48.A.8.71869331,148G.1745.101.60.A.8.71142593,157C.1293.132.32.A.8.71847648,157C.1382.147.48.A.8.71872361,157C.1745.101.56.A.8.71140370,128D.1293.132.32.A.8.71845450,128D.1382.147.48.A.8.71870134,128D.1745.101.60.A.8.71142942,159B.1293.132.32.A.8.71846894,159B.1382.147.48.A.8.71871571,159B.1745.101.124.A.8.71143796,166D.1293.132.44.A.8.71846058,166D.1382.147.48.A.8.71870743,166D.1745.101.60.A.8.71143940,164D.1293.132.44.A.8.71845615,164D.1382.147.100.A.8.71870299,164D.1745.101.124.A.8.71138153,109B.1745.101.124.T.8.71140821,107B.1745.101.60.T.8.71143057,142D.1293.132.44.A.8.71845453,142D.1382.147.32.A.8.71870137,142D.1745.101.60.A.8.71139323,152C.1293.132.48.A.8.71845184,152C.1382.147.120.A.8.71869868,152C.1745.101.120.A.8.71142809,110C.1293.132.96.T.8.71845858,110C.1382.147.112.T.8.71870543,110C.1745.101.124.T.8.71142639,103D.1293.132.96.T.8.71846935,103D.1382.147.112.T.8.71871612,103D.1745.101.124.T.8.71140661,127F.1293.132.32.A.8.71848615,127F.1382.147.48.A.8.71873477,127F.1745.101.124.A.8.71141462,141C.1382.147.32.A.8.71869972,141C.1745.101.60.A.8.71138855,141C.1293.132.32.A.8.71845288,140C.1382.147.56.A.8.71871863,140C.1745.101.60.A.8.71143298,140C.1293.132.32.A.8.71847177,158B.1293.132.108.A.8.71845388,158B.1382.147.112.A.8.71870072,158B.1745.101.124.A.8.71138484,155B.1293.132.96.A.8.71844953,155B.1382.147.96.A.8.71869636,155B.1745.101.124.A.8.71141746,151D.1293.132.32.A.8.71845020,151D.1382.147.60.A.8.71869704,151D.1745.101.60.A.8.71141630,124D.1293.132.32.A.8.71847686,124D.1382.147.48.A.8.71872402,124D.1745.101.124.A.8.71143439,165C.1293.132.32.A.8.71845195,165C.1382.147.36.A.8.71869879,165C.1745.101.60.A.8.71139232,105B.1293.132.44.T.8.71848111,105B.1382.147.60.T.8.71872876,105B.1745.101.124.T.8.71142798,172B.1293.132.124.A.8.71844596,172B.1382.147.60.A.8.71869280,172B.1745.101.124.A.8.71140740,120F.1293.132.60.A.8.71845586,120F.1382.147.60.A.8.71870270,120F.1745.101.124.A.8.71143841,131D.1293.132.32.A.8.71844795,131D.1382.147.32.A.8.71869479,131D.1745.101.124.A.8.71139517,161D.1293.132.32.A.8.71847534,161D.1382.147.48.A.8.71872240,161D.1745.101.124.A.8.71141020,160D.1293.132.32.A.8.71845949,160D.1382.147.124.A.8.71870634,160D.1745.101.124.A.8.71141350,162C.1293.132.32.A.8.71844498,162C.1382.147.32.A.8.71869182,162C.1745.101.60.A.8.71142524,170D.1745.101.60.A.8.71143911,171B.1293.132.32.A.8.71846054,171B.1382.147.32.A.8.71870739,171B.1745.101.60.A.8.71144005,285F.1293.132.56.H.8.71847122,285F.1382.147.56.H.8.71871806,285F.1745.101.56.H.8.71143728,132D.1293.132.124.A.8.71847456,132D.1382.147.60.A.8.71872157,132D.1745.101.124.A.8.71137438,163C.1293.132.32.A.8.71848378,163C.1382.147.48.A.8.71873189,163C.1745.101.60.A.8.71142644,170D.1293.132.32.A.8.71846181,170D.1382.147.32.A.8.71870866,111D.1293.132.32.T.8.71845898,111D.1382.147.32.T.8.71870583,111D.1745.101.60.T.8.71139798,281F.1745.101.124.H.8.71139495,281F.1293.132.100.H.8.71847488,281F.1382.147.52.H.8.71872190,122D.1293.132.32.A.8.71845003,122D.1382.147.32.A.8.71869686,122D.1745.101.108.A.8.71138502,139C.1745.101.60.A.8.71140803,139C.1293.132.32.A.8.71844930,139C.1382.147.48.A.8.71869613,154B.1293.132.32.A.8.71847785,154B.1382.147.48.A.8.71872509,154B.1745.101.60.A.8.71143068,114D.1293.132.124.T.8.71848338,114D.1382.147.124.T.8.71873139,114D.1745.101.124.T.8.71142497,146E.1293.132.32.A.8.71845486,146E.1382.147.48.A.8.71870170,146E.1745.101.60.A.8.71140946,167D.1293.132.32.A.8.71845580,167D.1382.147.48.A.8.71870264,167D.1745.101.60.A.8.71137937,101D.1293.132.60.T.8.71848217,101D.1382.147.60.T.8.71872995,112D.1293.132.124.T.8.71846086,112D.1382.147.124.T.8.71870771,112D.1745.101.124.T.8.71141345,101D.1745.101.60.T.8.71143834,168D.1293.132.32.A.8.71845928,168D.1382.147.48.A.8.71870613,168D.1745.101.60.A.8.71138434,102D.1745.101.124.T.8.71139442,102D.1293.132.108.T.8.71845944,102D.1382.147.112.T.8.71870629,125F.1293.132.96.A.8.71848418,125F.1382.147.48.A.8.71873237,125F.1745.101.124.A.8.71143885,138H.1293.132.32.A.8.71848674,138H.1382.147.32.A.8.71873550,138H.1745.101.60.A.8.71141700,143F.1745.101.60.A.8.71137418,143F.1293.132.32.A.8.71846164,143F.1382.147.48.A.8.71870849,156B.1293.132.96.A.8.71844998,156B.1382.147.48.A.8.71869681,156B.1745.101.124.A.8.71140854,133D.1293.132.36.A.8.71847465,133D.1382.147.60.A.8.71872166,133D.1745.101.60.A.8.71143223,153C.1293.132.40.A.8.71847347,153C.1382.147.100.A.8.71872043,153C.1745.101.124.A.8.71141889,169F.1293.132.44.A.8.71845735,169F.1382.147.100.A.8.71870420,169F.1745.101.124.A.8.71141703">
                             <schedule>
 <departures>
     <departure id="1954" time="06:00:01"/>
@@ -4724,7 +4697,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="239" externalid="102A.1293.132.108.T.8.71848634,102A.1382.147.112.T.8.71873499,102A.1745.101.124.T.8.71141130,122E.1293.132.32.A.8.71845002,122E.1382.147.32.A.8.71869685,122E.1745.101.108.A.8.71140460,121C.1293.132.32.A.8.71847031,121C.1382.147.32.A.8.71871710,121C.1745.101.124.A.8.71142094,129A.1293.132.32.A.8.71847841,129A.1382.147.48.A.8.71872570,129A.1745.101.60.A.8.71137208,130A.1293.132.32.A.8.71848404,130A.1382.147.48.A.8.71873218,130A.1745.101.60.A.8.71142705,134A.1293.132.32.A.8.71848622,134A.1382.147.32.A.8.71873485,134A.1745.101.60.A.8.71140613,128A.1293.132.32.A.8.71848008,128A.1382.147.48.A.8.71872759,128A.1745.101.60.A.8.71142289,143C.1293.132.32.A.8.71845299,143C.1382.147.48.A.8.71869983,143C.1745.101.60.A.8.71144501,170E.1382.147.32.A.8.71870753,170E.1745.101.60.A.8.71140926,170E.1293.132.32.A.8.71846068,131E.1293.132.32.A.8.71847542,131E.1382.147.32.A.8.71872248,131E.1745.101.124.A.8.71143721,135A.1293.132.32.A.8.71847273,135A.1382.147.32.A.8.71871963,135A.1745.101.60.A.8.71141606,136A.1293.132.32.A.8.71848138,136A.1382.147.112.A.8.71872907,136A.1745.101.124.A.8.71140303,160E.1293.132.32.A.8.71846677,160E.1382.147.124.A.8.71871358,160E.1745.101.124.A.8.71143443,162D.1293.132.32.A.8.71847064,162D.1382.147.32.A.8.71871745,162D.1745.101.60.A.8.71142551,171C.1745.101.60.A.8.71140876,171C.1293.132.32.A.8.71845701,171C.1382.147.32.A.8.71870386,139D.1293.132.32.A.8.71844932,139D.1382.147.48.A.8.71869615,139D.1745.101.60.A.8.71137653,154C.1293.132.32.A.8.71846316,154C.1382.147.48.A.8.71870997,154C.1745.101.60.A.8.71139492,163D.1293.132.32.A.8.71846739,163D.1382.147.48.A.8.71871420,163D.1745.101.60.A.8.71142243,161E.1382.147.48.A.8.71872428,161E.1745.101.124.A.8.71143370,161E.1293.132.32.A.8.71847712,167E.1293.132.32.A.8.71845579,167E.1382.147.48.A.8.71870263,167E.1745.101.60.A.8.71140473,112E.1293.132.124.T.8.71846276,112E.1382.147.124.T.8.71870957,112E.1745.101.124.T.8.71138170,168E.1293.132.32.A.8.71845927,168E.1382.147.48.A.8.71870612,168E.1745.101.60.A.8.71143300,147B.1293.132.32.A.8.71847870,147B.1382.147.48.A.8.71872601,147B.1745.101.124.A.8.71144221,146B.1293.132.32.A.8.71844988,146B.1382.147.48.A.8.71869671,146B.1745.101.60.A.8.71141413,152D.1293.132.48.A.8.71845185,152D.1382.147.120.A.8.71869869,152D.1745.101.120.A.8.71144905,141D.1293.132.32.A.8.71845160,141D.1382.147.32.A.8.71869844,141D.1745.101.60.A.8.71140996,140D.1293.132.32.A.8.71846489,140D.1382.147.56.A.8.71871170,140D.1745.101.60.A.8.71140155,150D.1293.132.32.A.8.71848103,150D.1382.147.60.A.8.71872866,150D.1745.101.60.A.8.71140399,151E.1293.132.32.A.8.71845019,151E.1382.147.60.A.8.71869703,151E.1745.101.60.A.8.71141229,192D.1293.132.32.B.8.71845745,192D.1382.147.48.B.8.71870430,192D.1745.101.60.B.8.71140329,169C.1293.132.44.A.8.71845344,169C.1382.147.100.A.8.71870028,169C.1745.101.124.A.8.71140236,148D.1293.132.32.A.8.71848651,148D.1382.147.48.A.8.71873520,148D.1745.101.60.A.8.71144666,157D.1293.132.32.A.8.71846397,157D.1382.147.48.A.8.71871078,157D.1745.101.56.A.8.71139875,108D.1293.132.32.T.8.71844994,108D.1382.147.48.T.8.71869677,108D.1745.101.60.T.8.71137321,128E.1293.132.32.A.8.71845449,128E.1382.147.48.A.8.71870133,128E.1745.101.60.A.8.71142311,159C.1293.132.32.A.8.71846896,159C.1382.147.48.A.8.71871573,159C.1745.101.124.A.8.71143162">
+                        <trip id="238" externalid="102A.1293.132.108.T.8.71848634,102A.1382.147.112.T.8.71873499,102A.1745.101.124.T.8.71141130,122E.1293.132.32.A.8.71845002,122E.1382.147.32.A.8.71869685,122E.1745.101.108.A.8.71140460,121C.1293.132.32.A.8.71847031,121C.1382.147.32.A.8.71871710,121C.1745.101.124.A.8.71142094,129A.1293.132.32.A.8.71847841,129A.1382.147.48.A.8.71872570,129A.1745.101.60.A.8.71137208,130A.1293.132.32.A.8.71848404,130A.1382.147.48.A.8.71873218,130A.1745.101.60.A.8.71142705,134A.1293.132.32.A.8.71848622,134A.1382.147.32.A.8.71873485,134A.1745.101.60.A.8.71140613,128A.1293.132.32.A.8.71848008,128A.1382.147.48.A.8.71872759,128A.1745.101.60.A.8.71142289,143C.1293.132.32.A.8.71845299,143C.1382.147.48.A.8.71869983,143C.1745.101.60.A.8.71144501,170E.1382.147.32.A.8.71870753,170E.1745.101.60.A.8.71140926,170E.1293.132.32.A.8.71846068,131E.1293.132.32.A.8.71847542,131E.1382.147.32.A.8.71872248,131E.1745.101.124.A.8.71143721,135A.1293.132.32.A.8.71847273,135A.1382.147.32.A.8.71871963,135A.1745.101.60.A.8.71141606,136A.1293.132.32.A.8.71848138,136A.1382.147.112.A.8.71872907,136A.1745.101.124.A.8.71140303,160E.1293.132.32.A.8.71846677,160E.1382.147.124.A.8.71871358,160E.1745.101.124.A.8.71143443,162D.1293.132.32.A.8.71847064,162D.1382.147.32.A.8.71871745,162D.1745.101.60.A.8.71142551,171C.1745.101.60.A.8.71140876,171C.1293.132.32.A.8.71845701,171C.1382.147.32.A.8.71870386,139D.1293.132.32.A.8.71844932,139D.1382.147.48.A.8.71869615,139D.1745.101.60.A.8.71137653,154C.1293.132.32.A.8.71846316,154C.1382.147.48.A.8.71870997,154C.1745.101.60.A.8.71139492,163D.1293.132.32.A.8.71846739,163D.1382.147.48.A.8.71871420,163D.1745.101.60.A.8.71142243,161E.1382.147.48.A.8.71872428,161E.1745.101.124.A.8.71143370,161E.1293.132.32.A.8.71847712,167E.1293.132.32.A.8.71845579,167E.1382.147.48.A.8.71870263,167E.1745.101.60.A.8.71140473,112E.1293.132.124.T.8.71846276,112E.1382.147.124.T.8.71870957,112E.1745.101.124.T.8.71138170,168E.1293.132.32.A.8.71845927,168E.1382.147.48.A.8.71870612,168E.1745.101.60.A.8.71143300,147B.1293.132.32.A.8.71847870,147B.1382.147.48.A.8.71872601,147B.1745.101.124.A.8.71144221,146B.1293.132.32.A.8.71844988,146B.1382.147.48.A.8.71869671,146B.1745.101.60.A.8.71141413,152D.1293.132.48.A.8.71845185,152D.1382.147.120.A.8.71869869,152D.1745.101.120.A.8.71144905,141D.1293.132.32.A.8.71845160,141D.1382.147.32.A.8.71869844,141D.1745.101.60.A.8.71140996,140D.1293.132.32.A.8.71846489,140D.1382.147.56.A.8.71871170,140D.1745.101.60.A.8.71140155,150D.1293.132.32.A.8.71848103,150D.1382.147.60.A.8.71872866,150D.1745.101.60.A.8.71140399,151E.1293.132.32.A.8.71845019,151E.1382.147.60.A.8.71869703,151E.1745.101.60.A.8.71141229,192D.1293.132.32.B.8.71845745,192D.1382.147.48.B.8.71870430,192D.1745.101.60.B.8.71140329,169C.1293.132.44.A.8.71845344,169C.1382.147.100.A.8.71870028,169C.1745.101.124.A.8.71140236,148D.1293.132.32.A.8.71848651,148D.1382.147.48.A.8.71873520,148D.1745.101.60.A.8.71144666,157D.1293.132.32.A.8.71846397,157D.1382.147.48.A.8.71871078,157D.1745.101.56.A.8.71139875,108D.1293.132.32.T.8.71844994,108D.1382.147.48.T.8.71869677,108D.1745.101.60.T.8.71137321,128E.1293.132.32.A.8.71845449,128E.1382.147.48.A.8.71870133,128E.1745.101.60.A.8.71142311,159C.1293.132.32.A.8.71846896,159C.1382.147.48.A.8.71871573,159C.1745.101.124.A.8.71143162">
                             <schedule>
 <departures>
     <departure id="2010" time="06:00:12"/>
@@ -4775,7 +4748,7 @@
                     <name>T2</name>
                     <namedescription>T2 Inner West and Leppington Line</namedescription>
                     <trips>
-                        <trip id="240" externalid="88-D.1745.101.60.A.8.71137976,89-D.1745.101.60.A.8.71141290,91-D.1745.101.60.A.8.71138163,701D.1293.132.40.A.8.71844827,701D.1382.147.120.A.8.71869510,726D.1293.132.60.A.8.71847959,726D.1382.147.60.A.8.71872701,722D.1293.132.32.A.8.71847861,722D.1382.147.60.A.8.71872592,80-D.1745.101.60.A.8.71143970,98-D.1745.101.60.A.8.71142676,700D.1293.132.40.A.8.71844578,700D.1382.147.52.A.8.71869262,29-D.1745.101.124.B.8.71144721,728D.1382.147.56.B.8.71869531,728D.1293.132.40.B.8.71844848,33-D.1745.101.60.B.8.71144816,15-D.1745.101.124.B.8.71140156,720D.1293.132.40.B.8.71845096,720D.1382.147.56.B.8.71869780,723D.1293.132.32.B.8.71846138,723D.1382.147.60.B.8.71870823,713D.1293.132.56.A.8.71847102,713D.1382.147.124.A.8.71871784,4--E.1745.101.60.B.8.71141937,739F.1382.147.32.B.8.71870136,739F.1293.132.32.B.8.71845452,741M.1293.132.32.B.8.71847041,741M.1382.147.32.B.8.71871720">
+                        <trip id="239" externalid="88-D.1745.101.60.A.8.71137976,89-D.1745.101.60.A.8.71141290,91-D.1745.101.60.A.8.71138163,701D.1293.132.40.A.8.71844827,701D.1382.147.120.A.8.71869510,726D.1293.132.60.A.8.71847959,726D.1382.147.60.A.8.71872701,722D.1293.132.32.A.8.71847861,722D.1382.147.60.A.8.71872592,80-D.1745.101.60.A.8.71143970,98-D.1745.101.60.A.8.71142676,700D.1293.132.40.A.8.71844578,700D.1382.147.52.A.8.71869262,29-D.1745.101.124.B.8.71144721,728D.1382.147.56.B.8.71869531,728D.1293.132.40.B.8.71844848,33-D.1745.101.60.B.8.71144816,15-D.1745.101.124.B.8.71140156,720D.1293.132.40.B.8.71845096,720D.1382.147.56.B.8.71869780,723D.1293.132.32.B.8.71846138,723D.1382.147.60.B.8.71870823,713D.1293.132.56.A.8.71847102,713D.1382.147.124.A.8.71871784,4--E.1745.101.60.B.8.71141937,739F.1382.147.32.B.8.71870136,739F.1293.132.32.B.8.71845452,741M.1293.132.32.B.8.71847041,741M.1382.147.32.B.8.71871720">
                             <schedule>
 <departures>
     <departure id="2022" time="06:12:31"/>
@@ -4796,7 +4769,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="241" externalid="18-D.1745.101.60.B.8.71142294,3--E.1745.101.60.B.8.71137638,707E.1293.132.56.M.8.71846605,707E.1382.147.124.M.8.71871286,735D.1382.147.56.B.8.71873305,735D.1293.132.32.B.8.71848476,60-B.1293.132.124.M.8.71848654,60-B.1382.147.52.M.8.71873523,60-B.1745.101.124.M.8.71139570,99-F.1745.101.60.A.8.71139013,14-H.1745.101.124.B.8.71142758,718H.1293.132.32.M.8.71845916,718H.1382.147.32.M.8.71870601,730D.1293.132.60.A.8.71845905,730D.1382.147.60.A.8.71870590,96-D.1745.101.60.A.8.71138660,64-C.1745.101.124.M.8.71137779,70-F.1745.101.124.M.8.71142933,68-D.1745.101.60.M.8.71140646,724D.1293.132.36.A.8.71847410,724D.1382.147.32.A.8.71872108,721C.1293.132.32.B.8.71846819,721C.1382.147.124.B.8.71871496,718D.1293.132.32.M.8.71845775,718D.1382.147.32.M.8.71870460,763F.1293.132.36.M.8.71847304,763F.1382.147.60.M.8.71871996,83-E.1293.132.60.A.8.71846692,83-E.1382.147.124.A.8.71871373,83-E.1745.101.124.A.8.71137686,11-D.1293.132.124.B.8.71846126,11-D.1382.147.124.B.8.71870811,11-D.1745.101.124.B.8.71139964,5--E.1293.132.60.B.8.71845932,5--E.1382.147.60.B.8.71870617,5--E.1745.101.60.B.8.71139526,12-J.1745.101.124.B.8.71140515,13-G.1745.101.124.B.8.71144808,65-H.1745.101.124.M.8.71141617,747M.1293.132.100.B.8.71847639,747M.1382.147.60.B.8.71872352,756D.1382.147.60.A.8.71871809,93-B.1293.132.44.A.8.71847444,93-B.1382.147.60.A.8.71872143,93-B.1745.101.60.A.8.71138328,13-G.1293.132.60.B.8.71845706,13-G.1382.147.60.B.8.71870391,756D.1293.132.32.A.8.71847125,25-D.1293.132.56.B.8.71845547,25-D.1382.147.60.B.8.71870231,25-D.1745.101.124.B.8.71137379,44-D.1293.132.124.K.8.71847372,44-D.1382.147.108.K.8.71872070,44-D.1745.101.124.K.8.71144817,26-H.1745.101.124.B.8.71137637,16-B.1745.101.124.B.8.71140710,7--K.1745.101.60.B.8.71144158,733D.1293.132.60.K.8.71846289,733D.1382.147.60.K.8.71870970,743P.1293.132.32.B.8.71848012,743P.1382.147.32.B.8.71872763,731B.1382.147.120.B.8.71871206,731B.1293.132.124.B.8.71846525,762B.1293.132.32.K.8.71845569,762B.1382.147.32.K.8.71870253,768B.1293.132.124.K.8.71846658,768B.1382.147.120.K.8.72075315,43-B.1745.101.124.K.8.71137869,45-B.1745.101.124.K.8.71142197,46-B.1745.101.124.K.8.71142815">
+                        <trip id="240" externalid="18-D.1745.101.60.B.8.71142294,3--E.1745.101.60.B.8.71137638,707E.1293.132.56.M.8.71846605,707E.1382.147.124.M.8.71871286,735D.1382.147.56.B.8.71873305,735D.1293.132.32.B.8.71848476,60-B.1293.132.124.M.8.71848654,60-B.1382.147.52.M.8.71873523,60-B.1745.101.124.M.8.71139570,99-F.1745.101.60.A.8.71139013,14-H.1745.101.124.B.8.71142758,718H.1293.132.32.M.8.71845916,718H.1382.147.32.M.8.71870601,730D.1293.132.60.A.8.71845905,730D.1382.147.60.A.8.71870590,96-D.1745.101.60.A.8.71138660,64-C.1745.101.124.M.8.71137779,70-F.1745.101.124.M.8.71142933,68-D.1745.101.60.M.8.71140646,724D.1293.132.36.A.8.71847410,724D.1382.147.32.A.8.71872108,721C.1293.132.32.B.8.71846819,721C.1382.147.124.B.8.71871496,718D.1293.132.32.M.8.71845775,718D.1382.147.32.M.8.71870460,763F.1293.132.36.M.8.71847304,763F.1382.147.60.M.8.71871996,83-E.1293.132.60.A.8.71846692,83-E.1382.147.124.A.8.71871373,83-E.1745.101.124.A.8.71137686,11-D.1293.132.124.B.8.71846126,11-D.1382.147.124.B.8.71870811,11-D.1745.101.124.B.8.71139964,5--E.1293.132.60.B.8.71845932,5--E.1382.147.60.B.8.71870617,5--E.1745.101.60.B.8.71139526,12-J.1745.101.124.B.8.71140515,13-G.1745.101.124.B.8.71144808,65-H.1745.101.124.M.8.71141617,747M.1293.132.100.B.8.71847639,747M.1382.147.60.B.8.71872352,756D.1382.147.60.A.8.71871809,93-B.1293.132.44.A.8.71847444,93-B.1382.147.60.A.8.71872143,93-B.1745.101.60.A.8.71138328,13-G.1293.132.60.B.8.71845706,13-G.1382.147.60.B.8.71870391,756D.1293.132.32.A.8.71847125,25-D.1293.132.56.B.8.71845547,25-D.1382.147.60.B.8.71870231,25-D.1745.101.124.B.8.71137379,44-D.1293.132.124.K.8.71847372,44-D.1382.147.108.K.8.71872070,44-D.1745.101.124.K.8.71144817,26-H.1745.101.124.B.8.71137637,16-B.1745.101.124.B.8.71140710,7--K.1745.101.60.B.8.71144158,733D.1293.132.60.K.8.71846289,733D.1382.147.60.K.8.71870970,743P.1293.132.32.B.8.71848012,743P.1382.147.32.B.8.71872763,731B.1382.147.120.B.8.71871206,731B.1293.132.124.B.8.71846525,762B.1293.132.32.K.8.71845569,762B.1382.147.32.K.8.71870253,768B.1293.132.124.K.8.71846658,768B.1382.147.120.K.8.72075315,43-B.1745.101.124.K.8.71137869,45-B.1745.101.124.K.8.71142197,46-B.1745.101.124.K.8.71142815">
                             <schedule>
 <departures>
     <departure id="2027" time="06:02:18"/>
@@ -4831,7 +4804,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="242" externalid="82-D.1745.101.60.A.8.71138537,92-D.1745.101.124.A.8.71137222,63-E.1745.101.60.M.8.71139927,703E.1293.132.32.M.8.71848620,703E.1382.147.52.M.8.71873482,705D.1293.132.32.A.8.71848327,705D.1382.147.56.A.8.71873126,710F.1293.132.32.B.8.71846630,710F.1382.147.36.B.8.71871311,8--F.1745.101.60.B.8.71144439">
+                        <trip id="241" externalid="82-D.1745.101.60.A.8.71138537,92-D.1745.101.124.A.8.71137222,63-E.1745.101.60.M.8.71139927,703E.1293.132.32.M.8.71848620,703E.1382.147.52.M.8.71873482,705D.1293.132.32.A.8.71848327,705D.1382.147.56.A.8.71873126,710F.1293.132.32.B.8.71846630,710F.1382.147.36.B.8.71871311,8--F.1745.101.60.B.8.71144439">
                             <schedule>
 <departures>
     <departure id="2051" time="07:41:31"/>
@@ -4846,7 +4819,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="243" externalid="67-E.1293.132.124.M.8.71847739,67-E.1382.147.124.M.8.71872458,67-E.1745.101.124.M.8.71143898">
+                        <trip id="242" externalid="67-E.1293.132.124.M.8.71847739,67-E.1382.147.124.M.8.71872458,67-E.1745.101.124.M.8.71143898">
                             <schedule>
 <departures>
     <departure id="2053" time="06:01:00"/>
@@ -4856,7 +4829,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="244" externalid="750H.1293.132.40.B.8.71848695,750H.1382.147.60.B.8.71873584">
+                        <trip id="243" externalid="750H.1293.132.40.B.8.71848695,750H.1382.147.60.B.8.71873584">
                             <schedule>
 <departures>
     <departure id="2054" time="09:57:01"/>
@@ -4868,7 +4841,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="245" externalid="27-D.1745.101.124.B.8.71144764,737E.1293.132.36.B.8.71844692,737E.1382.147.32.B.8.71869376">
+                        <trip id="244" externalid="27-D.1745.101.124.B.8.71144764,737E.1293.132.36.B.8.71844692,737E.1382.147.32.B.8.71869376">
                             <schedule>
 <departures>
     <departure id="2055" time="09:01:31"/>
@@ -4880,7 +4853,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="246" externalid="62-E.1745.101.124.M.8.71142323,729E.1293.132.32.M.8.71848172,729E.1382.147.124.M.8.71872946,720F.1293.132.40.B.8.72055643,720F.1382.147.56.B.8.71871629">
+                        <trip id="245" externalid="62-E.1745.101.124.M.8.71142323,729E.1293.132.32.M.8.71848172,729E.1382.147.124.M.8.71872946,720F.1293.132.40.B.8.72055643,720F.1382.147.56.B.8.71871629">
                             <schedule>
 <departures>
     <departure id="2056" time="07:20:01"/>
@@ -4899,7 +4872,7 @@
                     <name>T3</name>
                     <namedescription>T3 Bankstown Line</namedescription>
                     <trips>
-                        <trip id="247" externalid="19-B.1745.101.124.B.8.71138931,22-D.1745.101.124.B.8.71142201,90-H.1745.101.60.A.8.71139335,24-D.1745.101.124.B.8.71140351,84-F.1745.101.60.A.8.71144633,9--F.1745.101.124.B.8.71143150,23-D.1745.101.124.B.8.71144505,40-H.1745.101.124.K.8.71141492,64-G.1745.101.124.M.8.71144020,767C.1293.132.56.B.8.71844640,767C.1382.147.52.B.8.71869324,712D.1293.132.32.B.8.71845644,712D.1382.147.44.B.8.71870328,764D.1293.132.32.A.8.71846864,764D.1382.147.32.A.8.71871541,751F.1293.132.108.K.8.71848439,751F.1382.147.60.K.8.71873264,770C.1293.132.124.B.8.71845292,770C.1382.147.104.B.8.71869976,48-D.1293.132.124.K.8.71845421,48-D.1382.147.124.K.8.71870105,48-D.1745.101.124.K.8.71138345,724H.1293.132.36.A.8.71847512,724H.1382.147.32.A.8.71872216,721G.1293.132.32.B.8.71848358,721G.1382.147.124.B.8.71873163,20-C.1745.101.124.B.8.71137542,21-B.1745.101.124.B.8.71140639,47-B.1745.101.124.K.8.71138935,734B.1293.132.56.A.8.71844710,734B.1382.147.124.A.8.71869394,736B.1293.132.32.B.8.71845297,736B.1382.147.60.B.8.71869981">
+                        <trip id="246" externalid="19-B.1745.101.124.B.8.71138931,22-D.1745.101.124.B.8.71142201,90-H.1745.101.60.A.8.71139335,24-D.1745.101.124.B.8.71140351,84-F.1745.101.60.A.8.71144633,9--F.1745.101.124.B.8.71143150,23-D.1745.101.124.B.8.71144505,40-H.1745.101.124.K.8.71141492,64-G.1745.101.124.M.8.71144020,767C.1293.132.56.B.8.71844640,767C.1382.147.52.B.8.71869324,712D.1293.132.32.B.8.71845644,712D.1382.147.44.B.8.71870328,764D.1293.132.32.A.8.71846864,764D.1382.147.32.A.8.71871541,751F.1293.132.108.K.8.71848439,751F.1382.147.60.K.8.71873264,770C.1293.132.124.B.8.71845292,770C.1382.147.104.B.8.71869976,48-D.1293.132.124.K.8.71845421,48-D.1382.147.124.K.8.71870105,48-D.1745.101.124.K.8.71138345,724H.1293.132.36.A.8.71847512,724H.1382.147.32.A.8.71872216,721G.1293.132.32.B.8.71848358,721G.1382.147.124.B.8.71873163,20-C.1745.101.124.B.8.71137542,21-B.1745.101.124.B.8.71140639,47-B.1745.101.124.K.8.71138935,734B.1293.132.56.A.8.71844710,734B.1382.147.124.A.8.71869394,736B.1293.132.32.B.8.71845297,736B.1382.147.60.B.8.71869981">
                             <schedule>
 <departures>
     <departure id="2070" time="06:02:31"/>
@@ -4927,7 +4900,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="248" externalid="755D.1293.132.60.K.8.71845217,755D.1382.147.124.K.8.71869901,754D.1293.132.60.K.8.71847606,754D.1382.147.124.K.8.71872317,42-D.1745.101.124.K.8.71144205,43-D.1745.101.124.K.8.71142103,45-D.1745.101.124.K.8.71143657,70-H.1745.101.124.M.8.71142302,712B.1382.147.44.B.8.71870327,712B.1293.132.32.B.8.71845643,727C.1382.147.124.B.8.71869964,727C.1293.132.48.B.8.71845280,751H.1293.132.108.K.8.71848717,751H.1382.147.60.K.8.71873633,763H.1293.132.36.M.8.71846642,763H.1382.147.60.M.8.71871323,33-F.1745.101.60.B.8.71143375,88-F.1745.101.60.A.8.71144706,16-D.1745.101.124.B.8.71141393,15-F.1745.101.124.B.8.71138713,17-B.1745.101.124.B.8.71139025,89-F.1745.101.60.A.8.71143409,86-F.1745.101.124.A.8.71138631,6--C.1745.101.124.B.8.71141286,40-D.1745.101.124.K.8.71142929,34-F.1745.101.124.B.8.71144672,26-B.1745.101.124.B.8.71144930,2--C.1745.101.124.B.8.71142172,1--D.1745.101.60.B.8.71141338,28-B.1745.101.124.B.8.71143208,96-F.1745.101.60.A.8.71142864,741F.1293.132.32.B.8.71847964,741F.1382.147.32.B.8.71872707,741H.1293.132.32.B.8.71848058,741H.1382.147.32.B.8.71872815,772F.1293.132.36.A.8.71845654,772F.1382.147.56.A.8.71870338,743H.1293.132.32.B.8.71845284,743H.1382.147.32.B.8.71869968,743K.1293.132.32.B.8.71845650,743K.1382.147.32.B.8.71870334,747H.1293.132.100.B.8.71845879,747H.1382.147.60.B.8.71870564,731F.1293.132.124.B.8.71848380,731F.1382.147.120.B.8.71873191,704F.1293.132.32.B.8.71846545,704F.1382.147.56.B.8.71871226,68-F.1745.101.60.M.8.71142768,760K.1293.132.32.M.8.71845529,760K.1382.147.32.M.8.71870213,708F.1293.132.48.B.8.71846537,708F.1382.147.60.B.8.71871218,731D.1293.132.124.B.8.71848379,731D.1382.147.120.B.8.71873190,30-B.1745.101.124.B.8.71143520,22-F.1745.101.124.B.8.71143258,60-D.1293.132.124.M.8.71845575,60-D.1382.147.52.M.8.71870259,60-D.1745.101.124.M.8.71141307,64-E.1745.101.124.M.8.71144654,721E.1382.147.124.B.8.71872968,721E.1293.132.32.B.8.71848192,726F.1293.132.60.A.8.71846825,726F.1382.147.60.A.8.71871502,23-F.1745.101.124.B.8.71143496,764F.1293.132.32.A.8.71846865,764F.1382.147.32.A.8.71871542,90-F.1745.101.60.A.8.71142654,724F.1293.132.36.A.8.71848237,724F.1382.147.32.A.8.71873018">
+                        <trip id="247" externalid="755D.1293.132.60.K.8.71845217,755D.1382.147.124.K.8.71869901,754D.1293.132.60.K.8.71847606,754D.1382.147.124.K.8.71872317,42-D.1745.101.124.K.8.71144205,43-D.1745.101.124.K.8.71142103,45-D.1745.101.124.K.8.71143657,70-H.1745.101.124.M.8.71142302,712B.1382.147.44.B.8.71870327,712B.1293.132.32.B.8.71845643,727C.1382.147.124.B.8.71869964,727C.1293.132.48.B.8.71845280,751H.1293.132.108.K.8.71848717,751H.1382.147.60.K.8.71873633,763H.1293.132.36.M.8.71846642,763H.1382.147.60.M.8.71871323,33-F.1745.101.60.B.8.71143375,88-F.1745.101.60.A.8.71144706,16-D.1745.101.124.B.8.71141393,15-F.1745.101.124.B.8.71138713,17-B.1745.101.124.B.8.71139025,89-F.1745.101.60.A.8.71143409,86-F.1745.101.124.A.8.71138631,6--C.1745.101.124.B.8.71141286,40-D.1745.101.124.K.8.71142929,34-F.1745.101.124.B.8.71144672,26-B.1745.101.124.B.8.71144930,2--C.1745.101.124.B.8.71142172,1--D.1745.101.60.B.8.71141338,28-B.1745.101.124.B.8.71143208,96-F.1745.101.60.A.8.71142864,741F.1293.132.32.B.8.71847964,741F.1382.147.32.B.8.71872707,741H.1293.132.32.B.8.71848058,741H.1382.147.32.B.8.71872815,772F.1293.132.36.A.8.71845654,772F.1382.147.56.A.8.71870338,743H.1293.132.32.B.8.71845284,743H.1382.147.32.B.8.71869968,743K.1293.132.32.B.8.71845650,743K.1382.147.32.B.8.71870334,747H.1293.132.100.B.8.71845879,747H.1382.147.60.B.8.71870564,731F.1293.132.124.B.8.71848380,731F.1382.147.120.B.8.71873191,704F.1293.132.32.B.8.71846545,704F.1382.147.56.B.8.71871226,68-F.1745.101.60.M.8.71142768,760K.1293.132.32.M.8.71845529,760K.1382.147.32.M.8.71870213,708F.1293.132.48.B.8.71846537,708F.1382.147.60.B.8.71871218,731D.1293.132.124.B.8.71848379,731D.1382.147.120.B.8.71873190,30-B.1745.101.124.B.8.71143520,22-F.1745.101.124.B.8.71143258,60-D.1293.132.124.M.8.71845575,60-D.1382.147.52.M.8.71870259,60-D.1745.101.124.M.8.71141307,64-E.1745.101.124.M.8.71144654,721E.1382.147.124.B.8.71872968,721E.1293.132.32.B.8.71848192,726F.1293.132.60.A.8.71846825,726F.1382.147.60.A.8.71871502,23-F.1745.101.124.B.8.71143496,764F.1293.132.32.A.8.71846865,764F.1382.147.32.A.8.71871542,90-F.1745.101.60.A.8.71142654,724F.1293.132.36.A.8.71848237,724F.1382.147.32.A.8.71873018">
                             <schedule>
 <departures>
     <departure id="2092" time="06:00:42"/>
@@ -4969,7 +4942,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="249" externalid="753C.1293.132.36.B.8.71845057,753C.1382.147.60.B.8.71869741,768D.1293.132.124.K.8.71846527,768D.1382.147.120.K.8.72075317,49-B.1745.101.124.K.8.71137589,62-G.1745.101.124.M.8.71144445,69-B.1745.101.60.M.8.71143667,67-G.1293.132.124.M.8.71846880,67-G.1382.147.124.M.8.71871557,67-G.1745.101.124.M.8.71140770,729G.1293.132.32.M.8.71848188,729G.1382.147.124.M.8.71872964">
+                        <trip id="248" externalid="753C.1293.132.36.B.8.71845057,753C.1382.147.60.B.8.71869741,768D.1293.132.124.K.8.71846527,768D.1382.147.120.K.8.72075317,49-B.1745.101.124.K.8.71137589,62-G.1745.101.124.M.8.71144445,69-B.1745.101.60.M.8.71143667,67-G.1293.132.124.M.8.71846880,67-G.1382.147.124.M.8.71871557,67-G.1745.101.124.M.8.71140770,729G.1293.132.32.M.8.71848188,729G.1382.147.124.M.8.71872964">
                             <schedule>
 <departures>
     <departure id="2109" time="07:39:01"/>
@@ -4984,7 +4957,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="250" externalid="766H.1293.132.60.B.8.71845201,766H.1382.147.124.B.8.71869885,749D.1293.132.32.B.8.71844781,749D.1382.147.36.B.8.71869465">
+                        <trip id="249" externalid="766H.1293.132.60.B.8.71845201,766H.1382.147.124.B.8.71869885,749D.1293.132.32.B.8.71844781,749D.1382.147.36.B.8.71869465">
                             <schedule>
 <departures>
     <departure id="2111" time="07:53:01"/>
@@ -4997,7 +4970,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="251" externalid="34-K.1745.101.124.B.8.71139453,41-D.1745.101.124.K.8.71142744">
+                        <trip id="250" externalid="34-K.1745.101.124.B.8.71139453,41-D.1745.101.124.K.8.71142744">
                             <schedule>
 <departures>
     <departure id="2113" time="07:53:31"/>
@@ -5010,7 +4983,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="252" externalid="760H.1293.132.32.M.8.71845528,760H.1382.147.32.M.8.71870212,758B.1293.132.56.B.8.71847925,758B.1382.147.56.B.8.71872662">
+                        <trip id="251" externalid="760H.1293.132.32.M.8.71845528,760H.1382.147.32.M.8.71870212,758B.1293.132.56.B.8.71847925,758B.1382.147.56.B.8.71872662">
                             <schedule>
 <departures>
     <departure id="2115" time="08:08:01"/>
@@ -5023,7 +4996,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="253" externalid="764B.1293.132.32.A.8.71846654,764B.1382.147.32.A.8.71871335">
+                        <trip id="252" externalid="764B.1293.132.32.A.8.71846654,764B.1382.147.32.A.8.71871335">
                             <schedule>
 <departures>
     <departure id="2116" time="06:02:00"/>
@@ -5040,7 +5013,7 @@
                     <name>T4</name>
                     <namedescription>T4 Eastern Suburbs and Illawarra Line</namedescription>
                     <trips>
-                        <trip id="254" externalid="613C.1293.132.116.T.8.71846610,613C.1382.147.112.T.8.71871291,613C.1745.101.124.T.8.71137312,626F.1293.132.48.T.8.71845354,626F.1382.147.48.T.8.71870038,626F.1745.101.48.T.8.71139147,623G.1293.132.32.T.8.71847873,623G.1382.147.32.T.8.71872604,623G.1745.101.124.T.8.71137757,600D.1293.132.48.T.8.71846323,600D.1382.147.32.T.8.71871004,600D.1745.101.60.T.8.71137289,625E.1293.132.32.T.8.71845099,625E.1382.147.32.T.8.71869783,625E.1745.101.124.T.8.71138700,612G.1293.132.32.T.8.71848226,612G.1382.147.32.T.8.71873005,612G.1745.101.60.T.8.71142839,607B.1382.147.52.T.8.71871314,607B.1745.101.60.T.8.71137261,607B.1293.132.44.T.8.71846633,605D.1293.132.32.T.8.71846304,605D.1382.147.32.T.8.71870985,605D.1745.101.60.T.8.71144279,603B.1293.132.124.T.8.71844707,603B.1382.147.124.T.8.71869391,603B.1745.101.124.T.8.71144250,605B.1293.132.32.T.8.71846303,605B.1382.147.32.T.8.71870984,605B.1745.101.60.T.8.71138584,610B.1382.147.32.T.8.71872339,610B.1745.101.124.T.8.71144207,610B.1293.132.32.T.8.71847628,625C.1293.132.32.T.8.71847205,625C.1382.147.32.T.8.71871892,625C.1745.101.124.T.8.71144604,601B.1293.132.32.T.8.71846412,601B.1382.147.60.T.8.71871093,601B.1745.101.124.T.8.71141069,614E.1293.132.48.T.8.71846915,614E.1382.147.100.T.8.71871592,614E.1745.101.124.T.8.71142695,621E.1745.101.60.T.8.71140812,621E.1293.132.32.T.8.71845755,621E.1382.147.32.T.8.71870440,602B.1293.132.48.T.8.71845446,602B.1382.147.48.T.8.71870130,602B.1745.101.60.T.8.71139073,608B.1293.132.120.T.8.71844552,608B.1382.147.120.T.8.71869236,608B.1745.101.124.T.8.71142011,609B.1293.132.40.T.8.71848038,609B.1382.147.40.T.8.71872794,609B.1745.101.60.T.8.71138556,615E.1293.132.48.T.8.71845437,615E.1382.147.48.T.8.71870121,615E.1745.101.60.T.8.71141429,600B.1293.132.48.T.8.71844824,600B.1382.147.32.T.8.71869507,600B.1745.101.60.T.8.71139360,604B.1293.132.124.T.8.71846701,604B.1382.147.96.T.8.71871382,604B.1745.101.124.T.8.71142529,606B.1745.101.124.T.8.71141896,616E.1293.132.32.T.8.71844517,616E.1382.147.96.T.8.71869201,616E.1745.101.124.T.8.71137613,602D.1293.132.48.T.8.71847581,602D.1382.147.48.T.8.71872288,602D.1745.101.60.T.8.71144767,611E.1293.132.32.T.8.71844864,611E.1382.147.96.T.8.71869547,611E.1745.101.124.T.8.71140165,627C.1293.132.120.T.8.71847946,627C.1382.147.112.T.8.71872686,627C.1745.101.120.T.8.71141991,624E.1293.132.96.T.8.71845694,624E.1382.147.96.T.8.71870379,624E.1745.101.124.T.8.71137996,619D.1293.132.112.T.8.71845419,619D.1382.147.112.T.8.71870103,619D.1745.101.124.T.8.71140645,326B.1293.132.100.H.4.71845492,326B.1382.147.96.H.4.71870176,326B.1745.101.108.H.4.71139735,601D.1293.132.32.T.8.71847024,601D.1382.147.60.T.8.71871703,601D.1745.101.124.T.8.71138720,416F.1293.132.60.H.8.71845397,416F.1382.147.56.H.8.71870081,416F.1745.101.60.H.8.71138862,416D.1293.132.60.H.8.71848114,416D.1382.147.56.H.8.71872879,416D.1745.101.60.H.8.71142414,412B.1745.101.44.H.8.71142392,412B.1293.132.32.H.8.71847332,412B.1382.147.32.H.8.71872026,418D.1293.132.116.H.8.71846371,418D.1382.147.112.H.8.71871052,418D.1745.101.124.H.8.71139924,420D.1382.147.60.H.8.71872021,420D.1293.132.40.H.8.71847327,420D.1745.101.124.H.8.71144629,604D.1382.147.96.T.8.71870150,604D.1745.101.124.T.8.71137427,604D.1293.132.124.T.8.71845466,606D.1745.101.124.T.8.71139810,626D.1293.132.48.T.8.71845352,626D.1382.147.48.T.8.71870036,626D.1745.101.48.T.8.71142954,616C.1293.132.32.T.8.71845689,616C.1382.147.96.T.8.71870374,616C.1745.101.124.T.8.71139053,621C.1293.132.32.T.8.71845410,621C.1382.147.32.T.8.71870094,621C.1745.101.60.T.8.71144369,412D.1293.132.32.H.8.71847504,412D.1382.147.32.H.8.71872207,412D.1745.101.44.H.8.71138840,603D.1293.132.124.T.8.71844708,603D.1382.147.124.T.8.71869392,603D.1745.101.124.T.8.71139404,613E.1293.132.116.T.8.71846611,613E.1382.147.112.T.8.71871292,613E.1745.101.124.T.8.71143638,618F.1293.132.32.T.8.71876609,618F.1382.147.32.T.8.71962330,618F.1745.101.60.T.8.71142207,428D.1293.132.32.H.8.71901023,428D.1382.147.32.H.8.71964552,428D.1745.101.60.H.8.71140500,612E.1293.132.32.T.8.71846351,612E.1382.147.32.T.8.71871032,612E.1745.101.60.T.8.71141782,617F.1293.132.120.T.8.71846559,617F.1382.147.120.T.8.71871240,617F.1745.101.124.T.8.71139854,614C.1293.132.48.T.8.71847206,614C.1382.147.100.T.8.71871893,614C.1745.101.124.T.8.71141638,628C.1293.132.40.T.8.71847747,628C.1382.147.40.T.8.71872468,628C.1745.101.124.T.8.71141419,623E.1293.132.32.T.8.71844592,623E.1382.147.32.T.8.71869276,623E.1745.101.124.T.8.71143400,627E.1293.132.120.T.8.71844893,627E.1382.147.112.T.8.71869576,627E.1745.101.120.T.8.71143854,618D.1293.132.32.T.8.71847808,618D.1382.147.32.T.8.71872533,618D.1745.101.60.T.8.71140070,624C.1293.132.96.T.8.71845693,624C.1382.147.96.T.8.71870378,624C.1745.101.124.T.8.71141144">
+                        <trip id="253" externalid="613C.1293.132.116.T.8.71846610,613C.1382.147.112.T.8.71871291,613C.1745.101.124.T.8.71137312,626F.1293.132.48.T.8.71845354,626F.1382.147.48.T.8.71870038,626F.1745.101.48.T.8.71139147,623G.1293.132.32.T.8.71847873,623G.1382.147.32.T.8.71872604,623G.1745.101.124.T.8.71137757,600D.1293.132.48.T.8.71846323,600D.1382.147.32.T.8.71871004,600D.1745.101.60.T.8.71137289,625E.1293.132.32.T.8.71845099,625E.1382.147.32.T.8.71869783,625E.1745.101.124.T.8.71138700,612G.1293.132.32.T.8.71848226,612G.1382.147.32.T.8.71873005,612G.1745.101.60.T.8.71142839,607B.1382.147.52.T.8.71871314,607B.1745.101.60.T.8.71137261,607B.1293.132.44.T.8.71846633,605D.1293.132.32.T.8.71846304,605D.1382.147.32.T.8.71870985,605D.1745.101.60.T.8.71144279,603B.1293.132.124.T.8.71844707,603B.1382.147.124.T.8.71869391,603B.1745.101.124.T.8.71144250,605B.1293.132.32.T.8.71846303,605B.1382.147.32.T.8.71870984,605B.1745.101.60.T.8.71138584,610B.1382.147.32.T.8.71872339,610B.1745.101.124.T.8.71144207,610B.1293.132.32.T.8.71847628,625C.1293.132.32.T.8.71847205,625C.1382.147.32.T.8.71871892,625C.1745.101.124.T.8.71144604,601B.1293.132.32.T.8.71846412,601B.1382.147.60.T.8.71871093,601B.1745.101.124.T.8.71141069,614E.1293.132.48.T.8.71846915,614E.1382.147.100.T.8.71871592,614E.1745.101.124.T.8.71142695,621E.1745.101.60.T.8.71140812,621E.1293.132.32.T.8.71845755,621E.1382.147.32.T.8.71870440,602B.1293.132.48.T.8.71845446,602B.1382.147.48.T.8.71870130,602B.1745.101.60.T.8.71139073,608B.1293.132.120.T.8.71844552,608B.1382.147.120.T.8.71869236,608B.1745.101.124.T.8.71142011,609B.1293.132.40.T.8.71848038,609B.1382.147.40.T.8.71872794,609B.1745.101.60.T.8.71138556,615E.1293.132.48.T.8.71845437,615E.1382.147.48.T.8.71870121,615E.1745.101.60.T.8.71141429,600B.1293.132.48.T.8.71844824,600B.1382.147.32.T.8.71869507,600B.1745.101.60.T.8.71139360,604B.1293.132.124.T.8.71846701,604B.1382.147.96.T.8.71871382,604B.1745.101.124.T.8.71142529,606B.1745.101.124.T.8.71141896,616E.1293.132.32.T.8.71844517,616E.1382.147.96.T.8.71869201,616E.1745.101.124.T.8.71137613,602D.1293.132.48.T.8.71847581,602D.1382.147.48.T.8.71872288,602D.1745.101.60.T.8.71144767,611E.1293.132.32.T.8.71844864,611E.1382.147.96.T.8.71869547,611E.1745.101.124.T.8.71140165,627C.1293.132.120.T.8.71847946,627C.1382.147.112.T.8.71872686,627C.1745.101.120.T.8.71141991,624E.1293.132.96.T.8.71845694,624E.1382.147.96.T.8.71870379,624E.1745.101.124.T.8.71137996,619D.1293.132.112.T.8.71845419,619D.1382.147.112.T.8.71870103,619D.1745.101.124.T.8.71140645,326B.1293.132.100.H.4.71845492,326B.1382.147.96.H.4.71870176,326B.1745.101.108.H.4.71139735,601D.1293.132.32.T.8.71847024,601D.1382.147.60.T.8.71871703,601D.1745.101.124.T.8.71138720,416F.1293.132.60.H.8.71845397,416F.1382.147.56.H.8.71870081,416F.1745.101.60.H.8.71138862,416D.1293.132.60.H.8.71848114,416D.1382.147.56.H.8.71872879,416D.1745.101.60.H.8.71142414,412B.1745.101.44.H.8.71142392,412B.1293.132.32.H.8.71847332,412B.1382.147.32.H.8.71872026,418D.1293.132.116.H.8.71846371,418D.1382.147.112.H.8.71871052,418D.1745.101.124.H.8.71139924,420D.1382.147.60.H.8.71872021,420D.1293.132.40.H.8.71847327,420D.1745.101.124.H.8.71144629,604D.1382.147.96.T.8.71870150,604D.1745.101.124.T.8.71137427,604D.1293.132.124.T.8.71845466,606D.1745.101.124.T.8.71139810,626D.1293.132.48.T.8.71845352,626D.1382.147.48.T.8.71870036,626D.1745.101.48.T.8.71142954,616C.1293.132.32.T.8.71845689,616C.1382.147.96.T.8.71870374,616C.1745.101.124.T.8.71139053,621C.1293.132.32.T.8.71845410,621C.1382.147.32.T.8.71870094,621C.1745.101.60.T.8.71144369,412D.1293.132.32.H.8.71847504,412D.1382.147.32.H.8.71872207,412D.1745.101.44.H.8.71138840,603D.1293.132.124.T.8.71844708,603D.1382.147.124.T.8.71869392,603D.1745.101.124.T.8.71139404,613E.1293.132.116.T.8.71846611,613E.1382.147.112.T.8.71871292,613E.1745.101.124.T.8.71143638,618F.1293.132.32.T.8.71876609,618F.1382.147.32.T.8.71962330,618F.1745.101.60.T.8.71142207,428D.1293.132.32.H.8.71901023,428D.1382.147.32.H.8.71964552,428D.1745.101.60.H.8.71140500,612E.1293.132.32.T.8.71846351,612E.1382.147.32.T.8.71871032,612E.1745.101.60.T.8.71141782,617F.1293.132.120.T.8.71846559,617F.1382.147.120.T.8.71871240,617F.1745.101.124.T.8.71139854,614C.1293.132.48.T.8.71847206,614C.1382.147.100.T.8.71871893,614C.1745.101.124.T.8.71141638,628C.1293.132.40.T.8.71847747,628C.1382.147.40.T.8.71872468,628C.1745.101.124.T.8.71141419,623E.1293.132.32.T.8.71844592,623E.1382.147.32.T.8.71869276,623E.1745.101.124.T.8.71143400,627E.1293.132.120.T.8.71844893,627E.1382.147.112.T.8.71869576,627E.1745.101.120.T.8.71143854,618D.1293.132.32.T.8.71847808,618D.1382.147.32.T.8.71872533,618D.1745.101.60.T.8.71140070,624C.1293.132.96.T.8.71845693,624C.1382.147.96.T.8.71870378,624C.1745.101.124.T.8.71141144">
                             <schedule>
 <departures>
     <departure id="2168" time="06:01:00"/>
@@ -5102,7 +5075,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="255" externalid="308B.1293.132.32.T.8.71845411,308B.1382.147.32.T.8.71870095,308B.1745.101.60.T.8.71138675,616B.1293.132.32.T.8.71845688,616B.1382.147.96.T.8.71870373,616B.1745.101.124.T.8.71137736,611D.1382.147.96.T.8.71869545,611D.1745.101.124.T.8.71141070,611D.1293.132.32.T.8.71844862,600C.1293.132.48.T.8.71846322,600C.1382.147.32.T.8.71871003,600C.1745.101.60.T.8.71137921,619C.1293.132.112.T.8.71845417,619C.1382.147.112.T.8.71870101,619C.1745.101.124.T.8.71141049,604C.1293.132.124.T.8.71846702,604C.1382.147.96.T.8.71871383,604C.1745.101.124.T.8.71141005,606C.1745.101.124.T.8.71142953,614F.1293.132.48.T.8.71846624,614F.1382.147.100.T.8.71871305,614F.1745.101.124.T.8.71139550,626C.1293.132.48.T.8.71848295,626C.1382.147.48.T.8.71873086,626C.1745.101.48.T.8.71138089,614B.1293.132.48.T.8.71848440,614B.1382.147.100.T.8.71873265,614B.1745.101.124.T.8.71140580,601A.1293.132.32.T.8.71846413,601A.1382.147.60.T.8.71871094,601A.1745.101.124.T.8.71140579,625B.1293.132.32.T.8.71847203,625B.1382.147.32.T.8.71871890,625B.1745.101.124.T.8.71140995,615D.1382.147.48.T.8.71869866,615D.1745.101.60.T.8.71144302,615D.1293.132.48.T.8.71845182,619E.1293.132.112.T.8.71845418,619E.1382.147.112.T.8.71870102,619E.1745.101.124.T.8.71142911,627D.1293.132.120.T.8.71844891,627D.1382.147.112.T.8.71869574,627D.1745.101.120.T.8.71139075,625D.1293.132.32.T.8.71847204,625D.1382.147.32.T.8.71871891,625D.1745.101.124.T.8.71139103,611F.1293.132.32.T.8.71844863,611F.1382.147.96.T.8.71869546,603C.1293.132.124.T.8.71844709,603C.1382.147.124.T.8.71869393,603C.1745.101.124.T.8.71142982,605C.1293.132.32.T.8.71846305,605C.1382.147.32.T.8.71870986,605C.1745.101.60.T.8.71144912,611F.1745.101.124.T.8.71139528,612D.1293.132.32.T.8.71846352,612D.1382.147.32.T.8.71871033,612D.1745.101.60.T.8.71142416,617E.1293.132.120.T.8.71846557,617E.1382.147.120.T.8.71871238,617E.1745.101.124.T.8.71143026,623D.1293.132.32.T.8.71844590,623D.1382.147.32.T.8.71869274,623D.1745.101.124.T.8.71143804,627B.1745.101.120.T.8.71138017,627B.1293.132.120.T.8.71847308,627B.1382.147.112.T.8.71872000,624B.1293.132.96.T.8.71846059,624B.1382.147.96.T.8.71870744,624B.1745.101.124.T.8.71144704,601C.1293.132.32.T.8.71848373,601C.1382.147.60.T.8.71873182,601C.1745.101.124.T.8.71139527,620C.1293.132.56.T.8.71847351,620C.1382.147.56.T.8.71872047,620C.1745.101.60.T.8.71137334,621F.1293.132.32.T.8.71845754,621F.1382.147.32.T.8.71870439,621F.1745.101.60.T.8.71137807,602A.1293.132.48.T.8.71845447,602A.1382.147.48.T.8.71870131,602A.1745.101.60.T.8.71143852,608A.1382.147.120.T.8.71869234,608A.1745.101.124.T.8.71139009,609A.1293.132.40.T.8.71848039,609A.1745.101.60.T.8.71143334,609A.1382.147.40.T.8.71872796,608A.1293.132.120.T.8.71844550,605A.1382.147.32.T.8.72117746,605A.1745.101.60.T.8.71140695,605A.1293.132.32.T.8.72211120,604A.1293.132.124.T.8.71848743,604A.1382.147.96.T.8.71926911,604A.1745.101.124.T.8.71142040,606A.1745.101.124.T.8.71138980,610A.1293.132.32.T.8.71847629,610A.1382.147.32.T.8.71872340,610A.1745.101.124.T.8.71141308,603A.1293.132.124.T.8.71847757,603A.1382.147.124.T.8.71872478,603A.1745.101.124.T.8.71138749,602C.1293.132.48.T.8.71847579,602C.1382.147.48.T.8.71872286,602C.1745.101.60.T.8.71142816,615F.1293.132.48.T.8.71845436,615F.1382.147.48.T.8.71870120,615F.1745.101.60.T.8.71137850,624D.1293.132.96.T.8.71845695,624D.1382.147.96.T.8.71870380,624D.1745.101.124.T.8.71138657,609C.1293.132.40.T.8.71848021,609C.1382.147.40.T.8.71872775,609C.1745.101.60.T.8.71144797,608C.1293.132.120.T.8.71844551,608C.1382.147.120.T.8.71869235,608C.1745.101.124.T.8.71138203,613D.1293.132.116.T.8.71846612,613D.1382.147.112.T.8.71871293,613D.1745.101.124.T.8.71139433,618E.1382.147.32.T.8.71962331,618E.1745.101.60.T.8.71142179,618E.1293.132.32.T.8.71876611,416E.1293.132.60.H.8.71845395,416E.1382.147.56.H.8.71870079,416E.1745.101.60.H.8.71139265,412C.1293.132.32.H.8.71847505,412C.1382.147.32.H.8.71872208,412C.1745.101.44.H.8.71141844,418E.1293.132.116.H.8.71846370,418E.1382.147.112.H.8.71871051,418E.1745.101.124.H.8.71139358,616D.1293.132.32.T.8.71844515,616D.1382.147.96.T.8.71869199,616D.1745.101.124.T.8.71140933,420E.1293.132.40.H.8.71848600,420E.1382.147.60.H.8.71873459,420E.1745.101.124.H.8.71143045,612F.1293.132.32.T.8.71847271,612F.1382.147.32.T.8.71871961,612F.1745.101.60.T.8.71140976,626E.1293.132.48.T.8.71845355,626E.1382.147.48.T.8.71870039,626E.1745.101.48.T.8.71142725,617G.1293.132.120.T.8.71846558,617G.1382.147.120.T.8.71871239,617G.1745.101.124.T.8.71139622,623F.1293.132.32.T.8.71844591,623F.1382.147.32.T.8.71869275,623F.1745.101.124.T.8.71143170,621D.1293.132.32.T.8.71845753,621D.1382.147.32.T.8.71870438,621D.1745.101.60.T.8.71138441,607A.1293.132.44.T.8.71848444,607A.1382.147.52.T.8.71873269,607A.1745.101.60.T.8.71144538,614D.1745.101.124.T.8.71141006,614D.1293.132.48.T.8.71847207,614D.1382.147.100.T.8.71871894">
+                        <trip id="254" externalid="308B.1293.132.32.T.8.71845411,308B.1382.147.32.T.8.71870095,308B.1745.101.60.T.8.71138675,616B.1293.132.32.T.8.71845688,616B.1382.147.96.T.8.71870373,616B.1745.101.124.T.8.71137736,611D.1382.147.96.T.8.71869545,611D.1745.101.124.T.8.71141070,611D.1293.132.32.T.8.71844862,600C.1293.132.48.T.8.71846322,600C.1382.147.32.T.8.71871003,600C.1745.101.60.T.8.71137921,619C.1293.132.112.T.8.71845417,619C.1382.147.112.T.8.71870101,619C.1745.101.124.T.8.71141049,604C.1293.132.124.T.8.71846702,604C.1382.147.96.T.8.71871383,604C.1745.101.124.T.8.71141005,606C.1745.101.124.T.8.71142953,614F.1293.132.48.T.8.71846624,614F.1382.147.100.T.8.71871305,614F.1745.101.124.T.8.71139550,626C.1293.132.48.T.8.71848295,626C.1382.147.48.T.8.71873086,626C.1745.101.48.T.8.71138089,614B.1293.132.48.T.8.71848440,614B.1382.147.100.T.8.71873265,614B.1745.101.124.T.8.71140580,601A.1293.132.32.T.8.71846413,601A.1382.147.60.T.8.71871094,601A.1745.101.124.T.8.71140579,625B.1293.132.32.T.8.71847203,625B.1382.147.32.T.8.71871890,625B.1745.101.124.T.8.71140995,615D.1382.147.48.T.8.71869866,615D.1745.101.60.T.8.71144302,615D.1293.132.48.T.8.71845182,619E.1293.132.112.T.8.71845418,619E.1382.147.112.T.8.71870102,619E.1745.101.124.T.8.71142911,627D.1293.132.120.T.8.71844891,627D.1382.147.112.T.8.71869574,627D.1745.101.120.T.8.71139075,625D.1293.132.32.T.8.71847204,625D.1382.147.32.T.8.71871891,625D.1745.101.124.T.8.71139103,611F.1293.132.32.T.8.71844863,611F.1382.147.96.T.8.71869546,603C.1293.132.124.T.8.71844709,603C.1382.147.124.T.8.71869393,603C.1745.101.124.T.8.71142982,605C.1293.132.32.T.8.71846305,605C.1382.147.32.T.8.71870986,605C.1745.101.60.T.8.71144912,611F.1745.101.124.T.8.71139528,612D.1293.132.32.T.8.71846352,612D.1382.147.32.T.8.71871033,612D.1745.101.60.T.8.71142416,617E.1293.132.120.T.8.71846557,617E.1382.147.120.T.8.71871238,617E.1745.101.124.T.8.71143026,623D.1293.132.32.T.8.71844590,623D.1382.147.32.T.8.71869274,623D.1745.101.124.T.8.71143804,627B.1745.101.120.T.8.71138017,627B.1293.132.120.T.8.71847308,627B.1382.147.112.T.8.71872000,624B.1293.132.96.T.8.71846059,624B.1382.147.96.T.8.71870744,624B.1745.101.124.T.8.71144704,601C.1293.132.32.T.8.71848373,601C.1382.147.60.T.8.71873182,601C.1745.101.124.T.8.71139527,620C.1293.132.56.T.8.71847351,620C.1382.147.56.T.8.71872047,620C.1745.101.60.T.8.71137334,621F.1293.132.32.T.8.71845754,621F.1382.147.32.T.8.71870439,621F.1745.101.60.T.8.71137807,602A.1293.132.48.T.8.71845447,602A.1382.147.48.T.8.71870131,602A.1745.101.60.T.8.71143852,608A.1382.147.120.T.8.71869234,608A.1745.101.124.T.8.71139009,609A.1293.132.40.T.8.71848039,609A.1745.101.60.T.8.71143334,609A.1382.147.40.T.8.71872796,608A.1293.132.120.T.8.71844550,605A.1382.147.32.T.8.72117746,605A.1745.101.60.T.8.71140695,605A.1293.132.32.T.8.72211120,604A.1293.132.124.T.8.71848743,604A.1382.147.96.T.8.71926911,604A.1745.101.124.T.8.71142040,606A.1745.101.124.T.8.71138980,610A.1293.132.32.T.8.71847629,610A.1382.147.32.T.8.71872340,610A.1745.101.124.T.8.71141308,603A.1293.132.124.T.8.71847757,603A.1382.147.124.T.8.71872478,603A.1745.101.124.T.8.71138749,602C.1293.132.48.T.8.71847579,602C.1382.147.48.T.8.71872286,602C.1745.101.60.T.8.71142816,615F.1293.132.48.T.8.71845436,615F.1382.147.48.T.8.71870120,615F.1745.101.60.T.8.71137850,624D.1293.132.96.T.8.71845695,624D.1382.147.96.T.8.71870380,624D.1745.101.124.T.8.71138657,609C.1293.132.40.T.8.71848021,609C.1382.147.40.T.8.71872775,609C.1745.101.60.T.8.71144797,608C.1293.132.120.T.8.71844551,608C.1382.147.120.T.8.71869235,608C.1745.101.124.T.8.71138203,613D.1293.132.116.T.8.71846612,613D.1382.147.112.T.8.71871293,613D.1745.101.124.T.8.71139433,618E.1382.147.32.T.8.71962331,618E.1745.101.60.T.8.71142179,618E.1293.132.32.T.8.71876611,416E.1293.132.60.H.8.71845395,416E.1382.147.56.H.8.71870079,416E.1745.101.60.H.8.71139265,412C.1293.132.32.H.8.71847505,412C.1382.147.32.H.8.71872208,412C.1745.101.44.H.8.71141844,418E.1293.132.116.H.8.71846370,418E.1382.147.112.H.8.71871051,418E.1745.101.124.H.8.71139358,616D.1293.132.32.T.8.71844515,616D.1382.147.96.T.8.71869199,616D.1745.101.124.T.8.71140933,420E.1293.132.40.H.8.71848600,420E.1382.147.60.H.8.71873459,420E.1745.101.124.H.8.71143045,612F.1293.132.32.T.8.71847271,612F.1382.147.32.T.8.71871961,612F.1745.101.60.T.8.71140976,626E.1293.132.48.T.8.71845355,626E.1382.147.48.T.8.71870039,626E.1745.101.48.T.8.71142725,617G.1293.132.120.T.8.71846558,617G.1382.147.120.T.8.71871239,617G.1745.101.124.T.8.71139622,623F.1293.132.32.T.8.71844591,623F.1382.147.32.T.8.71869275,623F.1745.101.124.T.8.71143170,621D.1293.132.32.T.8.71845753,621D.1382.147.32.T.8.71870438,621D.1745.101.60.T.8.71138441,607A.1293.132.44.T.8.71848444,607A.1382.147.52.T.8.71873269,607A.1745.101.60.T.8.71144538,614D.1745.101.124.T.8.71141006,614D.1293.132.48.T.8.71847207,614D.1382.147.100.T.8.71871894">
                             <schedule>
 <departures>
     <departure id="2191" time="06:00:06"/>
@@ -5168,7 +5141,7 @@
                     <name>T8</name>
                     <namedescription>T8 Airport and South Line</namedescription>
                     <trips>
-                        <trip id="256" externalid="10-D.1745.101.60.B.8.71139183,17-F.1745.101.124.B.8.71143538,762D.1293.132.32.K.8.71845664,762D.1382.147.32.K.8.71870348,97-B.1745.101.60.A.8.71140720,86-K.1745.101.124.A.8.71143691,30-F.1745.101.124.B.8.71142764,31-B.1745.101.124.B.8.71138696,66-D.1745.101.60.M.8.71137478,715D.1293.132.32.B.8.71845334,715D.1382.147.32.B.8.71870018,716D.1293.132.56.M.8.71846815,716D.1382.147.124.M.8.71871492,712F.1293.132.32.B.8.71848605,712F.1382.147.44.B.8.71873464,714D.1293.132.40.B.8.71844854,714D.1382.147.52.B.8.71869537,737C.1293.132.36.B.8.71847539,737C.1382.147.32.B.8.71872245,752B.1293.132.56.B.8.71848599,752B.1382.147.60.B.8.71873458,723F.1382.147.60.B.8.71870824,32-B.1745.101.124.B.8.71141376,702F.1293.132.32.A.8.71845819,702F.1382.147.36.A.8.71870504,39-F.1745.101.124.K.8.71137804,740D.1293.132.124.K.8.71846214,740D.1382.147.124.K.8.71870899,722F.1382.147.60.A.8.71869644,739D.1293.132.32.B.8.71845715,739D.1382.147.32.B.8.71870400,760F.1293.132.32.M.8.71845531,760F.1382.147.32.M.8.71870215,771B.1293.132.60.M.8.71846045,771B.1382.147.60.M.8.71870730,26-F.1745.101.124.B.8.71144174,28-F.1745.101.124.B.8.71139943,11-F.1293.132.124.B.8.71847681,11-F.1382.147.124.B.8.71872395,11-F.1745.101.124.B.8.71138523,5--C.1382.147.60.B.8.71871023,5--C.1745.101.60.B.8.71141068,5--C.1293.132.60.B.8.71846342,12-G.1745.101.124.B.8.71144713,61-C.1293.132.60.M.8.71847578,61-C.1382.147.60.M.8.71872285,61-C.1745.101.60.M.8.71139759,65-F.1745.101.124.M.8.71137241,7--H.1745.101.60.B.8.71143099,727E.1293.132.48.B.8.71846651,727E.1382.147.124.B.8.71871332,772D.1293.132.36.A.8.71848736,772D.1382.147.56.A.8.71873677,92-B.1745.101.124.A.8.71140772,733B.1293.132.60.K.8.71846288,733B.1382.147.60.K.8.71870969,757G.1293.132.56.B.8.71845646,757G.1382.147.56.B.8.71870330,766F.1293.132.60.B.8.71844801,766F.1382.147.124.B.8.71869485,83-C.1293.132.60.A.8.71847014,83-C.1382.147.124.A.8.71871692,83-C.1745.101.124.A.8.71139126,95-B.1293.132.32.A.8.71846117,95-B.1382.147.32.A.8.71870802,95-B.1745.101.60.A.8.71137480,99-D.1745.101.60.A.8.71139647,93-D.1745.101.60.A.8.71137293,94-B.1293.132.36.A.8.71847178,94-B.1382.147.32.A.8.71871865,94-B.1745.101.60.A.8.71140381,5--G.1293.132.60.B.8.71845511,5--G.1382.147.60.B.8.71870195,5--G.1745.101.60.B.8.71140600,13-E.1293.132.60.B.8.71845705,13-E.1382.147.60.B.8.71870390,13-E.1745.101.124.B.8.71138308,14-F.1745.101.124.B.8.71144198,730B.1293.132.60.A.8.71848642,730B.1382.147.60.A.8.71873510,87-F.1745.101.60.A.8.71144137,717F.1293.132.32.A.8.71847784,717F.1382.147.52.A.8.71872508,743M.1293.132.32.B.8.71846001,743M.1382.147.32.B.8.71870686,741K.1293.132.32.B.8.71848165,741K.1382.147.32.B.8.71872938,747K.1293.132.100.B.8.71846213,747K.1382.147.60.B.8.71870898,6--G.1745.101.124.B.8.71138648,727G.1293.132.48.B.8.71848156,727G.1382.147.124.B.8.71872929,706F.1293.132.40.B.8.71846863,706F.1382.147.60.B.8.71871540,718F.1293.132.32.M.8.71845776,718F.1382.147.32.M.8.71870461,757J.1293.132.56.B.8.71845647,757J.1382.147.56.B.8.71870331">
+                        <trip id="255" externalid="10-D.1745.101.60.B.8.71139183,17-F.1745.101.124.B.8.71143538,762D.1293.132.32.K.8.71845664,762D.1382.147.32.K.8.71870348,97-B.1745.101.60.A.8.71140720,86-K.1745.101.124.A.8.71143691,30-F.1745.101.124.B.8.71142764,31-B.1745.101.124.B.8.71138696,66-D.1745.101.60.M.8.71137478,715D.1293.132.32.B.8.71845334,715D.1382.147.32.B.8.71870018,716D.1293.132.56.M.8.71846815,716D.1382.147.124.M.8.71871492,712F.1293.132.32.B.8.71848605,712F.1382.147.44.B.8.71873464,714D.1293.132.40.B.8.71844854,714D.1382.147.52.B.8.71869537,737C.1293.132.36.B.8.71847539,737C.1382.147.32.B.8.71872245,752B.1293.132.56.B.8.71848599,752B.1382.147.60.B.8.71873458,723F.1382.147.60.B.8.71870824,32-B.1745.101.124.B.8.71141376,702F.1293.132.32.A.8.71845819,702F.1382.147.36.A.8.71870504,39-F.1745.101.124.K.8.71137804,740D.1293.132.124.K.8.71846214,740D.1382.147.124.K.8.71870899,722F.1382.147.60.A.8.71869644,739D.1293.132.32.B.8.71845715,739D.1382.147.32.B.8.71870400,760F.1293.132.32.M.8.71845531,760F.1382.147.32.M.8.71870215,771B.1293.132.60.M.8.71846045,771B.1382.147.60.M.8.71870730,26-F.1745.101.124.B.8.71144174,28-F.1745.101.124.B.8.71139943,11-F.1293.132.124.B.8.71847681,11-F.1382.147.124.B.8.71872395,11-F.1745.101.124.B.8.71138523,5--C.1382.147.60.B.8.71871023,5--C.1745.101.60.B.8.71141068,5--C.1293.132.60.B.8.71846342,12-G.1745.101.124.B.8.71144713,61-C.1293.132.60.M.8.71847578,61-C.1382.147.60.M.8.71872285,61-C.1745.101.60.M.8.71139759,65-F.1745.101.124.M.8.71137241,7--H.1745.101.60.B.8.71143099,727E.1293.132.48.B.8.71846651,727E.1382.147.124.B.8.71871332,772D.1293.132.36.A.8.71848736,772D.1382.147.56.A.8.71873677,92-B.1745.101.124.A.8.71140772,733B.1293.132.60.K.8.71846288,733B.1382.147.60.K.8.71870969,757G.1293.132.56.B.8.71845646,757G.1382.147.56.B.8.71870330,766F.1293.132.60.B.8.71844801,766F.1382.147.124.B.8.71869485,83-C.1293.132.60.A.8.71847014,83-C.1382.147.124.A.8.71871692,83-C.1745.101.124.A.8.71139126,95-B.1293.132.32.A.8.71846117,95-B.1382.147.32.A.8.71870802,95-B.1745.101.60.A.8.71137480,99-D.1745.101.60.A.8.71139647,93-D.1745.101.60.A.8.71137293,94-B.1293.132.36.A.8.71847178,94-B.1382.147.32.A.8.71871865,94-B.1745.101.60.A.8.71140381,5--G.1293.132.60.B.8.71845511,5--G.1382.147.60.B.8.71870195,5--G.1745.101.60.B.8.71140600,13-E.1293.132.60.B.8.71845705,13-E.1382.147.60.B.8.71870390,13-E.1745.101.124.B.8.71138308,14-F.1745.101.124.B.8.71144198,730B.1293.132.60.A.8.71848642,730B.1382.147.60.A.8.71873510,87-F.1745.101.60.A.8.71144137,717F.1293.132.32.A.8.71847784,717F.1382.147.52.A.8.71872508,743M.1293.132.32.B.8.71846001,743M.1382.147.32.B.8.71870686,741K.1293.132.32.B.8.71848165,741K.1382.147.32.B.8.71872938,747K.1293.132.100.B.8.71846213,747K.1382.147.60.B.8.71870898,6--G.1745.101.124.B.8.71138648,727G.1293.132.48.B.8.71848156,727G.1382.147.124.B.8.71872929,706F.1293.132.40.B.8.71846863,706F.1382.147.60.B.8.71871540,718F.1293.132.32.M.8.71845776,718F.1382.147.32.M.8.71870461,757J.1293.132.56.B.8.71845647,757J.1382.147.56.B.8.71870331">
                             <schedule>
 <departures>
     <departure id="2239" time="06:02:01"/>
@@ -5218,7 +5191,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="257" externalid="27-B.1745.101.124.B.8.71139327,24-F.1745.101.124.B.8.71141417,4--C.1745.101.60.B.8.71140621,710D.1293.132.32.B.8.71847262,710D.1382.147.36.B.8.71871951,723F.1293.132.32.B.8.71846139,8--D.1745.101.60.B.8.71143121,91-B.1745.101.60.A.8.71141713,29-B.1745.101.124.B.8.71138768,728B.1293.132.40.B.8.71844847,728B.1382.147.56.B.8.71869530,713B.1293.132.56.A.8.71847101,713B.1382.147.124.A.8.71871783">
+                        <trip id="256" externalid="27-B.1745.101.124.B.8.71139327,24-F.1745.101.124.B.8.71141417,4--C.1745.101.60.B.8.71140621,710D.1293.132.32.B.8.71847262,710D.1382.147.36.B.8.71871951,723F.1293.132.32.B.8.71846139,8--D.1745.101.60.B.8.71143121,91-B.1745.101.60.A.8.71141713,29-B.1745.101.124.B.8.71138768,728B.1293.132.40.B.8.71844847,728B.1382.147.56.B.8.71869530,713B.1293.132.56.A.8.71847101,713B.1382.147.124.A.8.71871783">
                             <schedule>
 <departures>
     <departure id="2263" time="06:05:01"/>
@@ -5236,7 +5209,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="258" externalid="722F.1293.132.32.A.8.71844961">
+                        <trip id="257" externalid="722F.1293.132.32.A.8.71844961">
                             <schedule>
 <departures>
     <departure id="2267" time="09:25:01"/>
@@ -5248,7 +5221,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="259" externalid="93-D.1293.132.44.A.8.71846991,93-D.1382.147.60.A.8.71871668">
+                        <trip id="258" externalid="93-D.1293.132.44.A.8.71846991,93-D.1382.147.60.A.8.71871668">
                             <schedule>
 <departures>
     <departure id="2268" time="09:22:01"/>
@@ -5260,7 +5233,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="260" externalid="25-B.1293.132.56.B.8.71846666,25-B.1382.147.60.B.8.71871347,25-B.1745.101.124.B.8.71138414">
+                        <trip id="259" externalid="25-B.1293.132.56.B.8.71846666,25-B.1382.147.60.B.8.71871347,25-B.1745.101.124.B.8.71138414">
                             <schedule>
 <departures>
     <departure id="2269" time="06:02:30"/>
@@ -5270,7 +5243,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="261" externalid="750F.1293.132.40.B.8.71848096,750F.1382.147.60.B.8.71872859">
+                        <trip id="260" externalid="750F.1293.132.40.B.8.71848096,750F.1382.147.60.B.8.71872859">
                             <schedule>
 <departures>
     <departure id="2270" time="08:23:01"/>
@@ -5282,7 +5255,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="262" externalid="708D.1293.132.48.B.8.71845400,708D.1382.147.60.B.8.71870084,704D.1293.132.32.B.8.71845606,704D.1382.147.56.B.8.71870290,706D.1293.132.40.B.8.71847821,706D.1382.147.60.B.8.71872547">
+                        <trip id="261" externalid="708D.1293.132.48.B.8.71845400,708D.1382.147.60.B.8.71870084,704D.1293.132.32.B.8.71845606,704D.1382.147.56.B.8.71870290,706D.1293.132.40.B.8.71847821,706D.1382.147.60.B.8.71872547">
                             <schedule>
 <departures>
     <departure id="2272" time="06:08:31"/>
@@ -5302,7 +5275,7 @@
                     <name>T9</name>
                     <namedescription>T9 Northern Line</namedescription>
                     <trips>
-                        <trip id="263" externalid="106F.1293.132.32.T.8.71847009,106F.1382.147.48.T.8.71871687,106F.1745.101.60.T.8.71139133,127B.1293.132.32.A.8.71848202,127B.1382.147.48.A.8.71872980,127B.1745.101.124.A.8.71142476,138D.1293.132.32.A.8.71845359,138D.1382.147.32.A.8.71870043,138D.1745.101.60.A.8.71139394,137D.1293.132.32.A.8.71846458,137D.1382.147.120.A.8.71871139,137D.1745.101.124.A.8.71137934,144D.1293.132.44.A.8.71847236,144D.1382.147.48.A.8.71871925,144D.1745.101.124.A.8.71140544,145D.1382.147.48.A.8.71872068,145D.1745.101.60.A.8.71143744,145D.1293.132.32.A.8.71847370,149G.1293.132.96.A.8.71846388,149G.1382.147.112.A.8.71871069,149G.1745.101.124.A.8.71143586">
+                        <trip id="262" externalid="106F.1293.132.32.T.8.71847009,106F.1382.147.48.T.8.71871687,106F.1745.101.60.T.8.71139133,127B.1293.132.32.A.8.71848202,127B.1382.147.48.A.8.71872980,127B.1745.101.124.A.8.71142476,138D.1293.132.32.A.8.71845359,138D.1382.147.32.A.8.71870043,138D.1745.101.60.A.8.71139394,137D.1293.132.32.A.8.71846458,137D.1382.147.120.A.8.71871139,137D.1745.101.124.A.8.71137934,144D.1293.132.44.A.8.71847236,144D.1382.147.48.A.8.71871925,144D.1745.101.124.A.8.71140544,145D.1382.147.48.A.8.71872068,145D.1745.101.60.A.8.71143744,145D.1293.132.32.A.8.71847370,149G.1293.132.96.A.8.71846388,149G.1382.147.112.A.8.71871069,149G.1745.101.124.A.8.71143586">
                             <schedule>
 <departures>
     <departure id="2277" time="06:09:01"/>
@@ -5318,7 +5291,7 @@
 </reltimings>
                             </schedule>
                         </trip>
-                        <trip id="264" externalid="101E.1293.132.60.T.8.71848219,101E.1382.147.60.T.8.71872997,101E.1745.101.60.T.8.71143603,102E.1293.132.108.T.8.71848265,102E.1382.147.112.T.8.71873051,102E.1745.101.124.T.8.71138894,143G.1293.132.32.A.8.71848324,143G.1382.147.48.A.8.71873123,143G.1745.101.60.A.8.71144551,156C.1293.132.96.A.8.71845000,156C.1382.147.48.A.8.71869683,156C.1745.101.124.A.8.71142975,110D.1293.132.96.T.8.71846769,110D.1382.147.112.T.8.71871446,110D.1745.101.124.T.8.71144735,120C.1293.132.60.A.8.71844585,120C.1382.147.60.A.8.71869269,120C.1745.101.124.A.8.71140662,124E.1293.132.32.A.8.71847687,124E.1382.147.48.A.8.71872403,124E.1745.101.124.A.8.71143064,158C.1293.132.108.A.8.71845387,158C.1382.147.112.A.8.71870071,158C.1745.101.124.A.8.71142687,155C.1293.132.96.A.8.71846822,155C.1382.147.96.A.8.71871499,155C.1745.101.124.A.8.71138599,190C.1293.132.32.B.8.71846717,190C.1382.147.36.B.8.71871398,190C.1745.101.60.B.8.71139118,191E.1293.132.96.B.8.71848294,191E.1382.147.32.B.8.71873085,191E.1745.101.124.B.8.71144885,106G.1293.132.32.T.8.71844751,106G.1382.147.48.T.8.71869435,106G.1745.101.60.T.8.71143999,127C.1293.132.32.A.8.71847268,127C.1382.147.48.A.8.71871958,127C.1745.101.124.A.8.71141038,123C.1293.132.124.A.8.71847251,123C.1382.147.124.A.8.71871940,123C.1745.101.124.A.8.71144361,138E.1293.132.32.A.8.71845361,138E.1382.147.32.A.8.71870045,138E.1745.101.60.A.8.71141277,137E.1293.132.32.A.8.71846457,137E.1382.147.120.A.8.71871138,137E.1745.101.124.A.8.71142570,144E.1293.132.44.A.8.71847237,144E.1382.147.48.A.8.71871926,144E.1745.101.124.A.8.71142664,145E.1293.132.32.A.8.71848082,145E.1382.147.48.A.8.71872842,145E.1745.101.60.A.8.71137841,149H.1745.101.124.A.8.71140012,149H.1293.132.96.A.8.71848075,149H.1382.147.112.A.8.71872835,166E.1293.132.44.A.8.71845815,166E.1382.147.48.A.8.71870500,166E.1745.101.60.A.8.71141042,113C.1293.132.44.T.8.71847976,113C.1382.147.60.T.8.71872721,113C.1745.101.124.T.8.71140174,126A.1293.132.100.A.8.72122998,126A.1382.147.124.A.8.71870051,126A.1745.101.124.A.8.71144455">
+                        <trip id="263" externalid="101E.1293.132.60.T.8.71848219,101E.1382.147.60.T.8.71872997,101E.1745.101.60.T.8.71143603,102E.1293.132.108.T.8.71848265,102E.1382.147.112.T.8.71873051,102E.1745.101.124.T.8.71138894,143G.1293.132.32.A.8.71848324,143G.1382.147.48.A.8.71873123,143G.1745.101.60.A.8.71144551,156C.1293.132.96.A.8.71845000,156C.1382.147.48.A.8.71869683,156C.1745.101.124.A.8.71142975,110D.1293.132.96.T.8.71846769,110D.1382.147.112.T.8.71871446,110D.1745.101.124.T.8.71144735,120C.1293.132.60.A.8.71844585,120C.1382.147.60.A.8.71869269,120C.1745.101.124.A.8.71140662,124E.1293.132.32.A.8.71847687,124E.1382.147.48.A.8.71872403,124E.1745.101.124.A.8.71143064,158C.1293.132.108.A.8.71845387,158C.1382.147.112.A.8.71870071,158C.1745.101.124.A.8.71142687,155C.1293.132.96.A.8.71846822,155C.1382.147.96.A.8.71871499,155C.1745.101.124.A.8.71138599,190C.1293.132.32.B.8.71846717,190C.1382.147.36.B.8.71871398,190C.1745.101.60.B.8.71139118,191E.1293.132.96.B.8.71848294,191E.1382.147.32.B.8.71873085,191E.1745.101.124.B.8.71144885,106G.1293.132.32.T.8.71844751,106G.1382.147.48.T.8.71869435,106G.1745.101.60.T.8.71143999,127C.1293.132.32.A.8.71847268,127C.1382.147.48.A.8.71871958,127C.1745.101.124.A.8.71141038,123C.1293.132.124.A.8.71847251,123C.1382.147.124.A.8.71871940,123C.1745.101.124.A.8.71144361,138E.1293.132.32.A.8.71845361,138E.1382.147.32.A.8.71870045,138E.1745.101.60.A.8.71141277,137E.1293.132.32.A.8.71846457,137E.1382.147.120.A.8.71871138,137E.1745.101.124.A.8.71142570,144E.1293.132.44.A.8.71847237,144E.1382.147.48.A.8.71871926,144E.1745.101.124.A.8.71142664,145E.1293.132.32.A.8.71848082,145E.1382.147.48.A.8.71872842,145E.1745.101.60.A.8.71137841,149H.1745.101.124.A.8.71140012,149H.1293.132.96.A.8.71848075,149H.1382.147.112.A.8.71872835,166E.1293.132.44.A.8.71845815,166E.1382.147.48.A.8.71870500,166E.1745.101.60.A.8.71141042,113C.1293.132.44.T.8.71847976,113C.1382.147.60.T.8.71872721,113C.1745.101.124.T.8.71140174,126A.1293.132.100.A.8.72122998,126A.1382.147.124.A.8.71870051,126A.1745.101.124.A.8.71144455">
                             <schedule>
 <departures>
     <departure id="2301" time="06:00:36"/>

@@ -316,48 +316,48 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   /**
    * Log settings used
    */
-  public void logSettings() {
+  public void logSettings(int level) {
     LOGGER.info(LoggingUtils.settingsHeader("GTFS Services Reader"));
-    super.logSettings();
+    super.logSettings(level);
 
     LOGGER.info(LoggingUtils.settingsValue(
         "Day of week",
         dayOfWeek == null ? null : dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH),
-        0));
+        level));
 
     if(hasTimePeriodFilters()) {
-      LOGGER.info(LoggingUtils.settingsSection("Time periods", 0));
+      LOGGER.info(LoggingUtils.settingsSection("Time periods", level));
       getTimePeriodFilters().forEach(e -> LOGGER.info(LoggingUtils.settingsEntry(
           String.format("Start-time: %s End-time: %s",
               e.first().format(DateTimeFormatter.ISO_LOCAL_TIME),
               e.second().format(DateTimeFormatter.ISO_LOCAL_TIME)),
           1)));
     }else{
-      LOGGER.info(LoggingUtils.settingsValue("Time periods", "ALL - NO FILTER", 0));
+      LOGGER.info(LoggingUtils.settingsValue("Time periods", "ALL - NO FILTER", level));
     }
 
     if(!exceptionsToBlanketBlackListByShortName.isEmpty()){
       LOGGER.info(LoggingUtils.settingsValue(
           "Only include GTFS routes",
           String.join(",", exceptionsToBlanketBlackListByShortName),
-          0));
+          level));
     }
 
     LOGGER.info(LoggingUtils.settingsValue(
         "Consolidate identical GTFS trips",
         isGroupIdenticalGtfsTrips(),
-        0));
+        level));
     LOGGER.info(LoggingUtils.settingsValue(
         "Include partial GTFS trips in time period",
         isIncludePartialGtfsTripsIfStopsInTimePeriod(),
-        0));
+        level));
 
     if(!logGtfsRouteInformationByShortName.isEmpty()) {
-      LOGGER.info(LoggingUtils.settingsSection("Tracked GTFS routes", 0));
+      LOGGER.info(LoggingUtils.settingsSection("Tracked GTFS routes", level));
       for(var entry : logGtfsRouteInformationByShortName) {
         LOGGER.info(LoggingUtils.settingsEntry(
             String.format("Tracking GTFS route %s information while parsing", entry),
-            1));
+            level+1));
       }
     }
   }

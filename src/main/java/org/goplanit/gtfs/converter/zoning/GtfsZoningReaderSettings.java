@@ -374,19 +374,19 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   /**
    * {@inheritDoc}
    */
-  public void logSettings() {
-    LOGGER.info(LoggingUtils.settingsHeader("GTFS Zoning Reader"));
-    super.logSettings();
-    LOGGER.info(LoggingUtils.settingsValue("Log GTFS stop-transfer mappings", isLogMappedGtfsZones(), 0));
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsHeader("GTFS Zoning Reader Settings"));
+    super.logSettings(level);
+    LOGGER.info(LoggingUtils.settingsValue("Log GTFS stop-transfer mappings", isLogMappedGtfsZones(), level));
     LOGGER.info(LoggingUtils.settingsValue(
         "GTFS stop-transfer search radius (m)",
         String.format("%.1f", getGtfsStopToTransferZoneSearchRadiusMeters()),
-        0));
+        level));
     LOGGER.info(LoggingUtils.settingsValue(
         "GTFS stop-link search radius (m)",
         String.format("%.1f", getGtfsStopToLinkSearchRadiusMeters()),
-        0));
-    LOGGER.info(LoggingUtils.settingsValue("Remove unused transfer zones", isRemoveUnusedTransferZones(), 0));
+        level));
+    LOGGER.info(LoggingUtils.settingsValue("Remove unused transfer zones", isRemoveUnusedTransferZones(), level));
   }
 
   /**
