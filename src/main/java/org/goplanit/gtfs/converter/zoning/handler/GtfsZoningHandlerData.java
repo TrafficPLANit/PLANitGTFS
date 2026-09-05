@@ -76,6 +76,8 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
 
   /**
    * Initialise the tracking of data
+   * 
+   * @param settings to use
    */
   protected void initialise(GtfsZoningReaderSettings settings){
     this.serviceNodeModesByGtfsStopId = new HashMap<>();
