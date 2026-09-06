@@ -232,6 +232,10 @@ public abstract class GtfsFileReaderBase {
    * @param charSetToUse the charset to use
    */
   public void read(Charset charSetToUse) {
+    if(gtfsLocation == null) {
+      throw new PlanItRunTimeException("GTFS location is invalid, unable to parse %s",
+              fileScheme.getFileType().value());
+    }
 
     // use Univocity as it is faster than Commons CSV parser
     CsvParserSettings csvParserSettings = new CsvParserSettings();
@@ -261,6 +265,14 @@ public abstract class GtfsFileReaderBase {
             fileScheme,
             filePresenceCondition,
             settings.isLogGtfsFileInputStreamInfo())) { // from zip entry
+      if(is == null) {
+        if(filePresenceCondition.isOptional()){
+          LOGGER.info(String.format("Skipping optional %s: not available",this.fileScheme.getFileType().value()));
+          return;
+        }
+        throw new PlanItRunTimeException("Unable to create input stream for non-optional GTFS file %s from location %s",
+                this.fileScheme.getFileType().value(), gtfsLocation);
+      }
       if(is.available() == 0){
         if(filePresenceCondition.isOptional()){
           LOGGER.info(String.format("Skipping optional %s: not available",this.fileScheme.getFileType().value()));
@@ -298,10 +310,10 @@ public abstract class GtfsFileReaderBase {
       }
 
     }catch(Exception e){
-      LOGGER.warning(String.format("Input stream not working (location: %s, scheme: %s",
-              gtfsLocation.toString(), fileScheme));
+      LOGGER.warning(String.format("Input stream not working (location: %s, scheme: %s)",
+              gtfsLocation, fileScheme));
       LOGGER.severe(String.format("Error during parsing of GTFS file (%s - %s)",
-              gtfsLocation.toString(), fileScheme.getFileType().value()));
+              gtfsLocation, fileScheme.getFileType().value()));
       throw new PlanItRunTimeException(e.getMessage(), e);
     } finally {
       parser.stopParsing();
