@@ -45,7 +45,7 @@ public class Gtfs2PlanitMelbourneTest {
   public static final Path RESOURCE_PATH = Path.of("src", "test", "resources");
 
   public static final Path GTFS_VIC_NO_SHAPES =
-      Path.of("GTFS", "VIC", "melbourne_gtfs_9_3_2023_no_shapes.zip");
+      Path.of(RESOURCE_PATH.toString(), "GTFS", "VIC", "melbourne_gtfs_9_3_2023_no_shapes.zip");
 
   /** bounding area to apply */
   public static final Envelope MELBOURNE_SIMPLE_BOUNDING_BOX =
@@ -81,8 +81,7 @@ public class Gtfs2PlanitMelbourneTest {
 
     final String PLANIT_INPUT_DIR = Path.of(
         RESOURCE_PATH.toString(), "planit","melbourne").toAbsolutePath().toString();
-    final String GTFS_FILES_INPUT_DIR = Path.of(
-        ResourceUtils.getResourceUri(GTFS_VIC_NO_SHAPES.toString())).toAbsolutePath().toString();
+    final String GTFS_FILES_INPUT_DIR = GTFS_VIC_NO_SHAPES.toAbsolutePath().toString();
     final String OUTPUT_DIR = Path.of(
         RESOURCE_PATH.toString(),"testcases","melbourne").toAbsolutePath().toString();
     final String PLANIT_REF_DIR = Path.of(

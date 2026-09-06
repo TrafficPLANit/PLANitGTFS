@@ -19,7 +19,6 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.mode.Modes;
-import org.goplanit.utils.resource.ResourceUtils;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.*;
 
@@ -48,13 +47,14 @@ public class GtfsToPlanitSydneyTest {
 
   public static final Path RESOURCE_PATH = Path.of("src", "test", "resources");
 
-  public static final Path GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greatersydneygtfsstaticnoshapes.zip");
+  public static final Path GTFS_NSW_NO_SHAPES = Path.of(
+      RESOURCE_PATH.toString(), "GTFS","NSW","greatersydneygtfsstaticnoshapes.zip");
 
-  private static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
-  private static final String PLANIT_INPUT_PATH =
-      Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
+  private static final String PLANIT_SYDNEY_INTERMODAL_DIR = Path.of(
+      RESOURCE_PATH.toString(), "planit","sydney").toString();
+
   final String PLANIT_REF_DIR = Path.of(
-      PLANIT_INPUT_PATH,"reference").toAbsolutePath().toString();
+      PLANIT_SYDNEY_INTERMODAL_DIR,"reference").toAbsolutePath().toString();
 
 
   public static MacroscopicNetwork macroscopicNetwork;
@@ -71,7 +71,7 @@ public class GtfsToPlanitSydneyTest {
 
     /* parse PLANit intermodal network from disk to memory */
     PlanitIntermodalReader planitReader =
-        PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
+        PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_SYDNEY_INTERMODAL_DIR));
     var planitIntermodalNetworkTuple = planitReader.read();
     macroscopicNetwork = planitIntermodalNetworkTuple.first();
     zoning = planitIntermodalNetworkTuple.second();
@@ -224,7 +224,7 @@ public class GtfsToPlanitSydneyTest {
       /* instead of using existing memory model for network and zoning, we use a PLANit intermodal reader to
       parse instead and let the GTFS reader perform the internal memory model construction */
       var planitReader = PlanitIntermodalReaderFactory.create(
-          new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
+          new PlanitIntermodalReaderSettings(PLANIT_SYDNEY_INTERMODAL_DIR));
       var gtfsSettings =  new GtfsIntermodalReaderSettings(
           GTFS_FILES_DIR, CountryNames.AUSTRALIA, RouteTypeChoice.EXTENDED);
 
