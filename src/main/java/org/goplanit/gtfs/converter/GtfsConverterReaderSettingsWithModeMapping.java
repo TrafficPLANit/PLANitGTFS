@@ -127,7 +127,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
      * @param countryName to base source locale on
      * @param routeTypeChoice to apply
      */
-    protected GtfsConverterReaderSettingsWithModeMapping(String inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
+    protected GtfsConverterReaderSettingsWithModeMapping(
+        String inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
       this(UrlUtils.createFrom(inputSource), countryName, routeTypeChoice);
     }
 
@@ -137,7 +138,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
    * @param countryName to base source locale on
    * @param routeTypeChoice to apply
    */
-  protected GtfsConverterReaderSettingsWithModeMapping(URL inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
+  protected GtfsConverterReaderSettingsWithModeMapping(
+      URL inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
     super(inputSource, countryName);
     this.routeTypeChoice = routeTypeChoice;
 

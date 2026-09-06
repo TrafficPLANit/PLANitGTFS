@@ -10,6 +10,7 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.util.logging.Logger;
 
@@ -63,7 +64,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
    */
   public GtfsIntermodalReaderSettings(
           String inputSource, String countryName, DayOfWeek dayOfWeek, RouteTypeChoice routeTypeChoice) {
-    this(inputSource==null ? null : UrlUtils.createFrom(inputSource),
+    this(inputSource==null ? null : UrlUtils.createFromLocalAbsoluteOrRelativePath(Path.of(inputSource)),
         countryName,
         dayOfWeek,
         routeTypeChoice);

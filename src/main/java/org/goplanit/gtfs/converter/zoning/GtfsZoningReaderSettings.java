@@ -420,7 +420,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param osmIds to exclude (int or long)
    */
   public void excludeGtfsStopsById(final Collection<String> osmIds) {
-    osmIds.forEach(osmId -> excludeGtfsStopById(osmId));
+    osmIds.forEach(this::excludeGtfsStopById);
   }
 
   /**
