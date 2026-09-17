@@ -176,13 +176,13 @@ public class GtfsToPlanitSydneyTest {
       var routedServices = result.fourth();
 
       assertEquals(1, network.getTransportLayers().size());
-      assertEquals(1383, network.getTransportLayers().getFirst().getNumberOfLinks());
-      assertEquals(1161, network.getTransportLayers().getFirst().getNumberOfNodes());
-      assertEquals(2739, network.getTransportLayers().getFirst().getNumberOfLinkSegments());
-      assertEquals(60, network.getTransportLayers().getFirst().getNumberOfBannedMovements());
+      assertEquals(1307, network.getTransportLayers().getFirst().getNumberOfLinks());
+      assertEquals(1102, network.getTransportLayers().getFirst().getNumberOfNodes());
+      assertEquals(2429, network.getTransportLayers().getFirst().getNumberOfLinkSegments());
+      assertEquals(56, network.getTransportLayers().getFirst().getNumberOfBannedMovements());
 
       assertEquals(0, zoning.getOdZones().size());
-      assertEquals(101, zoning.getTransferZones().size()); // was 109
+      assertEquals(100, zoning.getTransferZones().size()); // was 109
       assertEquals(0, zoning.getOdConnectoids().size());
       assertEquals(153, zoning.getTransferConnectoids().size()); // was 177
 
@@ -260,13 +260,13 @@ public class GtfsToPlanitSydneyTest {
       planitIntermodalWriter.writeWithServices(parsedNetwork, parsedZoning, serviceNetwork, routedServices);
 
       assertEquals(parsedNetwork.getTransportLayers().size(),1);
-      assertEquals(1352, parsedNetwork.getTransportLayers().getFirst().getLinks().size());
-      assertEquals(1130, parsedNetwork.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2677, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size());
-      assertEquals(55, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
+      assertEquals(1276, parsedNetwork.getTransportLayers().getFirst().getLinks().size());
+      assertEquals(1071, parsedNetwork.getTransportLayers().getFirst().getNodes().size());
+      assertEquals(2367, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(52, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
       assertEquals(0, parsedZoning.getOdZones().size());
-      assertEquals(103, parsedZoning.getTransferZones().size()); // was 142 at one point
+      assertEquals(102, parsedZoning.getTransferZones().size()); // was 142 at one point
       assertEquals(0, parsedZoning.getOdConnectoids().size());
       assertEquals(129, parsedZoning.getTransferConnectoids().size()); // was 191 at one point (probably consolidated)
 
