@@ -164,12 +164,13 @@ public final class AStarPtLegSegmentBatchExecutorService {
    * Get the connectoids for given transfer zone, grouped by unique access nodes (as multiple access nodes across
    * more than one connectoid might exist)
    *
-   * @param gtfsStopId provided for logging purposes
    * @param transferZone       to use
+   * @param gtfsStopServiceNode the transfer zone is to be reached from, limiting the access nodes considered to those
+   *                            matching the physical node it is already mapped to, when it is
    * @return connectoids found, grouped by access node
    */
   private Map<DirectedVertex, List<TransferConnectoid>> findTransferZoneConnectoidsGroupByAccessNode(
-          String gtfsStopId, TransferZone transferZone, ServiceNode gtfsStopServiceNode) {
+          TransferZone transferZone, ServiceNode gtfsStopServiceNode) {
     var transferZoneConnectoids = sharedData.getConnectoidsByAccessZone(transferZone);
 
     /* it is possible multiple connectoids exist, e.g., train platforms with access on both sides in either direction,
@@ -185,11 +186,26 @@ public final class AStarPtLegSegmentBatchExecutorService {
               (Node)e.getKey()));
     }
 
-    if(resultByAccessNode.isEmpty() && gtfsStopServiceNode.hasPhysicalParentNodes()){
-      LOGGER.severe(String.format("Unable to find available transfer zone access nodes for leg segment, likely " +
-              "GTFS stop %s mapped to incorrect physical access node upon earlier path search", gtfsStopId));
-    }
+    /* when no access nodes remain the leg segment is lost, which the caller registers as it knows the leg segment and
+     * both its GTFS stops */
     return resultByAccessNode;
+  }
+
+  /**
+   * Verify whether no transfer zone access nodes are available because the GTFS stop was mapped to a physical access
+   * node that none of its transfer zone's connectoids provide access at, rather than because the transfer zone has no
+   * connectoids at all
+   *
+   * @param transferZone of the GTFS stop
+   * @param gtfsStopServiceNode the GTFS stop is represented by
+   * @param connectoidsByAccessNode found for the GTFS stop
+   * @return true when the transfer zone has connectoids, just not at the mapped physical access node
+   */
+  private boolean isAccessNodeMismatch(
+          TransferZone transferZone, ServiceNode gtfsStopServiceNode,
+          Map<DirectedVertex, List<TransferConnectoid>> connectoidsByAccessNode) {
+    return connectoidsByAccessNode.isEmpty() && gtfsStopServiceNode.hasPhysicalParentNodes()
+            && !sharedData.getConnectoidsByAccessZone(transferZone).isEmpty();
   }
 
   /**
@@ -272,11 +288,21 @@ public final class AStarPtLegSegmentBatchExecutorService {
 
     /* link service node to transfer zone access nodes (which are physical nodes) */
     var upstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(
-            gtfsStopIdUpstream, transferZoneUpstream, serviceLegSegment.getUpstreamServiceNode());
+            transferZoneUpstream, serviceLegSegment.getUpstreamServiceNode());
     var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(
-            gtfsStopIdDownstream, transferZoneDownstream, serviceLegSegment.getDownstreamServiceNode());
+            transferZoneDownstream, serviceLegSegment.getDownstreamServiceNode());
     if(upstreamConnectoidsByAccessNode.isEmpty() || downstreamConnectoidsByAccessNode.isEmpty()){
-      registerLegSegmentIssue(GtfsPlanitEntityIssue.LEG_SEGMENT_ENDPOINT_WITHOUT_ACCESS_CONNECTOID,
+      /* distinguish a GTFS stop that was mapped to an incorrect physical access node upon an earlier path search from
+       * an endpoint that has no access connectoid at all */
+      boolean accessNodeMismatch =
+              isAccessNodeMismatch(transferZoneUpstream, serviceLegSegment.getUpstreamServiceNode(),
+                      upstreamConnectoidsByAccessNode) ||
+              isAccessNodeMismatch(transferZoneDownstream, serviceLegSegment.getDownstreamServiceNode(),
+                      downstreamConnectoidsByAccessNode);
+      registerLegSegmentIssue(
+              accessNodeMismatch
+                      ? GtfsPlanitEntityIssue.LEG_SEGMENT_ENDPOINT_ACCESS_NODE_MISMATCH
+                      : GtfsPlanitEntityIssue.LEG_SEGMENT_ENDPOINT_WITHOUT_ACCESS_CONNECTOID,
               gtfsStopIdUpstream, gtfsStopIdDownstream, mode, transferZoneUpstream, transferZoneDownstream);
       return null;
     }

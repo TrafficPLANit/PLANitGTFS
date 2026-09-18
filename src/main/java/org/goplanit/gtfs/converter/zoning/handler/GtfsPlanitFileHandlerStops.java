@@ -5,6 +5,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
@@ -1250,12 +1251,34 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
+   * Determine where a GTFS stop sits relative to the area the run covers. A stop is a point, so it is either within
+   * reach or it is not, never partly so.
+   * <p>
+   * Established with the same check that decides whether the stop is discarded for falling outside that area, so that
+   * what is reported as out of reach and what is actually dropped for being out of reach cannot diverge
+   * </p>
+   *
+   * @param gtfsStop to determine scope for
+   * @return scope of the stop
+   */
+  private GtfsEntityScope determineScope(GtfsStop gtfsStop) {
+    var stopLocation = gtfsStop.getLocationAsPoint();
+    if(stopLocation == null){
+      /* without a location there is nothing to place, so it cannot be ruled out of reach */
+      return GtfsEntityScope.IN;
+    }
+    return data.getBoundingAreaHelper().isPartlyOrWhollyWithinBoundaryArea(stopLocation, true)
+        ? GtfsEntityScope.IN : GtfsEntityScope.OUT;
+  }
+
+  /**
    * Handle a GTFS stop
    */
   @Override
   public void handle(GtfsStop gtfsStop) {
     var diagnostics = data.getDiagnostics();
     diagnostics.registerSeen(GtfsObjectType.STOP, gtfsStop.getLocationType());
+    diagnostics.registerSeenInScope(GtfsObjectType.STOP, determineScope(gtfsStop));
 
     if(this.data.getSettings().isExcludedGtfsStop(gtfsStop.getStopId())){
       diagnostics.registerIssue(

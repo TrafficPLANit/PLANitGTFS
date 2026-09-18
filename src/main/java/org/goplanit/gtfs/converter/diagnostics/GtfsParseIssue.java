@@ -45,7 +45,7 @@ public enum GtfsParseIssue implements GtfsIssue {
   /** route's mode is activated but no routed services layer supports it */
   ROUTE_NO_SERVICES_LAYER_FOR_MODE(
       GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.LIMITATION, true,
-      GtfsIssueLogPolicy.IMMEDIATE, "Route mode has no routed services layer",
+      GtfsIssueLogPolicy.IMMEDIATE, "No PLANit layer available for PLANit mode mapped from GTFS route type",
       "PLANit mode %s mapped from GTFS route type %s"),
 
   /* SERVICES - trips */
@@ -68,7 +68,7 @@ public enum GtfsParseIssue implements GtfsIssue {
   /** trip references a route that is absent from the memory model without any recorded cause */
   TRIP_ROUTE_MISSING_UNEXPLAINED(
       GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.PROBLEM, true,
-      GtfsIssueLogPolicy.IMMEDIATE, "Trip's route absent for no recorded reason", "route %s"),
+      GtfsIssueLogPolicy.IMMEDIATE, "Unable to find GTFS route removal reason for GTFS trip, this should not happen", "route %s"),
 
   /** trip's service id is not active on the day the run was configured for */
   TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY(
@@ -99,7 +99,7 @@ public enum GtfsParseIssue implements GtfsIssue {
   TRIP_LEG_DURATION_EXCEEDS_DAY(
       GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.LIMITATION, true,
       GtfsIssueLogPolicy.COLLATED, "Trip leg duration of a day or more is unsupported", null,
-      "between stops %1$s and %2$s, leg duration %3$s, dwell time %4$s"),
+      "duration (%3$s) between stops (%1$s, %2$s) and/or dwell time at stop (%4$s) should be less than a day"),
 
   /* SERVICES - stop times */
 
@@ -120,17 +120,19 @@ public enum GtfsParseIssue implements GtfsIssue {
   /** stop times of a trip are not consecutive, which cannot be represented */
   STOP_TIME_NON_CONSECUTIVE(
       GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.LIMITATION, true,
-      GtfsIssueLogPolicy.COLLATED, "Non consecutive stop times are unsupported", null),
+      GtfsIssueLogPolicy.COLLATED, "GTFS trip's stop times not consecutive, not yet supported", null),
 
-  /** stop time references a trip that is absent from the feed, so there is nothing to attach it to */
+  /** unable to find the GTFS trip the stop time belongs to, so there is nothing to attach it to */
   STOP_TIME_TRIP_UNRESOLVED(
       GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.PROBLEM, true,
-      GtfsIssueLogPolicy.COLLATED, "Stop time references an unknown trip", null),
+      GtfsIssueLogPolicy.COLLATED, "Unable to find GTFS trip for GTFS stop time", null),
 
-  /** stop time's trip references a route that was never parsed, so the stop time cannot be placed on a service */
+  /** unable to find the GTFS route of the stop time's trip in the PLANit memory model */
   STOP_TIME_ROUTE_UNRESOLVED(
       GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.PROBLEM, true,
-      GtfsIssueLogPolicy.COLLATED, "Stop time's trip references an unknown route", "route %1$s, stop %2$s"),
+      GtfsIssueLogPolicy.COLLATED,
+      "Unable to find GTFS route in PLANit memory model corresponding to GTFS trip",
+      "route %1$s, stop %2$s"),
 
   /* SERVICES - calendars */
 
@@ -151,6 +153,15 @@ public enum GtfsParseIssue implements GtfsIssue {
    * whatever the issue itself needs. A persisted occurrence therefore always names and locates the stop it concerns,
    * while the logged form selects only what fits a line, e.g. %4$s for the first issue specific argument
    */
+
+  /**
+   * Multiple GTFS stops found for the same GTFS STOP_ID. Only the last is kept and the earlier duplicate entry is
+   * ignored, so whichever of the two the rest of the feed meant to reference is a coin toss
+   */
+  STOP_DUPLICATE_ID(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, true,
+      GtfsIssueLogPolicy.COLLATED, "Multiple GTFS stops found for the same GTFS STOP_ID", null,
+      "ignored duplicate entry %1$s"),
 
   /**
    * Stop lies well outside the bounding area the run was configured for, a feed covering more ground than the network
@@ -205,7 +216,7 @@ public enum GtfsParseIssue implements GtfsIssue {
    */
   STOP_NO_CONNECTOID_LOCATION(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, true,
-      GtfsIssueLogPolicy.COLLATED, "No connectoid location could be established for stop",
+      GtfsIssueLogPolicy.COLLATED, "No connectoid location could be found for GTFS stop",
       "%4$sm from bounding area edge",
       "stop %1$s at (%2$s, %3$s), %4$sm from bounding area edge, nearby links %5$s"),
 
@@ -243,7 +254,7 @@ public enum GtfsParseIssue implements GtfsIssue {
    */
   STOP_OVERWRITTEN_LINK_MAPPING_NOT_FOUND(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, false,
-      GtfsIssueLogPolicy.IMMEDIATE, "Manually mapped link for stop not found", null,
+      GtfsIssueLogPolicy.IMMEDIATE, "Unable to find manually overwritten link mapping for GTFS stop", null,
       "stop %1$s at (%2$s, %3$s)"),
 
   /**
@@ -253,7 +264,7 @@ public enum GtfsParseIssue implements GtfsIssue {
    */
   STOP_NEARBY_TRANSFER_ZONE_UNUSABLE(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, false,
-      GtfsIssueLogPolicy.COLLATED, "Unable to attach stop to a nearby transfer zone",
+      GtfsIssueLogPolicy.COLLATED, "Unable to add TransferZone for GTFS stop despite nearby transfer zones",
       "%4$s nearby transfer zone(s)",
       "stop %1$s at (%2$s, %3$s), %4$s nearby transfer zone(s): %5$s"),
 
@@ -270,7 +281,7 @@ public enum GtfsParseIssue implements GtfsIssue {
   /** no link permitting the stop's mode was found within the search radius */
   STOP_NO_MODE_COMPATIBLE_LINK_IN_RADIUS(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, true,
-      GtfsIssueLogPolicy.COLLATED, "No mode compatible link within search radius", null,
+      GtfsIssueLogPolicy.COLLATED, "No nearby links found for GTFS stop within search radius", null,
       "stop %1$s at (%2$s, %3$s)"),
 
   /**
@@ -304,7 +315,7 @@ public enum GtfsParseIssue implements GtfsIssue {
   /** stop was mapped but its position relative to the network suggests it sits on the wrong side of the road */
   STOP_POSSIBLY_ON_WRONG_SIDE_OF_ROAD(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, false,
-      GtfsIssueLogPolicy.COLLATED, "Stop possibly on wrong side of road or track", "selected link (%4$s)",
+      GtfsIssueLogPolicy.COLLATED, "GTFS stop may be in wrong location/wrong side of modelled road", "selected link (%4$s)",
       "stop %1$s at (%2$s, %3$s), selected access link (%4$s) named %5$s is not the closest link (%6$s)"),
 
   /** stop was mapped but the preferred access link segment is not adjacent to the chosen access node */

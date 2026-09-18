@@ -1,7 +1,11 @@
 package org.goplanit.gtfs.converter;
 
+import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
 import org.goplanit.gtfs.converter.diagnostics.GtfsDiagnosticsBase;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Polygon;
 import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
@@ -32,6 +36,16 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
 
   /** Country name to use to initialise OSM defaults for */
   private final String countryName;
+
+  /** set a bounding polygon specific to GTFS parser */
+  private Polygon boundingPolygon;
+
+  /** By default we allow ferries to be a fair way outside any bounding polygon and still be included.
+   * We do so because often water bodies are not part of a zoning system and would therefore not include connecting
+   * ferries. This is generally unwanted behaviour and therefore we automatically include all ferries within
+   * the specified distance outside the bounding polygon and still be included. */
+  private double maximumDistanceFerryOutsideBoundingPolygonInMeters =
+      ProjectedBoundingAreaHelper.DEFAULT_MAX_FERRY_DISTANCE_OUTSIDE_BOUNDING_AREA_M;
 
   /** whether to write the per entity detail behind the logged summary to disk */
   private boolean persistParseDiagnostics = DEFAULT_PERSIST_PARSE_DIAGNOSTICS;
@@ -72,6 +86,57 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
     this.parseDiagnosticsOutputDirectory = DEFAULT_PARSE_DIAGNOSTICS_OUTPUT_DIRECTORY;
     this.diagnosticsRetentionLimit = GtfsDiagnosticsBase.DEFAULT_MAX_RETAINED_PER_ISSUE;
     this.diagnosticsSampleSize = LogCollator.DEFAULT_LOG_SAMPLE_SIZE_OF_RETAINED;
+  }
+
+  /**
+   * boundary to restrict parsing to
+   *
+   * @param boundingPolygon to apply
+   */
+  public void setBoundingArea(final Polygon boundingPolygon){
+    this.boundingPolygon = boundingPolygon;
+  }
+
+  /**
+   * boundary to restrict parsing to
+   *
+   * @param boundingEnvelope to apply
+   */
+  public void setBoundingArea(final Envelope boundingEnvelope){
+    this.boundingPolygon = PlanitJtsUtils.create2DPolygon(boundingEnvelope);
+  }
+
+  /**
+   * The boundingPolygon configured by the user
+   *
+   * @return boundingPolygon
+   */
+  public Polygon getBoundingArea(){
+    return this.boundingPolygon;
+  }
+
+  /** Set a polygon based bounding box to restrict parsing to
+   *
+   * @return boundingPolygon used, can be null
+   */
+  public final boolean hasBoundingBoundary() {
+    return this.boundingPolygon!=null;
+  }
+
+  /** Get the maximum distance outside the bounding area PLANit will still include ferry routes
+   *
+   * @return distance set
+   */
+  public double getMaximumDistanceFerryOutsideBoundingPolygonInMeters() {
+    return maximumDistanceFerryOutsideBoundingPolygonInMeters;
+  }
+
+  /** Set the maximum distance outside the bounding area PLANit will still include ferry routes
+   *
+   * @param distanceMeters to use
+   */
+  public void setMaximumDistanceFerryOutsideBoundingPolygonInMeters(double distanceMeters) {
+    this.maximumDistanceFerryOutsideBoundingPolygonInMeters = distanceMeters;
   }
 
   /** Verify whether the per entity detail behind the logged summary is written to disk

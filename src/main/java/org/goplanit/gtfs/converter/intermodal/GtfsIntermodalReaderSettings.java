@@ -9,6 +9,8 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Polygon;
 
 import java.net.URL;
 import java.time.DayOfWeek;
@@ -100,6 +102,62 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
     LOGGER.info(LoggingUtils.settingsHeader("GTFS Intermodal Reader Settings"));
     getServiceSettings().logSettings(level+1);
     getZoningSettings().logSettings(level+1);
+  }
+
+  /**
+   * Boundary to restrict parsing to, applied to both the services and the stop stage so that what is in scope is the
+   * same question in either
+   *
+   * @param boundingPolygon to apply
+   */
+  public void setBoundingArea(final Polygon boundingPolygon){
+    getServiceSettings().setBoundingArea(boundingPolygon);
+    getZoningSettings().setBoundingArea(boundingPolygon);
+  }
+
+  /**
+   * Boundary to restrict parsing to, applied to both the services and the stop stage
+   *
+   * @param boundingEnvelope to apply
+   */
+  public void setBoundingArea(final Envelope boundingEnvelope){
+    getServiceSettings().setBoundingArea(boundingEnvelope);
+    getZoningSettings().setBoundingArea(boundingEnvelope);
+  }
+
+  /**
+   * The boundingPolygon configured by the user
+   *
+   * @return boundingPolygon
+   */
+  public Polygon getBoundingArea(){
+    return getServiceSettings().getBoundingArea();
+  }
+
+  /** Verify whether a bounding area was configured by the user
+   *
+   * @return true when set, false otherwise
+   */
+  public boolean hasBoundingBoundary() {
+    return getServiceSettings().hasBoundingBoundary();
+  }
+
+  /** Get the maximum distance outside the bounding area PLANit will still include ferry routes
+   *
+   * @return distance set
+   */
+  public double getMaximumDistanceFerryOutsideBoundingPolygonInMeters() {
+    return getServiceSettings().getMaximumDistanceFerryOutsideBoundingPolygonInMeters();
+  }
+
+  /** Set the maximum distance outside the bounding area PLANit will still include ferry routes, applied to both the
+   * services and the stop stage
+   *
+   * @param distanceMeters distance to use
+   */
+  public void setMaximumDistanceFerryOutsideBoundingPolygonInMeters(double distanceMeters) {
+    getServiceSettings().setMaximumDistanceFerryOutsideBoundingPolygonInMeters(distanceMeters);
+    getZoningSettings().setMaximumDistanceFerryOutsideBoundingPolygonInMeters(distanceMeters);
   }
 
   /** Verify whether the per entity detail behind the logged summary is written to disk

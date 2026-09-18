@@ -11,6 +11,8 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
 import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
@@ -132,28 +134,8 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
               0, Math.min(LogCollator.DEFAULT_LOG_SAMPLE_SIZE_OF_RETAINED, emptyRoutedServices.size())))));
     }
 
-    // base on user defined polygon or alternatively use underlying network "rough" bounding area to
-    // reduce warnings around edges at least, but then no GTFS entities will be discarded based on it
-    Polygon boundingPolygonInGtfsCrs = null;
-    if(!settings.hasBoundingBoundary()){
-      var boundingPolygonInPlanitCrs =
-          PlanitJtsUtils.create2DPolygon(getServiceNetwork().getParentNetwork().createBoundingBox());
-      try{
-        boundingPolygonInGtfsCrs = (Polygon) JTS.transform(
-            boundingPolygonInPlanitCrs, getCrsTransformGtfsToPlanit().inverse());
-      }catch (Exception e){}
-    }else{
-      boundingPolygonInGtfsCrs = settings.getBoundingArea();
-    }
-
-    // use helper for quick indexed checks
-    this.boundingAreaHelper = ProjectedBoundingAreaHelper.of(
-        boundingPolygonInGtfsCrs,
-        PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS,
-        geoToolsInPlanitCrs.getCoordinateReferenceSystem(),
-        settings.getMaximumDistanceFerryOutsideBoundingPolygonInMeters()
-    );
-
+    this.boundingAreaHelper = GtfsConverterReaderHelper.createBoundingAreaHelper(
+        settings, getServiceNetwork().getParentNetwork());
   }
 
   /**
@@ -271,7 +253,11 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    * @param transferZone to register one
    */
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
-    transferZoneData.registerMappedGtfsStop(gtfsStop, transferZone);
+    var displacedStop = transferZoneData.registerMappedGtfsStop(gtfsStop, transferZone);
+    if(displacedStop != null){
+      getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_DUPLICATE_ID, displacedStop.getStopId(), displacedStop);
+    }
   }
 
   /**

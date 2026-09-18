@@ -23,6 +23,16 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM, false, GtfsIssueLogPolicy.COLLATED,
       "Endpoint has no usable access connectoid", Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
+  /**
+   * Unable to find available transfer zone access nodes for the leg segment, the GTFS stop likely mapped to an
+   * incorrect physical access node upon an earlier path search. Unlike an endpoint without any access connectoid, the
+   * transfer zone does have connectoids, just not at the node the stop was mapped to
+   */
+  LEG_SEGMENT_ENDPOINT_ACCESS_NODE_MISMATCH(
+      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM, false, GtfsIssueLogPolicy.COLLATED,
+      "Unable to find available transfer zone access nodes, GTFS stop likely mapped to incorrect physical access node",
+      Templates.DETAIL, Templates.PERSISTED_DETAIL),
+
   /** no physical path exists between the endpoints of the leg segment for its mode */
   LEG_SEGMENT_NO_ELIGIBLE_PHYSICAL_PATH(
       GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM, false, GtfsIssueLogPolicy.COLLATED,

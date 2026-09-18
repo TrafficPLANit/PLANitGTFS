@@ -97,15 +97,6 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   private final Set<String> logGtfsStop2PlanitLinkMapping = new HashSet<>();
 
-  /** set a bounding polygon specific to GTFS parser */
-  private Polygon boundingPolygon;
-
-  /** By default we allow ferries to be a fair way outside any bounding polygon and still be included.
-   * We do so because often water bodies are not part of a zoning system and would therefore not include connecting
-   * ferries. This is generally unwanted behaviour and therefore we automatically include all ferries within
-   * the specified distance outside the bounding polygon and still be included. */
-  private double maximumDistanceFerryOutsideBoundingPolygonInMeters =
-      DEFAULT_MAX_FERRY_DISTANCE_OUTSIDE_BOUNDING_AREA_M;
 
   /**
    * flag to indicate if transfer zones that have no services stopping after parsing is complete, are to
@@ -648,57 +639,6 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   public void setConnectBusBasedStopsToPassengerNetwork(boolean connectBusBasedStopToPassengerNetwork) {
     this.accessEgressInjectionSettings.setConnectBusBasedStopsToPassengerNetwork(
         connectBusBasedStopToPassengerNetwork);
-  }
-
-  /**
-   * boundary to restrict parsing to
-   *
-   * @param boundingPolygon to apply
-   */
-  public void setBoundingArea(final Polygon boundingPolygon){
-    this.boundingPolygon = boundingPolygon;
-  }
-
-  /**
-   * boundary to restrict parsing to
-   *
-   * @param boundingEnvelope to apply
-   */
-  public void setBoundingArea(final Envelope boundingEnvelope){
-    this.boundingPolygon = PlanitJtsUtils.create2DPolygon(boundingEnvelope);
-  }
-
-  /**
-   * The boundingPolygon configured by the user
-   *
-   * @return boundingPolygon
-   */
-  public Polygon getBoundingArea(){
-    return this.boundingPolygon;
-  }
-
-  /** Set a polygon based bounding box to restrict parsing to
-   *
-   * @return boundingPolygon used, can be null
-   */
-  public final boolean hasBoundingBoundary() {
-    return this.boundingPolygon!=null;
-  }
-
-  /** Get the maximum distance outside the bounding area PLANit will still include ferry routes
-   *
-   * @return distance set
-   */
-  public double getMaximumDistanceFerryOutsideBoundingPolygonInMeters() {
-    return maximumDistanceFerryOutsideBoundingPolygonInMeters;
-  }
-
-  /** Set the maximum distance outside the bounding area PLANit will still include ferry routes
-   *
-   * @param distanceMeters distance to use
-   */
-  public void setMaximumDistanceFerryOutsideBoundingPolygonInMeters(double distanceMeters) {
-    this.maximumDistanceFerryOutsideBoundingPolygonInMeters = distanceMeters;
   }
 
 }

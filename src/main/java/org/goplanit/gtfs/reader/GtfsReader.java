@@ -108,7 +108,7 @@ public class GtfsReader {
    */
   public GtfsFileReaderBase addFileHandler(GtfsFileHandler<? extends GtfsObject> gtfsFileHandler) {
     if(gtfsFileHandler==null) {
-      LOGGER.warning("Provided GTFS file handler is null, cannot be registered on GTFS reader");
+      LOGGER.warning("Provided GtfsFileHandler is null, cannot be registered on GtfsReader");
       return null;
     }
     

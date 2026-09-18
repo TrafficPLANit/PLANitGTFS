@@ -67,6 +67,10 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /** how many GTFS entities of each type were encountered per category, where a category was supplied */
   private final Map<GtfsObjectType, Map<String, LongAdder>> seenByEntityTypeAndCategory = new ConcurrentHashMap<>();
 
+  /** how many GTFS entities of each type were encountered per scope, where a scope could be established */
+  private final Map<GtfsObjectType, Map<GtfsEntityScope, LongAdder>> seenByEntityTypeAndScope =
+      new ConcurrentHashMap<>();
+
   /** how often each issue was registered per category, where a category was supplied */
   private final Map<GtfsParseIssue, Map<String, LongAdder>> issuesByCategory = new ConcurrentHashMap<>();
 
@@ -163,6 +167,16 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /**
    * {@inheritDoc}
    */
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Measured against every entity of the type the feed holds, not against those in reach of the run. An in reach
+   * denominator requires the numerator to be restricted the same way, and it is not: an issue such as a stop serving
+   * no parsed mode is registered before the stop is ever tested against the area covered, so out of reach entities
+   * reach it. Dividing those by the in reach total yields shares well beyond 100%. The two become consistent once
+   * out of scope entities are skipped before such checks are reached
+   * </p>
+   */
   @Override
   protected long getDenominator(final GtfsParseIssue issue) {
     return getSeen(issue.getEntityType());
@@ -229,6 +243,75 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       collectCounter(
           collectCategoryCounters(seenByEntityTypeAndCategory, entityType), category.name()).add(count);
     }
+  }
+
+  /**
+   * Register that an entity of the given type was encountered and where it sits relative to the area the run covers.
+   * <p>
+   * The scope axis is kept separate from the category axis, a category describing what an entity is and a scope
+   * describing where it is. An entity can therefore be counted against both without either being derived from the
+   * other
+   * </p>
+   *
+   * @param entityType encountered
+   * @param scope of the entity relative to the area the run covers
+   */
+  public void registerSeenInScope(final GtfsObjectType entityType, final GtfsEntityScope scope) {
+    registerSeenInScope(entityType, scope, 1);
+  }
+
+  /**
+   * Register that a number of entities of the given type were encountered with the given scope
+   *
+   * @param entityType encountered
+   * @param scope of the entities relative to the area the run covers
+   * @param count how many
+   */
+  public void registerSeenInScope(
+      final GtfsObjectType entityType, final GtfsEntityScope scope, final long count) {
+    if (scope != null) {
+      collectCounter(
+          seenByEntityTypeAndScope.computeIfAbsent(entityType, t -> new ConcurrentHashMap<>()), scope).add(count);
+    }
+  }
+
+  /**
+   * Collect how many entities of a type were encountered with the given scope
+   *
+   * @param entityType to collect for
+   * @param scope to collect for
+   * @return number encountered
+   */
+  public long getSeen(final GtfsObjectType entityType, final GtfsEntityScope scope) {
+    var scopeCounters = seenByEntityTypeAndScope.get(entityType);
+    if (scopeCounters == null) {
+      return 0;
+    }
+    var counter = scopeCounters.get(scope);
+    return counter != null ? counter.sum() : 0;
+  }
+
+  /**
+   * Collect how many entities of a type were ever in reach of the run, i.e. wholly or partly within the area it
+   * covers. This is the denominator anything the parser achieved should be measured against
+   *
+   * @param entityType to collect for
+   * @return number in reach
+   */
+  public long getSeenInReach(final GtfsObjectType entityType) {
+    return getSeen(entityType, GtfsEntityScope.IN) + getSeen(entityType, GtfsEntityScope.PARTIAL);
+  }
+
+  /**
+   * Verify whether the scope of entities of a type was established at all. Where it was not, every entity of that type
+   * has to be treated as in reach, there being nothing to say otherwise
+   *
+   * @param entityType to verify for
+   * @return true when scope was recorded, false otherwise
+   */
+  public boolean hasScope(final GtfsObjectType entityType) {
+    var scopeCounters = seenByEntityTypeAndScope.get(entityType);
+    return scopeCounters != null && !scopeCounters.isEmpty();
   }
 
   /**
@@ -321,6 +404,8 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
     other.seenByEntityTypeAndCategory.forEach((entityType, counters) -> counters.forEach(
         (category, adder) -> collectCounter(
             collectCategoryCounters(seenByEntityTypeAndCategory, entityType), category).add(adder.sum())));
+    other.seenByEntityTypeAndScope.forEach((entityType, counters) -> counters.forEach(
+        (scope, adder) -> registerSeenInScope(entityType, scope, adder.sum())));
     other.issuesByCategory.forEach((issue, counters) -> counters.forEach(
         (category, adder) -> collectCounter(
             collectCategoryCounters(issuesByCategory, issue), category).add(adder.sum())));
@@ -588,16 +673,45 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
     super.reset();
     seenByEntityType.clear();
     seenByEntityTypeAndCategory.clear();
+    seenByEntityTypeAndScope.clear();
     issuesByCategory.clear();
     discardedEntityIndex.values().forEach(Map::clear);
   }
 
   /**
-   * Log the discards grouped by stage, followed by the issues carried by entities that were parsed regardless. Each
-   * line states its share of the entities of that type that were seen, so a count is read against what it could have
-   * been rather than in isolation
+   * Log what the feed holds and how much of it was ever in reach of the run, so that the denominator every share
+   * below is measured against is stated rather than assumed.
+   * <p>
+   * An entity type whose scope could not be established is reported as such rather than silently counted as wholly in
+   * reach, since the two look identical in the resulting percentages
+   * </p>
+   */
+  private void logScopeSummary() {
+    LOGGER.info(LoggingUtils.surroundWithBrackets("SCOPE") + "of the feed relative to the area covered");
+    for (var entityType : GtfsObjectType.values()) {
+      long seen = getSeen(entityType);
+      if (seen == 0) {
+        continue;
+      }
+      if (!hasScope(entityType)) {
+        LOGGER.info(LoggingUtils.settingsValue(
+            entityType.name().toLowerCase() + " in feed", seen + " (scope not established)", 1));
+        continue;
+      }
+      LOGGER.info(LoggingUtils.settingsValue(
+          entityType.name().toLowerCase() + " in reach",
+          LoggingUtils.countWithPercentage(getSeenInReach(entityType), seen), 1));
+    }
+  }
+
+  /**
+   * Log what was in reach, then the discards grouped by stage, followed by the issues carried by entities that were
+   * parsed regardless. Each line states its share of the entities of that type that were in reach, so a count is read
+   * against what it could have been rather than in isolation
    */
   public void logSummary() {
+    logScopeSummary();
+
     LOGGER.info(LoggingUtils.surroundWithBrackets("DISCARDS") + "by issue");
     boolean anyDiscard = false;
     for (var stage : GtfsParseStage.values()) {

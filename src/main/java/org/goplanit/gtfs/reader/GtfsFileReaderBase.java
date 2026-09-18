@@ -64,7 +64,7 @@ public abstract class GtfsFileReaderBase {
             Collectors.joining(", "));
 
     if(!unsupportedColumns.isEmpty()) {
-      LOGGER.warning(String.format("Unknown column headers in %s, ignored: %s",
+      LOGGER.warning(String.format("Encountered unknown GTFS column headers in %s, columns will be ignored (%s)",
           fileScheme.getFileType().value(), unsupportedColumns));
     }
   }

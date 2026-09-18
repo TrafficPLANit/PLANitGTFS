@@ -134,12 +134,17 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
   }
 
   /**
-   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops as mapped
+   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops as mapped.
+   * <p>
+   * A stop id indexes a single stop, so registering a second stop under an id already taken displaces the first, which
+   * is returned to the caller to account for
+   * </p>
    *
    * @param gtfsStop to register on PLANit transfer zone
    * @param transferZone to register one
+   * @return the stop displaced by this registration, null when the id was free or held this same stop
    */
-  public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
+  public GtfsStop registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
     var mappedTransferZone = mappedTransferZoneByGtfsStopId.get(gtfsStop);
     if(mappedTransferZone != null && !mappedTransferZone.equals(transferZone)){
       throw new PlanItRunTimeException("Different transfer zone attempted to be mapped to a single GTFS stop (STOP_ID %s), this is not allowed", gtfsStop.getStopId());
@@ -147,9 +152,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
     mappedTransferZoneByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
 
     var oldStop = mappedGtfsStops.put(gtfsStop.getStopId(), gtfsStop);
-    if(oldStop != null && !oldStop.equals(gtfsStop)) {
-      LOGGER.warning(String.format("[DISCARD] Multiple GTFS stops found for the same GTFS STOP_ID %s, ignoring duplicate entry %s", oldStop.getStopId(), oldStop));
-    }
+    return oldStop != null && !oldStop.equals(gtfsStop) ? oldStop : null;
   }
 
   /**
