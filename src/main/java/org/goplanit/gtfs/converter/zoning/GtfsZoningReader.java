@@ -6,6 +6,8 @@ import org.goplanit.converter.zoning.ZoningReader;
 import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdBreakEdgeHandler;
 import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdBreakEdgeSegmentHandler;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
+import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
 import org.goplanit.gtfs.enums.GtfsFileType;
@@ -59,6 +61,12 @@ public class GtfsZoningReader implements ZoningReader {
 
   /** flag whether {@link #read()} has been invoked, false after {@link #reset()}  */
   private boolean readInvoked;
+
+  /** what became of the GTFS entities read, available once reading completed */
+  private GtfsParseDiagnostics rawGtfsEntityDiagnostics;
+
+  /** whether this reader reports what became of the feed itself, which it does unless it is one stage of a wider parse */
+  private boolean reportCoverage = true;
 
   /**
    * Log some information about this reader's configuration
@@ -122,8 +130,12 @@ public class GtfsZoningReader implements ZoningReader {
     // initialise data
     readInvoked = false;
     syncIdsAndinitialiseEventListeners();
-    return new GtfsZoningHandlerData(
-        getSettings(), zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
+
+    /* profiler to use, recording into diagnostics sized as configured before any entity reaches them */
+    var handlerProfiler = new GtfsZoningHandlerProfiler(
+        GtfsParseDiagnostics.create(
+            getSettings().getDiagnosticsRetentionLimit(), getSettings().getDiagnosticsSampleSize()));
+    return new GtfsZoningHandlerData(getSettings(), zoning, serviceNetwork, routedServices, handlerProfiler);
   }
 
   /**
@@ -225,8 +237,18 @@ public class GtfsZoningReader implements ZoningReader {
     /* main processing  */
     doMainProcessing(zoningHandlerData);
 
+    /* retain what became of the GTFS entities read, so it remains available to whoever drives this reader */
+    this.rawGtfsEntityDiagnostics = zoningHandlerData.getDiagnostics();
+
     /* log stats */
     zoningHandlerData.getProfiler().logProcessingStats(zoning);
+
+    if(reportCoverage){
+      /* this reader is the whole parse, so what became of the feed is complete and can be reported */
+      GtfsCoverageReport.report(
+          this.rawGtfsEntityDiagnostics, null, getSettings().isPersistParseDiagnostics(),
+          getSettings().getParseDiagnosticsOutputDirectory());
+    }
 
     /* generate mapping function now that mapping is known, for third parties to use if needed */
     gtfsStopIdToTransferZoneMapping = zoningHandlerData.createGtfsStopToTransferZoneMappingFunction();
@@ -245,7 +267,8 @@ public class GtfsZoningReader implements ZoningReader {
     /* reset state */
     readInvoked = false;
     gtfsStopIdToTransferZoneMapping = null;
-  }  
+    rawGtfsEntityDiagnostics = null;
+  }
 
   /**
    * Collect the settings which can be used to configure the reader
@@ -254,6 +277,23 @@ public class GtfsZoningReader implements ZoningReader {
    */
   public GtfsZoningReaderSettings getSettings() {
     return gtfsSettings;
+  }
+
+  /**
+   * Collect what became of the GTFS entities read, only available once reading completed
+   *
+   * @return diagnostics, null when reading has yet to take place
+   */
+  public GtfsParseDiagnostics getRawGtfsEntityDiagnostics() {
+    return rawGtfsEntityDiagnostics;
+  }
+
+  /**
+   * Stop this reader reporting what became of the feed when it completes, for a caller that drives it as one stage of
+   * a wider parse and reports on all of them itself once they have run
+   */
+  void suppressCoverageReport() {
+    this.reportCoverage = false;
   }
 
   /**

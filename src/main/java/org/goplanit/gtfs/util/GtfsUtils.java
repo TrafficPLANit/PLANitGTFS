@@ -94,7 +94,7 @@ public class GtfsUtils {
         return createZipEntryInputStream(gtfsLocation,  fileScheme.getFileType().value(), filePresenceCondition, logInfo);
       }
     } catch (URISyntaxException e) {
-      LOGGER.warning(String.format("Invalid URL/file scheme provided (%s - %s) to create GTFS input stream for",gtfsLocation.toString(), fileScheme.getFileType().value()));
+      LOGGER.warning(String.format("Invalid URL/file scheme provided, unable to create GTFS input stream for %s - %s",gtfsLocation.toString(), fileScheme.getFileType().value()));
     }
 
     return null;

@@ -1,6 +1,8 @@
 package org.goplanit.gtfs.converter;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsDiagnosticsBase;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
 
@@ -17,14 +19,31 @@ import java.util.logging.Logger;
 public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSettings {
 
   /** logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(GtfsConverterReaderSettingsImpl.class.getCanonicalName());
+
+  /** by default the per entity detail behind the logged summary is written to disk */
+  public static final boolean DEFAULT_PERSIST_PARSE_DIAGNOSTICS = true;
+
+  /** by default the parse diagnostics are written to this directory, relative to the working directory */
+  public static final String DEFAULT_PARSE_DIAGNOSTICS_OUTPUT_DIRECTORY = "gtfs_diagnostics";
 
   /** Input source to use */
   private URL inputSource;
 
   /** Country name to use to initialise OSM defaults for */
   private final String countryName;
+
+  /** whether to write the per entity detail behind the logged summary to disk */
+  private boolean persistParseDiagnostics = DEFAULT_PERSIST_PARSE_DIAGNOSTICS;
+
+  /** directory the parse diagnostics are written to */
+  private String parseDiagnosticsOutputDirectory = DEFAULT_PARSE_DIAGNOSTICS_OUTPUT_DIRECTORY;
+
+  /** how many occurrences of each issue are kept for reporting */
+  private int diagnosticsRetentionLimit = GtfsDiagnosticsBase.DEFAULT_MAX_RETAINED_PER_ISSUE;
+
+  /** how many entity ids each reported issue lists in the log */
+  private int diagnosticsSampleSize = LogCollator.DEFAULT_LOG_SAMPLE_SIZE_OF_RETAINED;
 
   /** Constructor with user defined source locale
    * @param countryName to base source locale on
@@ -49,6 +68,97 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   @Override
   public void reset() {
     //todo
+    this.persistParseDiagnostics = DEFAULT_PERSIST_PARSE_DIAGNOSTICS;
+    this.parseDiagnosticsOutputDirectory = DEFAULT_PARSE_DIAGNOSTICS_OUTPUT_DIRECTORY;
+    this.diagnosticsRetentionLimit = GtfsDiagnosticsBase.DEFAULT_MAX_RETAINED_PER_ISSUE;
+    this.diagnosticsSampleSize = LogCollator.DEFAULT_LOG_SAMPLE_SIZE_OF_RETAINED;
+  }
+
+  /** Verify whether the per entity detail behind the logged summary is written to disk
+   *
+   * @return true when persisted, false otherwise
+   */
+  public boolean isPersistParseDiagnostics() {
+    return persistParseDiagnostics;
+  }
+
+  /** Set whether to write the per entity detail behind the logged summary to disk
+   *
+   * @param persistParseDiagnostics to set
+   */
+  public void setPersistParseDiagnostics(boolean persistParseDiagnostics) {
+    this.persistParseDiagnostics = persistParseDiagnostics;
+  }
+
+  /** The directory the parse diagnostics are written to
+   *
+   * @return output directory
+   */
+  public String getParseDiagnosticsOutputDirectory() {
+    return parseDiagnosticsOutputDirectory;
+  }
+
+  /** Set the directory the parse diagnostics are written to
+   *
+   * @param parseDiagnosticsOutputDirectory to use
+   */
+  public void setParseDiagnosticsOutputDirectory(String parseDiagnosticsOutputDirectory) {
+    this.parseDiagnosticsOutputDirectory = parseDiagnosticsOutputDirectory;
+  }
+
+  /** How many occurrences of each issue are kept, bounding what an issue affecting millions of entities costs in
+   * memory while still allowing a feed to be examined in full when that is what is wanted
+   *
+   * @return retention limit
+   */
+  public int getDiagnosticsRetentionLimit() {
+    return diagnosticsRetentionLimit;
+  }
+
+  /** Set how many occurrences of each issue are kept
+   *
+   * @param diagnosticsRetentionLimit to use, {@link LogCollator#UNLIMITED_RETENTION} to keep every occurrence
+   */
+  public void setDiagnosticsRetentionLimit(int diagnosticsRetentionLimit) {
+    this.diagnosticsRetentionLimit = diagnosticsRetentionLimit;
+  }
+
+  /** How many entity ids each reported issue lists in the log, the remainder being available in the persisted detail
+   *
+   * @return sample size
+   */
+  public int getDiagnosticsSampleSize() {
+    return diagnosticsSampleSize;
+  }
+
+  /** Set how many entity ids each reported issue lists in the log
+   *
+   * @param diagnosticsSampleSize to use
+   */
+  public void setDiagnosticsSampleSize(int diagnosticsSampleSize) {
+    this.diagnosticsSampleSize = diagnosticsSampleSize;
+  }
+
+  /**
+   * Log how what became of the GTFS entities is to be reported
+   *
+   * @param level to indent by
+   */
+  public void logDiagnosticsSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Diagnostics entity id samples per issue", getDiagnosticsSampleSize(), level));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Diagnostics occurrences retained per issue",
+        getDiagnosticsRetentionLimit() == LogCollator.UNLIMITED_RETENTION
+            ? "all" : String.valueOf(getDiagnosticsRetentionLimit()), level));
+    if(isPersistParseDiagnostics()){
+      /* state where the detail behind the collated log lines went, a path only discoverable from the source being a
+       * path nobody finds */
+      LOGGER.info(LoggingUtils.settingsValue(
+          "Persist parse diagnostics to", getParseDiagnosticsOutputDirectory(), level));
+    }else{
+      LOGGER.info(LoggingUtils.settingsValue("Persist parse diagnostics", false, level));
+    }
   }
 
   /**
@@ -96,6 +206,7 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   public void logSettings(int level) {
     LOGGER.info(LoggingUtils.settingsValue("Input source", getInputSource(), level));
     LOGGER.info(LoggingUtils.settingsValue("Country", getCountryName(), level));
+    logDiagnosticsSettings(level);
   }
 
 }

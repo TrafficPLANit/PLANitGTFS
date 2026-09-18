@@ -4,6 +4,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityDiagnostics;
 import org.goplanit.gtfs.parallel.AStarBatchExecutionData;
 import org.goplanit.gtfs.parallel.AStarPtLegSegmentBatchExecutorService;
 import org.goplanit.network.ServiceNetwork;
@@ -37,6 +38,9 @@ public class GtfsServicesAndZoningReaderIntegrator {
 
   private final Function<String, TransferZone> gtfsStopIdToTransferZoneMapping;
 
+  /** profiler tracking what became of each service leg segment during integration */
+  private final GtfsIntegrationProfiler profiler;
+
   /**
    * Initialise indices, data and thread local A* shortest path algos that are to be used and wrap them into a
    * dedicated data instance
@@ -69,6 +73,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
             modeMappingData,
             serviceNodeToGtfsStopIdMapping,
             gtfsStopIdToTransferZoneMapping,
+            profiler,
             physicalCostApproach,
             eligibleServiceModes);
   }
@@ -160,6 +165,34 @@ public class GtfsServicesAndZoningReaderIntegrator {
       RoutedServices routedServices,
       Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping,
       Function<String, TransferZone> gtfsStopIdToTransferZoneMapping) {
+    this(settings, zoning, serviceNetwork, routedServices, serviceNodeToGtfsStopIdMapping,
+        gtfsStopIdToTransferZoneMapping,
+        new GtfsIntegrationProfiler(
+            settings.getDiagnosticsRetentionLimit(), settings.getDiagnosticsSampleSize()));
+  }
+
+  /**
+   * Constructor allowing the caller to supply the profiler, so the diagnostics it records into can be combined with
+   * those of the preceding stages
+   *
+   * @param settings of the parent reader used
+   * @param zoning to integrate
+   * @param routedServices to integrate
+   * @param serviceNetwork to integrate
+   * @param serviceNodeToGtfsStopIdMapping mapping from PLANit service nodes to GTFS stop ids
+   * @param gtfsStopIdToTransferZoneMapping mapping from GTFS stop id to PLANit transfer zone
+   * @param profiler to record into
+   */
+  public GtfsServicesAndZoningReaderIntegrator(
+      GtfsIntermodalReaderSettings settings,
+      Zoning zoning,
+      ServiceNetwork serviceNetwork,
+      RoutedServices routedServices,
+      Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping,
+      Function<String, TransferZone> gtfsStopIdToTransferZoneMapping,
+      GtfsIntegrationProfiler profiler) {
+
+    this.profiler = profiler;
 
     this.serviceNodeToGtfsStopIdMapping = serviceNodeToGtfsStopIdMapping;
     this.gtfsStopIdToTransferZoneMapping = gtfsStopIdToTransferZoneMapping;
@@ -170,6 +203,16 @@ public class GtfsServicesAndZoningReaderIntegrator {
     this.routedServices = routedServices;
 
     validateInputs();
+  }
+
+  /**
+   * Collect what became of the PLANit entities this integration set out to build, so a caller reporting on the parse
+   * as a whole can account for them alongside the stages that preceded it
+   *
+   * @return PLANit entity diagnostics
+   */
+  public GtfsPlanitEntityDiagnostics getPlanitEntityDiagnostics() {
+    return profiler.getPlanitEntityDiagnostics();
   }
 
   /**
@@ -194,16 +237,29 @@ public class GtfsServicesAndZoningReaderIntegrator {
       e.printStackTrace();
     }
 
+    /* progress is reported at doubling thresholds only, so the final total requires its own entry. What could not be
+     * mapped is not reported here, the reader that drives this integration accounting for it alongside the other
+     * stages once they have all run */
+    profiler.logProgress();
+
     if(!PlanitCrsUtils.isLinearCRSWithLengthCompatibleUnit(originalCrs)){
       revertLinearCrsTransformationTo(originalCrs);
     }
   }
 
   /**
+   * Collect the profiler tracking the integration
+   *
+   * @return profiler
+   */
+  public GtfsIntegrationProfiler getProfiler(){
+    return profiler;
+  }
+
+  /**
    * Reset internal (temporary) state
    */
   public void reset(){
-
-
+    profiler.reset();
   }
 }

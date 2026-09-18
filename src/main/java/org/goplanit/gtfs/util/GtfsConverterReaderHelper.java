@@ -96,7 +96,7 @@ public class GtfsConverterReaderHelper {
         network.getModes().getFactory().registerNew(gtfsActivatedMode.getPredefinedModeType());
       }else{
         LOGGER.warning(String.format(
-            "DISCARD: Deactivating GTFS mode %s because its track type %s is not present on any mode [%s] in the physical network",
+            "Deactivating GTFS mode %s because its track type %s is not present on any mode [%s] in the physical network",
             gtfsActivatedMode.getPredefinedModeType(), gtfsActivatedMode.getPhysicalFeatures().getTrackType(), network.getModes().stream().map(m -> m.getName()).collect(Collectors.joining(","))));
         var gtfsRouteTypesToDeactivate = settings.getAcivatedGtfsModes(gtfsActivatedMode.getPredefinedModeType());
         settings.deactivateGtfsModes(gtfsRouteTypesToDeactivate);

@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A GTFS file reader containing generic code for any GTFS file
@@ -48,23 +49,25 @@ public abstract class GtfsFileReaderBase {
   /** conditions regarding the presence of this file */
   private GtfsFileConditions filePresenceCondition; 
   
-  /** Validate header map against supported keys for this file
-   * 
-   * @param headerMap to validate
-   * @return true when all header entries are supported, false otherwise
+  /** Report the header entries of this file that are not supported keys and are therefore not read.
+   * <p>
+   * Unknown columns are a property of the file's shape rather than of any entity in it, so they are reported once per
+   * file, naming each, rather than per column or against the entities the file holds
+   * </p>
+   *
+   * @param headerMap to inspect
    */
-  private boolean isValid(Map<String, Integer> headerMap) {
+  private void logUnsupportedColumnHeaders(Map<String, Integer> headerMap) {
     EnumSet<GtfsKeyType> supportedKeys = GtfsUtils.getSupportedKeys(fileScheme.getObjectType());
-    boolean unsupportedColumns = false;
-    for(String headerEntry : headerMap.keySet()) {
-      if(!GtfsKeyType.valueIn(supportedKeys,headerEntry.trim())) {
-        LOGGER.warning(String.format("Encountered unknown GTFS column header (%s), column will be ignored",headerEntry));
-        unsupportedColumns = true;
-      }
-    }
+    var unsupportedColumns = headerMap.keySet().stream().filter(
+        headerEntry -> !GtfsKeyType.valueIn(supportedKeys, headerEntry.trim())).sorted().collect(
+            Collectors.joining(", "));
 
-    return !unsupportedColumns;
-  }  
+    if(!unsupportedColumns.isEmpty()) {
+      LOGGER.warning(String.format("Unknown column headers in %s, ignored: %s",
+          fileScheme.getFileType().value(), unsupportedColumns));
+    }
+  }
 
   /** Map the headers in the file to the correct GTFS keys. Since the headers might have spaces or non-lowercase characters we preserve the 
    * actual parsed header as key but account for these anomalies when finding the appropriate key that goes with it. 
@@ -222,7 +225,7 @@ public abstract class GtfsFileReaderBase {
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);
     this.gtfsLocation = validGtfsLocation ? gtfsLocation : null;
     if(!validGtfsLocation){
-      LOGGER.warning(String.format("Provided GTFS location (%s)is neither a directory nor a zip file, unable to instantiate file reader", gtfsLocation));
+      LOGGER.warning(String.format("Provided GTFS location (%s) is neither a directory nor a zip file, unable to instantiate file reader", gtfsLocation));
     }
   }
   
@@ -284,10 +287,7 @@ public abstract class GtfsFileReaderBase {
           headerMap.put(StringUtils.removeBOM(headers[index]), index);
         }
 
-        if(!isValid(headerMap)) {
-          LOGGER.warning(String.format("Header for %s - %s contains ignored columns, ",
-              gtfsLocation, fileScheme.getFileType().value()));
-        }
+        logUnsupportedColumnHeaders(headerMap);
 
         // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
         long numRecords = parseGtfsRecords(parser, filterExcludedColumns(mapHeadersToGtfsKeys(headerMap)), headerMap);
@@ -298,8 +298,6 @@ public abstract class GtfsFileReaderBase {
       }
 
     }catch(Exception e){
-      LOGGER.warning(String.format("Input stream not working (location: %s, scheme: %s",
-              gtfsLocation.toString(), fileScheme));
       LOGGER.severe(String.format("Error during parsing of GTFS file (%s - %s)",
               gtfsLocation.toString(), fileScheme.getFileType().value()));
       throw new PlanItRunTimeException(e.getMessage(), e);

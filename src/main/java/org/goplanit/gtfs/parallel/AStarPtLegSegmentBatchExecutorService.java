@@ -2,6 +2,7 @@ package org.goplanit.gtfs.parallel;
 
 import org.goplanit.algorithms.shortest.ShortestPathAStar;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityIssue;
 import org.goplanit.network.layer.service.ServiceLegSegmentImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -124,22 +125,17 @@ public final class AStarPtLegSegmentBatchExecutorService {
    */
   private void awaitAndConsumeBatchResults(CompletionService<SingleBatchResult> cs, int numBatches)
           throws InterruptedException, ExecutionException {
-    long totalProcessed = 0;
-    long totalValid = 0;
     long nextLogAt = 1_000; // doubling threshold (1k,2k,4k,...)
+    var profiler = sharedData.getProfiler();
 
     // ---- consume results as they complete ----
     for (int i = 0; i < numBatches; i++) {
       // blocks until one batch completes [2](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ExecutorCompletionService.html)
       SingleBatchResult r = cs.take().get();
-      totalProcessed += r.processedLegSegments;
-      totalValid += r.validPathsFound;
+      profiler.registerProcessedLegSegments(r.processedLegSegments, r.validPathsFound);
 
-      if (totalProcessed >= nextLogAt) {
-        double pct = totalProcessed == 0 ? 0.0 : (totalValid * 100.0 / totalProcessed);
-        LOGGER.info(String.format(
-                "Mapped %d service leg segments to network (%.2f%% successfully)",
-                totalProcessed, pct));
+      if (profiler.getProcessedLegSegments() >= nextLogAt) {
+        profiler.logProgress();
         nextLogAt *= 2;
       }
     }
@@ -221,6 +217,32 @@ public final class AStarPtLegSegmentBatchExecutorService {
   }
 
   /**
+   * Register a reason a service leg segment could not be mapped to the physical network. The segment is recorded
+   * under the GTFS stops it runs between, that being what identifies it on the GTFS side and not its own leg segment
+   * id. Mode and endpoints may legitimately be absent, that being the very thing some of these issues record, in
+   * which case the absence is stated rather than omitted
+   *
+   * @param issue to register
+   * @param gtfsStopIdUpstream GTFS stop the leg segment departs from
+   * @param gtfsStopIdDownstream GTFS stop the leg segment arrives at
+   * @param mode the leg segment was to be carried by, may be null
+   * @param transferZoneUpstream the upstream endpoint was to be reached through, may be null
+   * @param transferZoneDownstream the downstream endpoint was to be reached through, may be null
+   */
+  private void registerLegSegmentIssue(
+      final GtfsPlanitEntityIssue issue,
+      final String gtfsStopIdUpstream, final String gtfsStopIdDownstream,
+      final Mode mode,
+      final TransferZone transferZoneUpstream, final TransferZone transferZoneDownstream) {
+    sharedData.getProfiler().getPlanitEntityDiagnostics().registerIssue(
+            issue,
+            String.format("%s->%s", gtfsStopIdUpstream, gtfsStopIdDownstream),
+            mode != null ? mode.getName() : "none",
+            transferZoneUpstream != null ? transferZoneUpstream.getIdsAsString() : "none",
+            transferZoneDownstream != null ? transferZoneDownstream.getIdsAsString() : "none");
+  }
+
+  /**
    * Given a network layer and two GTFS stop's transfer zones, find the most likely path between them taking the
    * mode and shortest distance into account
    *
@@ -243,6 +265,8 @@ public final class AStarPtLegSegmentBatchExecutorService {
     if(transferZoneUpstream==null || transferZoneDownstream == null){
       /* likely no mapping found for stops due to physical network not being close enough, i.e.,
        * routes/legs/nodes fall outside bounding box of physical network we are mapping to */
+      registerLegSegmentIssue(GtfsPlanitEntityIssue.LEG_SEGMENT_STOP_WITHOUT_TRANSFER_ZONE,
+              gtfsStopIdUpstream, gtfsStopIdDownstream, mode, transferZoneUpstream, transferZoneDownstream);
       return null;
     }
 
@@ -252,6 +276,8 @@ public final class AStarPtLegSegmentBatchExecutorService {
     var downstreamConnectoidsByAccessNode = findTransferZoneConnectoidsGroupByAccessNode(
             gtfsStopIdDownstream, transferZoneDownstream, serviceLegSegment.getDownstreamServiceNode());
     if(upstreamConnectoidsByAccessNode.isEmpty() || downstreamConnectoidsByAccessNode.isEmpty()){
+      registerLegSegmentIssue(GtfsPlanitEntityIssue.LEG_SEGMENT_ENDPOINT_WITHOUT_ACCESS_CONNECTOID,
+              gtfsStopIdUpstream, gtfsStopIdDownstream, mode, transferZoneUpstream, transferZoneDownstream);
       return null;
     }
 
@@ -274,13 +300,11 @@ public final class AStarPtLegSegmentBatchExecutorService {
             cList -> cList.removeIf(c ->
                 !c.isModeAllowed(transferZoneDownstream, PT_VEHICLE_STOP, mode, defaultModeAllowedIfZoneTypeAbsent)));
 
-    // proceed when both connectoids support the mode on any of its access nodes
-    if (upstreamConnectoidsByAccessNode.values().stream().flatMap(Collection::stream).findFirst().isEmpty() &&
+    /* both endpoints must retain a mode compatible connectoid, a single unreachable endpoint leaving no path to find */
+    if (upstreamConnectoidsByAccessNode.values().stream().flatMap(Collection::stream).findFirst().isEmpty() ||
             downstreamConnectoidsByAccessNode.values().stream().flatMap(Collection::stream).findFirst().isEmpty()) {
-      LOGGER.severe(String.format("Service leg segment connecting GTFS stop pair [%s (%s), %s (%s)] not mode " +
-                      "compatible [mode (%s)] with PLANit mapped stops (connectoids), this shouldn't happen",
-              gtfsStopIdUpstream, transferZoneUpstream.getName(), gtfsStopIdDownstream,
-              transferZoneDownstream.getName(), mode.getName()));
+      registerLegSegmentIssue(GtfsPlanitEntityIssue.LEG_SEGMENT_ENDPOINT_WITHOUT_ACCESS_CONNECTOID,
+              gtfsStopIdUpstream, gtfsStopIdDownstream, mode, transferZoneUpstream, transferZoneDownstream);
       return null;
     }
 
@@ -315,22 +339,8 @@ public final class AStarPtLegSegmentBatchExecutorService {
 
     // when no options are found but connectoids support current mode, issue a warning
     if (allLegSegmentPathOptions.isEmpty()) {
-      var upstreamLocation =
-              transferZoneUpstream.hasGeometry() ? transferZoneUpstream.getGeometry() :
-                      transferZoneUpstream.getCentroid().getPosition();
-      var downstreamLocation =
-              transferZoneDownstream.hasGeometry() ? transferZoneDownstream.getGeometry() :
-                      transferZoneDownstream.getCentroid().getPosition();
-      LOGGER.warning(String.format("No eligible physical path for valid service leg segment [mode (%s)] " +
-                      "between GTFS stops [%s (%s, %s), %s (%s, %s)" +
-                      "], verify if path (partly) exits parsed bounding area",
-              mode.getName(),
-              gtfsStopIdUpstream,
-              transferZoneUpstream.getName(),
-              upstreamLocation.toString(),
-              gtfsStopIdDownstream,
-              transferZoneDownstream.getName(),
-              downstreamLocation.toString()));
+      registerLegSegmentIssue(GtfsPlanitEntityIssue.LEG_SEGMENT_NO_ELIGIBLE_PHYSICAL_PATH,
+              gtfsStopIdUpstream, gtfsStopIdDownstream, mode, transferZoneUpstream, transferZoneDownstream);
       return null;
     }
 

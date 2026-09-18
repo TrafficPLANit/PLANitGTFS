@@ -1,15 +1,13 @@
 package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.service.GtfsServicesHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsCalendar;
-import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.entity.GtfsTrip;
-import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.misc.CustomIndexTracker;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -21,9 +19,7 @@ import org.goplanit.utils.time.ExtendedLocalTime;
 
 import java.time.LocalTime;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -33,22 +29,6 @@ import java.util.logging.Logger;
 public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
 
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesHandlerData.class.getCanonicalName());
-
-  /** reason for discarding trips, used during registering them */
-  public enum TripRemovalType {
-    ROUTE_EXCLUDED,
-    ROUTE_MODE_INCOMPATIBLE,
-    SERVICE_ID_DISCARDED,
-    TIME_PERIOD_DISCARDED,
-    UNKNOWN;
-  }
-
-  /** reason for discarding routes, used during registering them */
-  public enum RouteRemovalType {
-    SETTINGS_EXCLUDED,
-    MODE_INCOMPATIBLE,
-    UNKNOWN;
-  }
 
   // EXOGENOUS DATA TRACKING/SETTINGS
 
@@ -63,11 +43,6 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
   /** track all data mappings using a single 1:1 mapping*/
   CustomIndexTracker customIndexTracker;
 
-
-  /** track which routes have been discarded and why, to ensure we do not log warnings for correctly ignored GTFS routes */
-  Map<String, Pair<RouteType, RouteRemovalType>> removedRoutes;
-  /** track which trips have been discarded based on discard type */
-  Map<TripRemovalType, Set<String>> removedGtfsTrips;
 
   /** index routed services by mode */
   Map<Mode, RoutedServicesLayer> routedServiceLayerByMode;
@@ -107,9 +82,6 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
     customIndexTracker.initialiseEntityContainer(RoutedTripSchedule.class, (planitScheduledTrip) -> planitScheduledTrip.getExternalId());
     /* track PLANit service nodes by external id (GTFS STOP_ID) */
     customIndexTracker.initialiseEntityContainer(ServiceNode.class, getServiceNodeToGtfsStopIdMapping());
-
-    removedRoutes = new HashMap<>();
-    removedGtfsTrips = new HashMap<>();
   }
 
   /**
@@ -153,63 +125,6 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
    */
   public RoutedService getRoutedServiceByExternalId(String externalId) {
     return customIndexTracker.get(RoutedService.class, externalId);
-  }
-
-  /**
-   * Register GTFS route as discarded based on its route type (mode), which is a valid reason to
-   * ignore it from further processing.
-   *
-   * @param gtfsRoute to mark as discarded
-   * @param reason reason for removal
-   */
-  public void registeredRemovedRoute(GtfsRoute gtfsRoute, RouteRemovalType reason){
-    this.removedRoutes.put(gtfsRoute.getRouteId(), Pair.of(gtfsRoute.getRouteType() /*=mode*/, reason));
-  }
-
-  /** Verify if GTFS route has been discarded based on its mode (route type) not being supported in this run
-   *
-   * @param gtfsRouteId to verify
-   * @return true when discarded, false otherwise
-   */
-  public boolean isGtfsRouteRemoved(String gtfsRouteId){
-    return this.removedRoutes.containsKey(gtfsRouteId);
-  }
-
-  /**
-   * Identify route removal type for a given GTFS route id, if the route is not marked for removal UNKNOWN is returned, otherwise
-   * the registered cause of removal is provided
-   *
-   * @param gtfsRouteId to collect reason for removal for (if it is removed)
-   * @return reason for removal
-   */
-  public RouteRemovalType getGtfsRemovedRouteRemovalType(String gtfsRouteId) {
-    return this.removedRoutes.getOrDefault(gtfsRouteId, Pair.of(null,RouteRemovalType.UNKNOWN)).second();
-  }
-
-  /**
-   * Register GTFS trip as discarded for a reason, e.g. because it route is discarded, see {@link #registeredRemovedRoute(GtfsRoute, RouteRemovalType)}, or because its service is not
-   * registered for inclusion, which are valid reasonsto ignore it from further processing without warning
-   *
-   * @param gtfsTrip to mark as discarded
-   * @param type reason for discarding
-   */
-  public void registeredRemovedGtfsTrip(GtfsTrip gtfsTrip, TripRemovalType type){
-    var removedGtfsTripsByType = this.removedGtfsTrips.get(type);
-    if(removedGtfsTripsByType==null){
-      removedGtfsTripsByType = new HashSet<>();
-      this.removedGtfsTrips.put(type, removedGtfsTripsByType);
-    }
-    removedGtfsTripsByType.add(gtfsTrip.getTripId());
-  }
-
-  /** Verify if GTFS trip has been discarded based on some reason in this run
-   *
-   * @param gtfsTripId to verify
-   * @return true when discarded, false otherwise
-   */
-  public boolean isGtfsTripRemoved(String gtfsTripId){
-    return this.removedGtfsTrips.entrySet().stream().anyMatch(
-        e -> e.getValue().contains(gtfsTripId));
   }
 
   /**
@@ -396,6 +311,15 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
    */
   public RoutedServices getRoutedServices(){
     return this.routedServices;
+  }
+
+  /**
+   * Collect the diagnostics recording what became of each GTFS entity
+   *
+   * @return diagnostics
+   */
+  public GtfsParseDiagnostics getDiagnostics() {
+    return handlerProfiler.getDiagnostics();
   }
 
   /**

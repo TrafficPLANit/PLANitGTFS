@@ -4,6 +4,7 @@ import org.goplanit.algorithms.shortest.ShortestPathAStar;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.intermodal.GtfsIntegrationProfiler;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
@@ -33,6 +34,9 @@ public class AStarBatchExecutionData {
   private final ServiceNetwork serviceNetwork;
 
   private final GtfsConverterModeMappingData modeMappingData;
+
+  /** profiler tracking what became of each service leg segment and the GTFS entities behind it */
+  private final GtfsIntegrationProfiler profiler;
 
   // local data during execution
   private Map<Zone, Set<TransferConnectoid>> connectoidsByAccessZone;
@@ -82,6 +86,7 @@ public class AStarBatchExecutionData {
    * @param modeMappingData functionality and utils on mode mapping between GTFS and PLANit modes
    * @param serviceNodeToGtfsStopIdMapping mapping to use
    * @param gtfsStopIdToTransferZoneMapping mapping to use
+   * @param profiler             to track integration statistics and diagnostics into
    * @param physicalCost         to use for cost provision
    * @param eligibleServiceModes to use for creation of link segment costs per mode
    */
@@ -92,6 +97,7 @@ public class AStarBatchExecutionData {
           GtfsConverterModeMappingData modeMappingData,
           Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping,
           Function<String, TransferZone> gtfsStopIdToTransferZoneMapping,
+          GtfsIntegrationProfiler profiler,
           AbstractPhysicalCost physicalCost,
           Collection<Mode> eligibleServiceModes){
 
@@ -99,6 +105,7 @@ public class AStarBatchExecutionData {
     this.modeMappingData = modeMappingData;
     this.serviceNodeToGtfsStopIdMapping = serviceNodeToGtfsStopIdMapping;
     this.gtfsStopIdToTransferZoneMapping = gtfsStopIdToTransferZoneMapping;
+    this.profiler = profiler;
 
 
     // initialise and cach shared reusable data
@@ -147,6 +154,16 @@ public class AStarBatchExecutionData {
   public  Function<String, TransferZone> getGtfsStopIdToTransferZoneMapping(){
     return gtfsStopIdToTransferZoneMapping;
   }
+
+  /**
+   * Collect the profiler to track integration statistics and diagnostics into
+   *
+   * @return profiler
+   */
+  public GtfsIntegrationProfiler getProfiler(){
+    return profiler;
+  }
+
   /**
    * Determine the expected mode to be used for a given service leg
    *

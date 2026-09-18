@@ -4,12 +4,14 @@ import org.geotools.geometry.jts.JTS;
 import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
 import org.goplanit.converter.zoning.ZoningConverterCommonData;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -94,13 +96,12 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
         PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoToolsInPlanitCrs.getCoordinateReferenceSystem());
 
     /* index: MODE -> (pre-existing) SERVICE NODE */
+    var emptyRoutedServices = new ArrayList<String>();
     for(var routedServiceLayer : getRoutedServices().getLayers()){
       for(var routedModeServices : routedServiceLayer) {
         for(var routedService : routedModeServices){
           if(!routedService.getTripInfo().hasAnyTrips()){
-            LOGGER.warning(String.format("Found empty routed service %s %s, indicating sub-optimal or " +
-                "corrupt PLANit routed services, this shouldn't happen",
-                routedService.getXmlId(), routedService.getName()));
+            emptyRoutedServices.add(routedService.getIdsAsString());
             continue;
           }
 
@@ -121,6 +122,14 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
           }
         }
       }
+    }
+    if(!emptyRoutedServices.isEmpty()){
+      LOGGER.warning(String.format(
+          "Found %d empty routed services, indicating sub-optimal or corrupt PLANit routed services, " +
+              "this shouldn't happen, e.g. %s",
+          emptyRoutedServices.size(),
+          String.join("; ", emptyRoutedServices.subList(
+              0, Math.min(LogCollator.DEFAULT_LOG_SAMPLE_SIZE_OF_RETAINED, emptyRoutedServices.size())))));
     }
 
     // base on user defined polygon or alternatively use underlying network "rough" bounding area to
@@ -195,6 +204,15 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
    */
   public RoutedServices getRoutedServices(){
     return this.routedServices;
+  }
+
+  /**
+   * Collect the diagnostics recording what became of each GTFS entity
+   *
+   * @return diagnostics
+   */
+  public GtfsParseDiagnostics getDiagnostics() {
+    return handlerProfiler.getDiagnostics();
   }
 
   /**

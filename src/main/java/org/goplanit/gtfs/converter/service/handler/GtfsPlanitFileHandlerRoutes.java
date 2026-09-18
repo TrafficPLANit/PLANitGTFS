@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerRoutes;
@@ -32,8 +33,10 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     super();
     this.data = gtfsServicesHandlerData;
 
-    PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS routes");
-    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS routes");
+    PlanItRunTimeException.throwIfNull(data.getRoutedServices(),
+        "Routed services not present, unable to parse GTFS routes");
+    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(),
+        "Services network not present, unable to parse GTFS routes");
   }
 
   /**
@@ -41,22 +44,27 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
    */
   @Override
   public void handle(GtfsRoute gtfsRoute) {
+    data.getProfiler().registerSeenRoute(gtfsRoute.getRouteType());
+
     if(!data.getSettings().isGtfsRouteIncludedByShortName(gtfsRoute.getShortName())){
-      data.registeredRemovedRoute(gtfsRoute, GtfsServicesHandlerData.RouteRemovalType.SETTINGS_EXCLUDED);
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS, gtfsRoute.getRouteType(), gtfsRoute.getRouteId());
       return;
     }
 
     RouteType routeType = gtfsRoute.getRouteType();
     Mode planitMode = data.getPrimaryPlanitModeIfActivated(routeType);
     if(planitMode == null){
-      data.registeredRemovedRoute(gtfsRoute, GtfsServicesHandlerData.RouteRemovalType.MODE_INCOMPATIBLE);
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.ROUTE_MODE_NOT_ACTIVATED, routeType, gtfsRoute.getRouteId());
       return;
     }
 
     /* obtain correct routed services layer and its current known services for our mode */
     var layer = data.getRoutedServicesLayer(planitMode);
     if(layer == null){
-      LOGGER.severe(String.format("DISCARD: No PLANit layer available for PLANit mode %s that was activated and mapped from GTFS route type %s for GTFS Route %s", planitMode, gtfsRoute.getRouteType(), gtfsRoute.getRouteId()));
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.ROUTE_NO_SERVICES_LAYER_FOR_MODE, routeType, gtfsRoute.getRouteId(), planitMode, routeType);
       return;
     }
     var servicesPerMode = layer.getServicesByMode(planitMode);
@@ -68,7 +76,8 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     planitRoutedService.setExternalId(gtfsRoute.getRouteId());
 
     if(!gtfsRoute.hasValidName()){
-      LOGGER.warning("GTFS route with id %s has no valid name (either long or short)");
+      LOGGER.fine(String.format(
+          "GTFS route with id %s has no valid name (either long or short)", gtfsRoute.getRouteId()));
     }
 
     /* name = GTFS short name */
@@ -86,7 +95,6 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
 
     /* indexed by GTFS route_id */
     data.indexByExternalId(planitRoutedService);
-    data.getProfiler().incrementRouteCount(gtfsRoute.getRouteType());
   }
 
 }

@@ -6,6 +6,7 @@ import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
 
@@ -25,7 +26,7 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
 
   /** default search for cheapest paths is based on free flow approach */
   public final String DEFAULT_STOP_TO_STOP_COST_APPROACH = PhysicalCost.FREEFLOW;
-  
+
   /** the services settings to use */
   protected final GtfsServicesReaderSettings servicesReaderSettings;
   
@@ -99,6 +100,75 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
     LOGGER.info(LoggingUtils.settingsHeader("GTFS Intermodal Reader Settings"));
     getServiceSettings().logSettings(level+1);
     getZoningSettings().logSettings(level+1);
+  }
+
+  /** Verify whether the per entity detail behind the logged summary is written to disk
+   *
+   * @return true when persisted, false otherwise
+   */
+  public boolean isPersistParseDiagnostics() {
+    return getServiceSettings().isPersistParseDiagnostics();
+  }
+
+  /** Set whether to write the per entity detail behind the logged summary to disk
+   *
+   * @param persistParseDiagnostics to set
+   */
+  public void setPersistParseDiagnostics(boolean persistParseDiagnostics) {
+    getServiceSettings().setPersistParseDiagnostics(persistParseDiagnostics);
+    getZoningSettings().setPersistParseDiagnostics(persistParseDiagnostics);
+  }
+
+  /** The directory the parse diagnostics are written to
+   *
+   * @return output directory
+   */
+  public String getParseDiagnosticsOutputDirectory() {
+    return getServiceSettings().getParseDiagnosticsOutputDirectory();
+  }
+
+  /** Set the directory the parse diagnostics are written to
+   *
+   * @param parseDiagnosticsOutputDirectory to use
+   */
+  public void setParseDiagnosticsOutputDirectory(String parseDiagnosticsOutputDirectory) {
+    getServiceSettings().setParseDiagnosticsOutputDirectory(parseDiagnosticsOutputDirectory);
+    getZoningSettings().setParseDiagnosticsOutputDirectory(parseDiagnosticsOutputDirectory);
+  }
+
+  /** How many occurrences of each issue are kept, bounding what an issue affecting millions of entities costs in
+   * memory while still allowing a feed to be examined in full when that is what is wanted
+   *
+   * @return retention limit
+   */
+  public int getDiagnosticsRetentionLimit() {
+    return getServiceSettings().getDiagnosticsRetentionLimit();
+  }
+
+  /** Set how many occurrences of each issue are kept
+   *
+   * @param diagnosticsRetentionLimit to use, {@link LogCollator#UNLIMITED_RETENTION} to keep every occurrence
+   */
+  public void setDiagnosticsRetentionLimit(int diagnosticsRetentionLimit) {
+    getServiceSettings().setDiagnosticsRetentionLimit(diagnosticsRetentionLimit);
+    getZoningSettings().setDiagnosticsRetentionLimit(diagnosticsRetentionLimit);
+  }
+
+  /** How many entity ids each reported issue lists in the log, the remainder being available in the persisted detail
+   *
+   * @return sample size
+   */
+  public int getDiagnosticsSampleSize() {
+    return getServiceSettings().getDiagnosticsSampleSize();
+  }
+
+  /** Set how many entity ids each reported issue lists in the log
+   *
+   * @param diagnosticsSampleSize to use
+   */
+  public void setDiagnosticsSampleSize(int diagnosticsSampleSize) {
+    getServiceSettings().setDiagnosticsSampleSize(diagnosticsSampleSize);
+    getZoningSettings().setDiagnosticsSampleSize(diagnosticsSampleSize);
   }
 
   /** provide access to the service reader settings

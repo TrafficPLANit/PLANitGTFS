@@ -82,7 +82,7 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
         return;
       }
       if(planitMode == PredefinedModeType.CUSTOM) {
-        LOGGER.warning(String.format("PLANit mode is not a predefined type, cannot add it to default mode mapping, ignored", gtfsRouteType));
+        LOGGER.warning(String.format("PLANit mode is not a predefined type, cannot add it to default mode mapping for GTFS route type %s, ignored", gtfsRouteType));
         return;
       }
 
