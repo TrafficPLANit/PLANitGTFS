@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -40,6 +41,12 @@ public class GtfsZoningHandlerProfiler {
 
   private LongAdder transferZoneMatchesByAccessLinkSegment;
 
+  /**
+   * Tracks what became of each GTFS entity encountered, holding both the totals reported here and the outcome of
+   * every entity that did not survive
+   */
+  private GtfsParseDiagnostics diagnostics;
+
   /** Initialise the profiler */
   private void initialise(){
     Arrays.stream(GtfsObjectType.values()).forEach( type -> gtfsObjectTypeCounters.put(type, new LongAdder()));
@@ -50,10 +57,29 @@ public class GtfsZoningHandlerProfiler {
   }
 
   /**
-   * Default constructor
+   * Constructor using its own diagnostics, for when the zoning reader runs standalone
    */
   public GtfsZoningHandlerProfiler() {
+    this(GtfsParseDiagnostics.create());
+  }
+
+  /**
+   * Constructor
+   *
+   * @param diagnostics to record into
+   */
+  public GtfsZoningHandlerProfiler(final GtfsParseDiagnostics diagnostics) {
+    this.diagnostics = diagnostics;
     initialise();
+  }
+
+  /**
+   * Collect the diagnostics being recorded into
+   *
+   * @return diagnostics
+   */
+  public GtfsParseDiagnostics getDiagnostics() {
+    return diagnostics;
   }
 
 
@@ -81,7 +107,8 @@ public class GtfsZoningHandlerProfiler {
   }
 
   /**
-   * reset the profiler
+   * reset the profiler, replacing rather than clearing what the diagnostics recorded so that anyone holding them
+   * keeps what was collected so far
    */
   public void reset() {
     this.gtfsObjectTypeCounters.values().forEach( v -> v.reset());
@@ -89,6 +116,7 @@ public class GtfsZoningHandlerProfiler {
     this.transferZoneMatchesByPlatformName.reset();
     this.transferZoneMatchesByAccessLinkSegment.reset();
     this.connectoidCounterPair.reset();
+    this.diagnostics = diagnostics.newEmptyInstance();
   }
 
   /**

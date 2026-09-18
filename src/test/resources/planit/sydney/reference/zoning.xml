@@ -1,0 +1,1344 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<macroscopiczoning xmlns="http://goplanit.org/v2" xmlns:gml="http://www.opengis.net/gml" xmlns:ns3="http://www.w3.org/1999/xlink" xmlns:ns4="http://www.w3.org/2001/SMIL20/" xmlns:ns5="http://www.w3.org/2001/SMIL20/Language" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" srsname="EPSG:3112" xsi:schemaLocation="http://goplanit.org/v2 https://www.goplanit.org/xsd/v2/macroscopiczoninginput.xsd">
+    <id>0</id>
+    <intermodal>
+        <transferzones>
+            <zone id="0" externalid="1085097097,2000147" type="platform">
+                <name>Circular Quay, Alfred St, Stand A</name>
+                <platforms>2000147,A,Stand</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579308.5692388448 -3922181.734357338</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="1" externalid="1085097099,20002" type="platform">
+                <name>Circular Quay, Alfred St, Stand B</name>
+                <platforms>20002,B,Stand</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579335.934540066 -3922174.847021637</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="10" externalid="3814715779,2000283" type="platform">
+                <name>Martin Place Station, Elizabeth St, Stand E</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579104.350776729 -3922974.004465603</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="100" externalid="200099" type="platform">
+                <name>Argyle St at Kent St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578751.2168097952 -3921760.4937840807</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="101" externalid="2000144" type="platform">
+                <name>Art Gallery Rd opp Art Gallery of NSW</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579807.7229399658 -3922841.070546362</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="11" externalid="3814715780,200068" type="platform">
+                <name>Phillip St opp Museum of Sydney</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579304.4628649536 -3922426.5230161413</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="12" externalid="3820122295,2000419" type="platform">
+                <name>Kent Street before Napoleon Street</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578579.003405445 -3922492.8930966365</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="13" externalid="3820122296,2000420" type="platform">
+                <name>Kent St after Market St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578556.10500747 -3923048.7913760766</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="14" externalid="3820122297,2000422" type="platform">
+                <name>Kent St after Druitt St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578550.1372361814 -3923209.9926685495</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="15" externalid="4010650292,200094" type="platform">
+                <name>Stand B, Martin Place</name>
+                <platforms>200094</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579317.974711303 -3922746.115311102</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="16" externalid="4010650293,200093" type="platform">
+                <name>Royal Botanic Gardens</name>
+                <platforms>200093</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579372.324687244 -3922538.0436130743</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="17" externalid="4341871592,200029" type="platform">
+                <name>Wynyard Station, York St, Stand H</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578726.7150462833 -3922653.735149605</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="18" externalid="4731525721,2000142" type="platform">
+                <name>Wynyard Station, Clarence St, Stand R</name>
+                <platforms>2000142</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578637.608566471 -3922511.6700969366</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="19" externalid="4737170024,2000295" type="platform">
+                <name>Stand T, Wynyard Station Clarence St</name>
+                <platforms>2000295,T</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578630.27542543 -3922687.3054406582</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="2" externalid="5413375060,20883" type="platform">
+                <name>Taronga Zoo Wharf</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1582088.4079117074 -3920858.6962542273</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="20" externalid="4737196921,2000230" type="platform">
+                <name>Wynyard Station, Clarence St, Stand S</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578634.1843699568 -3922567.076659825</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="21" externalid="4737206823,2000427" type="platform">
+                <name>King St (613X, 614X, 615X, 616X)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578622.2730816482 -3922924.3080596505</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="22" externalid="4743071525,200095" type="platform">
+                <name>King Street Wharf Terminus (252, 261)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578343.6318743255 -3922848.622809395</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="23" externalid="4743099622,2000186" type="platform">
+                <name>King Street Wharf, Erskine St (252, 261)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578375.6310352993 -3922627.7125417907</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="24" externalid="4743099623,2000437" type="platform">
+                <name>Hickson Rd opp Barangaroo South</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578507.3456377164 -3922297.589501169</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="25" externalid="4743123721,200019" type="platform">
+                <name>Hickson Rd opp Roslyn Packer Theatre</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578739.5604132032 -3921568.5437232577</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="26" externalid="4743123722,200098" type="platform">
+                <name>Observatory Hill (311)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578674.672529506 -3921737.995329488</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="27" externalid="4743126721,2000100" type="platform">
+                <name>Millers Point Terminus (311)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578764.9768276252 -3921719.874341386</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="28" externalid="4748558524,2000129" type="platform">
+                <name>Walsh Bay Terminus (324, 325)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578963.2362257005 -3921479.597767335</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="29" externalid="4809848324,2000111" type="platform">
+                <name>Art Gallery of NSW</name>
+                <platforms>2000111</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579679.6695257542 -3922991.32165841</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="3" externalid="5425695841" type="platform">
+                <name>Darling Harbour, Pier 26</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578323.3744941622 -3923017.8121488523</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="30" externalid="4928568457,200081" type="platform">
+                <name>Stand F, Martin Place, Elizabeth Street</name>
+                <platforms>200081</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579154.304740108 -3922777.57709021</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="31" externalid="5601101452" type="platform">
+                <name>Darling Harbour Wharf 9</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578261.6531881758 -3922849.5381307653</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="32" externalid="6673376964,200045" type="platform">
+                <name>St James Station, Elizabeth St, Stand A</name>
+                <platforms>200045</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579032.5055703286 -3923273.939754314</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="33" externalid="6714783596,2000312" type="platform">
+                <name>St James Station, Elizabeth St, Stand B</name>
+                <platforms>2000312</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579043.8592435236 -3923225.1940175733</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="34" externalid="7625728523,200057" type="platform">
+                <name>St James Station, Elizabeth St, Stand C</name>
+                <platforms>200057</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579006.9612110828 -3923290.757553571</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="35" externalid="9465694517,2000220" type="platform">
+                <name>Clarence St after Market St</name>
+                <platforms>2000220</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578619.3996608683 -3923044.702709325</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="36" externalid="9467524617,2000154" type="platform">
+                <name>Towns Pl after Hickson Rd</name>
+                <platforms>2000154</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578608.1318107294 -3921533.1530598863</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="37" externalid="9480436517,2000139" type="platform">
+                <name>Clarence St at Council Pl</name>
+                <platforms>2000139</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578619.5978967813 -3923013.254285908</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="38" externalid="9768710660,200065" type="platform">
+                <name>Circular Quay, Young St, Stand D</name>
+                <platforms>200065,D,Stand</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579265.737787823 -3922218.2551836628</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="39" externalid="10052953679,200013,200018" type="platform">
+                <name>Sussex St at Erskine St</name>
+                <platforms>2000013</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578502.8076738408 -3922601.2033260977</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="4" externalid="5601091629,200910" type="platform">
+                <name>Pyrmont Bay Wharf</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578050.3296394746 -3922722.8661238947</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="40" externalid="10096938497,200089" type="platform">
+                <name>Martin Place Station</name>
+                <platforms>200089</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579269.2890193851 -3922886.6707996703</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="41" externalid="142553711,2000403,2000404" type="platform">
+                <name>Wynyard</name>
+                <platforms>3,4</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1578708.31059984 -3922489.44514029 1578718.68709617 -3922489.66070744 1578717.42312921 -3922545.03074658 1578717.08752356 -3922562.37061962 1578716.78724363 -3922577.565769 1578716.76808496 -3922589.10190076 1578716.3816097 -3922605.86675341 1578715.20024032 -3922660.56890487 1578704.82539959 -3922660.34241438 1578705.68515524 -3922606.08602162 1578706.12624139 -3922589.26186713 1578706.13627173 -3922577.72447879 1578706.51793907 -3922562.00592883 1578706.95281949 -3922545.09183311 1578708.31059984 -3922489.44514029</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="42" externalid="142577579,2000405,2000406" type="platform">
+                <name>Wynyard</name>
+                <platforms>5,6</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1578724.96592632 -3922490.08024463 1578735.34242378 -3922490.2958269 1578734.10598955 -3922550.79305606 1578733.85293487 -3922567.33124681 1578733.6640843 -3922575.58062008 1578733.03000659 -3922605.94404281 1578733.08457286 -3922619.37263255 1578731.85532646 -3922661.20401399 1578721.48048461 -3922660.97750839 1578722.63984416 -3922619.18105264 1578722.63227983 -3922605.68097518 1578723.64017317 -3922575.36905676 1578723.51448323 -3922567.10976223 1578723.72979313 -3922550.7779909 1578724.96592632 -3922490.08024463</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="43" externalid="142670313,2000382,2000381" type="platform">
+                <name>Platforms 1 &amp; 2</name>
+                <platforms>1,2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579201.26899957 -3923106.03642661 1579212.54629758 -3923109.0831772 1579217.61651742 -3923110.45024834 1579227.01374531 -3923112.9817235 1579218.13728655 -3923147.45561289 1579215.7110623 -3923156.63307458 1579210.65009615 -3923175.96168579 1579184.59722265 -3923277.22429935 1579174.00541585 -3923274.26088544 1579170.25747158 -3923273.20971478 1579158.88598986 -3923270.03861808 1579184.73661908 -3923168.82607722 1579189.60051905 -3923149.91582197 1579191.98763395 -3923141.08938395 1579201.26899957 -3923106.03642661</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="44" externalid="270803847,2000235" type="platform">
+                <name>Circular Quay, Wharf 6, Side B</name>
+                <platforms>6B</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579181.65362903 -3922014.26285467 1579189.88462069 -3922016.63342999 1579199.11730569 -3922019.28684354 1579178.61664371 -3922092.39871783 1579176.74861665 -3922091.92967315 1579169.71427587 -3922090.18065125 1579162.36681124 -3922088.34393265 1579160.07591472 -3922087.50476043 1579181.65362903 -3922014.26285467</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="45" externalid="270803848,2000227,2000229" type="platform">
+                <name>Circular Quay, Wharf 5, Side A</name>
+                <platforms>5A,5B</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579227.54899116 -3922025.76667716 1579235.49578836 -3922028.10925986 1579243.31032388 -3922030.40020797 1579223.57143129 -3922102.90421422 1579221.18524032 -3922102.41944175 1579214.80006989 -3922100.94919534 1579207.01960866 -3922099.15301478 1579204.81428009 -3922098.70430823 1579227.54899116 -3922025.76667716</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="46" externalid="270803849,2000223,2000225" type="platform">
+                <name>Circular Quay, Wharf 4, Side A</name>
+                <platforms>4A,4B</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579271.59472974 -3922037.00464988 1579279.38189964 -3922039.29185267 1579286.98209703 -3922041.51988008 1579268.2065527 -3922114.24572267 1579266.27620793 -3922113.75693653 1579259.4714355 -3922112.09518345 1579252.06626807 -3922110.27272754 1579249.74842734 -3922109.76395523 1579250.43535912 -3922107.34149318 1579271.59472974 -3922037.00464988</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="47" externalid="270803850,2000217" type="platform">
+                <name>Circular Quay, Wharf 3, Side B</name>
+                <platforms>3B</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579296.00374458 -3922121.48479184 1579315.35708818 -3922047.66913464 1579325.74611821 -3922050.35950715 1579335.02252475 -3922052.76289429 1579315.57620248 -3922126.44320959 1579311.0709604 -3922125.22086044 1579306.47009399 -3922124.08557413 1579297.35954383 -3922121.82757396 1579296.00374458 -3922121.48479184</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="48" externalid="270803851,2000212,2000215" type="platform">
+                <name>Circular Quay, Wharf 2, Side A</name>
+                <platforms>2A,2B</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579371.92799423 -3922062.74989474 1579379.9847995 -3922064.36151638 1579373.51447367 -3922100.99283605 1579366.91024942 -3922140.01148766 1579357.78742636 -3922137.64036765 1579347.23886876 -3922134.8945526 1579363.99734024 -3922061.16680329 1579371.92799423 -3922062.74989474</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="49" externalid="635613434,2000362,2000361" type="platform">
+                <name>Martin Place</name>
+                <platforms>1,2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579254.2122492 -3922861.16977884 1579243.23939809 -3922858.81098802 1579195.49910075 -3922847.90990155 1579129.41503438 -3922834.46987901</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="5" externalid="2784763255,2000189" type="platform">
+                <name>Clarence St opp Barrack St</name>
+                <platforms>2000189</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578624.058466733 -3922777.0775360637</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="50" externalid="701216855,2000455" type="platform">
+                <name>Wynyard Light Rail</name>
+                <platforms>1</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1578820.9009731 -3922701.12792103 1578829.16138517 -3922664.64242826 1578835.48746755 -3922636.7338861 1578837.14561163 -3922637.10714374 1578838.60466443 -3922637.44183214 1578824.01054035 -3922701.82367679 1578822.23537768 -3922701.42315848 1578820.9009731 -3922701.12792103</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="51" externalid="701216856,2000454" type="platform">
+                <name>Wynyard Light Rail</name>
+                <platforms>2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1578829.69622993 -3922703.10827708 1578844.27215007 -3922638.7239264 1578845.9211757 -3922639.09592898 1578847.35287397 -3922639.42684952 1578841.03286845 -3922667.35850269 1578832.78756043 -3922703.80152259 1578831.26469022 -3922703.45804053 1578829.69622993 -3922703.10827708</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="52" externalid="701216857,2000457" type="platform">
+                <name>QVB Light Rail</name>
+                <platforms>1</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1578731.57118341 -3923234.96727589 1578735.4450358 -3923203.41253591 1578739.63933897 -3923169.26227357 1578741.06771379 -3923169.41452617 1578742.50520622 -3923169.56803519 1578734.72578483 -3923235.33509604 1578733.12569018 -3923235.14804526 1578731.57118341 -3923234.96727589</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="53" externalid="701216858,2000456" type="platform">
+                <name>QVB Light Rail</name>
+                <platforms>2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1578740.5213909 -3923236.02225009 1578748.31606864 -3923170.27956672 1578749.53172576 -3923170.42478747 1578750.96620604 -3923170.60015846 1578747.15497145 -3923204.9368571 1578743.66386244 -3923236.4106774 1578742.04703878 -3923236.2101824 1578740.5213909 -3923236.02225009</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="54" externalid="702219814,2000453,2000452" type="platform">
+                <name>Bridge Street Light Rail</name>
+                <platforms>1,2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1578904.23783101 -3922359.48617487 1578890.14913319 -3922424.85055501 1578890.43029214 -3922424.90043262 1578889.54480082 -3922428.89940605 1578891.59054051 -3922429.35948551 1578893.54509788 -3922429.80700167 1578908.23505843 -3922360.34879773 1578906.39450857 -3922359.950403 1578904.23783101 -3922359.48617487</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="55" externalid="702219822,2000451" type="platform">
+                <name>Circular Quay Light Rail</name>
+                <platforms>3</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579205.11294275 -3922156.00462248 1579205.0055926 -3922156.44647641 1579211.16745098 -3922157.98618724 1579210.8604628 -3922159.2024472 1579210.48996821 -3922160.67726145 1579132.86762087 -3922141.12581288 1579133.21241851 -3922139.76997178 1579133.54508529 -3922138.43473452 1579139.69783936 -3922139.97315025 1579139.80217451 -3922139.55315613 1579205.11294275 -3922156.00462248</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="56" externalid="702219824,2000450,2000449" type="platform">
+                <name>Circular Quay Light Rail</name>
+                <platforms>1,2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579141.30964117 -3922133.40124097 1579141.42460106 -3922132.97157331 1579135.29008012 -3922131.43566986 1579135.73310696 -3922129.63671809 1579136.13530358 -3922127.99920593 1579142.28655706 -3922129.54855309 1579142.39239852 -3922129.1176289 1579207.73208828 -3922145.56194821 1579207.61260702 -3922146.02440574 1579213.73649097 -3922147.57002151 1579213.38113973 -3922149.00237127 1579212.88815082 -3922150.961503 1579206.74452552 -3922149.42430458 1579206.63717532 -3922149.86615844 1579141.30964117 -3922133.40124097</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="57" externalid="1065434006" type="platform">
+                <name>Martin Place</name>
+                <platforms>1,2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579254.2122492 -3922861.16977884 1579255.00432116 -3922857.71480652 1579243.86583839 -3922855.34432566 1579212.50808064 -3922848.60564362 1579178.63510615 -3922841.3756197 1579149.61330385 -3922835.2152222 1579130.23132961 -3922830.97369051 1579129.41503438 -3922834.46987901 1579127.93918258 -3922840.39234164 1579176.33039694 -3922851.76153528 1579202.51998027 -3922857.9103641 1579241.56138571 -3922867.27844528 1579252.02529265 -3922869.68960875 1579254.2122492 -3922861.16977884</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="58" externalid="142670310,2000351" type="platform">
+                <name>Circular Quay</name>
+                <platforms>1</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579308.52482965 -3922161.15677963 1579238.53241324 -3922143.27987539 1579237.9761073 -3922143.13638258 1579236.56710551 -3922142.7751374 1579235.79647569 -3922142.56869482 1579221.49522303 -3922138.93828116 1579149.6831883 -3922120.57729217 1579150.84032141 -3922116.22596684 1579209.76614762 -3922131.27408634 1579213.87763096 -3922132.31961603 1579230.23086795 -3922136.50011339 1579236.86396346 -3922138.19388076 1579248.94459057 -3922141.28438714 1579252.39945977 -3922142.17261422 1579309.68202339 -3922156.80546878 1579308.52482965 -3922161.15677963</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="59" externalid="142670312,2000352" type="platform">
+                <name>Circular Quay</name>
+                <platforms>2</platforms>
+                <gml:LineString>
+                    <gml:posList srsDimension="2">1579154.61833348 -3922102.90238979 1579213.27368693 -3922117.89096794 1579228.06142051 -3922121.69978721 1579231.63333029 -3922122.61527432 1579233.55455569 -3922123.10279803 1579250.43215493 -3922127.38899933 1579254.99202948 -3922128.55202709 1579295.01404186 -3922138.77898173 1579313.44959592 -3922143.49161277 1579312.38961099 -3922147.81176849 1579254.88355993 -3922133.11469469 1579250.88911214 -3922132.09641697 1579239.85876561 -3922129.27316782 1579237.48003148 -3922128.66690349 1579232.83959635 -3922127.48164277 1579232.36384943 -3922127.36039015 1579230.45324952 -3922126.8631931 1579226.90869646 -3922125.95147623 1579216.18995599 -3922123.22688291 1579212.12406169 -3922122.18763558 1579153.5584089 -3922107.22255866 1579154.61833348 -3922102.90238979</gml:posList>
+                </gml:LineString>
+            </zone>
+            <zone id="6" externalid="2784763256,2000221" type="platform">
+                <name>Wynyard Station, Clarence St, Stand Q</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578630.5549012502 -3922432.0990789137</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="60" externalid="458705369" type="platform">
+                <name>Darling Harbour Wharf 3</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578239.8114303863 -3922612.691666332</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="61" externalid="4438512191" type="platform">
+                <name>Darling Harbour, King St Wharf 5</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578252.7320213614 -3922694.6075849873</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="62" externalid="5601069117,20413" type="platform">
+                <name>Balmain Wharf</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1577112.9771988944 -3921082.8073847643</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="63" externalid="5601109475" type="platform">
+                <name>Darling Harbour Wharf 1</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578252.5115147172 -3922529.9943736205</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="64" externalid="5837202912" type="platform">
+                <name>Barangaroo, Wharf 1, Sida A</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578255.9348621059 -3922313.959653586</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="65" externalid="6804603708" type="platform">
+                <name>Darling Harbour, King St Wharf 7</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578267.542580936 -3922775.4808780677</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="66" externalid="8151065419" type="platform">
+                <name>Darling Harbour, King St Wharf 6</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578270.2821200292 -3922724.089686768</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="67" externalid="8151065420" type="platform">
+                <name>Darling Harbour, King St Wharf 4</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578263.4193153817 -3922655.059120081</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="68" externalid="8151065421" type="platform">
+                <name>Darling Harbour, King St Wharf 2</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578267.223691079 -3922571.381552451</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="69" externalid="8151065422" type="platform">
+                <name>Darling Harbour, King St Wharf 8</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578265.162358232 -3922792.761920448</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="7" externalid="3174323910,2000133" type="platform">
+                <name>Lang Park, York St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578728.115193859 -3922343.874243294</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="70" externalid="1354677119,200034,200033" type="platform">
+                <name>Stand K, Wynyard Station York St</name>
+                <platforms>200033,K</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578717.0952437527 -3922589.492246581</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="71" externalid="9518193591" type="platform">
+                <name>Barangaroo, Wharf 1, Side B</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578249.6205911322 -3922335.7217996903</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="72" externalid="9518262819,2000238" type="platform">
+                <name>Barangaroo, Wharf 2, Side A</name>
+                <platforms>2A</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578255.9001874835 -3922379.377761583</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="73" externalid="9518262820,2000239" type="platform">
+                <name>Barangaroo, Wharf 2, Side B</name>
+                <platforms>2B</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578249.4499962796 -3922401.7894783006</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="74" externalid="8530018,206122" type="platform">
+                <name>Milsons Point Wharf, Side A</name>
+                <platforms>A</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579395.9737941534 -3920819.2656808263</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="75" externalid="82009167,20901" type="platform">
+                <name>Cremorne Point Wharf</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1581286.7322708748 -3920931.3707651612</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="76" externalid="1838532348,206076,206080" type="platform">
+                <name>McMahons Point Wharf, Side A</name>
+                <platforms>A,B</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579056.3631067006 -3920729.1665310515</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="77" externalid="1840889196,20291" type="platform">
+                <name>Rose Bay Wharf</name>
+                <platforms>20291</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1583786.0439465991 -3923789.387681984</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="78" externalid="3304182832,20614" type="platform">
+                <name>Kirribilli (High Street)</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1580308.7038121596 -3920949.464028293</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="79" externalid="2000391" type="platform">
+                <name>Town Hall Station, Platform 1</name>
+                <platforms>1</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578707.3073796544 -3923429.6903201314</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="8" externalid="3814697123,2000421" type="platform">
+                <name>Stand C, Martin Place, Elizabeth Street</name>
+                <platforms>2000421</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579132.6626180985 -3922781.644825535</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="80" externalid="2000393" type="platform">
+                <name>Town Hall Station, Platform 3</name>
+                <platforms>3</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578694.1685066933 -3923431.4194789976</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="81" externalid="2000392" type="platform">
+                <name>Town Hall Station, Platform 2</name>
+                <platforms>2</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578697.3829683748 -3923418.756381018</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="82" externalid="2000395" type="platform">
+                <name>Town Hall Station, Platform 5</name>
+                <platforms>5</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578703.484816388 -3923438.303369911</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="83" externalid="2000394" type="platform">
+                <name>Town Hall Station, Platform 4</name>
+                <platforms>4</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578713.8106489305 -3923424.328906605</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="84" externalid="2000396" type="platform">
+                <name>Town Hall Station, Platform 6</name>
+                <platforms>6</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578692.8571438855 -3923424.308102758</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="85" externalid="2000459" type="platform">
+                <name>Town Hall Light Rail</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578697.2090311025 -3923451.6697328608</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="86" externalid="2000191" type="platform">
+                <name>Chifley Tower, Bent St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579271.8632274934 -3922581.948485473</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="87" externalid="200097" type="platform">
+                <name>Andrew (Boy) Charlton Pool, Mrs Macquaries Rd</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1580152.8989453693 -3922510.06989233</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="88" externalid="2000458" type="platform">
+                <name>Town Hall Light Rail</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578703.939791129 -3923454.313263154</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="89" externalid="201144" type="platform">
+                <name>Bourke St opp Charles St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579798.3128783004 -3923364.041835094</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="9" externalid="3814704459,200059" type="platform">
+                <name>Museum of Sydney, Phillip St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579276.457048835 -3922474.2648031833</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="90" externalid="201145" type="platform">
+                <name>Bourke St at Nicholson St</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579875.238836795 -3923134.950349122</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="91" externalid="2000130" type="platform">
+                <name>Hickson Rd opp Wharf Theatres</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578943.0494411443 -3921519.5187124284</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="92" externalid="2000435" type="platform">
+                <name>Wynyard Station, York St, Stand G</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578714.2354536762 -3922714.880563846</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="93" externalid="2000232" type="platform">
+                <name>Martin Place Station, Elizabeth St, Stand G</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579155.6170330432 -3922763.3482136484</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="94" externalid="2000167" type="platform">
+                <name>Hyde Park, Elizabeth St, Stand A</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579001.686047984 -3923388.169055432</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="95" externalid="2000179" type="platform">
+                <name>Hickson Rd opp Towns Pl</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578622.3230231977 -3921596.4127160856</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="96" externalid="200031" type="platform">
+                <name>Wynyard Station, York St, Stand J</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578715.593618415 -3922628.1967351595</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="97" externalid="206126" type="platform">
+                <name>Milsons Point Wharf, Side B</name>
+                <platforms>B</platforms>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579446.868381061 -3920898.466891117</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="98" externalid="2000226" type="platform">
+                <name>Macquarie St opp The Royal Botanic Gardens</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1579355.8700151548 -3922528.1660663188</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+            <zone id="99" externalid="2000136" type="platform">
+                <name>QVB, York St, Stand E</name>
+                <centroid>
+                    <gml:Point>
+                        <gml:pos>1578701.2954737593 -3923035.947771837</gml:pos>
+                    </gml:Point>
+                </centroid>
+            </zone>
+        </transferzones>
+        <transferzoneaccess network_ref="1" network_layer_ref="all">
+            <connectoid id="0" externalid="6576039175" noderef="1026">
+                <accesszone ref="58" lengthkm="0.0" lsrefs="71,405" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="1" externalid="6576039176" noderef="1028">
+                <accesszone ref="59" lengthkm="0.0" lsrefs="407,678" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="10" externalid="inferred" noderef="807">
+                <accesszone ref="45" lengthkm="0.006447567292072157" modes="bicycle" type="access_egress"/>
+                <accesszone ref="46" lengthkm="0.04462567402076124" modes="bicycle" type="access_egress"/>
+            </connectoid>
+            <connectoid id="100" externalid="gtfs_inferred" noderef="1051">
+                <accesszone ref="82" lengthkm="0.0" lsrefs="1290" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="101" externalid="gtfs_inferred" noderef="1051">
+                <accesszone ref="82" lengthkm="0.0" lsrefs="2328" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="102" externalid="gtfs_inferred" noderef="1052">
+                <accesszone ref="83" lengthkm="0.0" lsrefs="1300" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="103" externalid="gtfs_inferred" noderef="1052">
+                <accesszone ref="83" lengthkm="0.0" lsrefs="2330" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="104" externalid="gtfs_inferred" noderef="1053">
+                <accesszone ref="84" lengthkm="0.0" lsrefs="672" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="105" externalid="gtfs_inferred" noderef="1053">
+                <accesszone ref="84" lengthkm="0.0" lsrefs="2332" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="106" externalid="gtfs_inferred" noderef="1056">
+                <accesszone ref="85" lengthkm="0.0" lsrefs="431" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="107" externalid="gtfs_inferred" noderef="1056">
+                <accesszone ref="85" lengthkm="0.0" lsrefs="2338" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="108" externalid="gtfs_inferred" noderef="1057">
+                <accesszone ref="86" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="86" lengthkm="0.0" lsrefs="1331" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="109" externalid="gtfs_inferred" noderef="1058">
+                <accesszone ref="87" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="87" lengthkm="0.0" lsrefs="2365" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="11" externalid="inferred" noderef="803">
+                <accesszone ref="46" lengthkm="0.00672761967661702" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="110" externalid="gtfs_inferred" noderef="813">
+                <accesszone ref="88" lengthkm="0.0" lsrefs="2337" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="111" externalid="gtfs_inferred" noderef="1059">
+                <accesszone ref="89" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="89" lengthkm="0.0" lsrefs="2344" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="112" externalid="gtfs_inferred" noderef="1060">
+                <accesszone ref="90" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="90" lengthkm="0.0" lsrefs="2346" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="113" externalid="gtfs_inferred" noderef="1061">
+                <accesszone ref="91" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="91" lengthkm="0.0" lsrefs="732" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="114" externalid="gtfs_inferred" noderef="1062">
+                <accesszone ref="92" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="92" lengthkm="0.0" lsrefs="1143" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="115" externalid="gtfs_inferred" noderef="345">
+                <accesszone ref="93" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="93" lengthkm="0.0" lsrefs="769" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="116" externalid="gtfs_inferred" noderef="588">
+                <accesszone ref="94" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="94" lengthkm="0.0" lsrefs="531" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="117" externalid="gtfs_inferred" noderef="1064">
+                <accesszone ref="95" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="95" lengthkm="0.0" lsrefs="2354" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="118" externalid="gtfs_inferred" noderef="1065">
+                <accesszone ref="96" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="96" lengthkm="0.0" lsrefs="458" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="119" externalid="gtfs_inferred" noderef="1066">
+                <accesszone ref="97" lengthkm="0.0" lsrefs="315" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="12" externalid="inferred" noderef="70">
+                <accesszone ref="47" lengthkm="0.0547626268194576" modes="bicycle" type="access_egress"/>
+                <accesszone ref="48" lengthkm="0.009299494433034515" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="120" externalid="gtfs_inferred" noderef="1066">
+                <accesszone ref="97" lengthkm="0.0" lsrefs="2358" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="121" externalid="gtfs_inferred" noderef="1067">
+                <accesszone ref="98" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="98" lengthkm="0.0" lsrefs="2360" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="122" externalid="gtfs_inferred" noderef="1068">
+                <accesszone ref="99" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="99" lengthkm="0.0" lsrefs="1145" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="123" externalid="gtfs_inferred" noderef="376">
+                <accesszone ref="100" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="100" lengthkm="0.0" lsrefs="806" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="124" externalid="gtfs_inferred" noderef="376">
+                <accesszone ref="100" lengthkm="0.0" lsrefs="1203" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="125" externalid="gtfs_inferred" noderef="1070">
+                <accesszone ref="101" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="101" lengthkm="0.0" lsrefs="1559" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="126" externalid="inferred" noderef="141">
+                <accesszone ref="97" lengthkm="0.47600251185468373" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="127" externalid="inferred" noderef="501">
+                <accesszone ref="79" lengthkm="0.07685218058277878" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="79" lengthkm="0.07685218058277878" modes="bicycle" type="access"/>
+                <accesszone ref="80" lengthkm="0.08289696302691268" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="80" lengthkm="0.08289696302691268" modes="bicycle" type="access"/>
+                <accesszone ref="81" lengthkm="0.07004701661974015" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="81" lengthkm="0.07004701661974015" modes="bicycle" type="access"/>
+                <accesszone ref="82" lengthkm="0.08618076077965786" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="82" lengthkm="0.08618076077965786" modes="bicycle" type="access"/>
+                <accesszone ref="83" lengthkm="0.07013100643884992" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="83" lengthkm="0.07013100643884992" modes="bicycle" type="access"/>
+                <accesszone ref="84" lengthkm="0.07702689040336891" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="84" lengthkm="0.07702689040336891" modes="bicycle" type="access"/>
+                <accesszone ref="85" lengthkm="0.10079557219455149" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="85" lengthkm="0.10079557219455149" modes="bicycle" type="access"/>
+                <accesszone ref="88" lengthkm="0.10154201360250203" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="88" lengthkm="0.10154201360250203" modes="bicycle" type="access"/>
+            </connectoid>
+            <connectoid id="128" externalid="inferred" noderef="426">
+                <accesszone ref="79" lengthkm="0.13416101090316115" modes="bicycle" type="egress"/>
+                <accesszone ref="80" lengthkm="0.12954394413458872" modes="bicycle" type="egress"/>
+                <accesszone ref="81" lengthkm="0.11973689703221137" modes="bicycle" type="egress"/>
+                <accesszone ref="82" lengthkm="0.1398442123362381" modes="bicycle" type="egress"/>
+                <accesszone ref="83" lengthkm="0.1331120100817002" modes="bicycle" type="egress"/>
+                <accesszone ref="84" lengthkm="0.12256360251494011" modes="bicycle" type="egress"/>
+                <accesszone ref="85" lengthkm="0.14928030125038827" modes="bicycle" type="egress"/>
+                <accesszone ref="88" lengthkm="0.154422417265032" modes="bicycle" type="egress"/>
+            </connectoid>
+            <connectoid id="13" externalid="inferred" noderef="801">
+                <accesszone ref="47" lengthkm="0.006530078914612011" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="14" externalid="inferred" noderef="238">
+                <accesszone ref="60" lengthkm="0.10578119571897532" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="67" lengthkm="0.08410444814378146" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="68" lengthkm="0.09715214970705355" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="15" externalid="inferred" noderef="2">
+                <accesszone ref="61" lengthkm="0.09964667068541913" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="66" lengthkm="0.07126606804681622" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="16" externalid="inferred" noderef="680">
+                <accesszone ref="63" lengthkm="0.08284066795691948" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="17" externalid="inferred" noderef="598">
+                <accesszone ref="64" lengthkm="0.08106923012126747" modes="bicycle,pedestrian" type="access_egress"/>
+                <accesszone ref="71" lengthkm="0.07274686556020377" modes="bicycle,pedestrian" type="access_egress"/>
+                <accesszone ref="72" lengthkm="0.05760321745614756" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="73" lengthkm="0.07051887596327898" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="18" externalid="6576039160" noderef="1034">
+                <accesszone ref="43" lengthkm="0.0" lsrefs="420,1900" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="19" externalid="inferred" noderef="782">
+                <accesszone ref="65" lengthkm="0.0750161525823293" modes="bicycle,bus,car,goods,hgv,lhgv,motor_bike,pedestrian" type="access_egress"/>
+                <accesszone ref="69" lengthkm="0.08461674572029407" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="2" externalid="6553012226" noderef="1032">
+                <accesszone ref="42" lengthkm="0.0" lsrefs="415,1288" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="20" externalid="inferred" noderef="282">
+                <accesszone ref="3" lengthkm="0.04971614122967308" modes="bicycle" type="access_egress"/>
+            </connectoid>
+            <connectoid id="21" externalid="inferred" noderef="610">
+                <accesszone ref="3" lengthkm="0.044379798304878315" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="22" externalid="inferred" noderef="281">
+                <accesszone ref="4" lengthkm="0.23701043192470014" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="23" externalid="inferred" noderef="509">
+                <accesszone ref="41" lengthkm="0.003979539779368007" modes="bicycle,pedestrian" type="access_egress"/>
+                <accesszone ref="42" lengthkm="0.010821480445215893" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="24" externalid="inferred" noderef="519">
+                <accesszone ref="43" lengthkm="0.09309652568744439" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="25" externalid="inferred" noderef="62">
+                <accesszone ref="43" lengthkm="0.07962435747337576" modes="bicycle" type="access_egress"/>
+            </connectoid>
+            <connectoid id="26" externalid="inferred" noderef="986">
+                <accesszone ref="49" lengthkm="0.0026556321851611453" modes="bicycle,pedestrian" type="access_egress"/>
+                <accesszone ref="57" lengthkm="0.005235608157918806" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="27" externalid="inferred" noderef="368">
+                <accesszone ref="50" lengthkm="0.011308731684105401" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="51" lengthkm="0.0022833717935074258" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="28" externalid="inferred" noderef="364">
+                <accesszone ref="50" lengthkm="0.013830518628012094" modes="bicycle" type="access_egress"/>
+            </connectoid>
+            <connectoid id="29" externalid="5114365145" noderef="1035">
+                <accesszone ref="49" lengthkm="0.0" lsrefs="422,1912" modes="train" type="pt_veh_stop"/>
+                <accesszone ref="57" lengthkm="0.0" lsrefs="422,1912" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="3" externalid="10245932157" noderef="48">
+                <accesszone ref="38" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="38" lengthkm="0.0" lsrefs="538" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="30" externalid="inferred" noderef="741">
+                <accesszone ref="51" lengthkm="0.037696476281175735" modes="bicycle" type="access_egress"/>
+            </connectoid>
+            <connectoid id="31" externalid="inferred" noderef="500">
+                <accesszone ref="52" lengthkm="0.01834586743751848" modes="bicycle,pedestrian" type="access_egress"/>
+                <accesszone ref="53" lengthkm="0.01653686906854994" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="32" externalid="inferred" noderef="458">
+                <accesszone ref="54" lengthkm="0.004346754295788594" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="33" externalid="inferred" noderef="639">
+                <accesszone ref="54" lengthkm="0.016089302396504596" modes="bicycle" type="access"/>
+            </connectoid>
+            <connectoid id="34" externalid="inferred" noderef="98">
+                <accesszone ref="54" lengthkm="0.03152963720835419" modes="bicycle" type="egress"/>
+            </connectoid>
+            <connectoid id="35" externalid="inferred" noderef="964">
+                <accesszone ref="55" lengthkm="0.012733637742470796" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="36" externalid="inferred" noderef="797">
+                <accesszone ref="58" lengthkm="0.004413936114457709" modes="bicycle,pedestrian" type="access_egress"/>
+                <accesszone ref="59" lengthkm="0.01840571070922106" modes="bicycle" type="access_egress"/>
+            </connectoid>
+            <connectoid id="37" externalid="inferred" noderef="804">
+                <accesszone ref="59" lengthkm="0.010440994975131856" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="38" externalid="7053939943" noderef="1036">
+                <accesszone ref="56" lengthkm="0.0" lsrefs="424,1587" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="39" externalid="6594385343" noderef="1037">
+                <accesszone ref="55" lengthkm="0.0" lsrefs="426,1594" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="4" noderef="49">
+                <accesszone ref="39" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="39" lengthkm="0.0" lsrefs="540" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="40" externalid="6585559395" noderef="1040">
+                <accesszone ref="52" lengthkm="0.0" lsrefs="430,1565" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="41" externalid="6585559394" noderef="1041">
+                <accesszone ref="53" lengthkm="0.0" lsrefs="349,432" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="42" externalid="6581009151" noderef="1042">
+                <accesszone ref="50" lengthkm="0.0" lsrefs="147,434" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="43" externalid="20959049" noderef="567">
+                <accesszone ref="48" lengthkm="0.0" lsrefs="1102" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="44" externalid="6581009117" noderef="1043">
+                <accesszone ref="51" lengthkm="0.0" lsrefs="323,436" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="45" externalid="6927086297" noderef="1045">
+                <accesszone ref="54" lengthkm="0.0" lsrefs="364,443" modes="light_rail,tram" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="46" externalid="5601069117" noderef="790">
+                <accesszone ref="62" lengthkm="0.0" lsrefs="1510" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="47" externalid="9518262819" noderef="775">
+                <accesszone ref="72" lengthkm="0.0" lsrefs="1481" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="48" externalid="9518262820" noderef="777">
+                <accesszone ref="73" lengthkm="0.0" lsrefs="1483" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="49" externalid="8530018" noderef="760">
+                <accesszone ref="74" lengthkm="0.0" lsrefs="2357" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="5" externalid="3593631034" noderef="50">
+                <accesszone ref="40" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="40" lengthkm="0.0" lsrefs="542" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="50" externalid="82009167" noderef="758">
+                <accesszone ref="75" lengthkm="0.0" lsrefs="1451" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="51" externalid="1838532348" noderef="785">
+                <accesszone ref="76" lengthkm="0.0" lsrefs="1499" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="52" externalid="1840889196" noderef="789">
+                <accesszone ref="77" lengthkm="0.0" lsrefs="1509" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="53" externalid="3304182832" noderef="587">
+                <accesszone ref="78" lengthkm="0.0" lsrefs="1131" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="54" externalid="8408936" noderef="676">
+                <accesszone ref="46" lengthkm="0.0" lsrefs="1325" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="55" externalid="3304182832" noderef="587">
+                <accesszone ref="78" lengthkm="0.0" lsrefs="1512" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="56" externalid="5413375060" noderef="759">
+                <accesszone ref="2" lengthkm="0.0" lsrefs="1453" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="57" externalid="5601091629" noderef="754">
+                <accesszone ref="4" lengthkm="0.0" lsrefs="1443" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="58" externalid="3814715782" noderef="327">
+                <accesszone ref="0" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="0" lengthkm="0.0" lsrefs="444" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="59" externalid="3910190219" noderef="1046">
+                <accesszone ref="1" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="1" lengthkm="0.0" lsrefs="445" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="6" externalid="inferred" noderef="245">
+                <accesszone ref="31" lengthkm="0.07666284924750295" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="60" externalid="8099480" noderef="677">
+                <accesszone ref="45" lengthkm="0.0" lsrefs="1327" modes="ferry" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="61" noderef="8">
+                <accesszone ref="70" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="70" lengthkm="0.0" lsrefs="1007" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="62" externalid="5147327948" noderef="11">
+                <accesszone ref="5" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="5" lengthkm="0.0" lsrefs="2027" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="63" noderef="12">
+                <accesszone ref="6" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="6" lengthkm="0.0" lsrefs="1339" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="64" externalid="3311271478" noderef="13">
+                <accesszone ref="7" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="7" lengthkm="0.0" lsrefs="567" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="65" externalid="7625728524" noderef="345">
+                <accesszone ref="8" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="8" lengthkm="0.0" lsrefs="1759" modes="bus" type="pt_veh_stop"/>
+                <accesszone ref="30" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="30" lengthkm="0.0" lsrefs="769" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="66" noderef="15">
+                <accesszone ref="9" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="9" lengthkm="0.0" lsrefs="2163" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="67" externalid="9885509263" noderef="16">
+                <accesszone ref="10" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="10" lengthkm="0.0" lsrefs="1248" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="68" noderef="17">
+                <accesszone ref="11" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="11" lengthkm="0.0" lsrefs="477" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="69" externalid="3820122294" noderef="244">
+                <accesszone ref="12" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="12" lengthkm="0.0" lsrefs="639" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="7" externalid="9780863959" noderef="1033">
+                <accesszone ref="43" lengthkm="0.0" lsrefs="418,1898" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="70" noderef="18">
+                <accesszone ref="13" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="13" lengthkm="0.0" lsrefs="239" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="71" externalid="6553012228" noderef="1029">
+                <accesszone ref="41" lengthkm="0.0" lsrefs="409,2212" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="72" noderef="19">
+                <accesszone ref="14" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="14" lengthkm="0.0" lsrefs="1725" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="73" noderef="20">
+                <accesszone ref="15" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="15" lengthkm="0.0" lsrefs="1748" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="74" noderef="21">
+                <accesszone ref="16" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="16" lengthkm="0.0" lsrefs="2359" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="75" noderef="22">
+                <accesszone ref="17" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="17" lengthkm="0.0" lsrefs="1343" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="76" externalid="2200727996" noderef="421">
+                <accesszone ref="18" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="18" lengthkm="0.0" lsrefs="496" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="77" noderef="26">
+                <accesszone ref="19" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="19" lengthkm="0.0" lsrefs="2233" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="78" noderef="27">
+                <accesszone ref="20" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="20" lengthkm="0.0" lsrefs="1495" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="79" noderef="29">
+                <accesszone ref="21" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="21" lengthkm="0.0" lsrefs="535" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="8" externalid="inferred" noderef="808">
+                <accesszone ref="44" lengthkm="0.00608174294068628" modes="bicycle,pedestrian" type="access_egress"/>
+                <accesszone ref="56" lengthkm="0.03862660880986351" modes="bicycle,pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="80" externalid="6669045397" noderef="31">
+                <accesszone ref="22" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="22" lengthkm="0.0" lsrefs="641" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="81" externalid="10187696067" noderef="32">
+                <accesszone ref="23" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="23" lengthkm="0.0" lsrefs="631" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="82" externalid="10185379886" noderef="33">
+                <accesszone ref="24" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="24" lengthkm="0.0" lsrefs="510" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="83" externalid="1640074989" noderef="37">
+                <accesszone ref="25" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="25" lengthkm="0.0" lsrefs="730" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="84" externalid="1810722184" noderef="362">
+                <accesszone ref="26" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="26" lengthkm="0.0" lsrefs="835,918" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="85" externalid="1832328196" noderef="38">
+                <accesszone ref="27" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="27" lengthkm="0.0" lsrefs="2256" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="86" externalid="6553012227" noderef="1031">
+                <accesszone ref="42" lengthkm="0.0" lsrefs="413,674" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="87" externalid="1832327997" noderef="39">
+                <accesszone ref="28" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="28" lengthkm="0.0" lsrefs="515" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="88" externalid="1849591550" noderef="40">
+                <accesszone ref="29" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="29" lengthkm="0.0" lsrefs="522" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="89" externalid="1802422531" noderef="44">
+                <accesszone ref="32" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="32" lengthkm="0.0" lsrefs="533" modes="bus" type="pt_veh_stop"/>
+                <accesszone ref="34" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="34" lengthkm="0.0" lsrefs="532" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="9" externalid="inferred" noderef="806">
+                <accesszone ref="45" lengthkm="0.006740852172522684" modes="pedestrian" type="access_egress"/>
+            </connectoid>
+            <connectoid id="90" noderef="45">
+                <accesszone ref="33" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="33" lengthkm="0.0" lsrefs="1135" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="91" externalid="356199769" noderef="105">
+                <accesszone ref="35" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="35" lengthkm="0.0" lsrefs="502" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="92" externalid="1632174670" noderef="297">
+                <accesszone ref="36" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="36" lengthkm="0.0" lsrefs="2224" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="93" noderef="46">
+                <accesszone ref="37" lengthkm="0.0" modes="pedestrian" type="access_egress"/>
+                <accesszone ref="37" lengthkm="0.0" lsrefs="2181" modes="bus" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="94" externalid="gtfs_inferred" noderef="1049">
+                <accesszone ref="79" lengthkm="0.0" lsrefs="1278" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="95" externalid="gtfs_inferred" noderef="1049">
+                <accesszone ref="79" lengthkm="0.0" lsrefs="2324" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="96" externalid="gtfs_inferred" noderef="1050">
+                <accesszone ref="80" lengthkm="0.0" lsrefs="1304" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="97" externalid="gtfs_inferred" noderef="1050">
+                <accesszone ref="80" lengthkm="0.0" lsrefs="2326" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="98" externalid="gtfs_inferred" noderef="1050">
+                <accesszone ref="81" lengthkm="0.0" lsrefs="1304" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+            <connectoid id="99" externalid="gtfs_inferred" noderef="1050">
+                <accesszone ref="81" lengthkm="0.0" lsrefs="2326" modes="train" type="pt_veh_stop"/>
+            </connectoid>
+        </transferzoneaccess>
+        <transferzonegroups>
+            <transfergroup id="0" externalid="4513987" tzrefs="44,45,46,47,48,58,59">
+                <name>Circular Quay</name>
+            </transfergroup>
+            <transfergroup id="1" externalid="9697193" tzrefs="41,42">
+                <name>Wynyard</name>
+            </transfergroup>
+            <transfergroup id="2" externalid="9724271" tzrefs="43">
+                <name>St James</name>
+            </transfergroup>
+            <transfergroup id="3" externalid="9769474" tzrefs="49,57">
+                <name>Martin Place</name>
+            </transfergroup>
+            <transfergroup id="4" externalid="10230844" tzrefs="55,56">
+                <name>Circular Quay</name>
+            </transfergroup>
+            <transfergroup id="5" externalid="10230851" tzrefs="52,53">
+                <name>QVB</name>
+            </transfergroup>
+            <transfergroup id="6" externalid="10230852" tzrefs="50,51">
+                <name>Wynyard</name>
+            </transfergroup>
+            <transfergroup id="7" externalid="10230853" tzrefs="54">
+                <name>Bridge Street</name>
+            </transfergroup>
+        </transferzonegroups>
+    </intermodal>
+</macroscopiczoning>

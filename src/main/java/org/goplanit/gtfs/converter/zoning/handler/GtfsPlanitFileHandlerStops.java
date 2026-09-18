@@ -1,8 +1,12 @@
 package org.goplanit.gtfs.converter.zoning.handler;
 
 import org.goplanit.converter.idmapping.IdMapperFunctionFactory;
-import org.goplanit.converter.idmapping.IdMapperType;
+import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.id.ExternalIdAble;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.GtfsObjectType;
@@ -22,9 +26,10 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.TransferZone;
-import org.goplanit.utils.zoning.TransferZoneType;
+import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.locationtech.jts.geom.Point;
 
 import java.util.*;
@@ -44,10 +49,44 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private static final Logger LOGGER = Logger.getLogger(GtfsPlanitFileHandlerStops.class.getCanonicalName());
 
   /** default to use to avoid compilation errors, should never be actually used */
-  private static final Function<Link, String> DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION = IdMapperFunctionFactory.createLinkIdMappingFunction(IdMapperType.ID);
+  /**
+   * Distance from the bounding area within which a stop is still worth naming individually, on either side of the
+   * boundary: just outside it the area being drawn differently would have included the stop, just inside it the
+   * network is truncated rather than absent. Beyond it, a stop belongs to another region and is only counted
+   */
+  private static final double MAX_DISTANCE_TO_BOUNDING_AREA_TO_REPORT_METERS = 100;
+
+  private static final Function<Link, String> DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION =
+          IdMapperFunctionFactory.createLinkIdMappingFunction(IdMapperType.ID);
 
   /** data tracking during parsing */
   private final GtfsZoningHandlerData data;
+
+  /**
+   * Helper for logging
+   *
+   * @param gtfsStop            to use
+   * @param matchedTransferZone to use
+   * @param matchedConnectoid   to use
+   */
+  private void logGtfsStopToLinkMapping(
+      final GtfsStop gtfsStop,
+      final TransferZone matchedTransferZone,
+      final TransferConnectoid matchedConnectoid) {
+
+    var directedEntry = (DirectedConnectoidAccessZoneEntry)
+        matchedConnectoid.getAccessZoneEntry(matchedTransferZone, ZoneConnectoidType.PT_VEHICLE_STOP);
+    if(directedEntry == null){
+      return;
+    }
+    LOGGER.info(String.format(
+        "GTFS stop (%s %s %s) mapped to PLANit link(s) [%s] of existing PLANit transfer zone (%s)",
+        gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsPoint(),
+        directedEntry.getAccessLinkSegments().stream().map(
+            EdgeSegment::getParent).distinct().map(ExternalIdAble::getIdsAsString).collect(
+                Collectors.joining(",")),
+        matchedTransferZone.getIdsAsString()));
+  }
 
   /**
    * Based on GTFS stop provide eligible links for mapping based on proximity or manually overwritten alternative(s)
@@ -74,8 +113,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       for(var gtfsStopModeEntry : mode2EligibleModesMapping.entrySet()) {
         SortedSet<Mode> allEligibleModes = gtfsStopModeEntry.getValue();
         for(var eligibleMode : allEligibleModes){
-          var foundLink = data.getServiceNetwork().getParentNetwork().getLayerByMode(eligibleMode).getLinks().firstMatch(
-              l -> chosenLinkId.equals(idMapper.apply(l)));
+          var foundLink =
+                  data.getServiceNetwork().getParentNetwork().getLayerByMode(eligibleMode).getLinks().firstMatch(
+                          l -> chosenLinkId.equals(idMapper.apply(l)));
           if(foundLink != null){
             closestOfNearbyLinks = foundLink;
             nearbyLinks = Collections.singleton(closestOfNearbyLinks);
@@ -86,7 +126,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
 
       if(closestOfNearbyLinks == null){
-        LOGGER.warning(String.format("Unable to find manually overwritten link mapping for GTFS stop id %s in network, instead trying to map as if it is a regular GTFS stop, verify settings", gtfsStop.getStopId()));
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_OVERWRITTEN_LINK_MAPPING_NOT_FOUND, gtfsStop.getStopId(),
+            createIssueArgs(gtfsStop));
       }
     }
 
@@ -94,25 +136,32 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     if(closestOfNearbyLinks == null){
       // nearby links that are mode compatible with any of the eligible modes across all primary modes
       nearbyLinks = GtfsLinkHelper.findNearbyLinks(
-          gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data);
-      nearbyLinks.removeIf(l -> !mode2EligibleModesMapping.values().stream().flatMap(v -> v.stream()).anyMatch(m -> l.isModeAllowedOnAnySegment(m)));
+          projectedGtfsStopLocation, data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data);
+      nearbyLinks.removeIf(l -> mode2EligibleModesMapping.values().stream().flatMap(Collection::stream).noneMatch(
+              l::isModeAllowedOnAnySegment));
       if (nearbyLinks.isEmpty() || nearbyLinks == null) {
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_NO_MODE_COMPATIBLE_LINK_IN_RADIUS, gtfsStop.getStopId(),
+            createIssueArgs(gtfsStop));
         return null;
       }
       closestOfNearbyLinks = PlanitEntityGeoUtils.findPlanitEntityClosest(
-          projectedGtfsStopLocation.getCoordinate(), nearbyLinks, suppressLogging, data.getGeoTools()).first();
+          projectedGtfsStopLocation.getCoordinate(), nearbyLinks, suppressLogging, data.getGeoToolsInPlanitCrs()).first();
     }
 
     return Pair.of(nearbyLinks, closestOfNearbyLinks);
   }
 
-  private Function<Link, String> createAccessLinkToSourceIdFunctionByGtfsStop(GtfsStop gtfsStop, Function<Link,String> defaultIfNoOverwritten) {
+  private Function<Link, String> createAccessLinkToSourceIdFunctionByGtfsStop(
+          GtfsStop gtfsStop, Function<Link,String> defaultIfNoOverwritten) {
+
     var overwrittenLinkWithIdMapper = data.getSettings().getOverwrittenGtfsStopToLinkMapping(gtfsStop.getStopId());
     boolean overrideActive = overwrittenLinkWithIdMapper != null && overwrittenLinkWithIdMapper.bothNotNull();
     if (!overrideActive) {
       return defaultIfNoOverwritten;
     }
-    return IdMapperFunctionFactory.createLinkIdMappingFunction(overwrittenLinkWithIdMapper.second()); // sync with override
+    return IdMapperFunctionFactory.createLinkIdMappingFunction(
+            overwrittenLinkWithIdMapper.second()); // sync with override
   }
 
   private Function<String,String> createOverwrittenAccessLinkToSourceIdFunction(GtfsStop gtfsStop, Mode mode) {
@@ -123,9 +172,11 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       return null;
     }
 
-    //todo: if we get a lot of overrides this gets slow as it performs a linear search on all links in the network per override
-    final var overwrittenAccessLink = data.getServiceNetwork().getParentNetwork().getLayerByMode(mode).getLinks().firstMatch(
-        link -> overwrittenLinkWithIdMapper.first().equals(linkToSourceId.apply(link)));
+    //todo: if we get a lot of overrides this gets slow as it performs a linear search on
+    // all links in the network per override
+    final var overwrittenAccessLink =
+            data.getServiceNetwork().getParentNetwork().getLayerByMode(mode).getLinks().firstMatch(
+                    link -> overwrittenLinkWithIdMapper.first().equals(linkToSourceId.apply(link)));
     /* supply overwritten link's source id in functional form*/
     return (gtfsStopId) -> linkToSourceId.apply(overwrittenAccessLink);
   }
@@ -153,13 +204,16 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       final Collection<Mode> eligibleAccessModes,
       final Set<MacroscopicLinkSegment> potentialLinkSegments) {
 
-    final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
+    final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(
+            gtfsStop.getLocationAsPoint(), data.getCrsTransformGtfsToPlanit());
 
-    var linkToSourceId = createAccessLinkToSourceIdFunctionByGtfsStop(gtfsStop, DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION);
+    var linkToSourceId = createAccessLinkToSourceIdFunctionByGtfsStop(
+            gtfsStop, DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION);
     final var linkWithIdMapper = data.getSettings().getOverwrittenGtfsStopToLinkMapping(gtfsStop.getStopId());
     boolean overrideActive = linkWithIdMapper != null && linkWithIdMapper.bothNotNull();
 
-    /* 2) make sure a valid stop_location on each remaining link can be created (for example if stop_location would be on an extreme node, it is possible no access link segment upstream of that node remains
+    /* 2) make sure a valid stop_location on each remaining link can be created (for example if stop_location
+    would be on an extreme node, it is possible no access link segment upstream of that node remains
      *    which would render an otherwise valid position invalid */
     var linkSegmentsWithConnectoidLocation = new HashSet<MacroscopicLinkSegment>();
     for(var accessMode : eligibleAccessModes) {
@@ -178,14 +232,14 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
             gtfsStop.getStopId(),
             projectedGtfsStopLocation,
             candidate,
-            linkToSourceId.apply(candidate.getParentLink()),
+            linkToSourceId.apply(candidate.getParent()),
             accessMode,
             data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
             null,
             null,
             overwrittenAccessLinkToSourceId,
             data.getSettings().getCountryName(),
-            data.getGeoTools())){
+            data.getGeoToolsInPlanitCrs())){
           linkSegmentsWithConnectoidLocation.add(candidate);
         }
       }
@@ -194,16 +248,21 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     if(linkSegmentsWithConnectoidLocation.isEmpty() ) {
       return null;
     }
-    var filteredLinks = linkSegmentsWithConnectoidLocation.stream().map(ls -> ls.getParentLink()).collect(Collectors.toSet());
+    var filteredLinks =
+        linkSegmentsWithConnectoidLocation.stream().map(MacroscopicLinkSegment::getParent).collect(Collectors.toSet());
     if(filteredLinks.size()==1) {
-      var selectedAccessLink = linkSegmentsWithConnectoidLocation.iterator().next().getParentLink();
+      var selectedAccessLink = linkSegmentsWithConnectoidLocation.iterator().next().getParent();
       return Pair.of(selectedAccessLink, linkSegmentsWithConnectoidLocation);
     }
 
-    /* 3) all proper candidates so  reduce options further based on proximity to closest viable link, while removing options outside the closest distance buffer */
+    /* 3) all proper candidates so  reduce options further based on proximity to closest viable
+     link, while removing options outside the closest distance buffer */
     final var finalFilteredLinks =
         PlanitGraphGeoUtils.findEdgesWithinClosestDistanceDeltaToGeometry(
-            projectedGtfsStopLocation, filteredLinks, GtfsZoningReaderSettings.DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M, data.getGeoTools()).keySet();
+            projectedGtfsStopLocation,
+                filteredLinks,
+                GtfsZoningReaderSettings.DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M,
+                data.getGeoToolsInPlanitCrs()).keySet();
     linkSegmentsWithConnectoidLocation.removeIf( ls -> !finalFilteredLinks.contains(ls.getParent())); // sync
 
     if(finalFilteredLinks.size()==1){
@@ -211,23 +270,33 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       return Pair.of(selectedAccessLink, linkSegmentsWithConnectoidLocation);
     }
 
-    /* 4) Remaining options are all valid and close ... choose based on importance, the premise being that road based PT services tend to be located on main roads, rather than smaller roads
-     * so, we choose the first link segment with the highest capacity found (if they differ) and then return its parent link as the candidate */
+    /* 4) Remaining options are all valid and close ... choose based on importance, the premise being that
+    road based PT services tend to be located on main roads, rather than smaller roads
+     * so, we choose the first link segment with the highest capacity found (if they differ) and then return
+     its parent link as the candidate */
     if( eligibleAccessModes.stream().findAny().get().getPhysicalFeatures().getTrackType() == TrackModeType.ROAD &&
         filteredLinks.size()>1 &&
-        linkSegmentsWithConnectoidLocation.stream().map(MacroscopicLinkSegment::getCapacityOrDefaultPcuHLane).distinct().count()>1){
+        linkSegmentsWithConnectoidLocation.stream().map(
+                MacroscopicLinkSegment::getCapacityOrDefaultPcuHLane).distinct().count()>1){
 
       // retain only edge segments with the maximum capacity
-      var maxCapacity = linkSegmentsWithConnectoidLocation.stream().map(MacroscopicLinkSegment::getCapacityOrDefaultPcuHLane).max(Comparator.naturalOrder());
-      var lowerCapacitySegments = linkSegmentsWithConnectoidLocation.stream().filter(ls -> Precision.smaller( ls.getCapacityOrDefaultPcuHLane(), maxCapacity.get(), Precision.EPSILON_6)).collect(Collectors.toUnmodifiableSet());
+      var maxCapacity =
+          linkSegmentsWithConnectoidLocation.stream().map(
+              MacroscopicLinkSegment::getCapacityOrDefaultPcuHLane).max(Comparator.naturalOrder());
+      var lowerCapacitySegments =
+          linkSegmentsWithConnectoidLocation.stream().filter(ls -> Precision.smaller(
+              ls.getCapacityOrDefaultPcuHLane(), maxCapacity.get(), Precision.EPSILON_6)).collect(
+                      Collectors.toUnmodifiableSet());
       linkSegmentsWithConnectoidLocation.removeAll(lowerCapacitySegments);
     }
 
     /* now find the closest remaining*/
-    filteredLinks = linkSegmentsWithConnectoidLocation.stream().map(ls -> ls.getParentLink()).collect(Collectors.toSet()); //sync again
+    filteredLinks = linkSegmentsWithConnectoidLocation.stream().map(
+        MacroscopicLinkSegment::getParent).collect(Collectors.toSet()); //sync again
     MacroscopicLink finalSelectedAccessLink = filteredLinks.iterator().next();
     if(filteredLinks.size()>1) {
-      finalSelectedAccessLink = (MacroscopicLink) PlanitGraphGeoUtils.findEdgeClosest(projectedGtfsStopLocation, filteredLinks, data.getGeoTools());
+      finalSelectedAccessLink = (MacroscopicLink) PlanitGraphGeoUtils.findEdgeClosest(
+          projectedGtfsStopLocation, filteredLinks, data.getGeoToolsInPlanitCrs());
     }
     final var dummy = finalSelectedAccessLink;
     linkSegmentsWithConnectoidLocation.removeIf(ls -> !ls.getParent().equals(dummy)); // sync
@@ -236,8 +305,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * From the provided options, select the most appropriate based on proximity, mode compatibility, relative location to GTFS stop zone, and importance of the link segment.
-   * In case of track based modes either direction link segment is acceptable, otherwise the correctly facing link segment is chosen
+   * From the provided options, select the most appropriate based on proximity, mode compatibility, relative location
+   * to GTFS stop zone, and importance of the link segment. In case of track based modes either direction link segment
+   * is acceptable, otherwise the correctly facing link segment is chosen
    * <p>
    *   Based on set of eligible links, not link segments
    * </p>
@@ -248,14 +318,20 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @return most appropriate link that is found and its eligible access link segment(s), null if no compatible links could be found
    */
   private Pair<MacroscopicLink, Set<MacroscopicLinkSegment>> findMostAppropriateStopLocationLinkFromLinks(
-      final GtfsStop gtfsStop, final Collection<Mode> eligibleAccessModes, final Collection<MacroscopicLink> eligibleLinks) {
-    final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
+      final GtfsStop gtfsStop,
+          final Collection<Mode> eligibleAccessModes,
+          final Collection<MacroscopicLink> eligibleLinks) {
 
-    var linkToSourceId = createAccessLinkToSourceIdFunctionByGtfsStop(gtfsStop, DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION);
+    final Point projectedGtfsStopLocation =
+            (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransformGtfsToPlanit());
+
+    var linkToSourceId =
+            createAccessLinkToSourceIdFunctionByGtfsStop(gtfsStop, DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION);
     final var linkWithIdMapper = data.getSettings().getOverwrittenGtfsStopToLinkMapping(gtfsStop.getStopId());
     boolean overrideActive = linkWithIdMapper != null && linkWithIdMapper.bothNotNull();
 
-    /* 1) reduce candidates to access links related to access link segments that are deemed valid in terms of mode and location (closest already complies as per above) */
+    /* 1) reduce candidates to access links related to access link segments that are deemed valid in
+     terms of mode and location (closest already complies as per above) */
     Set<MacroscopicLinkSegment> accessLinkSegments = new HashSet<>(2);
 
     for(var accessMode : eligibleAccessModes) {
@@ -278,7 +354,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
             mustAvoidCrossingTraffic,
             overwrittenAccessLinkToSourceId,
             null,
-            data.getGeoTools());
+            data.getGeoToolsInPlanitCrs());
         if (currAccessLinkSegments != null && !currAccessLinkSegments.isEmpty()) {
           accessLinkSegments.addAll((Collection<MacroscopicLinkSegment>) currAccessLinkSegments);
         }
@@ -297,7 +373,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param allEligibleModes eligble modes for mathcing
    * @return found transfer zone, null if none found
    */
-  private TransferZone matchByPlatform(GtfsStop gtfsStop, Collection<TransferZone> transferZones, SortedSet<Mode> allEligibleModes) {
+  private TransferZone matchByPlatform(
+          GtfsStop gtfsStop, Collection<TransferZone> transferZones, SortedSet<Mode> allEligibleModes) {
     /* platform codes should only be present when platform is part of a station */
     if(!gtfsStop.hasPlatformCode()){
       return null;
@@ -317,50 +394,76 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * Match first transfer zone in collection which has an access link segment for one of its directed connectoids that equals the GTFS stop's preferred
+   * Match first transfer zone in collection which has an access link segment for one of its directed connectoids
+   * that equals the GTFS stop's preferred
    * access link segment(s)
    *
    * @param gtfsStop to match against
    * @param preferredAccessLinkSegments of the GTFS stop
    * @param transferZones to check against
-   * @param maxStopToAccessNodeDistanceMeters the maximum allowed distances between GTFS stop and the access node of the matched access link segment
-   * @return found transfer zone and its matched directed connectoid (and its access link segment) that matches the GTFS stop, null if none found
+   * @param maxStopToAccessNodeDistanceMeters the maximum allowed distances between GTFS stop and the access node of
+   *                                          the matched access link segment
+   * @return found transfer zone and its matched directed connectoid (and its access link segment) that matches the
+   *          GTFS stop, null if none found
    */
-  private Pair<TransferZone,DirectedConnectoid> matchByAccessLinkSegments(
-      final GtfsStop gtfsStop, final Collection<? extends LinkSegment> preferredAccessLinkSegments, final Collection<TransferZone> transferZones, final double maxStopToAccessNodeDistanceMeters) {
+  private Pair<TransferZone, TransferConnectoid> matchByAccessLinkSegments(
+      final GtfsStop gtfsStop,
+      final Collection<? extends LinkSegment> preferredAccessLinkSegments,
+      final Collection<TransferZone> transferZones,
+      final double maxStopToAccessNodeDistanceMeters) {
+
     TransferZone match = null;
-    DirectedConnectoid matchedConnectoid = null;
+    TransferConnectoid matchedConnectoid = null;
     for (var transferZone : transferZones) {
       var directedConnectoids = data.getTransferZoneConnectoids(transferZone);
       for (var cn : directedConnectoids) {
-        /* match on link segment */
-        if(preferredAccessLinkSegments.contains(cn.getAccessLinkSegment())) {
-          var projectedGtfsStopLocation = (Point)PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
 
-          /* ensure that actual access node is within acceptable distance as well, e.g., if too far away the access link segment is too long and
-           * transfer zone considered not close enough, given it is a match on the link segment, we allow for a little more distance, namely the allowed distance to a transfer zone + the allowed distance from transfer zone(stop) to the road*/
-          final var maxStopToAccessNodeDistanceForMatchedTransferZonesWithEqualAccessLinkSegment = data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters() + data.getSettings().getGtfsStopToLinkSearchRadiusMeters();
-          if(data.getGeoTools().isDistanceWithinMetres(projectedGtfsStopLocation, cn.getAccessNode().getPosition(), maxStopToAccessNodeDistanceForMatchedTransferZonesWithEqualAccessLinkSegment)) {
-            if (match != null) {
-              var options = List.of(match, transferZone);
-              var closestMatch = PlanitEntityGeoUtils.findPlanitEntityClosest(
-                  projectedGtfsStopLocation.getCoordinate(), List.of(match, transferZone), false, data.getGeoTools());
-              matchedConnectoid = closestMatch.first().equals(match) ? matchedConnectoid : cn;
-              match = closestMatch.first();
-              LOGGER.info(
-                  String.format("Choosing closest transfer zone %s with access link segment (%s, ext id: %s) for matched GTFS stop %s %s (location %s), from eligible options [%s], verify correctness",
-                      match.getIdsAsString(),
-                      cn.getAccessLinkSegment().getXmlId(), cn.getAccessLinkSegment().getParentLink().getExternalId(), gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(),
-                      options.stream().map(tz -> "("+tz.getIdsAsString()+")").collect(Collectors.joining(","))));
-            } else {
-              match = transferZone;
-              matchedConnectoid = cn;
-            }
-          }else{
+        if(!cn.hasAccessZoneEntry(transferZone, ZoneConnectoidType.PT_VEHICLE_STOP)){
+          continue;
+        }
+
+        var connectoidZoneEntry = cn.getAsDirectedAccessZoneEntry(transferZone, ZoneConnectoidType.PT_VEHICLE_STOP);
+        if(Collections.disjoint(preferredAccessLinkSegments, connectoidZoneEntry.getAccessLinkSegments())){
+          continue;
+        }
+        /* match on link segment - proceed */
+        var projectedGtfsStopLocation =
+            (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransformGtfsToPlanit());
+
+        if (data.getGeoToolsInPlanitCrs().isDistanceWithinMetres(
+            projectedGtfsStopLocation,
+            cn.getReferenceVertex().getPosition(),
+            maxStopToAccessNodeDistanceMeters)) {
+
+          if (match != null) {
+            var options = List.of(match, transferZone);
+            var closestMatch = PlanitEntityGeoUtils.findPlanitEntityClosest(
+                projectedGtfsStopLocation.getCoordinate(), List.of(match, transferZone), false,
+                data.getGeoToolsInPlanitCrs());
+            matchedConnectoid = closestMatch.first().equals(match) ? matchedConnectoid : cn;
+            match = closestMatch.first();
             LOGGER.info(
-                String.format("GTFS stop %s %s (location %s) initially matched to transfer zone (%s) sharing same preferred access link segment, but access node too far away, match ignored",
-                    gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), transferZone.getIdsAsString()));
+                String.format(
+                    "Choosing closest transfer zone %s with access node (%s) " +
+                        "for matched GTFS stop %s %s (location %s), from options [%s]," +
+                        " verify correctness",
+                    match.getIdsAsString(),
+                    cn.getReferenceVertex().getIdsAsString(),
+                    gtfsStop.getStopId(),
+                    gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(),
+                    options.stream().map(tz -> "(" + tz.getIdsAsString() + ")")
+                        .collect(Collectors.joining(","))));
+          } else {
+            match = transferZone;
+            matchedConnectoid = cn;
           }
+        } else {
+          LOGGER.info(
+              String.format(
+                  "GTFS stop %s %s (location %s) initially matched to transfer zone (%s) sharing " +
+                      "same preferred access link segment, but access node too far away, match ignored",
+                  gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(),
+                  transferZone.getIdsAsString()));
         }
       }
     }
@@ -368,87 +471,127 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * Match available transfer zones to the gtfs stop with a given number of preferred access segments. These segments for road based should only contain a single directional segment whereas for
-   * track based, they can contain multiple (as tracks have no direction, both directions are acceptable). We then cycle through the closest eligible transfer zones and for each determine the angle
-   * between a virtual line connecting the zone-to-road vs the gtfs-stop-to-road is below the given threshold. If it is a match is found which is then verified to be reachable. The latter meaning that
-   * the access link segment of the gtfs stop should be adjacent to a transfer zone's access link segment with acceptable angle. If so it is a proper match. If only the angle matches we log a warning
+   * Match available transfer zones to the gtfs stop with a given number of preferred access segments. These segments
+   * for road based should only contain a single directional segment whereas for
+   * track based, they can contain multiple (as tracks have no direction, both directions are acceptable). We then
+   * cycle through the closest eligible transfer zones and for each determine the angle
+   * between a virtual line connecting the zone-to-road vs the gtfs-stop-to-road is below the given threshold. If
+   * it is a match is found which is then verified to be reachable. The latter meaning that
+   * the access link segment of the gtfs stop should be adjacent (not the same) to a transfer zone's access link
+   * segment with acceptable angle. If so it is a proper match. If only the angle matches we log a warning
    * for the user to check if it is indeed valid.
    *
    * @param gtfsStop                          to match
    * @param gtfsStopMode                      mode of the stop
-   * @param gtfsAccessSegments                GTFS stop elgible access link segments
+   * @param gtfsAccessSegments                GTFS stop eligible access link segments
    * @param nearbyTransferZones               to match with
    * @param maxAngleDegrees                   to allow
-   * @param maxStopToAccessNodeDistanceMeters the maximum allowed distances between GTFS stop and the access node of the matched access link segment
-   * @return matches transfer zone, null if no valid match is found
+   * @param maxStopToAccessNodeDistanceMeters the maximum allowed distances between GTFS stop and the access node
+   *                                          of the matched access link segment
+   * @return matched transfer zone and connectoid, null if no valid match is found
    */
-  private TransferZone matchByClosestWithAcceptableAccessAngle(
-      GtfsStop gtfsStop, Mode gtfsStopMode, Collection<? extends LinkSegment> gtfsAccessSegments, Collection<TransferZone> nearbyTransferZones, final double maxAngleDegrees, final double maxStopToAccessNodeDistanceMeters) {
+  private Pair<TransferZone, TransferConnectoid> matchByClosestAdjacentWithAcceptableAccessAngle(
+      GtfsStop gtfsStop,
+      Mode gtfsStopMode,
+      Collection<? extends LinkSegment> gtfsAccessSegments,
+      Collection<TransferZone> nearbyTransferZones,
+      final double maxAngleDegrees,
+      final double maxStopToAccessNodeDistanceMeters) {
+
     TransferZone matchedTransferZone = null;
-    final Point projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(), data.getCrsTransform());
+    TransferConnectoid matchedConnectoid = null;
+    final Point projectedGtfsStopLocation =
+            (Point) PlanitJtsUtils.transformGeometry(
+                gtfsStop.getLocationAsPoint(), data.getCrsTransformGtfsToPlanit());
 
     final boolean allowUTurn = false;
     boolean adjacentMatch = false;
     var accessLinkSegment = gtfsAccessSegments.iterator().next();
+    var gtfsAzimuth= GtfsLinkSegmentHelper.getAzimuthFromLinkSegmentToCoordinate(
+        accessLinkSegment, projectedGtfsStopLocation.getCoordinate(), data);
     while (!adjacentMatch && !nearbyTransferZones.isEmpty()){
-      /* no match yet, ... find closest existing transfer zone and verify if angle of its access link segment is appropriate for our gtfs stop*/
-      var currTransferZone = GtfsTransferZoneHelper.findTransferZoneStopLocationClosestTo(projectedGtfsStopLocation.getCoordinate(), nearbyTransferZones, data).first();
+      /* no match yet, ... find closest existing transfer zone and verify if angle of its access link
+      segment is appropriate for our gtfs stop*/
+      var currTransferZone = GtfsTransferZoneHelper.findTransferZoneClosestTo(
+              projectedGtfsStopLocation.getCoordinate(), nearbyTransferZones, data).first();
+      var zoneGeoCentroid = currTransferZone.getGeometry(true).getCentroid();
       if(gtfsAccessSegments.size()>1){
-        break; // track based mode, so access is guaranteed on any side of stop location, just select this closest stop as the match
+        break; // track based mode, so access is guaranteed on any side of stop location,
+        // just select this closest stop as the match
       }
 
-      /* verify that closest transfer zone is virtually attached to the road network roughly using the same virtual direction as if we were to connect
-       * the gtfs stop to the nearest eligible link segment (mode and direction compatible). check by using azimuth and virtual line segment from these points to road network */
+      /* verify that closest transfer zone is virtually attached to the road network roughly using the same
+       virtual direction as if we were to connect
+       * the gtfs stop to the nearest eligible link segment (mode and direction compatible). check by using
+       azimuth and virtual line segment from these points to road network */
       var directedConnectoids = data.getTransferZoneConnectoids(currTransferZone);
-      boolean angleMatchFound = false;
-      NEXT:
-      for (var cn : directedConnectoids) {
+      LinkSegment angleMatchAccessSegment = null;
+      for (var currentZoneConnectoid : directedConnectoids) {
 
         // check if connectoid within acceptable distance
-        if(!data.getGeoTools().isDistanceWithinMetres(projectedGtfsStopLocation, cn.getAccessNode().getPosition(),maxStopToAccessNodeDistanceMeters)) {
+        if(!data.getGeoToolsInPlanitCrs().isDistanceWithinMetres(
+            projectedGtfsStopLocation,
+            currentZoneConnectoid.getReferenceVertex().getPosition(),
+            maxStopToAccessNodeDistanceMeters)) {
           continue;
         }
 
+        var zoneConnectoidEntry = currentZoneConnectoid.getAsDirectedAccessZoneEntry(
+            currTransferZone, ZoneConnectoidType.PT_VEHICLE_STOP);
         // check if mode compatible
-        if(!cn.getAccessLinkSegment().isModeAllowed(gtfsStopMode)){
+        if(!zoneConnectoidEntry.isModeAllowed(gtfsStopMode)){
           continue;
         }
 
-        // check angle difference between shortest zone-to-road virtual line
-        var zoneGeoCentroid = (Point) currTransferZone.getGeometry(true).getCentroid();
-        double tzAzimuth = GtfsLinkSegmentHelper.getAzimuthFromLinkSegmentToCoordinate(cn.getAccessLinkSegment(), zoneGeoCentroid.getCoordinate(), data);
-        var gtfsAzimuth= GtfsLinkSegmentHelper.getAzimuthFromLinkSegmentToCoordinate(accessLinkSegment, projectedGtfsStopLocation.getCoordinate(), data);
-        double diffAngle = PlanitJtsUtils.minDiffAngleInDegrees(gtfsAzimuth,tzAzimuth);
-        if ( diffAngle < maxAngleDegrees) {
-          // tentative match to register
-          angleMatchFound = true;
-          // check adjacency. Can happen that we have no adjacency meaning either that this is a train platform and we have to try the other
-          // connectoids first that likely will be adjacent, or it appears to be match but it might be an anomaly with close together stops in which case
-          // we will log a warning after checking all other options first
-          adjacentMatch = accessLinkSegment.isAdjacent(cn.getAccessLinkSegment(), allowUTurn);
+        for(var accessSegment : zoneConnectoidEntry.getAccessLinkSegments()){
+          // check angle difference between shortest zone-to-road virtual line
+          double tzAzimuth = GtfsLinkSegmentHelper.getAzimuthFromLinkSegmentToCoordinate(
+              (LinkSegment) accessSegment, zoneGeoCentroid.getCoordinate(), data);
+          double diffAngle = PlanitJtsUtils.minDiffAngleInDegrees(gtfsAzimuth,tzAzimuth);
+          if ( diffAngle < maxAngleDegrees) {
+            // tentative match to register
+            angleMatchAccessSegment = accessLinkSegment;
+            // check adjacency. Can happen that we have no adjacency meaning either that this is a train platform
+            // and we have to try the other
+            // connectoids first that likely will be adjacent, or it appears to be match but it might be an anomaly
+            // with close together stops in which case
+            // we will log a warning after checking all other options first
+            adjacentMatch = accessLinkSegment.isAdjacent(accessSegment, allowUTurn);
+          }
+          if(adjacentMatch){
+            break;
+          }
+        }
+
+        // update match - but if not adjacent keep looking for better match
+        if(angleMatchAccessSegment!=null) {
+          matchedTransferZone = currTransferZone;
+          matchedConnectoid = currentZoneConnectoid;
         }
 
         if(adjacentMatch){
-          break NEXT;
+          break;
         }
       }
 
-      // update match
-      if(angleMatchFound && (matchedTransferZone== null || adjacentMatch)) {
-        matchedTransferZone = currTransferZone;
-      }else {
+      if(!adjacentMatch){
         nearbyTransferZones.remove(currTransferZone);
       }
     }
 
-    // notify user of a match found but preferred GTFS access link segment - while having the right angle - does not appear to be directly adjacent (possibly not reachable), let user decide what to do but keep mapping
+    // notify user of a match found but preferred GTFS access link segment - while having the right angle - does
+    // not appear to be directly adjacent (possibly not reachable), let user decide what to do but keep mapping
     if(matchedTransferZone!=null && !adjacentMatch){
-      LOGGER.warning(String.format(
-          "GTFS stop %s %s (location %s) mapped to transfer zone (%s, ext id:%s, name: %s), but GTFS preferred access link segment (XmlId: %s, ExtId: %s) not adjacent to existing access link segments, verify correctness",
-          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), matchedTransferZone.getXmlId(), matchedTransferZone.getExternalId(), matchedTransferZone.getName(), accessLinkSegment.getXmlId(), accessLinkSegment.getParentLink().getExternalId()));
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_PREFERRED_ACCESS_LINK_SEGMENT_NOT_ADJACENT, gtfsStop.getStopId(),
+          createIssueArgs(
+              gtfsStop,
+              matchedTransferZone.getIdsAsString(),
+              matchedTransferZone.getName(),
+              accessLinkSegment.getIdsAsString()));
     }
 
-    return matchedTransferZone;
+    return Pair.of(matchedTransferZone, matchedConnectoid);
   }
 
   /**
@@ -487,49 +630,62 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
           continue;
         }
 
-        /* remove transfer zones if no connectoids are found that reside on the correct side of the road, where rail is acceptable in both directions always*/
+        /* remove transfer zones if no connectoids are found that reside on the correct side of the road,
+        where rail is acceptable in both directions always*/
         consideredTransferZones.removeIf(
             tz -> stopLocationDirectionSpecific &&
-                !GtfsTransferZoneHelper.isGtfsStopOnCorrectSideOfTransferZoneAccessLinkSegments(gtfsStop, primaryMode, tz, data, false));
+                !GtfsTransferZoneHelper.isGtfsStopOnCorrectSideOfPtModeTransferZoneAccessLinkSegments(
+                    gtfsStop, primaryMode, tz, data, false));
         if (consideredTransferZones.isEmpty()) {
           continue;
         }
 
-        /* remove transfer zones that already have a mapping to a GTFS stop when user has indicated no joint mappings are allowed */
+        /* remove transfer zones that already have a mapping to a GTFS stop when user has indicated no joint
+        mappings are allowed */
         if (data.getSettings().isDisallowGtfsStopToTransferZoneJointMapping(gtfsStop.getStopId())) {
-          consideredTransferZones.removeIf(tz -> data.hasMappedGtfsStop(tz));
+          consideredTransferZones.removeIf(data::hasMappedGtfsStop);
         }
       }
 
       var modeTransferZone = findMatchingExistingTransferZoneByPlatformOrLinks(gtfsStop, primaryMode, nearbyTransferZones);
       if (theTransferZone != null && theTransferZone != modeTransferZone) {
-        throw new PlanItRunTimeException("GTFS stop %s %s (location %s) supports multiple modes, but could not map those to a single transfer zone, this shouldn't happen, verify correctness", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
+        throw new PlanItRunTimeException("GTFS stop %s %s (location %s) supports multiple modes, but could not " +
+                "map those to a single transfer zone, this shouldn't happen, verify correctness",
+                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
       }
       theTransferZone = modeTransferZone;
     }
 
     if (theTransferZone == null) {
       LOGGER.fine(String.format(
-          "GTFS stop %s %s (location %s) [mode(s): %s] not matched to nearby transfer zone(s) (%s), creating new transfer zone",
-          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), primaryGtfsStopModes.stream().map(e -> e.getName()).collect(Collectors.joining()),
-          nearbyTransferZones.stream().map(tz -> "[" + tz.getXmlId() + ", name: " + tz.getName() + ", ext id: " + tz.getExternalId() + "]").collect(Collectors.joining())));
+          "GTFS stop %s %s (location %s) [mode(s): %s] not matched to nearby transfer zone(s) (%s), creating " +
+                  "new transfer zone",
+          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(),
+              primaryGtfsStopModes.stream().map(Mode::getName).collect(Collectors.joining()),
+          nearbyTransferZones.stream().map(tz -> "[" + tz.getXmlId() + ", name: " + tz.getName() + "," +
+                  " ext id: " + tz.getExternalId() + "]").collect(Collectors.joining())));
     }
     return theTransferZone;
   }
 
   /**
    * Process a GTFS stop that is expected to be matchable to nearby existing transfer zone(s).
-   * If a match is found it will provide the match, of not null is returned and a warning is logged to the user if appropriate
+   * If a match is found it will provide the match, of not null is returned and a warning is logged to the user
+   * if appropriate
    *
    * @param gtfsStop      to create new TransferZone for
    * @param primaryMode PLANit mode associated with GTFS stop
    * @param nearbyTransferZones to consider, note this container will be pruned if zones are not eligible
-   * @return found match (not attached yet), null if no match is found, the mode can be the primary mode initially provided, or a compatible alternative mode
-   *          that is deemed a valid alternative. If the latter is the case, the found transfer zone is not compatible with the primary mode
+   * @return found match (not attached yet), null if no match is found, the mode can be the primary mode initially
+   *         provided, or a compatible alternative mode that is deemed a valid alternative. If the latter is the case,
+   *         the found transfer zone is not compatible with the primary mode
    */
-  private TransferZone findMatchingExistingTransferZoneByPlatformOrLinks(final GtfsStop gtfsStop, final Mode primaryMode, final Collection<TransferZone> nearbyTransferZones) {
-    PlanItRunTimeException.throwIfNull(primaryMode,"GTFS stop's associated PLANit mode null, this is not allowed");
-    PlanItRunTimeException.throwIfNullOrEmpty(nearbyTransferZones,"No nearby transfer zones provided, this is not allowed");
+  private TransferZone findMatchingExistingTransferZoneByPlatformOrLinks(
+          final GtfsStop gtfsStop, final Mode primaryMode, final Collection<TransferZone> nearbyTransferZones) {
+    PlanItRunTimeException.throwIfNull(primaryMode,"GTFS stop's associated PLANit mode null, " +
+            "this is not allowed");
+    PlanItRunTimeException.throwIfNullOrEmpty(nearbyTransferZones,"No nearby transfer zones " +
+            "provided, this is not allowed");
 
     var allEligibleModes = data.expandWithCompatibleModes(primaryMode);
 
@@ -540,67 +696,101 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       return matchedTransferZone;
     }
 
-    /* identify preferred access link (segments) for GTFS stop as if there were no existing transfer zones to map to, to use for matching */
-    var nearbyLinks = GtfsLinkHelper.findNearbyLinks(gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data);
+    /* identify preferred access link (segments) for GTFS stop as if there were no existing transfer zones to
+    map to, to use for matching */
+    var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(
+        gtfsStop.getLocationAsPoint(),data.getCrsTransformGtfsToPlanit());
+    var nearbyLinks = GtfsLinkHelper.findNearbyLinks(
+        projectedGtfsStopLocation, data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), data);
     if(nearbyLinks == null || nearbyLinks.isEmpty()){
-      LOGGER.warning(String.format("No nearby links found for GTFS stop %s within search radius of %.2fm, consider expanding search radius, or override to attach to any of transfer zones: %s",
-          gtfsStop.getStopId(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(), nearbyTransferZones.stream().map(tz -> "[" + tz.getXmlId() + ", name: " + tz.getName() + ", ext id: " + tz.getExternalId() + "]").collect(Collectors.joining())));
+      /* the same search is repeated without any match when a transfer zone is created for this stop instead, where
+       * its loss is recorded, so reporting it here as well would count the same stop twice */
+      LOGGER.fine(String.format("No nearby links found for GTFS stop %s within search radius of %.2fm, " +
+                      "consider expanding search radius, or override to attach to any of transfer zones: %s",
+          gtfsStop.getStopId(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
+              nearbyTransferZones.stream().map(tz -> "[" + tz.getXmlId() + ", name: " + tz.getName() +
+                      ", ext id: " + tz.getExternalId() + "]").collect(Collectors.joining())));
       return null;
     }
 
     /* filter nearby links based on the transfer zone links that are deemed possibly compatible */
-    var transferZoneAccessLinkSegments = nearbyTransferZones.stream().flatMap(
-        tz -> data.getTransferZoneConnectoids(tz).stream()).map(c -> (MacroscopicLinkSegment)c.getAccessLinkSegment()).collect(Collectors.toSet());
+    var transferZoneAccessLinkSegments = (Set<MacroscopicLinkSegment>) nearbyTransferZones.stream().flatMap(
+        tz -> data.getTransferZoneConnectoids(tz).stream()).flatMap(
+        TransferConnectoid::getExplicitAccessLinkSegmentsStream).collect(Collectors.toSet());
     if(transferZoneAccessLinkSegments.isEmpty()){
       /* all nearby transfer zone access links are too far, so unlikely they make sense to use */
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_NEARBY_TRANSFER_ZONE_WITHOUT_ACCESS_SEGMENTS, gtfsStop.getStopId(),
+          createIssueArgs(gtfsStop));
       return null;
     }
 
-    /* find best option from provided options. In this case we do allow upstream extreme nodes of an access link segment, the reason being
+    /* find best option from provided options. In this case we do allow upstream extreme nodes of an access
+    link segment, the reason being
     * that we ideally do not want to create */
     var desiredAccessResult = findAppropriateStopLocationLinkFromLinkSegments(
         gtfsStop, allEligibleModes, transferZoneAccessLinkSegments);
     if(desiredAccessResult == null){
-      LOGGER.info(String.format("GTFS stop (%s %s %s, mode: %s) access Links [%s] of nearby transfer zones [%s] incompatible/too far, creating new transfer zone instead (unless indicated otherwise) ",
-          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsPoint(), allEligibleModes.stream().map(m -> m.getPredefinedModeType().toString()).collect(Collectors.joining(",")),
-          transferZoneAccessLinkSegments.stream().map(l -> l.getParentLink().getIdsAsString()).distinct().collect(Collectors.joining(",")),
-          nearbyTransferZones.stream().map(tz -> "("+tz.getIdsAsString()+")").collect(Collectors.joining(","))));
+      LOGGER.info(String.format("GTFS stop (%s %s %s, mode: %s) access Links [%s] of nearby transfer zones" +
+                      " [%s] incompatible/too far, creating new transfer zone instead (unless indicated otherwise) ",
+          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsPoint(),
+              allEligibleModes.stream().map(m -> m.getPredefinedModeType().toString()).collect(
+                      Collectors.joining(",")),
+          transferZoneAccessLinkSegments.stream().map(l -> l.getParent().getIdsAsString()).distinct().collect(
+                  Collectors.joining(",")),
+          nearbyTransferZones.stream().map(tz -> "("+tz.getIdsAsString()+")").collect(
+                  Collectors.joining(","))));
       return null;
     }
 
-    /* try to match based on preferred access link segments versus used access link segments by existing nearby transfer zones ensure that actual access node is within acceptable
-     * distance as well, e.g., if too far away the access link segment is too long and transfer zone considered not close enough, given it is a match on the link segment, we allow for a little more distance,
+    /* try to match based on preferred access link segments versus used access link segments by existing nearby
+    transfer zones ensure that actual access node is within acceptable
+     * distance as well, e.g., if too far away the access link segment is too long and transfer zone considered
+     not close enough, given it is a match on the link segment, we allow for a little more distance,
      * namely the allowed distance to a transfer zone + the allowed distance from transfer zone(stop) to the road */
-    final var maxStopToAccessNodeDistanceMeters = data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters() + data.getSettings().getGtfsStopToLinkSearchRadiusMeters();
+    final var maxStopToAccessNodeDistanceMeters = data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters() +
+            data.getSettings().getGtfsStopToLinkSearchRadiusMeters();
     var matchedTransferZoneAndConnectoid = matchByAccessLinkSegments(
         gtfsStop, desiredAccessResult.second(), nearbyTransferZones, maxStopToAccessNodeDistanceMeters);
+
     matchedTransferZone = matchedTransferZoneAndConnectoid.first();
+    var matchedConnectoid = matchedTransferZoneAndConnectoid.second();
     if(matchedTransferZone != null){
       data.getProfiler().incrementMatchedTransferZonesOnAccessLinkSegment();
 
-      /* pinpointed to single link, log if required */
+      /* pinpointed to link(s), log if required */
       if(data.getSettings().isLogGtfsStopToLinkMapping(gtfsStop.getStopId())){
-        LOGGER.info(String.format("GTFS stop (%s %s %s) mapped to PLANit link (%s) of existing PLANit transfer zone (%s)",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsPoint(), matchedTransferZoneAndConnectoid.second().getAccessLinkSegment().getParentLink().getIdsAsString(), matchedTransferZone.getIdsAsString()));
+        logGtfsStopToLinkMapping(gtfsStop, matchedTransferZone, matchedConnectoid);
       }
       return matchedTransferZone;
     }
 
-    /* try to match based on closeness and an acceptable angle difference between a virtual transferzone-to-road-line and virtual GTFS stop-to-road line */
+    /* try to match based on closeness and an acceptable angle difference between a virtual transferzone-to-road-line
+    and virtual GTFS stop-to-road line */
     final double maxAngleDegrees = 100;
-    matchedTransferZone = matchByClosestWithAcceptableAccessAngle(
-        gtfsStop, primaryMode, desiredAccessResult.second(), nearbyTransferZones, maxAngleDegrees, maxStopToAccessNodeDistanceMeters);
+    var matchedResult = matchByClosestAdjacentWithAcceptableAccessAngle(
+        gtfsStop, primaryMode, desiredAccessResult.second(), nearbyTransferZones, maxAngleDegrees,
+            maxStopToAccessNodeDistanceMeters);
+    matchedTransferZone = matchedResult.first();
 
     /* when road mode, we would expect only a single mapping, log info when we find multiple to let user verify*/
-    if (data.hasMappedGtfsStop(matchedTransferZone) && primaryMode.getPhysicalFeatures().getTrackType() == TrackModeType.ROAD) {
-      var earlierMappedStop = data.getMappedGtfsStop(GtfsTransferZoneHelper.getLastTransferZoneExternalId(matchedTransferZone));
-      LOGGER.warning(String.format("PLANit transfer zone (%s) for GTFS STOP (%s, %s, %s) already mapped to another GTFS stop (%s, %s, %s), consider disallowing joined mapping or force creating a new transfer zone via settings",
-          matchedTransferZone.getIdsAsString(), gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), earlierMappedStop.getStopId(), earlierMappedStop.getStopName(), earlierMappedStop.getLocationAsCoord().toString()));
+    if (data.hasMappedGtfsStop(matchedTransferZone) &&
+            primaryMode.getPhysicalFeatures().getTrackType() == TrackModeType.ROAD) {
+      var earlierMappedStop =
+              data.getMappedGtfsStop(GtfsTransferZoneHelper.getLastTransferZoneExternalId(matchedTransferZone));
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_TRANSFER_ZONE_SHARED_WITH_OTHER_STOP, gtfsStop.getStopId(),
+          createIssueArgs(
+              gtfsStop,
+              matchedTransferZone.getIdsAsString(),
+              earlierMappedStop.getStopId(),
+              earlierMappedStop.getStopName(),
+              earlierMappedStop.getLocationAsCoord()));
     }
 
     /* pinpointed to transfer zone as a whole, log all connectoid links if required */
     if(data.getSettings().isLogGtfsStopToLinkMapping(gtfsStop.getStopId())){
-      var linkIds = data.getTransferZoneConnectoids(matchedTransferZone).stream().map(c -> c.getAccessLinkSegment().getParentLink()).distinct().map( l -> l.getIdsAsString()).collect(Collectors.joining(","));
-      LOGGER.info(String.format("GTFS stop (%s %s %s) mapped to all eligible PLANit link(s) [%s] of existing PLANit transfer zone %s",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsPoint(), linkIds, matchedTransferZone.getIdsAsString()));
+      logGtfsStopToLinkMapping(gtfsStop, matchedTransferZone, matchedConnectoid);
     }
 
     return matchedTransferZone;
@@ -608,28 +798,41 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
   /**
    * Process a GTFS stop that could not be matched to an existing transfer zone. It will trigger the
-   * creation of a new transfer zone on the PLANit zoning as along as it falls within the network's bounding box and resides within acceptable
-   * distance of PLANit network links
+   * creation of a new transfer zone on the PLANit zoning as along as it falls within the network's bounding box
+   * and resides within acceptable distance of PLANit network links
    *
    * @param gtfsStop to create new TransferZone for
    * @param primaryGtfsStopModes primary PLANit modes associated with GTFS stop
-   * @param type of the to be created TransferZone
+   * @param transferZoneType of the to be created TransferZone
    * @return created transfer zone (if any, may be null if not found)
    */
-  private TransferZone createNewTransferZoneAndConnectoids(GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes, TransferZoneType type) {
+  private TransferZone createNewTransferZoneAndConnectoids(
+      GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes, TransferZoneType transferZoneType) {
     PlanItRunTimeException.throwIfNull(gtfsStop,"GTFS stop null, this is not allowed");
-    PlanItRunTimeException.throwIfNull(primaryGtfsStopModes,"GTFS stop's associated PLANit mode(s) is/are null, this is not allowed");
+    PlanItRunTimeException.throwIfNull(primaryGtfsStopModes,
+            "GTFS stop's associated PLANit mode(s) is/are null, this is not allowed");
 
     /* check if within network bounding box, only GTFS stops within the network area are considered */
-    var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(gtfsStop.getLocationAsPoint(),data.getCrsTransform());
-    if(!data.getReferenceNetworkBoundingBox().contains(projectedGtfsStopLocation.getCoordinate())){
+    if(!data.getBoundingAreaHelper().isPartlyOrWhollyWithinBoundaryArea(
+        gtfsStop.getLocationAsPoint(), true)){
+      double distanceToBoundaryMeters = data.getBoundingAreaHelper().calculateProjectedDistanceToBoundingPolygon(
+          gtfsStop.getLocationAsPoint(), true);
+      data.getDiagnostics().registerIssue(
+          distanceToBoundaryMeters <= MAX_DISTANCE_TO_BOUNDING_AREA_TO_REPORT_METERS
+              ? GtfsParseIssue.STOP_JUST_OUTSIDE_BOUNDING_AREA
+              : GtfsParseIssue.STOP_OUTSIDE_BOUNDING_AREA,
+          gtfsStop.getStopId(),
+          createIssueArgs(gtfsStop, String.format("%.2f", distanceToBoundaryMeters)));
       return null;
     }
 
     SortedMap<Mode, SortedSet<Mode>> mode2EligibleModesMapping = new TreeMap<>();
     primaryGtfsStopModes.forEach( m -> mode2EligibleModesMapping.put(m, data.expandWithCompatibleModes(m)));
 
-    var eligibleLinksAndClosest = findEligibleLinkMappings(gtfsStop, projectedGtfsStopLocation, mode2EligibleModesMapping);
+    var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(
+        gtfsStop.getLocationAsPoint(),data.getCrsTransformGtfsToPlanit());
+    var eligibleLinksAndClosest =
+        findEligibleLinkMappings(gtfsStop, projectedGtfsStopLocation, mode2EligibleModesMapping);
     if(eligibleLinksAndClosest == null){
       return null;
     }
@@ -638,25 +841,32 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
     TransferZone newTransferZone = null;
     boolean connectoidsCreated = false;
+    /* per mode reason for not reaching the network, reported only if no mode succeeded, since a mode failing while
+     * another carries the stop onto the network costs nothing */
+    var issueByFailedMode = new TreeMap<Mode, GtfsParseIssue>();
     /* for each mode obtain the necessary information to create connectoid (if deemed valid) */
     for(var gtfsStopMode : primaryGtfsStopModes){
-      /* make sure we consider all eligible modes compatible with the primary GTFS stop mode when identifying possible stop locations */
+      /* make sure we consider all eligible modes compatible with the primary GTFS stop mode when identifying
+      possible stop locations */
       SortedSet<Mode> allEligibleModes = mode2EligibleModesMapping.get(gtfsStopMode);
 
       /* preferred access link segment for GTFS stop-mode combination */
       var accessResult = findMostAppropriateStopLocationLinkFromLinks(gtfsStop, allEligibleModes, nearbyLinks);
       if(accessResult == null){
+        issueByFailedMode.put(gtfsStopMode, GtfsParseIssue.STOP_MODE_WITHOUT_ACCESS_LINK);
         continue;
       }
 
-      /* inform user if found location resides on link that is not closest to the GTFS stop, as this might pinpoint to the GTFS stop being located on - for example
-       *  the wrong side of the road, in which case it should be overwritten by the user (which is only possible if they are provided with the information to do so */
+      /* inform user if found location resides on link that is not closest to the GTFS stop, as this might pinpoint
+      to the GTFS stop being located on - for example the wrong side of the road, in which case it should be
+      overwritten by the user (which is only possible if they are provided with the information to do so */
       boolean chosenNonClosestLink = false;
       if(!closestOfNearbyLinks.equals(accessResult.first())){
         chosenNonClosestLink = true; // postpone warning until we know
       }
 
-      var linkToSourceId = createAccessLinkToSourceIdFunctionByGtfsStop(gtfsStop, DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION);
+      var linkToSourceId =
+          createAccessLinkToSourceIdFunctionByGtfsStop(gtfsStop, DEFAULT_LINK_TO_SOURCE_ID_MAPPING_FUNCTION);
       final var linkWithIdMapper = data.getSettings().getOverwrittenGtfsStopToLinkMapping(gtfsStop.getStopId());
       boolean linkOverrideActive = linkWithIdMapper != null && linkWithIdMapper.bothNotNull();
 
@@ -683,7 +893,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
               null,
               null,
               overwrittenAccessLinkToSourceId,
-              data.getSettings().getCountryName(), data.getGeoTools());
+              data.getSettings().getCountryName(), data.getGeoToolsInPlanitCrs());
 
           if (connectoidLocation != null && !connectoidLocation.isEmpty()) {
             break CONNECTOID_FOUND;
@@ -692,32 +902,41 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
 
       if(connectoidLocation == null || connectoidLocation.isEmpty()){
-        LOGGER.warning(String.format("DISCARD: No connectoid location could be found for GTFS stop's %s %s %s selected access link [mode %s], should not happen",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), gtfsStopMode.getName()));
+        issueByFailedMode.put(gtfsStopMode, GtfsParseIssue.STOP_MODE_WITHOUT_CONNECTOID_LOCATION);
         continue;
       }
 
       /* some potentially valid connectoid found --> proceed */
       if(chosenNonClosestLink && !linkOverrideActive){
-        LOGGER.warning(String.format("GTFS Stop %s (%s, %s, mode:%s) may be in wrong location/wrong side of modelled road because selected access link (%s %s) is not the closest link (%s, external id: %s), verify correctness",
-            gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), gtfsStopMode.getName(), accessResult.first().getName(), accessResult.first().getIdsAsString(), closestOfNearbyLinks.getXmlId(), closestOfNearbyLinks.getExternalId()));
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_POSSIBLY_ON_WRONG_SIDE_OF_ROAD, gtfsStopMode.getPredefinedModeType(),
+            gtfsStop.getStopId(),
+            createIssueArgs(
+                gtfsStop,
+                accessResult.first().getIdsAsString(),
+                accessResult.first().getName(),
+                closestOfNearbyLinks.getIdsAsString()));
       }
 
       /* create access node and break links if needed */
       var networkLayer = data.getServiceNetwork().getParentNetwork().getLayerByMode(gtfsStopMode);
-      var accessNodeResult = GtfsLinkHelper.extractNodeByLinkGeometryLocation(connectoidLocation, accessResult.first() /* access link */, networkLayer, data);
+      var accessNodeResult = GtfsLinkHelper.extractNodeByLinkGeometryLocation(
+              connectoidLocation, accessResult.first() /* access link */, networkLayer, data);
       Node accessNode = accessNodeResult.first();
 
-      /* when we choose an existing node on the closest link as access node --> then the access result identified link segments remain viable, except that
-       * they may be exiting the access node rather than entering it (and are therefore not considered). In that case,
-       * ALL entry segments of OTHER links are deemed viable without restriction because they can be used to reach the exit link segment on which the stop actually resides.
-       * That case is identified here and we  lift the restriction regarding avoiding cross traffic on those non-closest links and proceed (otherwise
-       * we might exclude entry segments that are used by a bus if they come in at an unexpected angle while still passing the stop) */
+      /* when we choose an existing node on the closest link as access node --> then the access result identified
+      link segments remain viable, except that they may be exiting the access node rather than entering it (and are
+      therefore not considered). In that case, ALL entry segments of OTHER links are deemed viable without
+      restriction because they can be used to reach the exit link segment on which the stop actually resides. That case
+      is identified here and we  lift the restriction regarding avoiding cross traffic on those non-closest links and
+      proceed (otherwise we might exclude entry segments that are used by a bus if they come in at an unexpected angle
+      while still passing the stop) */
       boolean preExistingNode = !accessNodeResult.second();
       Collection<LinkSegment> accessLinkSegments = null;
       boolean enforceCrossTrafficRestrictionOnNonClosestLinks = true;
       if(preExistingNode && !chosenNonClosestLink){
         final boolean closestEligbleEdgeSegmentsAreAllExitingAccessNode = accessNode.hasExitEdgeSegments() &&
-            accessResult.second().stream().allMatch(ls -> accessNode.hasExitSegment(ls));
+            accessResult.second().stream().allMatch(accessNode::hasExitSegment);
         enforceCrossTrafficRestrictionOnNonClosestLinks = !closestEligbleEdgeSegmentsAreAllExitingAccessNode;
       }
 
@@ -739,7 +958,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
             mustAvoidCrossingTraffic,
             overwrittenAccessLinkToSourceId,
             null,
-            data.getGeoTools());
+            data.getGeoToolsInPlanitCrs());
         if(linkAccessLinkSegments != null && !linkAccessLinkSegments.isEmpty()) {
           if(accessLinkSegments == null) {
             accessLinkSegments = linkAccessLinkSegments;
@@ -750,54 +969,108 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
 
       /* register new transfer zone if not done already */
-      if(newTransferZone == null) {
-        newTransferZone = GtfsTransferZoneHelper.createAndRegisterNewTransferZone(gtfsStop, projectedGtfsStopLocation, type, data);
+      if(newTransferZone == null && accessLinkSegments !=null) {
+        newTransferZone = GtfsTransferZoneHelper.createAndRegisterNewTransferZone(
+                gtfsStop, projectedGtfsStopLocation, transferZoneType, data);
         if (data.getSettings().isLogCreatedGtfsZones()) {
           LOGGER.info(String.format(
-              "GTFS stop %s %s at location %s triggered creation of new PLANit Transfer zone %s %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), newTransferZone.getXmlId(), newTransferZone.hasName() ? newTransferZone.getName() : ""));
+              "GTFS stop %s %s at location %s triggered creation of new PLANit Transfer zone %s %s",
+              gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(),
+                  newTransferZone.getXmlId(), newTransferZone.hasName() ? newTransferZone.getName() : ""));
         }
       }
 
       /* register connectoid for each stop-mode combinations selected access link segment on PLANit network/zoning */
-      final var finalAccessLinkSegments = accessLinkSegments;
-      allEligibleModes.removeIf( m -> finalAccessLinkSegments.stream().anyMatch(ls -> !ls.isModeAllowed(m))); // only retain those that also are supported on the found access link segment
-      var results = GtfsDirectedConnectoidHelper.createAndRegisterDirectedConnectoids(
-          newTransferZone, networkLayer, accessNode, accessLinkSegments, allEligibleModes, data);
-      connectoidsCreated = connectoidsCreated || results != null && !results.isEmpty();
+      if(accessLinkSegments != null) {
+        final var finalAccessLinkSegments = accessLinkSegments;
+        // only retain those that also are supported on the found access link segment
+        allEligibleModes.removeIf(
+                m -> finalAccessLinkSegments.stream().anyMatch(ls -> !ls.isModeAllowed(m)));
+        var results = GtfsDirectedConnectoidHelper.createAndRegisterDirectedConnectoids(
+                newTransferZone,
+                networkLayer,
+                ZoneConnectoidType.PT_VEHICLE_STOP,
+                accessNode,
+                accessLinkSegments,
+                allEligibleModes,
+                data);
+        connectoidsCreated = connectoidsCreated || !results.isEmpty();
+      }
     }
 
-    final double maxDistanceFromBoundingBoxForDebugMessage = 100; //meters
-    if(newTransferZone==null && !data.getGeoTools().isGeometryNearBoundingBox(projectedGtfsStopLocation, data.getReferenceNetworkBoundingBox(), maxDistanceFromBoundingBoxForDebugMessage)) {
-      LOGGER.warning(String.format("DISCARD: GTFS stop (%s %s location %s [mode(s) %s]) nearby available links [%s] incompatible/too far - GTFS stop resides near bounding box, or possible tagging mismatch, verify GTFS stop does not reside on wrong side of underlying road network",
-          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), primaryGtfsStopModes.stream().map(m -> m.toString()).collect(Collectors.joining(",")), nearbyLinks.stream().map(l -> l.getIdsAsString()).collect(Collectors.joining(","))));
+    boolean inOrNearBoundingArea = data.getBoundingAreaHelper().isNearPartlyOrWhollyWithinBoundaryArea(
+        gtfsStop.getLocationAsPoint(), MAX_DISTANCE_TO_BOUNDING_AREA_TO_REPORT_METERS, true);
+
+
+    if(newTransferZone == null) {
+      /* one discard for the stop, distinguishing a network truncated by the requested area from a stop that could not
+       * be attached while sitting well inside it */
+      data.getDiagnostics().registerIssue(
+          inOrNearBoundingArea
+              ? GtfsParseIssue.STOP_UNMAPPED_AT_BOUNDING_AREA_EDGE
+              : GtfsParseIssue.STOP_NO_CONNECTOID_LOCATION,
+          gtfsStop.getStopId(),
+          createIssueArgs(
+              gtfsStop,
+              String.format("%.2f", data.getBoundingAreaHelper().calculateProjectedDistanceToBoundingPolygon(
+                  gtfsStop.getLocationAsPoint(), true)),
+              nearbyLinks.stream().map(l -> "(" + l.getIdsAsString() + ")").collect(Collectors.joining(","))));
+
+      /* now that the stop is known to be lost, the modes that failed to reach the network are worth naming */
+      issueByFailedMode.forEach((failedMode, modeIssue) -> data.getDiagnostics().registerIssue(
+          modeIssue, failedMode.getPredefinedModeType(), gtfsStop.getStopId(),
+          createIssueArgs(gtfsStop, failedMode.getName())));
     }
     if(newTransferZone != null && !connectoidsCreated){
-      LOGGER.severe(String.format(" Transfer zone created for GTFS stop %s %s location %s [mode(s) %s] but no connection to the physical network was established, this shouldn't happen",
-          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), primaryGtfsStopModes.stream().map(m -> m.toString()).collect(Collectors.joining(","))));
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_NO_ACCESS_CONNECTOID_CREATED, gtfsStop.getStopId(),
+          createIssueArgs(
+              gtfsStop, primaryGtfsStopModes.stream().map(Mode::getName).collect(Collectors.joining(","))));
     }
 
     if(data.getSettings().isLogGtfsStopToLinkMapping(gtfsStop.getStopId()) && connectoidsCreated ){
-      var linkIds = data.getTransferZoneConnectoids(newTransferZone).stream().map(c -> c.getAccessLinkSegment().getParentLink()).distinct().map( l -> l.getIdsAsString()).collect(Collectors.joining(","));
-      LOGGER.info(String.format("GTFS stop (%s %s %s) mapped to PLANit link(s) [%s] - new PLANit transfer zone (%s)",gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsPoint(), linkIds, newTransferZone.getIdsAsString()));
+      final var finalTz = newTransferZone;
+      data.getTransferZoneConnectoids(newTransferZone).forEach(
+          cn -> logGtfsStopToLinkMapping(gtfsStop, finalTz, cn));
     }
 
     return newTransferZone;
   }
 
-  /* Update connectoid mode support to secondary modes for the GTFS stop's primary modes that we matched to this transfer zone. Useful
-   *  in case the primary mode of GTFS is not supported by the physical network (but the secondary one is)
+  /* Update connectoid mode support to secondary modes for the GTFS stop's primary modes that we matched to
+   * this transfer zone. Useful in case the primary mode of GTFS is not supported by the physical network
+   * (but the secondary one is)
    *
    * @param theTransferZone to use
-   * @param primaryGtfsStopModes gtfs stop's primary supported modes to base all elgigible modes on
+   * @param type the type filter
+   * @param primaryGtfsStopModes gtfs stop's primary supported modes to base all eligible modes on
    */
-  private void updateTransferZoneConnectoidSecondaryCompatibleModes(TransferZone theTransferZone, List<Mode> primaryGtfsStopModes) {
+  private void updateTransferZoneConnectoidSecondaryCompatibleModes(
+          TransferZone theTransferZone, ZoneConnectoidType type, List<Mode> primaryGtfsStopModes) {
     for(var connectoid : data.getTransferZoneConnectoids(theTransferZone)){
       for(var primaryMode : primaryGtfsStopModes) {
         var allEligibleModes = data.expandWithCompatibleModes(primaryMode);
-        /* add support for all (secondary) modes that are also supported by the access link segment of the connectoid */
-        allEligibleModes.removeIf(m -> !connectoid.getAccessLinkSegment().isModeAllowed(m));
-        connectoid.addAllowedModes(theTransferZone, allEligibleModes);
-        data.registerTransferZoneToConnectoidModes(theTransferZone, connectoid, allEligibleModes);
+
+        /* add support for all (secondary) modes that are also supported by the access link segments
+         of the connectoid's zone/type combination */
+        if(!connectoid.hasAccessZoneEntry(theTransferZone, type)){
+          LOGGER.warning(String.format("Unable to update transfer zone's (%s) connectoid (%s) modes, as no entry exists",
+              theTransferZone.getIdsAsString(), connectoid.getIdsAsString()));
+          return;
+        }
+        var entry = connectoid.getAccessZoneEntry(theTransferZone, type);
+        if(!(entry instanceof DirectedConnectoidAccessZoneEntry)){
+          return;
+        }
+        var directedEntry = (DirectedConnectoidAccessZoneEntry)entry;
+
+        for(var accessSegment : directedEntry.getAccessLinkSegments()) {
+          allEligibleModes.stream().filter(
+              m1 -> ((MacroscopicLinkSegment)accessSegment).isModeAllowed(m1)).forEach(m2 -> {
+            directedEntry.addAllowedModes(m2);
+              data.registerTransferZoneToConnectoidMode(theTransferZone, type, connectoid, m2);
+          });
+        }
       }
     }
   }
@@ -814,9 +1087,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       transferZone.appendExternalId(gtfsStop.getStopId());
     }
 
-    // set transfer zone name to GTFS stop name if it has no name yet, or GTFS name is longer which is assumed to be more descriptive than PLANit (except when there exist platform names because
-    // in that case it is more likely that the existing data is already sufficiently detailed and GTFS stop description might only partially describe the (multi-platform) stop.
-    if(!transferZone.hasPlatformNames() && (!transferZone.hasName() || gtfsStop.hasStopName() &&  transferZone.getName().length() < gtfsStop.getStopName().length())){
+    // set transfer zone name to GTFS stop name if it has no name yet, or GTFS name is longer which is assumed
+    // to be more descriptive than PLANit (except when there exist platform names because
+    // in that case it is more likely that the existing data is already sufficiently detailed and GTFS stop
+    // description might only partially describe the (multi-platform) stop.
+    if(!transferZone.hasPlatformNames() && (!transferZone.hasName() ||
+        gtfsStop.hasStopName() &&  transferZone.getName().length() < gtfsStop.getStopName().length())){
       transferZone.setName(gtfsStop.getStopName());
     }
 
@@ -828,12 +1104,15 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     /* update tracking data */
     data.registerMappedGtfsStop(gtfsStop, transferZone);
     if(data.getSettings().isLogMappedGtfsZones()) {
-      LOGGER.info(String.format("Mapped GTFS stop %s %s at location %s to existing Transfer zone %s %s", gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(), transferZone.getXmlId(), transferZone.hasName() ? transferZone.getName() : ""));
+      LOGGER.info(String.format("Mapped GTFS stop %s %s at location %s to existing Transfer zone %s %s",
+          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(),
+              transferZone.getXmlId(), transferZone.hasName() ? transferZone.getName() : ""));
     }
   }
 
   /**
-   * Process the GTFS stop which is marked as stop platform and fuse it with the PLANit memory model and previously parsed GTFS entities
+   * Process the GTFS stop which is marked as stop platform and fuse it with the PLANit memory model and previously
+   * parsed GTFS entities
    *
    * @param gtfsStop     GTFS stop to processs
    * @param primaryGtfsStopModes identified mode(s) for GTFS stop
@@ -841,12 +1120,11 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   private void handleStopPlatform(final GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes) {
     data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
-    if(gtfsStop.getStopId().equals("206036")){
-      int bla = 4;
-    }
+    var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(
+        gtfsStop.getLocationAsPoint(),data.getCrsTransformGtfsToPlanit());
 
     var nearbyTransferZones = GtfsTransferZoneHelper.findNearbyTransferZones(
-        gtfsStop.getLocationAsPoint(), data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
+        projectedGtfsStopLocation, data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
 
     TransferZone theTransferZone = null;
     if(!nearbyTransferZones.isEmpty() &&
@@ -860,9 +1138,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     if(createNewTransferZone) {
       theTransferZone = createNewTransferZoneAndConnectoids(gtfsStop, primaryGtfsStopModes, TransferZoneType.PLATFORM);
     }else{
-      /* make sure connectoid mode support is updated to secondary modes for the GTFS stop that we matched to this transfer zone
-      *  needed in case the primary mode of GTFS is not supported by the physical network (but the secondary one is) */
-      updateTransferZoneConnectoidSecondaryCompatibleModes(theTransferZone, primaryGtfsStopModes);
+      /* make sure connectoid mode support is updated to secondary modes for the GTFS stop that we matched to
+       this transfer zone
+      *  needed in case the primary mode of GTFS is not supported by the physical network
+       (but the secondary one is) */
+      updateTransferZoneConnectoidSecondaryCompatibleModes(
+          theTransferZone, ZoneConnectoidType.PT_VEHICLE_STOP, primaryGtfsStopModes);
     }
 
     if(theTransferZone!= null){
@@ -871,11 +1152,18 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         String accessLinkIds = "unknown";
         var connectoids = data.getTransferZoneConnectoids(theTransferZone);
         if(connectoids != null){
-          accessLinkIds = connectoids.stream().map(c -> "(" + c.getAccessLinkSegment().getParentLink().getIdsAsString() + ")").distinct().collect(Collectors.joining(","));
+          final var finalTz = theTransferZone;
+          accessLinkIds = connectoids.stream().map(
+              c -> c.getAsDirectedAccessZoneEntry(finalTz, ZoneConnectoidType.PT_VEHICLE_STOP)).map(
+              e ->
+                  "[" + e.getAccessLinkSegments().stream().map(ls -> "(" +
+                      ls.getParent().getIdsAsString() + ")").distinct()).collect(Collectors.joining(","));
         }
-        String message = createNewTransferZone ?  "triggered creation of new transfer zone" : "matched to existing transfer zone";
+        String message = createNewTransferZone ?  "triggered creation of new transfer zone" : "matched to existing " +
+            "transfer zone";
         LOGGER.info(String.format("[TRACK] GTFS stop %s %s (location %s) %s %s with access link(s): %s",
-                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), message, theTransferZone.getIdsAsString(),accessLinkIds));
+                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), message,
+            theTransferZone.getIdsAsString(),accessLinkIds));
       }
 
       attachToTransferZone(gtfsStop, theTransferZone);
@@ -883,8 +1171,13 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         data.getProfiler().incrementAugmentedTransferZones();
       }
     }else if(!nearbyTransferZones.isEmpty()){
-      LOGGER.warning(String.format("DISCARD: Unable to add TransferZone for GTFS stop %s %s %s despite nearby transfer zones [%s], verify correctness",
-          gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), nearbyTransferZones.stream().map( tz -> "(" + tz.getIdsAsString() + ")").collect(Collectors.joining(","))));
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_NEARBY_TRANSFER_ZONE_UNUSABLE, gtfsStop.getStopId(),
+          createIssueArgs(
+              gtfsStop,
+              nearbyTransferZones.size(),
+              nearbyTransferZones.stream().map( tz -> "[(" + tz.getIdsAsString() + "), name: " +
+                  (tz.hasName() ? tz.getName() : "n/a") + "]").collect(Collectors.joining(","))));
     }
 
   }
@@ -908,19 +1201,22 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       }
 
       if (transferZone == null) {
-        LOGGER.warning(
-            String.format(
-                "GTFS stop %s %s (location %s) manually attached to existing transfer zone (%s, %s), but transfer zone not found, ignored",
-                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), transferZoneIdAndTypePair.first(), transferZoneIdAndTypePair.second()));
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_OVERWRITTEN_TRANSFER_ZONE_NOT_FOUND, gtfsStop.getStopId(),
+            createIssueArgs(
+                gtfsStop, transferZoneIdAndTypePair.first(), transferZoneIdAndTypePair.second()));
         continue;
       }
 
       if(data.getSettings().isExtendedLoggingForGtfsZoneActivated(gtfsStop.getStopId())){
-        LOGGER.info(String.format("[TRACK] GTFS stop %s %s (location %s) manually attached to existing transfer zone %s",
-                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(), transferZone.getIdsAsString()));
+        LOGGER.info(String.format("[TRACK] GTFS stop %s %s (location %s) manually attached to " +
+                        "existing transfer zone %s",
+                gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord(),
+                transferZone.getIdsAsString()));
       }
 
-      updateTransferZoneConnectoidSecondaryCompatibleModes(transferZone, primaryGtfsStopModes);
+      updateTransferZoneConnectoidSecondaryCompatibleModes(
+          transferZone, ZoneConnectoidType.PT_VEHICLE_STOP, primaryGtfsStopModes);
       attachToTransferZone(gtfsStop, transferZone);
     }
 
@@ -938,30 +1234,73 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
+   * Create the arguments every issue of the stop stage takes, i.e. the stop's name and location followed by whatever
+   * the issue itself needs, so that a persisted occurrence identifies the stop beyond its id
+   *
+   * @param gtfsStop the issue concerns
+   * @param issueArgs the issue's own arguments, if any
+   * @return created arguments
+   */
+  private static Object[] createIssueArgs(final GtfsStop gtfsStop, final Object... issueArgs) {
+    var args = new Object[3 + issueArgs.length];
+    args[0] = gtfsStop.getStopName();
+    args[1] = gtfsStop.getStopLongitude();
+    args[2] = gtfsStop.getStopLatitude();
+    System.arraycopy(issueArgs, 0, args, 3, issueArgs.length);
+    return args;
+  }
+
+  /**
+   * Determine where a GTFS stop sits relative to the area the run covers. A stop is a point, so it is either within
+   * reach or it is not, never partly so.
+   * <p>
+   * Established with the same check that decides whether the stop is discarded for falling outside that area, so that
+   * what is reported as out of reach and what is actually dropped for being out of reach cannot diverge
+   * </p>
+   *
+   * @param gtfsStop to determine scope for
+   * @return scope of the stop
+   */
+  private GtfsEntityScope determineScope(GtfsStop gtfsStop) {
+    var stopLocation = gtfsStop.getLocationAsPoint();
+    if(stopLocation == null){
+      /* without a location there is nothing to place, so it cannot be ruled out of reach */
+      return GtfsEntityScope.IN;
+    }
+    return data.getBoundingAreaHelper().isPartlyOrWhollyWithinBoundaryArea(stopLocation, true)
+        ? GtfsEntityScope.IN : GtfsEntityScope.OUT;
+  }
+
+  /**
    * Handle a GTFS stop
    */
   @Override
   public void handle(GtfsStop gtfsStop) {
+    var diagnostics = data.getDiagnostics();
+    diagnostics.registerSeen(GtfsObjectType.STOP, gtfsStop.getLocationType());
+    diagnostics.registerSeenInScope(GtfsObjectType.STOP, determineScope(gtfsStop));
 
     if(this.data.getSettings().isExcludedGtfsStop(gtfsStop.getStopId())){
+      diagnostics.registerIssue(
+          GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, gtfsStop.getStopId(), createIssueArgs(gtfsStop));
       return;
     }
 
     /* GTFS mode compatibility */
     final List<Mode> gtfsStopModes = data.getSupportedPtModes(gtfsStop);
     if(gtfsStopModes == null){
+      diagnostics.registerIssue(
+          GtfsParseIssue.STOP_NOT_SERVED_BY_ANY_PARSED_SERVICE, gtfsStop.getStopId(), createIssueArgs(gtfsStop));
       return;
     }
 
     /* PLANit mode mapping compatibility */
-    final var activatedModes = data.getActivatedPlanitModesByGtfsMode();
+    final var activatedModes = data.getActivatedPlanitModes();
     gtfsStopModes.removeIf(m -> !activatedModes.contains(m));
     if(gtfsStopModes.isEmpty()){
+      diagnostics.registerIssue(
+          GtfsParseIssue.STOP_MODE_NOT_ACTIVATED, gtfsStop.getStopId(), createIssueArgs(gtfsStop));
       return;
-    }
-
-    if(gtfsStop.getStopId().equals("7575")){
-      int bla = 4;
     }
 
     /* OVERRIDES CHECKING */
@@ -982,19 +1321,34 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         handleStopPlatform(gtfsStop, gtfsStopModes);
         return;
       case BOARDING_AREA:
-        // not processed yet, if we find that boarding areas are used without a platform, they could be treated as a platform
+        // not processed yet, if we find that boarding areas are used without a platform,
+        // they could be treated as a platform
+        diagnostics.registerIssue(
+            GtfsParseIssue.STOP_UNSUPPORTED_LOCATION_TYPE, gtfsStop.getStopId(),
+            createIssueArgs(gtfsStop, gtfsStop.getLocationType()));
         return;
       case STATION:
         // not processed yet
+        diagnostics.registerIssue(
+            GtfsParseIssue.STOP_UNSUPPORTED_LOCATION_TYPE, gtfsStop.getStopId(),
+            createIssueArgs(gtfsStop, gtfsStop.getLocationType()));
         return;
       case GENERIC_NODE:
         // not processed yet
+        diagnostics.registerIssue(
+            GtfsParseIssue.STOP_UNSUPPORTED_LOCATION_TYPE, gtfsStop.getStopId(),
+            createIssueArgs(gtfsStop, gtfsStop.getLocationType()));
         return;
       case ENTRANCE_EXIT:
-        // not processed yet, in future these could be used to connect to a separate pedestrian layer but this is not yet available
+        // not processed yet, in future these could be used to connect to a separate pedestrian
+        // layer but this is not yet available
+        diagnostics.registerIssue(
+            GtfsParseIssue.STOP_UNSUPPORTED_LOCATION_TYPE, gtfsStop.getStopId(),
+            createIssueArgs(gtfsStop, gtfsStop.getLocationType()));
         return;
       default:
-        throw new PlanItRunTimeException("Unrecognised GTFS stop location type %s encountered", gtfsStop.getLocationType());
+        throw new PlanItRunTimeException("Unrecognised GTFS stop location type %s encountered",
+                gtfsStop.getLocationType());
     }
   }
 

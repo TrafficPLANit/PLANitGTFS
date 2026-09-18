@@ -1,6 +1,8 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.PairConverterReader;
+import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.service.handler.*;
 import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsFileType;
@@ -48,6 +50,12 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   /** id token to use */
   private IdGroupingToken idToken;
 
+  /** what became of the GTFS entities read, available once reading completed */
+  private GtfsParseDiagnostics rawGtfsEntityDiagnostics;
+
+  /** whether this reader reports what became of the feed itself, which it does unless it is one stage of a wider parse */
+  private boolean reportCoverage = true;
+
   /**
    * Initialise the to be populated PLANit entities
    *
@@ -57,23 +65,35 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     var serviceNetwork = new ServiceNetwork(idToken, this.referenceNetwork);
     var routedServices = new RoutedServices(idToken, serviceNetwork);
 
-    PlanItRunTimeException.throwIf(routedServices.getParentNetwork() != serviceNetwork, "Routed services its service network does not match the service network provided");
-    PlanItRunTimeException.throwIf(!serviceNetwork.getTransportLayers().isEmpty() && serviceNetwork.getTransportLayers().isEachLayerEmpty(), "Service network is expected to have been initialise with empty layers before populating with GTFS routes");
-    PlanItRunTimeException.throwIf(!routedServices.getLayers().isEmpty() && routedServices.getLayers().isEachLayerEmpty(), "Routed services layers are expected to have been initialised empty when populating with GTFS routes");
+    PlanItRunTimeException.throwIf(routedServices.getParentNetwork() != serviceNetwork,
+        "Routed services its service network does not match the service network provided");
+    PlanItRunTimeException.throwIf(!serviceNetwork.getTransportLayers().isEmpty()
+        && serviceNetwork.getTransportLayers().isEachLayerEmpty(),
+        "Service network is expected to have been initialise with empty layers before populating " +
+            "with GTFS routes");
+    PlanItRunTimeException.throwIf(!routedServices.getLayers().isEmpty() &&
+        routedServices.getLayers().isEachLayerEmpty(),
+        "Routed services layers are expected to have been initialised empty when populating with GTFS routes");
 
     /* sync the PLANit modes to the configured modes in the settings if needed */
-    GtfsConverterReaderHelper.syncActivatedPlanitPredefinedModesBeforeParsing(getSettings(), serviceNetwork.getParentNetwork());
+    GtfsConverterReaderHelper.syncActivatedPlanitPredefinedModesBeforeParsing(
+        getSettings(), serviceNetwork.getParentNetwork());
 
     /* create a new service network layer for each physical layer that is present */
-    this.referenceNetwork.getTransportLayers().forEach(parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
+    this.referenceNetwork.getTransportLayers().forEach(
+        parentLayer -> serviceNetwork.getTransportLayers().getFactory().registerNew(parentLayer));
 
     /* create a routed services for each service layer that we created */
-    serviceNetwork.getTransportLayers().forEach(parentLayer -> routedServices.getLayers().getFactory().registerNew(parentLayer));
+    serviceNetwork.getTransportLayers().forEach(
+        parentLayer -> routedServices.getLayers().getFactory().registerNew(parentLayer));
 
-    /* profiler to use */
-    GtfsServicesHandlerProfiler handlerProfiler = new GtfsServicesHandlerProfiler();
+    /* profiler to use, recording into diagnostics sized as configured before any entity reaches them */
+    GtfsServicesHandlerProfiler handlerProfiler = new GtfsServicesHandlerProfiler(
+        GtfsParseDiagnostics.create(
+            getSettings().getDiagnosticsRetentionLimit(), getSettings().getDiagnosticsSampleSize()));
 
-    /** provide access to the service network and routed services via the file handler data tracking used throughout the parsing process */
+    /* provide access to the service network and routed services via the file handler data tracking used throughout
+     * the parsing process */
     return new GtfsServicesHandlerData(getSettings(), serviceNetwork, routedServices, handlerProfiler);
   }
 
@@ -101,7 +121,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   private void processStopTimes(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS trip stop times...");
 
-    /** handler that will process individual trip stop times upon ingesting */
+    /* handler that will process individual trip stop times upon ingesting */
     var tripStopTimeHandler = new GtfsPlanitFileHandlerStopTimes(
         fileHandlerData, settings.getActivatedLoggingForGtfsRoutesByShortName());
 
@@ -110,12 +130,13 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
         GtfsFileSchemeFactory.create(GtfsFileType.STOP_TIMES), getSettings().getInputSource());
     stopTimeFileReader.addHandler(tripStopTimeHandler);
 
-    /** execute */
+    /* execute */
     stopTimeFileReader.read(StandardCharsets.UTF_8);
 
     /* logging in case user required bespoke tracking of GTFS stop frequented GTFS routes */
-    tripStopTimeHandler.getUniqueRoutesForTrackedGtfsStops().entrySet().stream().forEach(
-        e -> LOGGER.info(String.format("GTFS stop %s is visited by GTFS routes [%s]", e.getKey(), e.getValue().stream().collect(Collectors.joining(",")))));
+    tripStopTimeHandler.getUniqueRoutesForTrackedGtfsStops().forEach(
+        (key, value) -> LOGGER.info(String.format("GTFS stop %s is visited by GTFS routes [%s]",
+        key, String.join(",", value))));
   }
 
   /**
@@ -126,7 +147,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   private void processTrips(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS trips...");
 
-    /** handler that will process individual trips upon ingesting */
+    /* handler that will process individual trips upon ingesting */
     var tripsHandler = new GtfsPlanitFileHandlerTrips(fileHandlerData);
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
@@ -134,24 +155,26 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
         GtfsFileSchemeFactory.create(GtfsFileType.TRIPS), getSettings().getInputSource());
     tripsFileReader.addHandler(tripsHandler);
 
-    /** execute */
+    /* execute */
     tripsFileReader.read(StandardCharsets.UTF_8);
   }
 
   /**
-   * Process GTFS calendars. Capture all service ids that fall within the selected day/time period, so we can filter trips appropriately
+   * Process GTFS calendars. Capture all service ids that fall within the selected day/time period, so we can filter
+   * trips appropriately
    *
    * @param fileHandlerData containing all data to track and resources needed to perform the processing
    */
   private void processCalendars(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS Calendar...");
 
-    /* due to overflow into the next day, we must accept all services from the preceding day as well and then determine if it matches
+    /* due to overflow into the next day, we must accept all services from the preceding day as well and then determine
+    if it matches
      * the stop times on the day after bearing this in mind */
     Predicate<GtfsCalendar> filterServiceIds = calRow ->
         calRow.isActiveOn(getSettings().getDayOfWeek()) || calRow.isActiveOn(getSettings().getDayOfWeek().minus(1));
 
-    /** handler that will process individual calendar rows upon ingesting */
+    /* handler that will process individual calendar rows upon ingesting */
     var calendarHandler = new GtfsPlanitFileHandlerCalendar(fileHandlerData, filterServiceIds);
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
@@ -159,7 +182,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
         GtfsFileSchemeFactory.create(GtfsFileType.CALENDARS), getSettings().getInputSource());
     calendarFileReader.addHandler(calendarHandler);
 
-    /** execute */
+    /* execute */
     calendarFileReader.read(StandardCharsets.UTF_8);
   }
 
@@ -172,7 +195,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   private void processRoutes(GtfsServicesHandlerData fileHandlerData) {
     LOGGER.info("Processing: parsing GTFS Routes...");
 
-    /** handler that will process individual routes upon ingesting */
+    /* handler that will process individual routes upon ingesting */
     var routesHandler = new GtfsPlanitFileHandlerRoutes(fileHandlerData);
 
     /* GTFS file reader that parses the raw GTFS data and applies the handler to each route found */
@@ -180,7 +203,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
         GtfsFileSchemeFactory.create(GtfsFileType.ROUTES), getSettings().getInputSource());
     routesFileReader.addHandler(routesHandler);
 
-    /** execute */
+    /* execute */
     routesFileReader.read(StandardCharsets.UTF_8);
   }
 
@@ -189,8 +212,10 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    */
   private void logPlanitStats(GtfsServicesHandlerData fileHandlerData) {
 
-    fileHandlerData.getServiceNetwork().logInfo(LoggingUtils.serviceNetworkPrefix(fileHandlerData.getServiceNetwork().getId()));
-    fileHandlerData.getRoutedServices().logInfo(LoggingUtils.routedServicesPrefix(fileHandlerData.getRoutedServices().getId()));
+    fileHandlerData.getServiceNetwork().logInfo(
+        LoggingUtils.serviceNetworkPrefix(fileHandlerData.getServiceNetwork().getId()));
+    fileHandlerData.getRoutedServices().logInfo(
+        LoggingUtils.routedServicesPrefix(fileHandlerData.getRoutedServices().getId()));
 
   }
 
@@ -216,11 +241,14 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     //TODO: option to convert schedules to frequency based approach
 
-    /* due to time period based filtering it is possible that trips have just a single valid stop, meaning no single leg. These need to be removed */
+    /* due to time period based filtering it is possible that trips have just a single valid stop, meaning no single
+    leg. These need to be removed */
     GtfsRoutedServicesModifierUtils.removeScheduledTripsWithoutLegs(fileHandlerData.getRoutedServices());
-    /* due to routed being created beforehand without knowing what trips are eligible, routes can end up without having trips in the valid time period. These need to be removed */
+    /* due to routed being created beforehand without knowing what trips are eligible, routes can end up without
+    having trips in the valid time period. These need to be removed */
     GtfsRoutedServicesModifierUtils.removeServiceRoutesWithoutTrips(fileHandlerData.getRoutedServices());
-    /* due to removal of service routes, or some modes not being supported, it is possible entire modes no longer have any routes associated with them. These need to be removed */
+    /* due to removal of service routes, or some modes not being supported, it is possible entire modes no longer
+    have any routes associated with them. These need to be removed */
     GtfsRoutedServicesModifierUtils.removeEmptyRoutedServices(fileHandlerData.getRoutedServices());
 
     /* optional optimisation/processing */
@@ -229,7 +257,8 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
       GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(fileHandlerData.getRoutedServices());
     }
 
-    /* due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often see duplicate departure times occurring. these need to be removed */
+    /* due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often
+    see duplicate departure times occurring. these need to be removed */
     GtfsRoutedServicesModifierUtils.removeDuplicateTripDepartures(fileHandlerData.getRoutedServices());
 
     LOGGER.info("Processing: GTFS services Done");
@@ -250,7 +279,8 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    * @param referenceNetwork to use
    * @param settings to use
    */
-  protected GtfsServicesReader(final IdGroupingToken idToken, MacroscopicNetwork referenceNetwork, final GtfsServicesReaderSettings settings) {
+  protected GtfsServicesReader(
+      final IdGroupingToken idToken, MacroscopicNetwork referenceNetwork, final GtfsServicesReaderSettings settings) {
     this.referenceNetwork = referenceNetwork;
     this.settings = settings;
     this.idToken = idToken;
@@ -262,9 +292,12 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   @Override
   public Pair<ServiceNetwork, RoutedServices> read(){
 
-    PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()), "Country not set for GTFS services reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(getSettings().getInputSource(), "Input directory not set for GTFS services reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(referenceNetwork,"Reference network not available when parsing GTFS services, unable to proceed");
+    PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()),
+        "Country not set for GTFS services reader, unable to proceed");
+    PlanItRunTimeException.throwIfNull(getSettings().getInputSource(),
+        "Input directory not set for GTFS services reader, unable to proceed");
+    PlanItRunTimeException.throwIfNull(referenceNetwork,
+        "Reference network not available when parsing GTFS services, unable to proceed");
 
     /* prepare for parsing */
     var fileHandlerData = initialiseBeforeParsing();
@@ -279,27 +312,55 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* main processing  */
     doMainProcessing(fileHandlerData);
 
+    /* retain what became of the GTFS entities read, so it remains available to whoever drives this reader */
+    this.rawGtfsEntityDiagnostics = fileHandlerData.getDiagnostics();
+
     /* log stats */
     fileHandlerData.getProfiler().logProcessingStats();
     logPlanitStats(fileHandlerData);
+
+    if(reportCoverage){
+      /* this reader is the whole parse, so what became of the feed is complete and can be reported */
+      GtfsCoverageReport.report(
+          this.rawGtfsEntityDiagnostics, null, getSettings().isPersistParseDiagnostics(),
+          getSettings().getParseDiagnosticsOutputDirectory());
+    }
 
     /* return parsed GTFS services in PLANit memory model form*/
     return Pair.of(fileHandlerData.getServiceNetwork(), fileHandlerData.getRoutedServices());
   }
 
   /**
-   * GTFS Services are ingested and lead to PLANit service nodes to be created based on GTFS stop ids. When at some later point in time
-   * these PLANit service nodes are to be linked to PLANit transfer zones (which in turn have an association with a GTFS stop) the mapping
-   * between PLANit service node and its underlying GTFS stop needs to remain available. This function provides this mapping.
+   * GTFS Services are ingested and lead to PLANit service nodes to be created based on GTFS stop ids. When at some
+   * later point in time these PLANit service nodes are to be linked to PLANit transfer zones (which in turn have an
+   * association with a GTFS stop) the mapping between PLANit service node and its underlying GTFS stop needs to
+   * remain available. This function provides this mapping.
    * <p>
-   *   For now this mapping is purely based on the external id, but if this changes using this explicit functional approach allows
-   *   us to change this without having to change the process flow itself
+   *   For now this mapping is purely based on the external id, but if this changes using this explicit functional
+   *   approach allows us to change this without having to change the process flow itself
    * </p>
    *
    * @return mapping from PLANit service node to underlying source GTFS stop id
    */
   public Function<ServiceNode, String> getServiceNodeToGtfsStopIdMapping(){
     return GtfsServicesHandlerData.getServiceNodeToGtfsStopIdMapping();
+  }
+
+  /**
+   * Collect what became of the GTFS entities read, only available once reading completed
+   *
+   * @return diagnostics, null when reading has yet to take place
+   */
+  public GtfsParseDiagnostics getRawGtfsEntityDiagnostics() {
+    return rawGtfsEntityDiagnostics;
+  }
+
+  /**
+   * Stop this reader reporting what became of the feed when it completes, for a caller that drives it as one stage of
+   * a wider parse and reports on all of them itself once they have run
+   */
+  void suppressCoverageReport() {
+    this.reportCoverage = false;
   }
 
   /**

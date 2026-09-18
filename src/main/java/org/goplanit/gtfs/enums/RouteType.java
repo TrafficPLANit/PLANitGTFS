@@ -185,13 +185,13 @@ public enum RouteType implements EnumOf<RouteType,Short>, EnumValue<Short> {
    * and null is returned.
    *
    * @param value to extract enum for
-   * @return the stop location type found, null when not present
+   * @return the route type found, null when not present
    */
   public static RouteType parseFrom(String value){
     try{
       return of(Short.valueOf(value));
     }catch (Exception e){
-      LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS Stop Location Type",value));
+      LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS route type",value));
     }
     return null;
   }

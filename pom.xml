@@ -8,7 +8,7 @@
 	<parent>
     <groupId>org.goplanit.parentpom</groupId>
     <artifactId>planit-parentpom</artifactId>
-		<version>0.4.0</version>
+		<version>0.5.a1</version>
 	</parent>
 
 	<groupId>org.goplanit.gtfs</groupId>
@@ -51,6 +51,12 @@
 			<artifactId>commons-csv</artifactId>
 		</dependency>
 
+		<!-- Source: https://mvnrepository.com/artifact/com.univocity/univocity-parsers -->
+		<dependency>
+			<groupId>com.univocity</groupId>
+			<artifactId>univocity-parsers</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
@@ -59,7 +65,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<optional>true</optional>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.goplanit.geoio</groupId>
+			<artifactId>planit-geoio</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>

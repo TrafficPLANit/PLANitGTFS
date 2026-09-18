@@ -1,9 +1,14 @@
 package org.goplanit.gtfs.util;
 
+import org.geotools.geometry.jts.JTS;
+import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
+import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsImpl;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.locationtech.jts.geom.Polygon;
 import org.goplanit.gtfs.enums.RouteType;
-import org.goplanit.mode.ModeFactoryImpl;
 import org.goplanit.mode.ModesImpl;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGenerator;
@@ -11,7 +16,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.*;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -24,6 +28,44 @@ public class GtfsConverterReaderHelper {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(GtfsConverterReaderHelper.class.getCanonicalName());
+
+  /**
+   * Create the bounding area to restrict parsing to, based on the user defined polygon or, when none was set, on the
+   * underlying network's "rough" bounding area. Either way GTFS entities falling outside it are discarded, the derived
+   * area is only rougher than one drawn by the user.
+   * <p>
+   * Shared by the stages so that what is in scope is the same question in each of them, a stop that one stage
+   * considers out of reach and another does not being worse than either answer on its own
+   * </p>
+   *
+   * @param settings to source the user defined bounding area and ferry leniency from
+   * @param referenceNetwork the GTFS entities are mapped onto, providing the fallback area and the destination CRS
+   * @return created bounding area helper
+   */
+  public static ProjectedBoundingAreaHelper createBoundingAreaHelper(
+      final GtfsConverterReaderSettingsImpl settings, final MacroscopicNetwork referenceNetwork) {
+
+    var networkCrs = referenceNetwork.getCoordinateReferenceSystem();
+    Polygon boundingPolygonInGtfsCrs = null;
+    if(!settings.hasBoundingBoundary()){
+      var boundingPolygonInPlanitCrs = PlanitJtsUtils.create2DPolygon(referenceNetwork.createBoundingBox());
+      try{
+        var crsTransformGtfsToPlanit = PlanitJtsUtils.findMathTransform(
+            PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, networkCrs);
+        boundingPolygonInGtfsCrs = (Polygon) JTS.transform(
+            boundingPolygonInPlanitCrs, crsTransformGtfsToPlanit.inverse());
+      }catch (Exception e){}
+    }else{
+      boundingPolygonInGtfsCrs = settings.getBoundingArea();
+    }
+
+    // use helper for quick indexed checks
+    return ProjectedBoundingAreaHelper.of(
+        boundingPolygonInGtfsCrs,
+        PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS,
+        networkCrs,
+        settings.getMaximumDistanceFerryOutsideBoundingPolygonInMeters());
+  }
 
 
   /**
@@ -98,7 +140,7 @@ public class GtfsConverterReaderHelper {
         network.getModes().getFactory().registerNew(gtfsActivatedMode.getPredefinedModeType());
       }else{
         LOGGER.warning(String.format(
-            "DISCARD: Deactivating GTFS mode %s because its track type %s is not present on any mode [%s] in the physical network",
+            "Deactivating GTFS mode %s because its track type %s is not present on any mode [%s] in the physical network",
             gtfsActivatedMode.getPredefinedModeType(), gtfsActivatedMode.getPhysicalFeatures().getTrackType(), network.getModes().stream().map(m -> m.getName()).collect(Collectors.joining(","))));
         var gtfsRouteTypesToDeactivate = settings.getAcivatedGtfsModes(gtfsActivatedMode.getPredefinedModeType());
         settings.deactivateGtfsModes(gtfsRouteTypesToDeactivate);

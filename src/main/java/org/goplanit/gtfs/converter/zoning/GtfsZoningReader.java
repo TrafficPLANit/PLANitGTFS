@@ -1,9 +1,13 @@
 package org.goplanit.gtfs.converter.zoning;
 
+import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
+import org.goplanit.converter.zoning.TransferZoningInjectAccessEgressExecutor;
 import org.goplanit.converter.zoning.ZoningReader;
 import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdBreakEdgeHandler;
 import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdBreakEdgeSegmentHandler;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
+import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
 import org.goplanit.gtfs.enums.GtfsFileType;
@@ -27,8 +31,9 @@ import java.util.logging.Logger;
 
 /**
  * Parse GTFS input in supplement or populate a PLANit zoning instance with the parsed/matched GTFS entities.
- * In case an existing zoning instance is provided, the GTFS will supplement the existing public transport infrastructure
- * where possible, while if the zoning is empty it will create new entries for each of the found transfer zones (pt stops etc).
+ * In case an existing zoning instance is provided, the GTFS will supplement the existing public transport
+ * infrastructure where possible, while if the zoning is empty it will create new entries for each of the found
+ * transfer zones (pt stops etc).
  *
  * @author markr
  *
@@ -50,35 +55,44 @@ public class GtfsZoningReader implements ZoningReader {
   /** routed services to use to improve matching of GTFS stops (optional) */
   private final RoutedServices routedServices;
 
-  /** function that allows user to map a GTFS stop id to the underlying transfer zone (after {@link #read()} has been invoked) */
+  /** function that allows user to map a GTFS stop id to the underlying transfer zone
+   * (after {@link #read()} has been invoked) */
   private Function<String, TransferZone> gtfsStopIdToTransferZoneMapping;
 
   /** flag whether {@link #read()} has been invoked, false after {@link #reset()}  */
   private boolean readInvoked;
+
+  /** what became of the GTFS entities read, available once reading completed */
+  private GtfsParseDiagnostics rawGtfsEntityDiagnostics;
+
+  /** whether this reader reports what became of the feed itself, which it does unless it is one stage of a wider parse */
+  private boolean reportCoverage = true;
 
   /**
    * Log some information about this reader's configuration
    */
   private void logSettings() {
     if(zoning.getTransferConnectoids().isEmpty()){
-      LOGGER.info("PLANit Zoning has no transfer zone connectoids, creating new transfer zones for each eligible GTFS stop");
+      LOGGER.info("PLANit Zoning has no transfer zone connectoids, creating new transfer zones" +
+          " for each eligible GTFS stop");
     }else{
-      LOGGER.info("PLANit Zoning has transfer zone connectoids, fusing existing transfer zones with GTFS stops where possible");
+      LOGGER.info("PLANit Zoning has transfer zone connectoids, fusing existing transfer zones " +
+          "with GTFS stops where possible");
     }
     getSettings().logSettings();
   }
 
   /**
-   * Initialise event listeners used to inject functionality to the modifiers when modifications are made to the zoning and/or network. For example
-   * by syncing XML ids to internal ids when we break links
+   * Initialise event listeners used to inject functionality to the modifiers when modifications are made
+   * to the zoning and/or network. For example by syncing XML ids to internal ids when we break links
    */
   private void syncIdsAndinitialiseEventListeners() {
-    /** listener with functionality to sync XML ids to unique internal id upon breaking a link, ensures that when persisting
-     *  physical network by XML id,  we do not have duplicate ids */
+    /* listener with functionality to sync XML ids to unique internal id upon breaking a link, ensures that when
+    persisting physical network by XML id,  we do not have duplicate ids */
     SyncXmlIdToIdBreakEdgeHandler syncXmlIdToIdOnBreakLink = new SyncXmlIdToIdBreakEdgeHandler();
 
-    /** listener with functionality to sync XML ids to unique internal id upon breaking a link segment, ensures that when persisting
-     * physical network by XML id,  we do not have duplicate ids */
+    /* listener with functionality to sync XML ids to unique internal id upon breaking a link segment, ensures that
+    when persisting physical network by XML id,  we do not have duplicate ids */
     SyncXmlIdToIdBreakEdgeSegmentHandler syncXmlIdToIdOnBreakLinkSegment = new SyncXmlIdToIdBreakEdgeSegmentHandler();
 
     /* network layers */
@@ -87,19 +101,21 @@ public class GtfsZoningReader implements ZoningReader {
       var layerModifier = networkLayer.getLayerModifier();
       layerModifier.removeAllListeners();
 
-      /* whenever a link(segment) is broken we ensure that its XML id is synced with the internal id to ensure it remains unique */
+      /* whenever a link(segment) is broken we ensure that its XML id is synced with the internal id to ensure it
+      remains unique */
       layerModifier.addListener(syncXmlIdToIdOnBreakLink);
       layerModifier.addListener(syncXmlIdToIdOnBreakLinkSegment);
     }
 
     // update all network XML ids to internal id's upon calling recreating managed id entities on a graph layer
     LOGGER.info("Syncing PLANit network XML ids to internal ids");
-    MacroscopicNetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(referenceNetwork);
+    MacroscopicNetworkModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(referenceNetwork);
 
-    /* zoning: since zoning can be partially populated we must ensure we do not generate XML ids synced to internal ids that clash with
-    * pre-existing XML ids, hence recreated managed ids and sync all XML ids to internal ids as well */
+    /* zoning: since zoning can be partially populated we must ensure we do not generate XML ids synced
+    to internal ids that clash with pre-existing XML ids, hence recreated managed ids and sync all XML ids to
+    internal ids as well */
     LOGGER.info("Syncing PLANit zoning XML ids to internal ids");
-    ZoningModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(zoning);
+    ZoningModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(zoning);
   }
 
   /**
@@ -114,7 +130,12 @@ public class GtfsZoningReader implements ZoningReader {
     // initialise data
     readInvoked = false;
     syncIdsAndinitialiseEventListeners();
-    return new GtfsZoningHandlerData(getSettings(), zoning, serviceNetwork, routedServices, new GtfsZoningHandlerProfiler());
+
+    /* profiler to use, recording into diagnostics sized as configured before any entity reaches them */
+    var handlerProfiler = new GtfsZoningHandlerProfiler(
+        GtfsParseDiagnostics.create(
+            getSettings().getDiagnosticsRetentionLimit(), getSettings().getDiagnosticsSampleSize()));
+    return new GtfsZoningHandlerData(getSettings(), zoning, serviceNetwork, routedServices, handlerProfiler);
   }
 
   /**
@@ -122,7 +143,7 @@ public class GtfsZoningReader implements ZoningReader {
    *
    * @param gtfsZoningHandlerData to use
    */
-  private void processStops(GtfsZoningHandlerData gtfsZoningHandlerData) {
+  private void processGtfsStops(GtfsZoningHandlerData gtfsZoningHandlerData) {
     LOGGER.info("Processing: mapping GTFS Stops...");
     /* PLANit specific handler */
     var stopsHandler = new GtfsPlanitFileHandlerStops(gtfsZoningHandlerData);
@@ -140,6 +161,13 @@ public class GtfsZoningReader implements ZoningReader {
 
     /* execute */
     stopsFileReader.read(StandardCharsets.UTF_8);
+
+    /* post-process the addition of access/egress modes for accessing the stops generated transfer zones */
+    // todo: GTFS does not yet support a bounding area, so we pass in empty, update when we implement this
+    var accessEgressExecutor = new TransferZoningInjectAccessEgressExecutor(
+        gtfsZoningHandlerData.getBoundingAreaHelper(),
+        gtfsZoningHandlerData.getConverterData());
+    accessEgressExecutor.execute(getSettings().accessEgressInjectionSettings);
   }
 
 
@@ -150,7 +178,7 @@ public class GtfsZoningReader implements ZoningReader {
      */
   private void doMainProcessing(GtfsZoningHandlerData zoningHandlerData) {
     LOGGER.info("Processing: Identifying GTFS Stops, supplementing PLANit transfer zones memory model...");
-    processStops(zoningHandlerData);
+    processGtfsStops(zoningHandlerData);
     LOGGER.info("Processing: GTFS stops Done");
   }
 
@@ -169,10 +197,17 @@ public class GtfsZoningReader implements ZoningReader {
    *
    * @param settings to use
    * @param zoningToPopulate zoning to populate
-   * @param serviceNetwork the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
-   * @param routedServices the compatible PLANit routed services that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param serviceNetwork the compatible PLANit service network that is assumed to have been constructed
+   *                       from the same GTFS source files as this zoning reader will use
+   * @param routedServices the compatible PLANit routed services that is assumed to have been constructed
+   *                       from the same GTFS source files as this zoning reader will use
    */
-  protected GtfsZoningReader(GtfsZoningReaderSettings settings, Zoning zoningToPopulate, ServiceNetwork serviceNetwork, RoutedServices routedServices){
+  protected GtfsZoningReader(
+      GtfsZoningReaderSettings settings,
+      Zoning zoningToPopulate,
+      ServiceNetwork serviceNetwork,
+      RoutedServices routedServices){
+
     this.gtfsSettings = settings;
     this.zoning = zoningToPopulate;
     this.serviceNetwork = serviceNetwork;
@@ -180,16 +215,19 @@ public class GtfsZoningReader implements ZoningReader {
   }
 
   /**
-   * Parse a GTFS files and convert it into a PLANit Zoning instance, or supplement the transfer zones of an already existing instance
-   * given the configuration options that have been set
+   * Parse a GTFS files and convert it into a PLANit Zoning instance, or supplement the transfer zones of
+   * an already existing instance given the configuration options that have been set
    * 
    * @return macroscopic zoning that has been parsed or supplemented
    */
   @Override
   public Zoning read(){
-    PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()), "Country not set for GTFS zoning reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(getSettings().getInputSource(), "Input source not set for GTFS zoning reader, unable to proceed");
-    PlanItRunTimeException.throwIfNull(serviceNetwork.getParentNetwork(),"Reference physical network not available when parsing GTFS zoning, unable to proceed");
+    PlanItRunTimeException.throwIf(StringUtils.isNullOrBlank(getSettings().getCountryName()),
+        "Country not set for GTFS zoning reader, unable to proceed");
+    PlanItRunTimeException.throwIfNull(getSettings().getInputSource(),
+        "Input source not set for GTFS zoning reader, unable to proceed");
+    PlanItRunTimeException.throwIfNull(serviceNetwork.getParentNetwork(),
+        "Reference physical network not available when parsing GTFS zoning, unable to proceed");
 
     /* prepare for parsing */
     var zoningHandlerData = initialiseBeforeParsing();
@@ -199,8 +237,18 @@ public class GtfsZoningReader implements ZoningReader {
     /* main processing  */
     doMainProcessing(zoningHandlerData);
 
+    /* retain what became of the GTFS entities read, so it remains available to whoever drives this reader */
+    this.rawGtfsEntityDiagnostics = zoningHandlerData.getDiagnostics();
+
     /* log stats */
     zoningHandlerData.getProfiler().logProcessingStats(zoning);
+
+    if(reportCoverage){
+      /* this reader is the whole parse, so what became of the feed is complete and can be reported */
+      GtfsCoverageReport.report(
+          this.rawGtfsEntityDiagnostics, null, getSettings().isPersistParseDiagnostics(),
+          getSettings().getParseDiagnosticsOutputDirectory());
+    }
 
     /* generate mapping function now that mapping is known, for third parties to use if needed */
     gtfsStopIdToTransferZoneMapping = zoningHandlerData.createGtfsStopToTransferZoneMappingFunction();
@@ -219,7 +267,8 @@ public class GtfsZoningReader implements ZoningReader {
     /* reset state */
     readInvoked = false;
     gtfsStopIdToTransferZoneMapping = null;
-  }  
+    rawGtfsEntityDiagnostics = null;
+  }
 
   /**
    * Collect the settings which can be used to configure the reader
@@ -228,6 +277,23 @@ public class GtfsZoningReader implements ZoningReader {
    */
   public GtfsZoningReaderSettings getSettings() {
     return gtfsSettings;
+  }
+
+  /**
+   * Collect what became of the GTFS entities read, only available once reading completed
+   *
+   * @return diagnostics, null when reading has yet to take place
+   */
+  public GtfsParseDiagnostics getRawGtfsEntityDiagnostics() {
+    return rawGtfsEntityDiagnostics;
+  }
+
+  /**
+   * Stop this reader reporting what became of the feed when it completes, for a caller that drives it as one stage of
+   * a wider parse and reports on all of them itself once they have run
+   */
+  void suppressCoverageReport() {
+    this.reportCoverage = false;
   }
 
   /**

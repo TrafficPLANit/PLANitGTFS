@@ -1,7 +1,9 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsStopTime;
 import org.goplanit.gtfs.entity.GtfsTrip;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStopTimes;
 import org.goplanit.gtfs.util.GtfsUtils;
 import org.goplanit.utils.mode.Mode;
@@ -88,7 +90,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       /* external id = GTFS trip id*/
       planitTrip.setExternalId(gtfsTrip.getTripId());
       data.indexByExternalId(planitTrip);
-      data.getProfiler().incrementScheduledTripCount();
     }
 
     return planitTrip;
@@ -205,7 +206,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS stop times");
     PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS stop times");
     // prerequisites
-    PlanItRunTimeException.throwIf(data.getRoutedServices().getLayers().isEachLayerEmpty()==true,"No GTFS routes parsed yet, unable to parse GTFS stop times");
+    PlanItRunTimeException.throwIf(data.getRoutedServices().getLayers().isEachLayerEmpty(),"No GTFS routes parsed yet, unable to parse GTFS stop times");
 
     reset();
   }
@@ -215,24 +216,30 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    */
   @Override
   public void handle(GtfsStopTime gtfsStopTime) {
+    data.getProfiler().registerSeenStopTime();
 
-    if(data.isGtfsTripRemoved(gtfsStopTime.getTripId())) {
+    if(data.getDiagnostics().isDiscarded(GtfsObjectType.TRIP, gtfsStopTime.getTripId())) {
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_TIME_OF_DISCARDED_TRIP, gtfsStopTime.getTripId());
       return;
     }
 
     /* PREP */
     GtfsTrip gtfsTrip = data.getGtfsTripByGtfsTripId(gtfsStopTime.getTripId());
     if(gtfsTrip == null){
-      //LOGGER.severe(String.format("Unable to find GTFS trip %s for current GTFS stop time (stop id: %s), GTFS stop time ignored", gtfsStopTime.getTripId(), gtfsStopTime.getStopId()));
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_TIME_TRIP_UNRESOLVED, gtfsStopTime.getTripId());
       return;
     }
 
     var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
-    boolean logTrackedRoute = (activatedLoggingForGtfsRoutesByShortName.contains(planitRoutedService.getName()));
     if(planitRoutedService == null){
-      LOGGER.severe(String.format("Unable to find GTFS route %s in PLANit memory model corresponding to GTFS trip %s, GTFS stop time (stop id %s) ignored", gtfsTrip.getRouteId(), gtfsTrip.getTripId(), gtfsStopTime.getStopId()));
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_TIME_ROUTE_UNRESOLVED, gtfsTrip.getTripId(),
+          gtfsTrip.getRouteId(), gtfsStopTime.getStopId());
       return;
     }
+    boolean logTrackedRoute = (activatedLoggingForGtfsRoutesByShortName.contains(planitRoutedService.getName()));
     var layer = data.getServiceNetwork().getLayerByMode(planitRoutedService.getMode());
 
     /* change of GTFS trip between stop times, assume current stop time is the very first stop time for the new trip */
@@ -250,14 +257,17 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     if(isTripDepartureTime && !data.isDepartureTimeOfServiceIdWithinEligibleTimePeriod(gtfsTrip.getServiceId(), departureTime)){
       /* outside time period of interest for any day the trip runs, do not parse, unless maybe later stops fall in time windows and we want to check that */
       if(!data.getSettings().isIncludePartialGtfsTripsIfStopsInTimePeriod()) {
-        data.registeredRemovedGtfsTrip(gtfsTrip, GtfsServicesHandlerData.TripRemovalType.TIME_PERIOD_DISCARDED);
+        data.getDiagnostics().registerIssue(GtfsParseIssue.TRIP_OUTSIDE_TIME_PERIOD, gtfsTrip.getTripId());
       }
       return;
     }
 
     /* GTFS may contain virtually identical entries in terms of arrival departure times for the same trip and stop. These are filtered here */
     if(!isTripDepartureTime && prevSameTripStopTime!= null && isConsideredEqual(gtfsStopTime, prevSameTripStopTime)){
-      data.getProfiler().incrementDuplicateStopTimeCount();
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.STOP_TIME_DUPLICATE,
+          gtfsStopTime.getTripId(),
+          gtfsStopTime.getStopId(), gtfsStopTime.getStopSequence());
       return;
     }
 
@@ -273,7 +283,8 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     /* STOP_TIME - INTERMEDIATE STOP */
     else{
       if(prevStopTimeTrip == null){
-        LOGGER.severe(String.format("GTFS trip's stop times not consecutive for GTFS trip %s, GTFS parser does not yet support such stop_time files, log GitHub feature request!",gtfsStopTime.getTripId()));
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_TIME_NON_CONSECUTIVE, gtfsStopTime.getTripId());
         return;
       }
 
@@ -282,8 +293,10 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       var duration = arrivalTime.minus(GtfsUtils.parseGtfsTime(prevSameTripStopTime.getDepartureTime()));
       var dwellTime = departureTime.minus(arrivalTime);
       if(duration.exceedsSingleDay() || dwellTime.exceedsSingleDay()){
-        LOGGER.severe(String.format("Duration (%s) between stops (%s, %s) and/or dwell time at stop (%s) should be less than a day, ignored",
-                duration, serviceNetworkSegment.getUpstreamServiceNode().getExternalId(), serviceNetworkSegment.getDownstreamServiceNode().getExternalId(), dwellTime));
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.TRIP_LEG_DURATION_EXCEEDS_DAY, gtfsStopTime.getTripId(),
+            serviceNetworkSegment.getUpstreamServiceNode().getExternalId(),
+            serviceNetworkSegment.getDownstreamServiceNode().getExternalId(), duration, dwellTime);
         return;
       }
       planitTrip.addRelativeLegSegmentTiming(serviceNetworkSegment, duration.asLocalTimeBeforeMidnight(), dwellTime.asLocalTimeBeforeMidnight());
@@ -297,8 +310,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       uniqueRoutesForStopsIfLoggingRequired.putIfAbsent(gtfsStopTime.getStopId(), new TreeSet<>());
       uniqueRoutesForStopsIfLoggingRequired.get(gtfsStopTime.getStopId()).add("(name: " + planitRoutedService.getName()+" id: " + gtfsTrip.getRouteId()+")");
     }
-
-    data.getProfiler().incrementTripStopTimeCount();
 
     this.prevSameTripStopTime = gtfsStopTime;
     this.prevStopTimeTrip = gtfsTrip;

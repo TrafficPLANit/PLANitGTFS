@@ -2,6 +2,11 @@ package org.goplanit.gtfs.converter.intermodal;
 
 import org.goplanit.converter.PairConverterReader;
 import org.goplanit.converter.intermodal.IntermodalReader;
+import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityDiagnostics;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
@@ -12,25 +17,22 @@ import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.service.routed.modifier.event.handler.SyncDeparturesXmlIdToIdHandler;
 import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlIdToIdHandler;
 import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
-import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 import org.goplanit.zoning.Zoning;
-import org.hsqldb.persist.Log;
+import org.goplanit.zoning.ZoningModifierUtils;
 
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
- * GTFS intermodal reader. Supplements an already populated network and (partially populated) zoning with GTFS services resulting in
- * a consistent service network and routed services PLANit memory model. In case the provided zoning already contains transfer zones
- * an attempt is made to fuse the GTFS stops with existing transfer zones when appliccable, in case this is not possible or such zones
- * are absent altogether they will be injected from scratch.
+ * GTFS intermodal reader. Supplements an already populated network and (partially populated) zoning with GTFS services
+ * resulting in a consistent service network and routed services PLANit memory model. In case the provided zoning
+ * already contains transfer zones an attempt is made to fuse the GTFS stops with existing transfer zones when
+ * applicable, in case this is not possible or such zones are absent altogether they will be injected from scratch.
  * 
  * @author markr
  *
@@ -55,13 +57,23 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
   /** reader to use to extract network and zoning (unless obtained from network and zoning instances ) */
   private PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader;
 
+  /** what became of the GTFS entities read across all stages, available once reading completed */
+  private GtfsParseDiagnostics rawGtfsEntityDiagnostics;
+
+  /** what became of the PLANit entities derived from the feed, available once reading completed */
+  private GtfsPlanitEntityDiagnostics planitEntityDiagnostics;
+
   /* Remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
-   * therefore have no mapping populated with respect to their parent service network (and physical network). Sync XML ids to avoid gaps
-   * or potentially duplicate usage of these ids
-   * */
+   * therefore have no mapping populated with respect to their parent service network (and physical network).
+   * Sync XML ids to avoid gaps or potentially duplicate usage of these ids
+   *
+   *@param routedServices to check
+   */
   private void truncateToServiceNetwork(RoutedServices routedServices) {
     List<RoutedServicesModifierListener> listeners =
-        List.of(new SyncDeparturesXmlIdToIdHandler(), new SyncRoutedServicesXmlIdToIdHandler(), new SyncRoutedTripsXmlIdToIdHandler());
+        List.of(new SyncDeparturesXmlIdToIdHandler(), new SyncRoutedServicesXmlIdToIdHandler(),
+                new SyncRoutedTripsXmlIdToIdHandler());
+
     for( var layer : routedServices.getLayers()){
       listeners.forEach( l -> layer.getLayerModifier().addListener(l));
 
@@ -79,7 +91,12 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
    * @param parentZoning to use
    * @param settings to use
    */
-  protected GtfsIntermodalReader(final IdGroupingToken idToken, MacroscopicNetwork parentNetwork, final Zoning parentZoning, final GtfsIntermodalReaderSettings settings){
+  protected GtfsIntermodalReader(
+          final IdGroupingToken idToken,
+          MacroscopicNetwork parentNetwork,
+          final Zoning parentZoning,
+          final GtfsIntermodalReaderSettings settings){
+
     this.settings = settings;
 
     this.idToken = idToken;
@@ -89,12 +106,16 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
   }
 
-  /** Constructor where settings are directly provided such that input information can be extracted from it, use reader to obtain network and zoning instances
+  /** Constructor where settings are directly provided such that input information can be extracted from it,
+   * use reader to obtain network and zoning instances.
    *
    * @param networkAndZoningReader to use
    * @param settings to use
    */
-  protected GtfsIntermodalReader(final PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader, final GtfsIntermodalReaderSettings settings){
+  protected GtfsIntermodalReader(
+          final PairConverterReader<MacroscopicNetwork, Zoning> networkAndZoningReader,
+          final GtfsIntermodalReaderSettings settings){
+
     this.settings = settings;
 
     this.idToken = null;
@@ -106,15 +127,17 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
 
   /**
-   * GTFS intermodal reader - when used - only supports reading with services included. Hence, calling this method will log this to the user
-   * and will not generate any results
+   * GTFS intermodal reader - when used - only supports reading with services included. Hence, calling this method
+   * will log this to the user and will not generate any results.
    *
    * @return always null
    */
   @Override
   public Pair<MacroscopicNetwork, Zoning> read() {
-    LOGGER.warning("GTFS Intermodal Reader only supports readWithServices(), read() is not supported due to absence of physical network in GTFS data...");
-    LOGGER.warning("...To parse a compatible network consider using the OSM Intermodal Reader or another compatible network reader to pre-load the network");
+    LOGGER.warning("GTFS Intermodal Reader only supports readWithServices(), read() is not supported due to " +
+            "absence of physical network in GTFS data...");
+    LOGGER.warning("...To parse a compatible network consider using the OSM Intermodal Reader or another " +
+            "compatible network reader to pre-load the network");
     return null;
   }
 
@@ -123,6 +146,26 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
    */  
   @Override
   public void reset() {
+    rawGtfsEntityDiagnostics = null;
+    planitEntityDiagnostics = null;
+  }
+
+  /**
+   * Collect what became of the GTFS entities read, only available once reading completed
+   *
+   * @return diagnostics, null when reading has yet to take place
+   */
+  public GtfsParseDiagnostics getRawGtfsEntityDiagnostics() {
+    return rawGtfsEntityDiagnostics;
+  }
+
+  /**
+   * Collect what became of the PLANit entities derived from the feed, only available once reading completed
+   *
+   * @return diagnostics, null when reading has yet to take place
+   */
+  public GtfsPlanitEntityDiagnostics getPlanitEntityDiagnostics() {
+    return planitEntityDiagnostics;
   }
 
   /**
@@ -151,7 +194,8 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
   public Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> readWithServices() {
 
     if( (parentNetwork==null || parentZoning==null) && networkAndZoningReader==null){
-      LOGGER.severe("GTFS intermodal reader incorrectly configured, no network and/or zoning available, yet no reader present to construct them beforehand, this shouldn't happen");
+      LOGGER.severe("GTFS intermodal reader incorrectly configured, no network and/or zoning available, " +
+              "yet no reader present to construct them beforehand, this shouldn't happen");
       return null;
     }
 
@@ -166,13 +210,17 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
       this.idToken = parentNetwork.getIdGroupingToken();
     }
 
-    /* SERVICES without geo filter (since locations are currently only parsed when considering GTFS stops via (transfer) zoning reader), hence
-    *  all routes/services are initially mapped to PLANit equivalents but without mapping to physical network yet*/
-    GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(parentNetwork, getSettings().getServiceSettings());
+    /* SERVICES without geo filter (since locations are currently only parsed when considering GTFS stops via
+     * (transfer) zoning reader), hence all routes/services are initially mapped to PLANit equivalents but without
+     * mapping to physical network yet */
+    GtfsServicesReader servicesReader =
+            GtfsServicesReaderFactory.createWithoutCoverageReport(
+                parentNetwork, getSettings().getServiceSettings());
     Pair<ServiceNetwork,RoutedServices> servicesResult = servicesReader.read();
 
-    /* ZONING (PT stops as transfer zones) this parses GTFS stops and their locations, parsed GTFS stops are constrained to bounding box of underlying physical network*/
-    final var zoningReader = GtfsZoningReaderFactory.create(
+    /* ZONING (PT stops as transfer zones) this parses GTFS stops and their locations, parsed GTFS stops are
+     * constrained to bounding box of underlying physical network */
+    final var zoningReader = GtfsZoningReaderFactory.createWithoutCoverageReport(
         getSettings().getZoningSettings(),
         parentZoning,
         servicesResult.first(),
@@ -180,8 +228,9 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
         servicesReader.getServiceNodeToGtfsStopIdMapping());
     var zoning = zoningReader.read();
 
-    /* INTEGRATE: integrate the zoning, service network and network by finding paths between the identified stops for all given services,
-    * for now, we generate the paths based on simple Dijkstra shortest paths, in the future more sophisticated alternatives could be used */
+    /* INTEGRATE: integrate the zoning, service network and network by finding paths between the identified stops
+    for all given services, for now, we generate the paths based on simple Dijkstra shortest paths, in the future
+    more sophisticated alternatives could be used */
     var integrator = new GtfsServicesAndZoningReaderIntegrator(
         settings,
         zoning,
@@ -191,37 +240,73 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
         zoningReader.getGtfsStopIdToTransferZoneMapping());
     integrator.execute();
 
+    /* DIAGNOSTICS: each stage recorded its own account, none of which says much on its own. Bring them together here,
+     * this being the only place that sees all of them, and add what the clean-up below takes away again */
+    this.rawGtfsEntityDiagnostics = servicesReader.getRawGtfsEntityDiagnostics().newEmptyInstance();
+    this.rawGtfsEntityDiagnostics.merge(servicesReader.getRawGtfsEntityDiagnostics());
+    this.rawGtfsEntityDiagnostics.merge(zoningReader.getRawGtfsEntityDiagnostics());
+    this.planitEntityDiagnostics = integrator.getPlanitEntityDiagnostics();
+    var cleanUpDiagnostics = new GtfsCleanUpDiagnostics(this.planitEntityDiagnostics);
+
     /* SERVICE NETWORK CLEAN-UP */
     {
-      /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped */
-      servicesResult.first().getTransportLayers().forEach(l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
+      var serviceNodesBefore = GtfsCleanUpDiagnostics.collectServiceNodes(servicesResult.first());
+
+      /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e.,
+       * remained unmapped */
+      servicesResult.first().getTransportLayers().forEach(
+              l -> l.getLayerModifier().removeUnmappedServiceNetworkEntities());
+
+      cleanUpDiagnostics.registerRemoved(
+          GtfsPlanitEntityType.SERVICE_NODE, GtfsPlanitEntityIssue.SERVICE_NODE_OUTSIDE_NETWORK_AREA,
+          serviceNodesBefore, GtfsCleanUpDiagnostics.collectServiceNodes(servicesResult.first()));
     }
 
     /* ROUTED SERVICES CLEAN-UP */
     {
-      /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e., remained unmapped and
-       * therefore have no mapping populated with respect to their parent service network (and physical network) */
+      var tripSchedulesBefore = GtfsCleanUpDiagnostics.collectTripSchedules(servicesResult.second());
+
+      /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e.,
+       * remained unmapped and therefore have no mapping populated with respect to their parent service network
+       * (and physical network) */
       truncateToServiceNetwork(servicesResult.second());
 
-      /* CLEAN-UP: optional optimisation/processing. Note while we already did this in the services reader as well, due to the above truncation
-       *  trips have been altered and as a result more trips will now have identical leg timings and therefore can be grouped further */
+      cleanUpDiagnostics.registerRemoved(
+          GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsPlanitEntityIssue.TRIP_SCHEDULE_TRUNCATED_UNMAPPED,
+          tripSchedulesBefore, GtfsCleanUpDiagnostics.collectTripSchedules(servicesResult.second()));
+
+      /* CLEAN-UP: optional optimisation/processing. Note while we already did this in the services reader as well,
+       * due to the above truncation trips have been altered and as a result more trips will now have identical
+       * leg timings and therefore can be grouped further */
       if (getSettings().getServiceSettings().isGroupIdenticalGtfsTrips()) {
-        LOGGER.info("Optimising: Consolidating remaining GTFS trip departures with identical relative schedules...");
+        LOGGER.info("Optimising: Consolidating remaining GTFS trip departures with identical " +
+                "relative schedules...");
         GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(servicesResult.second());
       }
-      /* CLEAN-UP: Due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often see duplicate departure times occurring. these need to be removed */
+      /* CLEAN-UP: Due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we
+       * often see duplicate departure times occurring. these need to be removed */
+      var departuresBefore = GtfsCleanUpDiagnostics.collectDepartures(servicesResult.second());
       GtfsRoutedServicesModifierUtils.removeDuplicateTripDepartures(servicesResult.second());
+
+      cleanUpDiagnostics.registerRemoved(
+          GtfsPlanitEntityType.DEPARTURE, GtfsPlanitEntityIssue.DEPARTURE_DUPLICATE_SCHEDULED_TIME,
+          departuresBefore, GtfsCleanUpDiagnostics.collectDepartures(servicesResult.second()));
     }
 
     /* ZONING CLEAN-UP */
     {
       if(getSettings().getZoningSettings().isRemoveUnusedTransferZones()){
+        //todo: verify the services are correctly updated and use the right zone ids etc.!
+
         /* first remove the unused connectoids */
-        zoning.getZoningModifier().removeUnusedTransferConnectoids(servicesResult.first().getTransportLayers(), true);
+        zoning.getZoningModifier().removeUnusedTransferConnectoids(
+                servicesResult.first().getTransportLayers(), false);
         /* then we can remove transfer zones without connectoids */
-        zoning.getZoningModifier().removeDanglingTransferZones(true);
+        zoning.getZoningModifier().removeDanglingTransferZones(false);
         /* then we can remove transfer zone groups without transfer zones */
-        zoning.getZoningModifier().removeDanglingTransferZoneGroups();
+        zoning.getZoningModifier().removeDanglingTransferZoneGroups(false);
+        // --> now recreate ids
+        ZoningModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(zoning);
       }
     }
 
@@ -231,6 +316,11 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     zoning.logInfo(LoggingUtils.zoningPrefix(zoning.getId()));
     servicesResult.first().logInfo(LoggingUtils.serviceNetworkPrefix(servicesResult.first().getId()));
     servicesResult.second().logInfo(LoggingUtils.routedServicesPrefix(servicesResult.second().getId()));
+
+    /* every stage has run and the result is final, so what became of the feed can be reported */
+    GtfsCoverageReport.report(
+        this.rawGtfsEntityDiagnostics, this.planitEntityDiagnostics, getSettings().isPersistParseDiagnostics(),
+        getSettings().getParseDiagnosticsOutputDirectory());
 
     /* combined result */
     return Quadruple.of(parentNetwork, zoning, servicesResult.first(), servicesResult.second());

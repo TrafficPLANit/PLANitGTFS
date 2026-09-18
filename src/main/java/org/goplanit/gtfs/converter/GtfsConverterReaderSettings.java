@@ -31,8 +31,4 @@ public interface GtfsConverterReaderSettings extends ConverterReaderSettings {
    */
   public abstract URL getInputSource();
 
-  /**
-   * Log settings used
-   */
-  public abstract void logSettings();
 }
