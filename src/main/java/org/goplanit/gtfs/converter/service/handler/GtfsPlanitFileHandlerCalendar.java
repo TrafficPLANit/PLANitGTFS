@@ -1,6 +1,8 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerCalendars;
@@ -47,10 +49,17 @@ public class GtfsPlanitFileHandlerCalendar extends GtfsFileHandlerCalendars {
   @Override
   public void handle(GtfsCalendar gtfsCalendar) {
     var diagnostics = data.getDiagnostics();
-    diagnostics.registerSeen(GtfsObjectType.CALENDAR);
 
     // test would typically be based on what days are deemed eligible
-    if(!serviceIdFilter.test(gtfsCalendar)){
+    boolean activeOnChosenDay = serviceIdFilter.test(gtfsCalendar);
+
+    /* a calendar is the day filter rather than something subject to it, so where it stands in time is known the
+     * moment it is read and is the only respect it stands in at all */
+    diagnostics.registerSeen(
+        GtfsObjectType.CALENDAR, null, GtfsScopeDimension.TEMPORAL,
+        activeOnChosenDay ? GtfsEntityScope.IN : GtfsEntityScope.OUT);
+
+    if(!activeOnChosenDay){
       diagnostics.registerIssue(GtfsParseIssue.CALENDAR_NOT_ACTIVE_ON_DAY, gtfsCalendar.getServiceId());
       return;
     }

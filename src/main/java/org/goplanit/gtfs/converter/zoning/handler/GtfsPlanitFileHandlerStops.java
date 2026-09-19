@@ -6,6 +6,7 @@ import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
@@ -1290,7 +1291,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
      * such rather than under whichever other check it would have failed first. It is discarded either way. What the
      * stop is and where it sits are both known here, so it is counted once, already settled */
     var scope = determineScope(gtfsStop);
-    diagnostics.registerSeen(GtfsObjectType.STOP, gtfsStop.getLocationType(), scope);
+    diagnostics.registerSeen(
+        GtfsObjectType.STOP, gtfsStop.getLocationType(), GtfsScopeDimension.SPATIAL, scope);
     if(scope == GtfsEntityScope.OUT){
       registerOutOfBoundingAreaDiscard(gtfsStop);
       return;

@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsStopTime;
 import org.goplanit.gtfs.entity.GtfsTrip;
@@ -241,7 +242,8 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     }
 
     var diagnostics = data.getDiagnostics();
-    var settledScope = diagnostics.getSettledScope(GtfsObjectType.TRIP, gtfsTrip.getTripId());
+    var settledScope = diagnostics.getSettledScope(
+        GtfsObjectType.TRIP, GtfsScopeDimension.SPATIAL, gtfsTrip.getTripId());
     if(settledScope != GtfsEntityScope.OUT){
       return;
     }
@@ -304,9 +306,9 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       var stopScope = data.isGtfsStopWithinArea(gtfsStopTime.getStopId())
           ? GtfsEntityScope.IN : GtfsEntityScope.OUT;
       data.getDiagnostics().registerSeenPartInScope(
-          GtfsObjectType.TRIP, gtfsStopTime.getTripId(), stopScope);
+          GtfsObjectType.TRIP, GtfsScopeDimension.SPATIAL, gtfsStopTime.getTripId(), stopScope);
       data.getDiagnostics().registerSeenPartInScope(
-          GtfsObjectType.ROUTE, gtfsTrip.getRouteId(), stopScope);
+          GtfsObjectType.ROUTE, GtfsScopeDimension.SPATIAL, gtfsTrip.getRouteId(), stopScope);
     }
 
     /* change of GTFS trip between stop times, assume current stop time is the very first stop time for the new trip */

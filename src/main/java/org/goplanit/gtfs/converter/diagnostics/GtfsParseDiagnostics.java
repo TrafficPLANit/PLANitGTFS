@@ -80,7 +80,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * same counters and cannot come to disagree
    * </p>
    */
-  private final Map<GtfsObjectType, Map<String, Map<GtfsEntityScope, LongAdder>>> seenByEntityTypeSubTypeAndScope =
+  private final Map<GtfsObjectType, Map<String, Map<GtfsScopeState, LongAdder>>> seenByEntityTypeSubTypeAndScope =
       new ConcurrentHashMap<>();
 
   /**
@@ -94,7 +94,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   private final Map<GtfsParseIssue, GtfsIssueScopeRelation> scopeRelationByIssue = new ConcurrentHashMap<>();
 
   /** the scope settled for individual entities, for the indexed entity types only */
-  private final Map<GtfsObjectType, Map<String, GtfsEntityScope>> scopeByEntityId =
+  private final Map<GtfsObjectType, Map<String, GtfsScopeState>> scopeByEntityId =
       new EnumMap<>(GtfsObjectType.class);
 
   /**
@@ -106,7 +106,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * covers, and the rows say which without anyone having to reason it out
    * </p>
    */
-  private final Map<GtfsParseIssue, Map<String, Map<GtfsEntityScope, LongAdder>>> issuesBySubTypeAndScope =
+  private final Map<GtfsParseIssue, Map<String, Map<GtfsScopeState, LongAdder>>> issuesBySubTypeAndScope =
       new ConcurrentHashMap<>();
 
   /** issues that cost the entity, keyed by issue name */
@@ -326,11 +326,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @return counter
    */
   private LongAdder collectSeenCounter(
-      final GtfsObjectType entityType, final String subType, final GtfsEntityScope scope) {
+      final GtfsObjectType entityType, final String subType, final GtfsScopeState state) {
     return seenByEntityTypeSubTypeAndScope
         .computeIfAbsent(entityType, type -> new ConcurrentHashMap<>())
         .computeIfAbsent(subType != null ? subType : NO_SUBTYPE, type -> new ConcurrentHashMap<>())
-        .computeIfAbsent(scope, type -> new LongAdder());
+        .computeIfAbsent(state, type -> new LongAdder());
   }
 
   /**
@@ -366,11 +366,92 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    *
    * @param entityType to collect for
    * @param entityId to collect for
-   * @return scope, null where none was settled for it
+   * @return state, null where nothing was settled for it
    */
-  public GtfsEntityScope getSettledScope(final GtfsObjectType entityType, final String entityId) {
+  public GtfsScopeState getSettledState(final GtfsObjectType entityType, final String entityId) {
     var index = scopeByEntityId.get(entityType);
     return index == null || entityId == null ? null : index.get(entityId);
+  }
+
+  /**
+   * Register that an entity was ruled out in the given respect, a filter having excluded it.
+   * <p>
+   * Ruling out is absorbing: a trip already excluded for running on another day is not brought back by passing a
+   * later test, so unlike the spatial respect, where parts accumulate into a whole, the respects a run is narrowed by
+   * only ever narrow further
+   * </p>
+   *
+   * @param entityType encountered
+   * @param dimension the entity was ruled out in
+   * @param entityId identifying the entity
+   */
+  public void registerSeenOutOfScope(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final String entityId) {
+    settleScope(entityType, dimension, entityId, GtfsEntityScope.OUT);
+  }
+
+  /**
+   * Register that an entity passed what a run is narrowed by in the given respect, leaving it ruled out where an
+   * earlier filter already excluded it
+   *
+   * @param entityType encountered
+   * @param dimension the entity passed in
+   * @param entityId identifying the entity
+   */
+  public void registerSeenWithinScope(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final String entityId) {
+    settleScope(entityType, dimension, entityId, GtfsEntityScope.IN);
+  }
+
+  /**
+   * Settle the scope of an entity in a respect, moving it between cells of the tally so it stays counted exactly once
+   *
+   * @param entityType encountered
+   * @param dimension to settle
+   * @param entityId identifying the entity
+   * @param scope it settles at, ignored where the entity is already ruled out in this respect
+   */
+  private void settleScope(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final String entityId,
+      final GtfsEntityScope scope) {
+    var index = scopeByEntityId.get(entityType);
+    if (index == null || entityId == null) {
+      return;
+    }
+    if (!dimension.appliesTo(entityType)) {
+      throw new IllegalArgumentException(String.format(
+          "GTFS %s scope does not apply to %s, unable to register it", dimension, entityType));
+    }
+
+    var knownState = index.getOrDefault(entityId, GtfsScopeState.unsettledFor(entityType));
+    if (knownState.get(dimension) == GtfsEntityScope.OUT || knownState.get(dimension) == scope) {
+      return;
+    }
+
+    var settledState = knownState.with(dimension, scope);
+    var subType = getSeenSubType(entityType, entityId);
+    var previousCounter = collectSeenCounter(entityType, subType, knownState);
+    if (previousCounter.sum() <= 0) {
+      return;
+    }
+
+    previousCounter.decrement();
+    collectSeenCounter(entityType, subType, settledState).increment();
+    index.put(entityId, settledState);
+  }
+
+  /**
+   * Collect the scope settled for an individual entity in the given respect
+   *
+   * @param entityType to collect for
+   * @param dimension to collect for
+   * @param entityId to collect for
+   * @return scope, null where nothing was settled for it
+   */
+  public GtfsEntityScope getSettledScope(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final String entityId) {
+    var state = getSettledState(entityType, entityId);
+    return state == null ? null : state.get(dimension);
   }
 
   /**
@@ -396,8 +477,8 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   public void registerSeen(final GtfsObjectType entityType, final Enum<?> subType, final long count) {
     /* where the entity sits is not known at the point it is encountered, so it is held apart until it is, or stays
      * there when the entity is dropped before it could be told */
-    collectSeenCounter(entityType, subType != null ? subType.name() : null, GtfsEntityScope.NOT_ESTABLISHED)
-        .add(count);
+    collectSeenCounter(
+        entityType, subType != null ? subType.name() : null, GtfsScopeState.unsettledFor(entityType)).add(count);
   }
 
   /**
@@ -408,8 +489,12 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param subType within the entity type, may be null
    * @param scope of the entity relative to the area the run covers
    */
-  public void registerSeen(final GtfsObjectType entityType, final Enum<?> subType, final GtfsEntityScope scope) {
-    collectSeenCounter(entityType, subType != null ? subType.name() : null, scope).increment();
+  public void registerSeen(
+      final GtfsObjectType entityType, final Enum<?> subType, final GtfsScopeDimension dimension,
+      final GtfsEntityScope scope) {
+    collectSeenCounter(
+        entityType, subType != null ? subType.name() : null,
+        GtfsScopeState.unsettledFor(entityType).with(dimension, scope)).increment();
   }
 
   /**
@@ -429,13 +514,21 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param partScope of the part encountered
    */
   public void registerSeenPartInScope(
-      final GtfsObjectType entityType, final String entityId, final GtfsEntityScope partScope) {
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final String entityId,
+      final GtfsEntityScope partScope) {
     var index = scopeByEntityId.get(entityType);
     if (index == null || entityId == null || partScope == null) {
       return;
     }
+    if (!dimension.appliesTo(entityType)) {
+      /* the respect cannot be asked of this kind of entity, so recording it would state something that has no
+       * meaning rather than something not yet known */
+      throw new IllegalArgumentException(String.format(
+          "GTFS %s scope does not apply to %s, unable to register it", dimension, entityType));
+    }
 
-    var knownScope = index.getOrDefault(entityId, GtfsEntityScope.NOT_ESTABLISHED);
+    var knownState = index.getOrDefault(entityId, GtfsScopeState.unsettledFor(entityType));
+    var knownScope = knownState.get(dimension);
     var settledScope = !knownScope.isEstablished()
         ? partScope
         : (knownScope == partScope ? knownScope : GtfsEntityScope.PARTIAL);
@@ -443,8 +536,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       return;
     }
 
+    var settledState = knownState.with(dimension, settledScope);
     var subType = getSeenSubType(entityType, entityId);
-    var previousCounter = collectSeenCounter(entityType, subType, knownScope);
+    var previousCounter = collectSeenCounter(entityType, subType, knownState);
     if (previousCounter.sum() <= 0) {
       /* the entity was never counted as encountered, so moving it would put the tally into deficit and misreport
        * every share measured against it. Left where it is, the mismatch surfacing as an unsettled scope instead */
@@ -452,8 +546,8 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
     }
 
     previousCounter.decrement();
-    collectSeenCounter(entityType, subType, settledScope).increment();
-    index.put(entityId, settledScope);
+    collectSeenCounter(entityType, subType, settledState).increment();
+    index.put(entityId, settledState);
   }
 
   /**
@@ -511,13 +605,15 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       final Object... detailArgs) {
     /* the scope the entity stood in as this arose, stated by the call site where the entity is not indexed
      * individually and recovered otherwise */
-    var occurrenceScope = scope;
-    if (occurrenceScope == null) {
-      occurrenceScope = getSettledScope(issue.getEntityType(), entityId);
+    var occurrenceState = getSettledState(issue.getEntityType(), entityId);
+    if (occurrenceState == null) {
+      occurrenceState = GtfsScopeState.unsettledFor(issue.getEntityType());
     }
-    if (occurrenceScope == null) {
-      occurrenceScope = GtfsEntityScope.NOT_ESTABLISHED;
+    if (scope != null) {
+      /* stated by the call site, the entity not being indexed individually */
+      occurrenceState = occurrenceState.with(GtfsScopeDimension.SPATIAL, scope);
     }
+    var occurrenceScope = occurrenceState.get(GtfsScopeDimension.SPATIAL);
 
     /* where the issue stands relative to scope, settled as its occurrences arrive rather than declared per issue */
     var observedRelation = !occurrenceScope.isEstablished()
@@ -541,7 +637,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
     issuesBySubTypeAndScope
         .computeIfAbsent(issue, registered -> new ConcurrentHashMap<>())
         .computeIfAbsent(subTypeName != null ? subTypeName : NO_SUBTYPE, type -> new ConcurrentHashMap<>())
-        .computeIfAbsent(occurrenceScope, type -> new LongAdder()).increment();
+        .computeIfAbsent(occurrenceState, type -> new LongAdder()).increment();
   }
 
   /**
@@ -666,17 +762,32 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @return number encountered
    */
   public long getSeenInScope(
-      final GtfsObjectType entityType, final String subType, final GtfsEntityScope scope) {
+      final GtfsObjectType entityType, final String subType, final GtfsScopeDimension dimension,
+      final GtfsEntityScope scope) {
+    return sumSeen(
+        entityType, subType, state -> state.get(dimension) == scope);
+  }
+
+  /**
+   * Total the entities of a type and, where given, a subType, whose state satisfies the given condition
+   *
+   * @param entityType to total for
+   * @param subType to total for, null to total across every subType
+   * @param condition the state is to satisfy
+   * @return number encountered
+   */
+  private long sumSeen(
+      final GtfsObjectType entityType, final String subType,
+      final java.util.function.Predicate<GtfsScopeState> condition) {
     var subTypeCounters = seenByEntityTypeSubTypeAndScope.get(entityType);
     if (subTypeCounters == null) {
       return 0;
     }
     return subTypeCounters.entrySet().stream()
         .filter(entry -> subType == null || entry.getKey().equals(subType))
-        .mapToLong(entry -> {
-          var counter = entry.getValue().get(scope);
-          return counter != null ? counter.sum() : 0;
-        }).sum();
+        .mapToLong(entry -> entry.getValue().entrySet().stream()
+            .filter(scoped -> condition.test(scoped.getKey()))
+            .mapToLong(scoped -> scoped.getValue().sum()).sum()).sum();
   }
 
   /**
@@ -686,8 +797,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param scope to collect for
    * @return number encountered
    */
-  public long getSeenInScope(final GtfsObjectType entityType, final GtfsEntityScope scope) {
-    return getSeenInScope(entityType, null, scope);
+  public long getSeenInScope(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final GtfsEntityScope scope) {
+    return getSeenInScope(entityType, null, dimension, scope);
   }
 
   /**
@@ -709,8 +821,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @return number in the feed
    */
   public long getSeenInFeed(final GtfsObjectType entityType, final String subType) {
-    return Arrays.stream(GtfsEntityScope.values()).mapToLong(
-        scope -> getSeenInScope(entityType, subType, scope)).sum();
+    return sumSeen(entityType, subType, state -> true);
   }
 
   /**
@@ -731,8 +842,8 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param entityType to collect for
    * @return number with a settled scope
    */
-  public long getSeenWithScope(final GtfsObjectType entityType) {
-    return getSeenWithScope(entityType, null);
+  public long getSeenWithScope(final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
+    return getSeenWithScope(entityType, null, dimension);
   }
 
   /**
@@ -742,9 +853,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param subType to collect for, null to total across every subType
    * @return number with a settled scope
    */
-  public long getSeenWithScope(final GtfsObjectType entityType, final String subType) {
-    return Arrays.stream(GtfsEntityScope.values()).filter(GtfsEntityScope::isEstablished).mapToLong(
-        scope -> getSeenInScope(entityType, subType, scope)).sum();
+  public long getSeenWithScope(
+      final GtfsObjectType entityType, final String subType, final GtfsScopeDimension dimension) {
+    return sumSeen(entityType, subType, state -> state.get(dimension).isEstablished());
   }
 
   /**
@@ -754,8 +865,29 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param entityType to collect for
    * @return number within the area
    */
+  public long getSeenWithinScope(final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
+    return getSeenWithinScope(entityType, null, dimension);
+  }
+
+  /**
+   * Collect how many entities of a type were within scope in the spatial respect
+   *
+   * @param entityType to collect for
+   * @return number within the area
+   */
   public long getSeenWithinArea(final GtfsObjectType entityType) {
-    return getSeenWithinArea(entityType, null);
+    return getSeenWithinScope(entityType, null, GtfsScopeDimension.SPATIAL);
+  }
+
+  /**
+   * Collect how many entities of a type and subType were within scope in the spatial respect
+   *
+   * @param entityType to collect for
+   * @param subType to collect for
+   * @return number within the area
+   */
+  public long getSeenWithinArea(final GtfsObjectType entityType, final String subType) {
+    return getSeenWithinScope(entityType, subType, GtfsScopeDimension.SPATIAL);
   }
 
   /**
@@ -765,9 +897,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param subType to collect for, null to total across every subType
    * @return number within the area
    */
-  public long getSeenWithinArea(final GtfsObjectType entityType, final String subType) {
-    return Arrays.stream(GtfsEntityScope.values()).filter(GtfsEntityScope::isWithinArea).mapToLong(
-        scope -> getSeenInScope(entityType, subType, scope)).sum();
+  public long getSeenWithinScope(
+      final GtfsObjectType entityType, final String subType, final GtfsScopeDimension dimension) {
+    return sumSeen(entityType, subType, state -> state.get(dimension).isWithinArea());
   }
 
   /**
@@ -777,8 +909,18 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param entityType to verify for
    * @return true when scope was recorded, false otherwise
    */
+  public boolean hasScope(final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
+    return getSeenWithScope(entityType, dimension) > 0;
+  }
+
+  /**
+   * Verify whether the spatial scope of entities of a type was established at all
+   *
+   * @param entityType to verify for
+   * @return true when scope was recorded, false otherwise
+   */
   public boolean hasScope(final GtfsObjectType entityType) {
-    return getSeenWithScope(entityType) > 0;
+    return hasScope(entityType, GtfsScopeDimension.SPATIAL);
   }
 
   /**
@@ -834,7 +976,8 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @return number of occurrences
    */
   public long getOccurrences(
-      final GtfsParseIssue issue, final String subType, final GtfsEntityScope scope) {
+      final GtfsParseIssue issue, final String subType, final GtfsScopeDimension dimension,
+      final GtfsEntityScope scope) {
     var subTypeCounters = issuesBySubTypeAndScope.get(issue);
     if (subTypeCounters == null || subType == null) {
       return 0;
@@ -843,8 +986,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
     if (scopeCounters == null) {
       return 0;
     }
-    var adder = scopeCounters.get(scope);
-    return adder != null ? adder.sum() : 0;
+    return scopeCounters.entrySet().stream()
+        .filter(entry -> entry.getKey().get(dimension) == scope)
+        .mapToLong(entry -> entry.getValue().sum()).sum();
   }
 
   /**
@@ -871,7 +1015,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
     var totals = new LinkedHashMap<String, Long>();
     for (var scope : GtfsEntityScope.values()) {
       long occurrences = getSubTypesOf(issue).stream().mapToLong(
-          subType -> getOccurrences(issue, subType, scope)).sum();
+          subType -> getOccurrences(issue, subType, GtfsScopeDimension.SPATIAL, scope)).sum();
       if (occurrences > 0) {
         totals.put(scope.name(), occurrences);
       }
@@ -1023,42 +1167,43 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * </p>
    */
   private void logScopeSummary() {
-    LOGGER.info(LoggingUtils.surroundWithBrackets("SCOPE") + "of the feed relative to the area covered");
+    LOGGER.info(LoggingUtils.surroundWithBrackets("SCOPE") + "of the feed relative to what the run covers");
     for (var entityType : GtfsObjectType.values()) {
       long seen = getSeenInFeed(entityType);
       if (seen == 0) {
         continue;
       }
+
       /* the same shape the issue entries take, an entity label and what is being said about it, so the two blocks
        * read as one report rather than two */
       var label = String.format("%s | %ss", entityType.name().toLowerCase(), entityType.name().toLowerCase());
-      if (!hasScope(entityType)) {
-        LOGGER.info(LoggingUtils.settingsValue(
-            label + " in feed", seen + " (scope not established)", 1));
-        continue;
-      }
-
-      /* stated as a funnel, since an entity dropped before its scope could be told is neither within the area nor out of it,
-       * and folding it into either would misstate both */
-      long withScope = getSeenWithScope(entityType);
       LOGGER.info(LoggingUtils.settingsValue(label + " in feed", String.valueOf(seen), 1));
-      if (withScope < seen) {
-        LOGGER.info(LoggingUtils.settingsValue(
-            label + " with settled scope",
-            LoggingUtils.countWithPercentage(withScope, seen, "feed"), 1));
+
+      /* one entry per respect, in the order they settle, each a share of whatever reached it rather than of the feed.
+       * A share of the feed flattens the chain: it cannot tell a gate that costs little from one that costs almost
+       * everything, which is the only thing worth knowing about a funnel */
+      long reaching = seen;
+      var reachingLabel = "feed";
+      for (var dimension : GtfsScopeDimension.getApplicableTo(entityType)) {
+        long within = getSeenWithinScope(entityType, dimension);
+        if (!hasScope(entityType, dimension) || within == reaching) {
+          /* the respect narrowed nothing, either because it was never settled or because it ruled nothing out, and
+           * a line saying so is noise in a funnel. Left out of the chain as well as off the page, an unsettled
+           * respect holding nothing that the next respect's share should be measured against. What went unsettled
+           * remains visible in the written tally */
+          continue;
+        }
+        var value = new StringBuilder(LoggingUtils.countWithPercentage(within, reaching, reachingLabel));
+        value.append("  [").append(Arrays.stream(GtfsEntityScope.values()).map(
+            scope -> Map.entry(scope, getSeenInScope(entityType, dimension, scope))).filter(
+            entry -> entry.getValue() > 0).map(
+            entry -> String.format("%s %d", entry.getKey().name(), entry.getValue())).collect(
+            Collectors.joining(", "))).append("]");
+        LOGGER.info(LoggingUtils.settingsValue(label + " within " + dimension.getReportedName(), value.toString(), 1));
+
+        reaching = within;
+        reachingLabel = dimension.getReportedName();
       }
-      /* the three shares of the settled population, which sum to 100% and of which the first two are what within the area
-       * adds up to, so the line states not only how much was within the area but how it got there */
-      var withinArea = new StringBuilder(
-          LoggingUtils.countWithPercentage(getSeenWithinArea(entityType), withScope, "scope settled"));
-      withinArea.append("  [");
-      withinArea.append(Arrays.stream(GtfsEntityScope.values()).filter(GtfsEntityScope::isEstablished).map(
-          scope -> String.format(
-              "%s %.2f%%", scope.name(),
-              withScope > 0 ? (100.0 * getSeenInScope(entityType, scope)) / withScope : 0.0)).collect(
-          Collectors.joining(", ")));
-      withinArea.append("]");
-      LOGGER.info(LoggingUtils.settingsValue(label + " within area (IN or PARTIAL)", withinArea.toString(), 1));
     }
   }
 
@@ -1133,14 +1278,21 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
         }
         var outcome = issue.isDiscarding() ? GtfsParseOutcome.DISCARDED : GtfsParseOutcome.PARSED;
         /* the rows are disjoint and sum to the issue's total, so no row restating that total is written */
+        var subTypeCounters = issuesBySubTypeAndScope.get(issue);
         for (var subType : getSubTypesOf(issue)) {
-          for (var scope : GtfsEntityScope.values()) {
-            long occurrences = getOccurrences(issue, subType, scope);
+          var scopeCounters = subTypeCounters.get(subType);
+          if (scopeCounters == null) {
+            continue;
+          }
+          new TreeMap<String, GtfsScopeState>(){{
+            scopeCounters.keySet().forEach(state -> put(state.toString(), state));
+          }}.values().forEach(state -> {
+            long occurrences = scopeCounters.get(state).sum();
             if (occurrences > 0) {
               writeIssueSummaryRow(
-                  csvWriter, issue, NO_SUBTYPE.equals(subType) ? null : subType, scope, occurrences, outcome);
+                  csvWriter, issue, NO_SUBTYPE.equals(subType) ? null : subType, state, occurrences, outcome);
             }
-          }
+          });
         }
       }
     }
@@ -1158,13 +1310,15 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param outcome what became of the entities it arose for
    */
   private void writeIssueSummaryRow(
-      final SimpleCsvWriter csvWriter, final GtfsParseIssue issue, final String subType, final GtfsEntityScope scope,
+      final SimpleCsvWriter csvWriter, final GtfsParseIssue issue, final String subType, final GtfsScopeState state,
       final long occurrences, final GtfsParseOutcome outcome) {
     csvWriter.writeRow(
         issue.getStage(),
         issue.getEntityType(),
         subType,
-        scope,
+        state.get(GtfsScopeDimension.SPATIAL),
+        state.get(GtfsScopeDimension.TEMPORAL),
+        state.get(GtfsScopeDimension.MODAL),
         issue.name(),
         issue.getDisposition(),
         outcome.getLabel(),
@@ -1194,13 +1348,21 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
           continue;
         }
         new TreeSet<>(subTypeCounters.keySet()).forEach(subType -> {
-          for (var scope : GtfsEntityScope.values()) {
-            long count = getSeenInScope(entityType, subType, scope);
+          var scopeCounters = subTypeCounters.get(subType);
+          new TreeMap<String, GtfsScopeState>(){{
+            scopeCounters.keySet().forEach(state -> put(state.toString(), state));
+          }}.values().forEach(state -> {
+            long count = scopeCounters.get(state).sum();
             if (count > 0) {
               csvWriter.writeRow(
-                  entityType, NO_SUBTYPE.equals(subType) ? null : subType, scope, count);
+                  entityType,
+                  NO_SUBTYPE.equals(subType) ? null : subType,
+                  state.get(GtfsScopeDimension.SPATIAL),
+                  state.get(GtfsScopeDimension.TEMPORAL),
+                  state.get(GtfsScopeDimension.MODAL),
+                  count);
             }
-          }
+          });
         });
       }
     }

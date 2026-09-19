@@ -25,7 +25,13 @@ public enum GtfsIssueSummaryCsvColumn {
   SUBTYPE,
 
   /** where the entities stood relative to the area the run covers when the issue arose */
-  SCOPE,
+  SPATIAL_SCOPE,
+
+  /** how the entities stood to the day and time period the run covers when the issue arose */
+  TEMPORAL_SCOPE,
+
+  /** how the entities stood to the modes activated for the run when the issue arose */
+  MODAL_SCOPE,
 
   /** the issue itself */
   ISSUE,

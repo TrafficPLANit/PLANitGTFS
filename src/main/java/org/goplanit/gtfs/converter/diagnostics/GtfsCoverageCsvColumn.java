@@ -21,8 +21,14 @@ public enum GtfsCoverageCsvColumn {
   /** subtype within the entity type, empty where the type is not subdivided */
   SUBTYPE,
 
-  /** where the entities sit relative to the area the run covers, unsettled included */
-  SCOPE,
+  /** where the entities sit relative to the area the run covers */
+  SPATIAL_SCOPE,
+
+  /** whether the entities run on the day and within the time period the run was configured for */
+  TEMPORAL_SCOPE,
+
+  /** whether the entities serve a mode activated for the run */
+  MODAL_SCOPE,
 
   /** how many entities the feed holds of this type, subtype and scope */
   COUNT;

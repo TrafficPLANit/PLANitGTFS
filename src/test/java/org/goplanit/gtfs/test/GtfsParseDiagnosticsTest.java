@@ -3,6 +3,7 @@ package org.goplanit.gtfs.test;
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageCsvColumn;
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsIssueScopeRelation;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.converter.diagnostics.GtfsIssueSummaryCsvColumn;
 import org.goplanit.gtfs.converter.diagnostics.GtfsIssueDisposition;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
@@ -348,7 +349,8 @@ public class GtfsParseDiagnosticsTest {
 
     /* a stop whose scope is settled the moment it is read, and stated by the call site since stops are not indexed
      * individually, so an issue on it measures against what was within the area */
-    diagnostics.registerSeen(GtfsObjectType.STOP, null, GtfsEntityScope.IN);
+    diagnostics.registerSeen(
+        GtfsObjectType.STOP, null, GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN);
     diagnostics.registerIssue(
         GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, (Enum<?>) null, GtfsEntityScope.IN, "s1", "a stop", 1.0, 2.0);
 

@@ -1,5 +1,7 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsTrip;
 import org.goplanit.gtfs.enums.GtfsObjectType;
@@ -73,9 +75,24 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
   public void handle(GtfsTrip gtfsTrip) {
     data.getProfiler().registerSeenTrip();
 
-    if(!data.isServiceIdActivated(gtfsTrip.getServiceId())){
+    /* TEMPORAL SCOPE: the day the trip runs is known here, and its route stands in time wherever any of its trips
+     * do, so a route is only beyond the chosen day once every one of its trips is */
+    var diagnostics = data.getDiagnostics();
+    boolean activeOnChosenDay = data.isServiceIdActivated(gtfsTrip.getServiceId());
+    if(activeOnChosenDay){
+      diagnostics.registerSeenWithinScope(
+          GtfsObjectType.TRIP, GtfsScopeDimension.TEMPORAL, gtfsTrip.getTripId());
+    }else{
+      diagnostics.registerSeenOutOfScope(
+          GtfsObjectType.TRIP, GtfsScopeDimension.TEMPORAL, gtfsTrip.getTripId());
+    }
+    diagnostics.registerSeenPartInScope(
+        GtfsObjectType.ROUTE, GtfsScopeDimension.TEMPORAL, gtfsTrip.getRouteId(),
+        activeOnChosenDay ? GtfsEntityScope.IN : GtfsEntityScope.OUT);
+
+    if(!activeOnChosenDay){
       /* trip runs on day that is not selected to be parsed at all, discard */
-      data.getDiagnostics().registerIssue(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY, gtfsTrip.getTripId());
+      diagnostics.registerIssue(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY, gtfsTrip.getTripId());
       return;
     }
 

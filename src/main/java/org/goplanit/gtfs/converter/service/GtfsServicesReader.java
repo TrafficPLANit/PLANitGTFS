@@ -3,6 +3,7 @@ package org.goplanit.gtfs.converter.service;
 import org.goplanit.converter.PairConverterReader;
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
@@ -87,7 +88,8 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    */
   private static boolean isWhollyOutsideArea(
       final GtfsParseDiagnostics diagnostics, final GtfsObjectType entityType, final String gtfsId) {
-    return diagnostics.getSettledScope(entityType, gtfsId) == GtfsEntityScope.OUT;
+    return diagnostics.getSettledScope(
+        entityType, GtfsScopeDimension.SPATIAL, gtfsId) == GtfsEntityScope.OUT;
   }
 
   /**

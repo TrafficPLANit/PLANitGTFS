@@ -32,7 +32,17 @@ public enum GtfsEntityScope {
    * all be read off the same counters without any of them being able to disagree. Never reported
    * </p>
    */
-  NOT_ESTABLISHED;
+  NOT_ESTABLISHED,
+
+  /**
+   * The respect does not apply to this kind of entity at all, a calendar having no location and a stop no timetable.
+   * <p>
+   * Distinct from an unsettled scope on purpose. One says the question was never answered and might yet be, the other
+   * that it cannot be asked, and reporting both as the same thing leaves a reader unable to tell a gap in the report
+   * from a fact about the entity
+   * </p>
+   */
+  NOT_APPLICABLE;
 
   /**
    * Verify whether an entity of this scope was ever within the area of the run, which both a wholly and a partly covered
@@ -50,6 +60,15 @@ public enum GtfsEntityScope {
    * @return true when established, false otherwise
    */
   public boolean isEstablished() {
-    return this != NOT_ESTABLISHED;
+    return this == IN || this == PARTIAL || this == OUT;
+  }
+
+  /**
+   * Verify whether the respect applies to the entity at all
+   *
+   * @return true when it applies, false otherwise
+   */
+  public boolean isApplicable() {
+    return this != NOT_APPLICABLE;
   }
 }
