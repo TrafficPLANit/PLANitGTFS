@@ -18,26 +18,14 @@ public enum GtfsCoverageCsvColumn {
   /** GTFS entity type the row reports on */
   ENTITY_TYPE,
 
-  /** category within the entity type, empty on the row holding that type's totals */
-  CATEGORY,
+  /** subtype within the entity type, empty where the type is not subdivided */
+  SUBTYPE,
 
-  /** entities of this type encountered in the feed */
-  SEEN,
+  /** where the entities sit relative to the area the run covers, unsettled included */
+  SCOPE,
 
-  /** entities accepted and represented in the memory model */
-  PARSED,
-
-  /** entities dropped because the run asked for it */
-  DISCARDED_BY_DESIGN,
-
-  /** entities dropped because the parser cannot handle them */
-  DISCARDED_LIMITATION,
-
-  /** entities that were meant to be usable and were not */
-  DISCARDED_PROBLEM,
-
-  /** issues recorded against entities that were parsed regardless */
-  ISSUES_ON_PARSED;
+  /** how many entities the feed holds of this type, subtype and scope */
+  COUNT;
 
   /**
    * Collect the column as it appears in the header row

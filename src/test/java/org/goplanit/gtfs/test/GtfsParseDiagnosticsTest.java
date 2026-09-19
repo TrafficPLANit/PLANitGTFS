@@ -1,6 +1,9 @@
 package org.goplanit.gtfs.test;
 
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageCsvColumn;
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.converter.diagnostics.GtfsIssueScopeRelation;
+import org.goplanit.gtfs.converter.diagnostics.GtfsIssueSummaryCsvColumn;
 import org.goplanit.gtfs.converter.diagnostics.GtfsIssueDisposition;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
@@ -44,7 +47,7 @@ public class GtfsParseDiagnosticsTest {
     diagnostics.registerIssue(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS, "r2");
     diagnostics.registerIssue(GtfsParseIssue.ROUTE_NO_SERVICES_LAYER_FOR_MODE, "r3", "bus", RouteType.BUS_SERVICE);
 
-    assertEquals(100, diagnostics.getSeen(GtfsObjectType.ROUTE));
+    assertEquals(100, diagnostics.getSeenInFeed(GtfsObjectType.ROUTE));
     assertEquals(3, diagnostics.getDiscarded(GtfsObjectType.ROUTE));
     assertEquals(97, diagnostics.getParsed(GtfsObjectType.ROUTE));
 
@@ -114,7 +117,7 @@ public class GtfsParseDiagnosticsTest {
     diagnostics.registerIssue(GtfsParseIssue.TRIP_WITHOUT_LEGS, "t1");
     diagnostics.reset();
 
-    assertEquals(0, diagnostics.getSeen(GtfsObjectType.TRIP));
+    assertEquals(0, diagnostics.getSeenInFeed(GtfsObjectType.TRIP));
     assertEquals(0, diagnostics.getDiscarded(GtfsObjectType.TRIP));
     assertFalse(diagnostics.isDiscarded(GtfsObjectType.TRIP, "t1"));
   }
@@ -144,12 +147,12 @@ public class GtfsParseDiagnosticsTest {
     diagnostics.registerIssue(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS, RouteType.BUS_SERVICE, "r2");
 
     /* the aggregate is maintained independently, so it holds regardless of which call sites supply a category */
-    assertEquals(14, diagnostics.getSeen(GtfsObjectType.ROUTE));
+    assertEquals(14, diagnostics.getSeenInFeed(GtfsObjectType.ROUTE));
     assertEquals(2, diagnostics.getDiscarded(GtfsObjectType.ROUTE));
     assertEquals(12, diagnostics.getParsed(GtfsObjectType.ROUTE));
 
-    assertEquals(10, diagnostics.getSeen(GtfsObjectType.ROUTE, RouteType.BUS_SERVICE));
-    assertEquals(4, diagnostics.getSeen(GtfsObjectType.ROUTE, RouteType.FERRY));
+    assertEquals(10, diagnostics.getSeenInFeed(GtfsObjectType.ROUTE, RouteType.BUS_SERVICE));
+    assertEquals(4, diagnostics.getSeenInFeed(GtfsObjectType.ROUTE, RouteType.FERRY));
     assertEquals(
         2, diagnostics.getDiscarded(GtfsObjectType.ROUTE, RouteType.BUS_SERVICE.name(), null));
     assertEquals(0, diagnostics.getDiscarded(GtfsObjectType.ROUTE, RouteType.FERRY.name(), null));
@@ -158,7 +161,7 @@ public class GtfsParseDiagnosticsTest {
     /* ordered by category so what is reported does not shuffle between runs */
     assertEquals(
         List.of(RouteType.BUS_SERVICE.name(), RouteType.FERRY.name()),
-        List.copyOf(diagnostics.getSeenByCategory(GtfsObjectType.ROUTE).keySet()));
+        List.copyOf(diagnostics.getSeenBySubType(GtfsObjectType.ROUTE).keySet()));
   }
 
   @Test
@@ -169,7 +172,7 @@ public class GtfsParseDiagnosticsTest {
     diagnostics.registerIssue(GtfsParseIssue.TRIP_WITHOUT_LEGS, "t1");
 
     /* totals stay exact while nothing is retained for listing */
-    assertEquals(5, diagnostics.getSeen(GtfsObjectType.TRIP));
+    assertEquals(5, diagnostics.getSeenInFeed(GtfsObjectType.TRIP));
     assertEquals(1, diagnostics.getDiscarded(GtfsObjectType.TRIP));
 
     /* the suppression index is functional rather than diagnostic, so it keeps its ids regardless of the mode */
@@ -185,9 +188,9 @@ public class GtfsParseDiagnosticsTest {
     var replacement = diagnostics.newEmptyInstance();
 
     /* whoever collected the original keeps what it holds */
-    assertEquals(5, diagnostics.getSeen(GtfsObjectType.TRIP));
+    assertEquals(5, diagnostics.getSeenInFeed(GtfsObjectType.TRIP));
     assertEquals(1, diagnostics.getDiscarded(GtfsObjectType.TRIP));
-    assertEquals(0, replacement.getSeen(GtfsObjectType.TRIP));
+    assertEquals(0, replacement.getSeenInFeed(GtfsObjectType.TRIP));
     assertEquals(0, replacement.getDiscarded(GtfsObjectType.TRIP));
   }
 
@@ -206,9 +209,9 @@ public class GtfsParseDiagnosticsTest {
 
     services.merge(stops);
 
-    assertEquals(10, services.getSeen(GtfsObjectType.ROUTE));
-    assertEquals(100, services.getSeen(GtfsObjectType.TRIP));
-    assertEquals(40, services.getSeen(GtfsObjectType.STOP));
+    assertEquals(10, services.getSeenInFeed(GtfsObjectType.ROUTE));
+    assertEquals(100, services.getSeenInFeed(GtfsObjectType.TRIP));
+    assertEquals(40, services.getSeenInFeed(GtfsObjectType.STOP));
     assertEquals(1, services.getOccurrences(GtfsParseIssue.STOP_OUTSIDE_BOUNDING_AREA));
     assertEquals(1, services.getOccurrences(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS));
     assertEquals(1, services.getOccurrences(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS, RouteType.BUS_SERVICE.name()));
@@ -231,7 +234,7 @@ public class GtfsParseDiagnosticsTest {
     assertTrue(thrown.getMessage().contains(GtfsObjectType.STOP.name()));
 
     /* a rejected merge must leave the totals as they were rather than partially applied */
-    assertEquals(10, first.getSeen(GtfsObjectType.STOP));
+    assertEquals(10, first.getSeenInFeed(GtfsObjectType.STOP));
   }
 
   @Test
@@ -255,7 +258,7 @@ public class GtfsParseDiagnosticsTest {
     second.registerSeen(GtfsObjectType.STOP, 5);
 
     first.merge(second, true);
-    assertEquals(15, first.getSeen(GtfsObjectType.STOP));
+    assertEquals(15, first.getSeenInFeed(GtfsObjectType.STOP));
   }
 
   @Test
@@ -263,7 +266,7 @@ public class GtfsParseDiagnosticsTest {
     var diagnostics = GtfsParseDiagnostics.create();
     diagnostics.registerSeen(GtfsObjectType.STOP, 10);
     diagnostics.merge(null);
-    assertEquals(10, diagnostics.getSeen(GtfsObjectType.STOP));
+    assertEquals(10, diagnostics.getSeenInFeed(GtfsObjectType.STOP));
   }
 
   @Test
@@ -303,7 +306,7 @@ public class GtfsParseDiagnosticsTest {
   public void persistedCoverageRowsAreDisjointTest() throws IOException {
     var diagnostics = GtfsParseDiagnostics.create();
 
-    /* routes always carry a category, stop times never do, so both kinds of row have to appear */
+    /* routes always carry a subtype, stop times never do, so both kinds of row have to appear */
     diagnostics.registerSeen(GtfsObjectType.ROUTE, RouteType.BUS_SERVICE, 10);
     diagnostics.registerSeen(GtfsObjectType.ROUTE, RouteType.FERRY, 4);
     diagnostics.registerIssue(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS, RouteType.BUS_SERVICE, "r1");
@@ -313,28 +316,63 @@ public class GtfsParseDiagnosticsTest {
     diagnostics.persist(tempDir);
     var rows = Files.readAllLines(tempDir.resolve("gtfs_coverage_summary.csv"), StandardCharsets.UTF_8);
 
-    long seenOfRoutes = 0;
-    long seenOfStopTimes = 0;
+    long countOfRoutes = 0;
+    long countOfStopTimes = 0;
     int routeRows = 0;
     for (var row : rows.subList(1, rows.size())) {
       var values = row.split(",", -1);
       var entityType = values[GtfsCoverageCsvColumn.ENTITY_TYPE.ordinal()];
-      var seen = Long.parseLong(values[GtfsCoverageCsvColumn.SEEN.ordinal()]);
+      var count = Long.parseLong(values[GtfsCoverageCsvColumn.COUNT.ordinal()]);
       if (GtfsObjectType.ROUTE.name().equals(entityType)) {
         ++routeRows;
-        seenOfRoutes += seen;
-        /* every route was categorised, so no route row may hold the uncategorised remainder */
-        assertFalse(values[GtfsCoverageCsvColumn.CATEGORY.ordinal()].isEmpty());
+        countOfRoutes += count;
+        /* every route has a subtype, so no route row may be written without one */
+        assertFalse(values[GtfsCoverageCsvColumn.SUBTYPE.ordinal()].isEmpty());
       } else if (GtfsObjectType.STOP_TIME.name().equals(entityType)) {
-        seenOfStopTimes += seen;
-        /* no stop time was categorised, so its whole count rides on the remainder row */
-        assertTrue(values[GtfsCoverageCsvColumn.CATEGORY.ordinal()].isEmpty());
+        countOfStopTimes += count;
+        /* no stop time has a subtype, so its rows carry none */
+        assertTrue(values[GtfsCoverageCsvColumn.SUBTYPE.ordinal()].isEmpty());
       }
     }
 
-    /* the rows of a type are disjoint, so they sum to what that type recorded without any totals row present */
+    /* every cell of the tally is its own row and the rows are disjoint, so they sum to what the feed holds without
+     * any totals row being present to restate it */
     assertEquals(2, routeRows);
-    assertEquals(diagnostics.getSeen(GtfsObjectType.ROUTE), seenOfRoutes);
-    assertEquals(diagnostics.getSeen(GtfsObjectType.STOP_TIME), seenOfStopTimes);
+    assertEquals(diagnostics.getSeenInFeed(GtfsObjectType.ROUTE), countOfRoutes);
+    assertEquals(diagnostics.getSeenInFeed(GtfsObjectType.STOP_TIME), countOfStopTimes);
+  }
+
+  @Test
+  public void persistedIssueSummaryStatesHowIssuesStandToScopeTest() throws IOException {
+    var diagnostics = GtfsParseDiagnostics.create();
+
+    /* a stop whose scope is settled the moment it is read, and stated by the call site since stops are not indexed
+     * individually, so an issue on it measures against what was within the area */
+    diagnostics.registerSeen(GtfsObjectType.STOP, null, GtfsEntityScope.IN);
+    diagnostics.registerIssue(
+        GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, (Enum<?>) null, GtfsEntityScope.IN, "s1", "a stop", 1.0, 2.0);
+
+    /* a trip dropped before its scope could ever be told, which can only measure against what the feed holds */
+    diagnostics.registerSeen(GtfsObjectType.TRIP, 5);
+    diagnostics.registerIssue(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY, "t1");
+
+    diagnostics.persist(tempDir);
+    var rows = Files.readAllLines(tempDir.resolve("gtfs_issue_summary.csv"), StandardCharsets.UTF_8);
+
+    var relationByIssue = new java.util.HashMap<String, String>();
+    for (var row : rows.subList(1, rows.size())) {
+      var values = row.split(",", -1);
+      relationByIssue.put(
+          values[GtfsIssueSummaryCsvColumn.ISSUE.ordinal()],
+          values[GtfsIssueSummaryCsvColumn.SCOPE_RELATION.ordinal()]);
+    }
+
+    assertEquals(
+        GtfsIssueScopeRelation.WITHIN_AREA.name(),
+        relationByIssue.get(GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS.name()));
+    assertEquals(
+        GtfsIssueScopeRelation.PRE_SCOPE.name(),
+        relationByIssue.get(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY.name()));
   }
 }
+

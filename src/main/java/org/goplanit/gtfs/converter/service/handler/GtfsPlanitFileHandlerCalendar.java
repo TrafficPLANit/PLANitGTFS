@@ -1,6 +1,8 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsCalendar;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerCalendars;
 
 import java.util.function.Predicate;
@@ -44,12 +46,16 @@ public class GtfsPlanitFileHandlerCalendar extends GtfsFileHandlerCalendars {
    */
   @Override
   public void handle(GtfsCalendar gtfsCalendar) {
+    var diagnostics = data.getDiagnostics();
+    diagnostics.registerSeen(GtfsObjectType.CALENDAR);
 
     // test would typically be based on what days are deemed eligible
-    if(serviceIdFilter.test(gtfsCalendar)){
-      data.registerServiceIdCalendarAsActive(gtfsCalendar);
+    if(!serviceIdFilter.test(gtfsCalendar)){
+      diagnostics.registerIssue(GtfsParseIssue.CALENDAR_NOT_ACTIVE_ON_DAY, gtfsCalendar.getServiceId());
+      return;
     }
 
+    data.registerServiceIdCalendarAsActive(gtfsCalendar);
   }
 
 }

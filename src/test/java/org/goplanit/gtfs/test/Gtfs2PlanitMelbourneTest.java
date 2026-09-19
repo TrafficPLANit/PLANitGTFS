@@ -124,6 +124,9 @@ public class Gtfs2PlanitMelbourneTest {
       /* the GTFS reader */
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(planitNetwork, planitZoning, inputSettings);
 
+      /* alongside the PLANit outputs, so each test keeps its own diagnostics rather than overwriting a shared set */
+      gtfsIntermodalReader.getSettings().setParseDiagnosticsOutputDirectory(OUTPUT_DIR);
+
       /* execute */
       Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result =
           gtfsIntermodalReader.readWithServices();

@@ -44,7 +44,7 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
    */
   @Override
   public void handle(GtfsRoute gtfsRoute) {
-    data.getProfiler().registerSeenRoute(gtfsRoute.getRouteType());
+    data.getProfiler().registerSeenRoute(gtfsRoute.getRouteType(), gtfsRoute.getRouteId());
 
     if(!data.getSettings().isGtfsRouteIncludedByShortName(gtfsRoute.getShortName())){
       data.getDiagnostics().registerIssue(

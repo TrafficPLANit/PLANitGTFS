@@ -37,6 +37,11 @@ public enum GtfsParseIssue implements GtfsIssue {
       GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Route mode not activated", null),
 
+  /** every trip of the route runs wholly beyond the area the run covers */
+  ROUTE_OUTSIDE_BOUNDING_AREA(
+      GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, true,
+      GtfsIssueLogPolicy.COLLATED, "Route runs wholly outside bounding area", null),
+
   /** route retained no trips once its trips were filtered */
   ROUTE_WITHOUT_TRIPS(
       GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, true,
@@ -80,20 +85,15 @@ public enum GtfsParseIssue implements GtfsIssue {
       GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Trip outside chosen time period", null),
 
+  /** every stop of the trip lies beyond the area the run covers */
+  TRIP_OUTSIDE_BOUNDING_AREA(
+      GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.BY_DESIGN, true,
+      GtfsIssueLogPolicy.COLLATED, "Trip runs wholly outside bounding area", null),
+
   /** trip yielded no service legs */
   TRIP_WITHOUT_LEGS(
       GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Trip without any service legs", null),
-
-  /** trip duplicates the departure of a trip already parsed and was consolidated into it */
-  TRIP_DUPLICATE_DEPARTURE(
-      GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.BY_DESIGN, true,
-      GtfsIssueLogPolicy.COLLATED, "Trip consolidated into an identical departure", null),
-
-  /** trip is defined through frequencies rather than a fixed schedule, which is not supported */
-  TRIP_FREQUENCY_BASED(
-      GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.LIMITATION, true,
-      GtfsIssueLogPolicy.COLLATED, "Frequency based trip is unsupported", null),
 
   /** trip spans a leg lasting a day or longer, which cannot be represented */
   TRIP_LEG_DURATION_EXCEEDS_DAY(
@@ -140,11 +140,6 @@ public enum GtfsParseIssue implements GtfsIssue {
   CALENDAR_NOT_ACTIVE_ON_DAY(
       GtfsParseStage.SERVICES, GtfsObjectType.CALENDAR, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Calendar not active on chosen day", null),
-
-  /** service exceptions are expressed through calendar dates, which are not read */
-  CALENDAR_DATE_EXCEPTIONS_UNSUPPORTED(
-      GtfsParseStage.SERVICES, GtfsObjectType.CALENDAR_DATE, GtfsIssueDisposition.LIMITATION, true,
-      GtfsIssueLogPolicy.COLLATED, "Calendar date exceptions are not read", null),
 
   /*
    * STOP

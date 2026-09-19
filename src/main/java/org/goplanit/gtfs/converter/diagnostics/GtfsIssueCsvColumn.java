@@ -16,6 +16,9 @@ public enum GtfsIssueCsvColumn {
   /** GTFS entity type the issue applies to */
   ENTITY_TYPE,
 
+  /** subtype of the entity type the issue applies to, where the type is subdivided */
+  SUBTYPE,
+
   /** the issue itself */
   ISSUE,
 

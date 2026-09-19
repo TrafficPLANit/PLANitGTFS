@@ -1,5 +1,6 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsStopTime;
 import org.goplanit.gtfs.entity.GtfsTrip;
@@ -211,6 +212,59 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     reset();
   }
 
+
+  /**
+   * Drop the PLANit trip built for a GTFS trip that runs wholly beyond the area the run covers.
+   * <p>
+   * Its stops are all outside, so nothing of it survives to the result; today it is carried the whole way and removed
+   * only once the service network is truncated. Dropping it as soon as its scope is settled spares the clean-up,
+   * consolidation and truncation from handling it at all, and attributes the loss to where the trip runs rather than
+   * to whichever check would otherwise have failed last
+   * </p>
+   * <p>
+   * A trip leaving the area and returning to it is deliberately left alone. It has a part worth keeping, and splitting
+   * it into the partials that represent that is what the truncation already does
+   * </p>
+   *
+   * @param gtfsTrip to drop when it lies wholly outside, ignored when null
+   */
+  private void discardTripWhenWhollyOutsideArea(final GtfsTrip gtfsTrip) {
+    if(gtfsTrip == null){
+      return;
+    }
+
+    /* the configured area leads: without one there is nothing the user asked to be left out, and the area derived
+     * from the network is there to report against, not to parse by. Scope is established either way, so a run without
+     * a configured area still reports what falls beyond the network's reach while parsing all of it */
+    if(!data.getSettings().hasBoundingBoundary()){
+      return;
+    }
+
+    var diagnostics = data.getDiagnostics();
+    var settledScope = diagnostics.getSettledScope(GtfsObjectType.TRIP, gtfsTrip.getTripId());
+    if(settledScope != GtfsEntityScope.OUT){
+      return;
+    }
+
+    var planitTrip = data.getPlanitScheduleBasedTripByExternalId(gtfsTrip.getTripId());
+    if(planitTrip != null){
+      var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
+      if(planitRoutedService != null){
+        planitRoutedService.getTripInfo().getScheduleBasedTrips().remove(planitTrip);
+      }
+    }
+
+    diagnostics.registerIssue(GtfsParseIssue.TRIP_OUTSIDE_BOUNDING_AREA, gtfsTrip.getTripId());
+  }
+
+  /**
+   * Drop the final GTFS trip when it lies wholly beyond the area the run covers, there being no following stop time to
+   * mark that its scope has settled
+   */
+  public void discardFinalTripWhenWhollyOutsideArea() {
+    discardTripWhenWhollyOutsideArea(prevStopTimeTrip);
+  }
+
   /**
    * Handle a GTFS stop time for a given trip
    */
@@ -242,9 +296,25 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     boolean logTrackedRoute = (activatedLoggingForGtfsRoutesByShortName.contains(planitRoutedService.getName()));
     var layer = data.getServiceNetwork().getLayerByMode(planitRoutedService.getMode());
 
+    /* SCOPE: where this stop sits, together with the trip's other stops, settles whether the trip was ever within the area,
+     * and together with the stops of every trip on the route, whether the route was. Registered only for a trip that
+     * survived the filters above, those dropped earlier never having reached the point where their scope could be
+     * told. This is the only file naming both a trip and a stop, so it is the only place either can be settled */
+    if(data.hasGtfsStopScope()){
+      var stopScope = data.isGtfsStopWithinArea(gtfsStopTime.getStopId())
+          ? GtfsEntityScope.IN : GtfsEntityScope.OUT;
+      data.getDiagnostics().registerSeenPartInScope(
+          GtfsObjectType.TRIP, gtfsStopTime.getTripId(), stopScope);
+      data.getDiagnostics().registerSeenPartInScope(
+          GtfsObjectType.ROUTE, gtfsTrip.getRouteId(), stopScope);
+    }
+
     /* change of GTFS trip between stop times, assume current stop time is the very first stop time for the new trip */
     boolean isTripDepartureTime = false;
     if(gtfsTrip != prevStopTimeTrip){
+      /* the trip before this one has had all its stop times seen, so its scope is settled and it can be dropped here
+       * if it never touched the area, sparing everything downstream the work of carrying it */
+      discardTripWhenWhollyOutsideArea(prevStopTimeTrip);
       prevSameTripStopTime = null;
       isTripDepartureTime = true;
     }

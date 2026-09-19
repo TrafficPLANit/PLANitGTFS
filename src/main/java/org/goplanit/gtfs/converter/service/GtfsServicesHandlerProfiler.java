@@ -60,14 +60,14 @@ public class GtfsServicesHandlerProfiler {
     LOGGER.info(String.format("[STATS] discarded %d duplicate GTFS trip stop time entries",
         diagnostics.getOccurrences(GtfsParseIssue.STOP_TIME_DUPLICATE)));
 
-    diagnostics.getSeenByCategory(GtfsObjectType.ROUTE).forEach(
+    diagnostics.getSeenBySubType(GtfsObjectType.ROUTE).forEach(
         (routeType, count) -> LOGGER.info(String.format("[STATS] processed %d GTFS routes - %s ", count, routeType)));
     LOGGER.info(String.format(
-        "[STATS] processed %d GTFS trips", diagnostics.getSeen(GtfsObjectType.TRIP)));
+        "[STATS] processed %d GTFS trips", diagnostics.getSeenInFeed(GtfsObjectType.TRIP)));
     LOGGER.info(String.format(
-        "[STATS] processed %d GTFS trip stop times", diagnostics.getSeen(GtfsObjectType.STOP_TIME)));
+        "[STATS] processed %d GTFS trip stop times", diagnostics.getSeenInFeed(GtfsObjectType.STOP_TIME)));
     LOGGER.info(String.format(
-        "[STATS] processed %d GTFS trip frequency entries", diagnostics.getSeen(GtfsObjectType.FREQUENCY)));
+        "[STATS] processed %d GTFS trip frequency entries", diagnostics.getSeenInFeed(GtfsObjectType.FREQUENCY)));
   }
 
   /**
@@ -82,9 +82,10 @@ public class GtfsServicesHandlerProfiler {
    * Register a GTFS route encountered in the feed, irrespective of what becomes of it
    *
    * @param gtfsRouteType of the route
+   * @param gtfsRouteId of the route
    */
-  public void registerSeenRoute(RouteType gtfsRouteType) {
-    diagnostics.registerSeen(GtfsObjectType.ROUTE, gtfsRouteType);
+  public void registerSeenRoute(RouteType gtfsRouteType, String gtfsRouteId) {
+    diagnostics.registerSeen(GtfsObjectType.ROUTE, gtfsRouteType, gtfsRouteId);
   }
 
   /**

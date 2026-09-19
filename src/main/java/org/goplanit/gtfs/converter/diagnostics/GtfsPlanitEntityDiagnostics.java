@@ -168,7 +168,8 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    */
   public void registerIssue(
       final GtfsPlanitEntityIssue issue, final String entityId, final Object... detailArgs) {
-    registerIssueOccurrence(issue, entityId, detailArgs);
+    /* PLANit entity types are not subdivided, so no subtype accompanies their occurrences */
+    registerIssueOccurrence(issue, entityId, null, detailArgs);
   }
 
   /**

@@ -18,7 +18,12 @@ import org.goplanit.utils.service.routed.RoutedTripSchedule;
 import org.goplanit.utils.time.ExtendedLocalTime;
 
 import java.time.LocalTime;
+import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
+import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
+
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -53,6 +58,19 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
    */
   Map<ServiceLeg, Mode> serviceLegMapMapping;
 
+  /**
+   * GTFS ids of the stops within the area the run covers, established by the stop scope pre-pass.
+   * <p>
+   * Transient, unlike the rest of the state tracked here. It exists only so that stop times can settle the scope of the
+   * trip they belong to, and is released as soon as stop times have been read. Only the stops within the area are held, those
+   * being the fewer of the two by a wide margin
+   * </p>
+   */
+  Set<String> gtfsStopIdsWithinArea;
+
+  /** the area the run covers, against which the scope of a GTFS stop is established */
+  ProjectedBoundingAreaHelper boundingAreaHelper;
+
   // TO POPULATE
 
   /** routed service to populate (indirectly via mode indexed {@link #routedServiceLayerByMode}) */
@@ -71,7 +89,11 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
     routedServiceLayerByMode = routedServices.getLayers().indexLayersByMode();
 
     serviceLegMapMapping = new HashMap<>();
+    gtfsStopIdsWithinArea = new HashSet<>();
     activeGtfsServiceIdCalendars = new HashMap<>();
+
+    boundingAreaHelper = GtfsConverterReaderHelper.createBoundingAreaHelper(
+        getSettings(), getServiceNetwork().getParentNetwork());
 
     customIndexTracker = new CustomIndexTracker();
     /* track routed service entries by external id (GTFS ROUTE_ID) */
@@ -125,6 +147,54 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
    */
   public RoutedService getRoutedServiceByExternalId(String externalId) {
     return customIndexTracker.get(RoutedService.class, externalId);
+  }
+
+  /**
+   * Collect the area the run covers
+   *
+   * @return bounding area helper
+   */
+  public ProjectedBoundingAreaHelper getBoundingAreaHelper() {
+    return this.boundingAreaHelper;
+  }
+
+  /**
+   * Register a GTFS stop as lying within the area the run covers
+   *
+   * @param gtfsStopId of the stop within the area
+   */
+  public void registerGtfsStopWithinArea(String gtfsStopId) {
+    this.gtfsStopIdsWithinArea.add(gtfsStopId);
+  }
+
+  /**
+   * Verify whether the scope of GTFS stops is available, i.e. the pre-pass has run and its result not yet released
+   *
+   * @return true when available, false otherwise
+   */
+  public boolean hasGtfsStopScope() {
+    return this.gtfsStopIdsWithinArea != null && !this.gtfsStopIdsWithinArea.isEmpty();
+  }
+
+  /**
+   * Verify whether a GTFS stop lies within the area the run covers
+   *
+   * @param gtfsStopId to verify
+   * @return true when within the area, false otherwise
+   */
+  public boolean isGtfsStopWithinArea(String gtfsStopId) {
+    return this.gtfsStopIdsWithinArea.contains(gtfsStopId);
+  }
+
+  /**
+   * Discard the stop scope established by the pre-pass, it having served its purpose once stop times are read. With a
+   * bounding area covering most of a feed this approaches an entry per stop, which is not worth holding for the
+   * remainder of the parse. Emptied as well as dropped, so that the entries are freed even where something still holds
+   * a reference to the set
+   */
+  public void releaseGtfsStopScope() {
+    this.gtfsStopIdsWithinArea.clear();
+    this.gtfsStopIdsWithinArea = null;
   }
 
   /**

@@ -104,6 +104,11 @@ public class GtfsToPlanitSydneyTest {
       var networkCopy = macroscopicNetwork.deepClone();
       GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(
           networkCopy, GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
+
+      /* own directory, this test writes no PLANit outputs to sit alongside */
+      servicesReader.getSettings().setParseDiagnosticsOutputDirectory(
+          Path.of(RESOURCE_PATH.toString(),"testcases","sydney","services_only").toAbsolutePath().toString());
+
       Pair<ServiceNetwork,RoutedServices> servicesPair = servicesReader.read();
 
       var serviceNetwork = servicesPair.first();
@@ -161,6 +166,10 @@ public class GtfsToPlanitSydneyTest {
       // log mappings, useful for debugging if needed
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
+
+      /* own directory, this test writes no PLANit outputs to sit alongside */
+      gtfsIntermodalReader.getSettings().setParseDiagnosticsOutputDirectory(
+          Path.of(RESOURCE_PATH.toString(),"testcases","sydney","no_pre_existing_zones").toAbsolutePath().toString());
 
       SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(
           gtfsIntermodalReader.getSettings().getZoningSettings(), false);
@@ -234,11 +243,17 @@ public class GtfsToPlanitSydneyTest {
           LocalTime.of(6,0,0),
           LocalTime.of(9, 59,59));
 
+      final String PLANIT_OUTPUT_DIR =
+          Path.of(RESOURCE_PATH.toString(),"testcases","sydney").toAbsolutePath().toString();
+
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(gtfsSettings, planitReader);
 
       /* log mappings, useful for debugging if needed */
 //    gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
 //    gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
+
+      /* alongside the PLANit outputs, so each test keeps its own diagnostics rather than overwriting a shared set */
+      gtfsIntermodalReader.getSettings().setParseDiagnosticsOutputDirectory(PLANIT_OUTPUT_DIR);
 
       SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(
           gtfsIntermodalReader.getSettings().getZoningSettings(), true);
@@ -252,8 +267,6 @@ public class GtfsToPlanitSydneyTest {
       var routedServices = result.fourth();
 
       /* PLANit intermodal writer --> to supply file based outputs if needed (example) */
-      final String PLANIT_OUTPUT_DIR =
-          Path.of(RESOURCE_PATH.toString(),"testcases","sydney").toAbsolutePath().toString();
       PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
       planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
       planitIntermodalWriter.getSettings().setOutputDirectory(PLANIT_OUTPUT_DIR);
@@ -266,17 +279,19 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(52, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
       assertEquals(0, parsedZoning.getOdZones().size());
-      assertEquals(102, parsedZoning.getTransferZones().size()); // was 142 at one point
+      // was 142, then 102 while the bounding area was enforced when creating transfer zones but not when fusing with
+      // pre-existing ones, letting a GTFS stop outside the area keep a pre-existing zone alive
+      assertEquals(101, parsedZoning.getTransferZones().size());
       assertEquals(0, parsedZoning.getOdConnectoids().size());
-      assertEquals(129, parsedZoning.getTransferConnectoids().size()); // was 191 at one point (probably consolidated)
+      assertEquals(128, parsedZoning.getTransferConnectoids().size()); // was 191 at one point (probably consolidated)
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
-      assertEquals(98, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size()); // was 100
+      assertEquals(97, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size()); // was 100, then 98
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertEquals(86, serviceNetwork.getTransportLayers().getFirst().getLegSegments().size()); //was 88
-      assertEquals(86, serviceNetwork.getTransportLayers().getFirst().getLegs().size()); // was 88
+      assertEquals(82, serviceNetwork.getTransportLayers().getFirst().getLegSegments().size()); //was 88, then 86
+      assertEquals(82, serviceNetwork.getTransportLayers().getFirst().getLegs().size()); // was 88, then 86
 
       assertEquals(routedServices.getLayers().size(),1);
       Modes modes = parsedNetwork.getModes();
@@ -284,7 +299,9 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(2, routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size());
       assertEquals(8, routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size());
       assertEquals(0, routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size());
-      assertEquals(6, routedServices.getLayers().getFirst().getServicesByMode(modes.get(FERRY)).size());
+      // was 6, the GTFS stop of the additional ferry service lies outside the bounding area and therefore no longer
+      // fuses with its pre-existing transfer zone
+      assertEquals(5, routedServices.getLayers().getFirst().getServicesByMode(modes.get(FERRY)).size());
 
       PlanitAssertionUtils.assertNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
       PlanitAssertionUtils.assertZoningFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);

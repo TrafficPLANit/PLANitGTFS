@@ -35,7 +35,7 @@ public class GtfsConverterReaderHelper {
    * area is only rougher than one drawn by the user.
    * <p>
    * Shared by the stages so that what is in scope is the same question in each of them, a stop that one stage
-   * considers out of reach and another does not being worse than either answer on its own
+   * considers beyond the area and another does not being worse than either answer on its own
    * </p>
    *
    * @param settings to source the user defined bounding area and ferry leniency from
@@ -48,15 +48,25 @@ public class GtfsConverterReaderHelper {
     var networkCrs = referenceNetwork.getCoordinateReferenceSystem();
     Polygon boundingPolygonInGtfsCrs = null;
     if(!settings.hasBoundingBoundary()){
-      var boundingPolygonInPlanitCrs = PlanitJtsUtils.create2DPolygon(referenceNetwork.createBoundingBox());
-      try{
-        var crsTransformGtfsToPlanit = PlanitJtsUtils.findMathTransform(
-            PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, networkCrs);
-        boundingPolygonInGtfsCrs = (Polygon) JTS.transform(
-            boundingPolygonInPlanitCrs, crsTransformGtfsToPlanit.inverse());
-      }catch (Exception e){}
+      /* a network without any extent yet offers nothing to fall back on, leaving no area known and so nothing that
+       * can be ruled beyond the area */
+      var networkBoundingBox = referenceNetwork.createBoundingBox();
+      if(networkBoundingBox != null) {
+        var boundingPolygonInPlanitCrs = PlanitJtsUtils.create2DPolygon(networkBoundingBox);
+        try{
+          var crsTransformGtfsToPlanit = PlanitJtsUtils.findMathTransform(
+              PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, networkCrs);
+          boundingPolygonInGtfsCrs = (Polygon) JTS.transform(
+              boundingPolygonInPlanitCrs, crsTransformGtfsToPlanit.inverse());
+        }catch (Exception e){}
+      }
     }else{
       boundingPolygonInGtfsCrs = settings.getBoundingArea();
+    }
+
+    if(boundingPolygonInGtfsCrs == null){
+      /* no area is known, neither drawn by the user nor derivable from the network, so nothing is beyond the area */
+      return ProjectedBoundingAreaHelper.empty();
     }
 
     // use helper for quick indexed checks

@@ -2,11 +2,16 @@ package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.PairConverterReader;
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.service.handler.*;
 import org.goplanit.gtfs.entity.GtfsCalendar;
 import org.goplanit.gtfs.enums.GtfsFileType;
 import org.goplanit.gtfs.reader.*;
+import org.goplanit.gtfs.reader.GtfsFileReaderStops;
+import org.goplanit.gtfs.converter.service.handler.GtfsPlanitFileHandlerStopScope;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
 import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
 import org.goplanit.gtfs.util.GtfsRoutedServicesModifierUtils;
@@ -21,6 +26,9 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.service.routed.RoutedServices;
 
 import java.nio.charset.StandardCharsets;
+
+import java.util.Set;
+import java.util.HashSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -37,6 +45,89 @@ import java.util.stream.Collectors;
  *
  */
 public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, RoutedServices> {
+
+  /**
+   * Collect the GTFS ids of the routes that still hold a routed service
+   *
+   * @param routedServices to collect from
+   * @return GTFS route ids present
+   */
+  private static Set<String> collectGtfsRouteIds(final RoutedServices routedServices) {
+    Set<String> gtfsRouteIds = new HashSet<>();
+    routedServices.getLayers().forEach(layer -> layer.getSupportedModes().forEach(
+        mode -> layer.getServicesByMode(mode).forEach(
+            routedService -> gtfsRouteIds.add(String.valueOf(routedService.getExternalId())))));
+    return gtfsRouteIds;
+  }
+
+  /**
+   * Collect the GTFS ids of the trips that still hold a schedule based routed trip
+   *
+   * @param routedServices to collect from
+   * @return GTFS trip ids present
+   */
+  private static Set<String> collectGtfsTripIds(final RoutedServices routedServices) {
+    Set<String> gtfsTripIds = new HashSet<>();
+    routedServices.getLayers().forEach(layer -> layer.getSupportedModes().forEach(
+        mode -> layer.getServicesByMode(mode).forEach(
+            routedService -> routedService.getTripInfo().getScheduleBasedTrips().forEach(
+                tripSchedule -> gtfsTripIds.add(String.valueOf(tripSchedule.getExternalId()))))));
+    return gtfsTripIds;
+  }
+
+
+  /**
+   * Verify whether an entity was settled as running wholly beyond the area the run covers, which is why it was left
+   * with nothing rather than anything the parser did or failed to do
+   *
+   * @param diagnostics holding the settled scopes
+   * @param entityType of the entity
+   * @param gtfsId of the entity
+   * @return true when wholly outside, false otherwise
+   */
+  private static boolean isWhollyOutsideArea(
+      final GtfsParseDiagnostics diagnostics, final GtfsObjectType entityType, final String gtfsId) {
+    return diagnostics.getSettledScope(entityType, gtfsId) == GtfsEntityScope.OUT;
+  }
+
+  /**
+   * Record the GTFS trips whose only stop within the chosen filters left them without a single leg, which the clean-up
+   * just removed. Registered here rather than in the clean-up itself, that being where PLANit entities are pruned
+   * without knowing what they were read from
+   *
+   * @param fileHandlerData to register with
+   * @param gtfsTripIdsBeforeRemoval present before the clean-up ran
+   */
+  private static void registerRemovedGtfsTrips(
+      final GtfsServicesHandlerData fileHandlerData, final Set<String> gtfsTripIdsBeforeRemoval) {
+    var remaining = collectGtfsTripIds(fileHandlerData.getRoutedServices());
+    var diagnostics = fileHandlerData.getDiagnostics();
+    gtfsTripIdsBeforeRemoval.stream().filter(gtfsTripId -> !remaining.contains(gtfsTripId)).forEach(
+        gtfsTripId -> diagnostics.registerIssue(
+            isWhollyOutsideArea(diagnostics, GtfsObjectType.TRIP, gtfsTripId)
+                ? GtfsParseIssue.TRIP_OUTSIDE_BOUNDING_AREA : GtfsParseIssue.TRIP_WITHOUT_LEGS,
+            gtfsTripId));
+  }
+
+  /**
+   * Record the GTFS routes left without any trip surviving the chosen filters, which the clean-up just removed. The
+   * diagnostics recover the route type the route was seen under, so that what is seen and what is discarded split the
+   * same way
+   *
+   * @param fileHandlerData to register with
+   * @param gtfsRouteIdsBeforeRemoval present before the clean-up ran
+   */
+  private static void registerRemovedGtfsRoutes(
+      final GtfsServicesHandlerData fileHandlerData, final Set<String> gtfsRouteIdsBeforeRemoval) {
+    var remaining = collectGtfsRouteIds(fileHandlerData.getRoutedServices());
+    var diagnostics = fileHandlerData.getDiagnostics();
+    gtfsRouteIdsBeforeRemoval.stream().filter(gtfsRouteId -> !remaining.contains(gtfsRouteId)).forEach(
+        gtfsRouteId -> diagnostics.registerIssue(
+            isWhollyOutsideArea(diagnostics, GtfsObjectType.ROUTE, gtfsRouteId)
+                ? GtfsParseIssue.ROUTE_OUTSIDE_BOUNDING_AREA : GtfsParseIssue.ROUTE_WITHOUT_TRIPS,
+            gtfsRouteId));
+  }
+
   
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReader.class.getCanonicalName());
@@ -133,6 +224,9 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* execute */
     stopTimeFileReader.read(StandardCharsets.UTF_8);
 
+    /* no stop time follows the last trip to mark its scope as settled, so it is considered here */
+    tripStopTimeHandler.discardFinalTripWhenWhollyOutsideArea();
+
     /* logging in case user required bespoke tracking of GTFS stop frequented GTFS routes */
     tripStopTimeHandler.getUniqueRoutesForTrackedGtfsStops().forEach(
         (key, value) -> LOGGER.info(String.format("GTFS stop %s is visited by GTFS routes [%s]",
@@ -187,6 +281,30 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
+   * Process GTFS stops for their spatial scope only, i.e. establish which of them lie within the area the run covers.
+   * <p>
+   * Read ahead of the stop times that reference them, that being the only file linking a trip to its stops and so the
+   * only point at which a trip can be told to lie wholly beyond the area rather than having been lost by the parser
+   * </p>
+   *
+   * @param fileHandlerData containing all data to track and resources needed to perform the processing
+   */
+  private void processStopScope(GtfsServicesHandlerData fileHandlerData) {
+    LOGGER.info("Processing: parsing GTFS stops for spatial scope...");
+
+    /* handler that will process individual stops upon ingesting */
+    var stopScopeHandler = new GtfsPlanitFileHandlerStopScope(fileHandlerData);
+
+    /* GTFS file reader that parses the raw GTFS data and applies the handler to each stop found */
+    GtfsFileReaderStops stopsFileReader = (GtfsFileReaderStops) GtfsReaderFactory.createFileReader(
+        GtfsFileSchemeFactory.create(GtfsFileType.STOPS), getSettings().getInputSource());
+    stopsFileReader.addHandler(stopScopeHandler);
+
+    /* execute */
+    stopsFileReader.read(StandardCharsets.UTF_8);
+  }
+
+  /**
    * Process GTFS routes. Capture modes of routes to use later on to identify supported mdoes for GTFS stops
    * which in turn are used to map to PLANit entities
    *
@@ -234,8 +352,12 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     processCalendars(fileHandlerData);
     /* meta-data for grouping of instances for a route via its service id */
     processTrips(fileHandlerData);
+    /* spatial scope of the stops, needed while reading the stop times that reference them */
+    processStopScope(fileHandlerData);
     /* matching routes and trips to stops at actual times */
     processStopTimes(fileHandlerData);
+    /* the stop scope has served its purpose now that stop times are read */
+    fileHandlerData.releaseGtfsStopScope();
     /* matching routes and trips to stops based on frequency information */
     processFrequencies(fileHandlerData);
 
@@ -243,10 +365,15 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     /* due to time period based filtering it is possible that trips have just a single valid stop, meaning no single
     leg. These need to be removed */
+    var gtfsTripIdsBeforeRemoval = collectGtfsTripIds(fileHandlerData.getRoutedServices());
     GtfsRoutedServicesModifierUtils.removeScheduledTripsWithoutLegs(fileHandlerData.getRoutedServices());
+    registerRemovedGtfsTrips(fileHandlerData, gtfsTripIdsBeforeRemoval);
+
     /* due to routed being created beforehand without knowing what trips are eligible, routes can end up without
     having trips in the valid time period. These need to be removed */
+    var gtfsRouteIdsBeforeRemoval = collectGtfsRouteIds(fileHandlerData.getRoutedServices());
     GtfsRoutedServicesModifierUtils.removeServiceRoutesWithoutTrips(fileHandlerData.getRoutedServices());
+    registerRemovedGtfsRoutes(fileHandlerData, gtfsRouteIdsBeforeRemoval);
     /* due to removal of service routes, or some modes not being supported, it is possible entire modes no longer
     have any routes associated with them. These need to be removed */
     GtfsRoutedServicesModifierUtils.removeEmptyRoutedServices(fileHandlerData.getRoutedServices());

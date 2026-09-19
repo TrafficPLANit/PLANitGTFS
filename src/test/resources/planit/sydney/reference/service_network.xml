@@ -91,7 +91,6 @@
             <servicenode id="51220" externalid="206126"/>
             <servicenode id="51221" externalid="20614"/>
             <servicenode id="51225" externalid="2000215"/>
-            <servicenode id="51230" externalid="20413"/>
             <servicenode id="51235" externalid="20291"/>
             <servicenode id="7956" externalid="2000422"/>
             <servicenode id="7957" externalid="2000420"/>
@@ -343,18 +342,6 @@
             </leg>
             <leg id="69653" externalid="2000229_20614" nodearef="51211" nodebref="51221">
                 <legsegment id="69653" externalid="2000229_20614" dir="a_b" lsrefs="1326,1131"/>
-            </leg>
-            <leg id="69666" externalid="2000225_20413" nodearef="51207" nodebref="51230">
-                <legsegment id="69666" externalid="2000225_20413" dir="a_b" lsrefs="1324,1510"/>
-            </leg>
-            <leg id="69671" externalid="20413_2000229" nodearef="51230" nodebref="51211">
-                <legsegment id="69671" externalid="20413_2000229" dir="a_b" lsrefs="1511,1327"/>
-            </leg>
-            <leg id="69672" externalid="2000227_20413" nodearef="51216" nodebref="51230">
-                <legsegment id="69672" externalid="2000227_20413" dir="a_b" lsrefs="1326,1510"/>
-            </leg>
-            <leg id="69673" externalid="20413_2000223" nodearef="51230" nodebref="51210">
-                <legsegment id="69673" externalid="20413_2000223" dir="a_b" lsrefs="1511,1325"/>
             </leg>
             <leg id="69674" externalid="2000215_20291" nodearef="51225" nodebref="51235">
                 <legsegment id="69674" externalid="2000215_20291" dir="a_b" lsrefs="1101,1509"/>

@@ -101,6 +101,17 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
   protected abstract I issueValueOf(String name);
 
   /**
+   * Collect what the denominator of an issue holds, so a share states the population it was measured against rather
+   * than leaving it to be assumed
+   *
+   * @param issue to collect for
+   * @return label naming the denominator
+   */
+  protected String getDenominatorLabel(final I issue) {
+    return "total";
+  }
+
+  /**
    * Collect what an issue's occurrences are to be reported as a share of, i.e. the entities it could conceivably have
    * arisen for
    *
@@ -135,9 +146,11 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
    *
    * @param issue encountered
    * @param entityId identifying the entity concerned, may be null when not entity specific
+   * @param subType subdividing the entity type, may be null when the type is not subdivided
    * @param detailArgs the arguments the issue's detail template expects
    */
-  protected void registerIssueOccurrence(final I issue, final String entityId, final Object... detailArgs) {
+  protected void registerIssueOccurrence(
+      final I issue, final String entityId, final String subType, final Object... detailArgs) {
     if (issue == null) {
       throw new IllegalArgumentException("issue is required to register a GTFS diagnostic");
     }
@@ -160,7 +173,7 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
       if (issue.hasPersistedDetailTemplate() && collator.isRetaining(issue.name())) {
         expandedDetail = issue.createPersistedDetail(detailArgs);
       }
-      collator.increment(issue.name(), entityId, detail, expandedDetail);
+      collator.increment(issue.name(), entityId, subType, detail, expandedDetail);
     }
 
     if (issue.getLogPolicy() == GtfsIssueLogPolicy.IMMEDIATE) {
@@ -221,9 +234,9 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
   protected String createIssueLogEntry(final I issue) {
     var collator = collatorFor(issue);
     var template = collator.getTemplate(issue.name());
-    var label = String.format("%s / %s", issue.getEntityLabel(), issue.getDescription());
-    var value = new StringBuilder(
-        LoggingUtils.countWithPercentage(getOccurrences(issue), getDenominator(issue)));
+    var label = String.format("%s | %s", issue.getEntityLabel(), issue.getDescription());
+    var value = new StringBuilder(LoggingUtils.countWithPercentage(
+        getOccurrences(issue), getDenominator(issue), getDenominatorLabel(issue)));
     value.append(" [").append(issue.getDisposition()).append("]");
 
     if (template != null) {
@@ -251,6 +264,68 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
   }
 
   /**
+   * Collect how often an issue was registered per subtype of its entity type, ordered by subtype
+   *
+   * @param issue to collect for
+   * @return occurrences per entity subtype, empty when the entity type is not subdivided
+   */
+  protected SortedMap<String, Long> getOccurrencesBySubType(final I issue) {
+    return Collections.emptySortedMap();
+  }
+
+  /**
+   * Collect how often an issue was registered against entities of each scope, ordered by scope
+   *
+   * @param issue to collect for
+   * @return occurrences per scope, empty where scope was never established for its entity type
+   */
+  protected Map<String, Long> getOccurrencesByScope(final I issue) {
+    return Collections.emptyMap();
+  }
+
+  /**
+   * Report an issue as a single entry, followed by how it splits across the subtypes of its entity type where it is
+   * subdivided, so a total can be read against the kinds of entity making it up rather than only in isolation
+   *
+   * @param issue to report
+   */
+  protected void logIssue(final I issue) {
+    LOGGER.info(createIssueLogEntry(issue));
+
+    /* only where the issue spans more than one scope, that being the case a total on its own misrepresents: a count
+     * dominated by entities beyond the area says more about the ground the feed covers than about the parser */
+    var byScope = getOccurrencesByScope(issue);
+    if (byScope.size() > 1) {
+      LOGGER.info(LoggingUtils.settingsValue(
+          "scope distribution",
+          byScope.entrySet().stream().map(
+              entry -> String.format("%s %d", entry.getKey(), entry.getValue())).collect(
+              Collectors.joining(", ")),
+          3));
+    }
+
+    getOccurrencesBySubType(issue).forEach(
+        (subType, occurrences) -> LOGGER.info(LoggingUtils.settingsValue(
+            subType,
+            LoggingUtils.countWithPercentage(
+                occurrences, getDenominator(issue, subType), getDenominatorLabel(issue)),
+            3)));
+  }
+
+  /**
+   * Collect what an issue's occurrences within a subtype are to be reported as a share of, i.e. the entities of that
+   * subtype it could conceivably have arisen for. Measured against the same population as the issue as a whole, so a
+   * breakdown and the entry above it are read on the same footing
+   *
+   * @param issue to collect for
+   * @param subType to collect for
+   * @return denominator, zero when there is none and the count stands on its own
+   */
+  protected long getDenominator(final I issue, final String subType) {
+    return getDenominator(issue);
+  }
+
+  /**
    * Persist one row per recorded occurrence held by the given collator
    *
    * @param filePath to write to
@@ -266,9 +341,10 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
         for (var occurrence : template.getRetainedOccurrences()) {
           writeIssueRow(csvWriter, issue, occurrence, outcome);
         }
-        if (template.hasUnretainedOccurrences()) {
+        if (template.hasUnretainedOccurrences() && issue.getLogPolicy() != GtfsIssueLogPolicy.SILENT_COUNT_ONLY) {
           /* the rows are a sample rather than the record, so say so here instead of letting the row count be read
-           * as the total */
+           * as the total. A silently counted issue carries no detail by design, so its unretained occurrences are
+           * not a shortfall to report */
           LOGGER.warning(String.format(
               "%s lists %d of %d %s occurrences, raise the retention limit to list them all",
               filePath.getFileName(), template.getRetainedOccurrences().size(), template.getOccurrences(),
@@ -303,14 +379,14 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
   }
 
   /**
-   * Collect the per category counters for a key, creating them only when genuinely absent
+   * Collect the per subtype counters for a key, creating them only when genuinely absent
    *
    * @param <K> type of key
    * @param countersByKey to collect from
    * @param key to collect for
-   * @return per category counters
+   * @return per subtype counters
    */
-  protected static <K> Map<String, LongAdder> collectCategoryCounters(
+  protected static <K> Map<String, LongAdder> collectSubTypeCounters(
       final Map<K, Map<String, LongAdder>> countersByKey, final K key) {
     var counters = countersByKey.get(key);
     if (counters == null) {

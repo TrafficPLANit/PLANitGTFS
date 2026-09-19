@@ -4,6 +4,7 @@ import org.geotools.geometry.jts.JTS;
 import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
 import org.goplanit.converter.zoning.ZoningConverterCommonData;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
@@ -255,8 +256,10 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
     var displacedStop = transferZoneData.registerMappedGtfsStop(gtfsStop, transferZone);
     if(displacedStop != null){
+      /* the displaced stop was mapped, so it was within the area */
       getDiagnostics().registerIssue(
-          GtfsParseIssue.STOP_DUPLICATE_ID, displacedStop.getStopId(), displacedStop);
+          GtfsParseIssue.STOP_DUPLICATE_ID, displacedStop.getLocationType(), GtfsEntityScope.IN,
+          displacedStop.getStopId(), displacedStop);
     }
   }
 
