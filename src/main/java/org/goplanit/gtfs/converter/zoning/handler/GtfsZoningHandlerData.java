@@ -259,13 +259,9 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
     var displacedStop = transferZoneData.registerMappedGtfsStop(gtfsStop, transferZone);
     if(displacedStop != null){
-      /* the displaced stop was mapped, so it passed both the area and the exclusions */
       getDiagnostics().registerIssue(
-          GtfsParseIssue.STOP_DUPLICATE_ID, displacedStop.getLocationType(),
-          GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
-              .with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN)
-              .with(GtfsScopeDimension.SELECTION, GtfsEntityScope.IN),
-          displacedStop.getStopId(), displacedStop);
+          GtfsParseIssue.STOP_DUPLICATE_ID, displacedStop.getLocationType(), displacedStop.getStopId(),
+          displacedStop);
     }
   }
 

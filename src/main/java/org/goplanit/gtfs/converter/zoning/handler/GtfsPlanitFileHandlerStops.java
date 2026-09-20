@@ -891,7 +891,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       if(chosenNonClosestLink && !linkOverrideActive){
         data.getDiagnostics().registerIssue(
             GtfsParseIssue.STOP_POSSIBLY_ON_WRONG_SIDE_OF_ROAD, gtfsStopMode.getPredefinedModeType(),
-            withinAreaAndSelected(), gtfsStop.getStopId(),
+            gtfsStop.getStopId(),
             createIssueArgs(
                 gtfsStop,
                 accessResult.first().getIdsAsString(),
@@ -1234,26 +1234,14 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStop the issue concerns
    * @param issueArgs the issue's own arguments, if any
    */
-  /**
-   * Collect the standing of a GTFS stop that passed both the area and the exclusions, which every site below those
-   * checks concerns
-   *
-   * @return state
-   */
-  private static GtfsScopeState withinAreaAndSelected() {
-    return GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
-        .with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN)
-        .with(GtfsScopeDimension.SELECTION, GtfsEntityScope.IN);
-  }
 
   private void registerStopIssue(
       final GtfsParseIssue issue, final GtfsStop gtfsStop, final Object... issueArgs) {
-    /* a stop beyond the area, or left out by name, is discarded before any of these sites is reached, so whatever
-     * arises here arose for a stop that passed both. Stated rather than looked up, stops not being indexed
-     * individually */
+    /* where the stop stands is recorded against its id the moment it is read and settled further as each respect is
+     * applied, so it is looked up rather than restated here. Restating it left an issue carrying a standing the stop
+     * had already moved past */
     data.getDiagnostics().registerIssue(
-        issue, gtfsStop.getLocationType(), withinAreaAndSelected(), gtfsStop.getStopId(),
-        createIssueArgs(gtfsStop, issueArgs));
+        issue, gtfsStop.getLocationType(), gtfsStop.getStopId(), createIssueArgs(gtfsStop, issueArgs));
   }
 
   /**
@@ -1290,9 +1278,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         distanceToBoundaryMeters <= MAX_DISTANCE_TO_BOUNDING_AREA_TO_REPORT_METERS
             ? GtfsParseIssue.STOP_JUST_OUTSIDE_BOUNDING_AREA
             : GtfsParseIssue.STOP_OUTSIDE_BOUNDING_AREA,
-        gtfsStop.getLocationType(),
-        GtfsScopeState.unsettledFor(GtfsObjectType.STOP).with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.OUT),
-        gtfsStop.getStopId(),
+        gtfsStop.getLocationType(), gtfsStop.getStopId(),
         createIssueArgs(gtfsStop, String.format("%.2f", distanceToBoundaryMeters)));
   }
 
@@ -1316,7 +1302,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
             .with(GtfsScopeDimension.SPATIAL, scope)
             .with(GtfsScopeDimension.SELECTION,
-                excludedBySettings ? GtfsEntityScope.OUT : GtfsEntityScope.IN));
+                excludedBySettings ? GtfsEntityScope.OUT : GtfsEntityScope.IN),
+        gtfsStop.getStopId());
 
     if(scope == GtfsEntityScope.OUT){
       registerOutOfBoundingAreaDiscard(gtfsStop);
@@ -1324,13 +1311,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     }
 
     if(excludedBySettings){
-      /* within the area but left out by name, so it stands apart from the sites below where both were passed */
       diagnostics.registerIssue(
-          GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, gtfsStop.getLocationType(),
-          GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
-              .with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN)
-              .with(GtfsScopeDimension.SELECTION, GtfsEntityScope.OUT),
-          gtfsStop.getStopId(), createIssueArgs(gtfsStop));
+          GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, gtfsStop.getLocationType(), gtfsStop.getStopId(),
+          createIssueArgs(gtfsStop));
       return;
     }
 
@@ -1342,14 +1325,19 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       return;
     }
 
-    /* PLANit mode mapping compatibility */
+    /* MODAL SCOPE: the modes a stop serves are its own, and settle here once they are weighed against those the run
+     * covers. The subtype is stated rather than looked up, a stop not carrying one against its id */
     final var activatedModes = data.getActivatedPlanitModes();
     gtfsStopModes.removeIf(m -> !activatedModes.contains(m));
     if(gtfsStopModes.isEmpty()){
+      diagnostics.registerSeenOutOfScope(
+          GtfsObjectType.STOP, GtfsScopeDimension.MODAL, gtfsStop.getLocationType(), gtfsStop.getStopId());
       registerStopIssue(
           GtfsParseIssue.STOP_MODE_NOT_ACTIVATED, gtfsStop);
       return;
     }
+    diagnostics.registerSeenWithinScope(
+        GtfsObjectType.STOP, GtfsScopeDimension.MODAL, gtfsStop.getLocationType(), gtfsStop.getStopId());
 
     /* OVERRIDES CHECKING */
     {
