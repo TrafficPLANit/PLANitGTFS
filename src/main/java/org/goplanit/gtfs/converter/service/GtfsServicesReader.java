@@ -77,20 +77,6 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
 
-  /**
-   * Verify whether an entity was settled as running wholly beyond the area the run covers, which is why it was left
-   * with nothing rather than anything the parser did or failed to do
-   *
-   * @param diagnostics holding the settled scopes
-   * @param entityType of the entity
-   * @param gtfsId of the entity
-   * @return true when wholly outside, false otherwise
-   */
-  private static boolean isWhollyOutsideArea(
-      final GtfsParseDiagnostics diagnostics, final GtfsObjectType entityType, final String gtfsId) {
-    return diagnostics.getSettledScope(
-        entityType, GtfsScopeDimension.SPATIAL, gtfsId) == GtfsEntityScope.OUT;
-  }
 
   /**
    * Record the GTFS trips whose only stop within the chosen filters left them without a single leg, which the clean-up
@@ -104,11 +90,11 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
       final GtfsServicesHandlerData fileHandlerData, final Set<String> gtfsTripIdsBeforeRemoval) {
     var remaining = collectGtfsTripIds(fileHandlerData.getRoutedServices());
     var diagnostics = fileHandlerData.getDiagnostics();
+    /* named for why the trip was removed, which is that it was left without a leg. Where it stood when that happened
+     * is recorded against the occurrence, so the issue need not restate it and must not claim a spatial filter that
+     * may not even be running */
     gtfsTripIdsBeforeRemoval.stream().filter(gtfsTripId -> !remaining.contains(gtfsTripId)).forEach(
-        gtfsTripId -> diagnostics.registerIssue(
-            isWhollyOutsideArea(diagnostics, GtfsObjectType.TRIP, gtfsTripId)
-                ? GtfsParseIssue.TRIP_OUTSIDE_BOUNDING_AREA : GtfsParseIssue.TRIP_WITHOUT_LEGS,
-            gtfsTripId));
+        gtfsTripId -> diagnostics.registerIssue(GtfsParseIssue.TRIP_WITHOUT_LEGS, gtfsTripId));
   }
 
   /**
@@ -123,11 +109,9 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
       final GtfsServicesHandlerData fileHandlerData, final Set<String> gtfsRouteIdsBeforeRemoval) {
     var remaining = collectGtfsRouteIds(fileHandlerData.getRoutedServices());
     var diagnostics = fileHandlerData.getDiagnostics();
+    /* named for why the route was removed, which is that nothing was left to run on it */
     gtfsRouteIdsBeforeRemoval.stream().filter(gtfsRouteId -> !remaining.contains(gtfsRouteId)).forEach(
-        gtfsRouteId -> diagnostics.registerIssue(
-            isWhollyOutsideArea(diagnostics, GtfsObjectType.ROUTE, gtfsRouteId)
-                ? GtfsParseIssue.ROUTE_OUTSIDE_BOUNDING_AREA : GtfsParseIssue.ROUTE_WITHOUT_TRIPS,
-            gtfsRouteId));
+        gtfsRouteId -> diagnostics.registerIssue(GtfsParseIssue.ROUTE_WITHOUT_TRIPS, gtfsRouteId));
   }
 
   

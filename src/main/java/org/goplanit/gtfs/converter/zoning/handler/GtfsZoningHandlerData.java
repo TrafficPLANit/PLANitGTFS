@@ -12,6 +12,9 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
 import org.goplanit.utils.misc.LogCollator;
@@ -256,9 +259,12 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   public void registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
     var displacedStop = transferZoneData.registerMappedGtfsStop(gtfsStop, transferZone);
     if(displacedStop != null){
-      /* the displaced stop was mapped, so it was within the area */
+      /* the displaced stop was mapped, so it passed both the area and the exclusions */
       getDiagnostics().registerIssue(
-          GtfsParseIssue.STOP_DUPLICATE_ID, displacedStop.getLocationType(), GtfsEntityScope.IN,
+          GtfsParseIssue.STOP_DUPLICATE_ID, displacedStop.getLocationType(),
+          GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
+              .with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN)
+              .with(GtfsScopeDimension.SELECTION, GtfsEntityScope.IN),
           displacedStop.getStopId(), displacedStop);
     }
   }

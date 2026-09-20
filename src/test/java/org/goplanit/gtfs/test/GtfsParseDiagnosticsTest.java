@@ -2,8 +2,8 @@ package org.goplanit.gtfs.test;
 
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageCsvColumn;
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
-import org.goplanit.gtfs.converter.diagnostics.GtfsIssueScopeRelation;
 import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
 import org.goplanit.gtfs.converter.diagnostics.GtfsIssueSummaryCsvColumn;
 import org.goplanit.gtfs.converter.diagnostics.GtfsIssueDisposition;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
@@ -344,37 +344,48 @@ public class GtfsParseDiagnosticsTest {
   }
 
   @Test
-  public void persistedIssueSummaryStatesHowIssuesStandToScopeTest() throws IOException {
+  public void persistedIssueSummaryStatesWhereEntitiesStoodTest() throws IOException {
     var diagnostics = GtfsParseDiagnostics.create();
 
-    /* a stop whose scope is settled the moment it is read, and stated by the call site since stops are not indexed
-     * individually, so an issue on it measures against what was within the area */
+    /* a stop stands in both its respects the moment it is read, stated by the call site since stops are not indexed
+     * individually */
     diagnostics.registerSeen(
         GtfsObjectType.STOP, null, GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN);
     diagnostics.registerIssue(
-        GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, (Enum<?>) null, GtfsEntityScope.IN, "s1", "a stop", 1.0, 2.0);
+        GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, (Enum<?>) null,
+        GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
+            .with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN)
+            .with(GtfsScopeDimension.SELECTION, GtfsEntityScope.OUT),
+        "s1", "a stop", 1.0, 2.0);
 
-    /* a trip dropped before its scope could ever be told, which can only measure against what the feed holds */
+    /* a trip ruled out on the day it runs, its other respects never reached */
     diagnostics.registerSeen(GtfsObjectType.TRIP, 5);
+    diagnostics.registerSeenOutOfScope(GtfsObjectType.TRIP, GtfsScopeDimension.TEMPORAL, "t1");
     diagnostics.registerIssue(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY, "t1");
 
     diagnostics.persist(tempDir);
     var rows = Files.readAllLines(tempDir.resolve("gtfs_issue_summary.csv"), StandardCharsets.UTF_8);
 
-    var relationByIssue = new java.util.HashMap<String, String>();
+    var scopesByIssue = new java.util.HashMap<String, String[]>();
     for (var row : rows.subList(1, rows.size())) {
       var values = row.split(",", -1);
-      relationByIssue.put(
-          values[GtfsIssueSummaryCsvColumn.ISSUE.ordinal()],
-          values[GtfsIssueSummaryCsvColumn.SCOPE_RELATION.ordinal()]);
+      scopesByIssue.put(values[GtfsIssueSummaryCsvColumn.ISSUE.ordinal()], values);
     }
 
+    /* a stop left out by name stands within the area and beyond the exclusions, which is what places the issue */
+    var excludedStop = scopesByIssue.get(GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS.name());
     assertEquals(
-        GtfsIssueScopeRelation.WITHIN_AREA.name(),
-        relationByIssue.get(GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS.name()));
+        GtfsEntityScope.IN.name(), excludedStop[GtfsIssueSummaryCsvColumn.SPATIAL_SCOPE.ordinal()]);
     assertEquals(
-        GtfsIssueScopeRelation.PRE_SCOPE.name(),
-        relationByIssue.get(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY.name()));
+        GtfsEntityScope.OUT.name(), excludedStop[GtfsIssueSummaryCsvColumn.SELECTION_SCOPE.ordinal()]);
+
+    /* a trip on another day stands beyond the run in time, and nowhere else it ever reached */
+    var inactiveTrip = scopesByIssue.get(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY.name());
+    assertEquals(
+        GtfsEntityScope.OUT.name(), inactiveTrip[GtfsIssueSummaryCsvColumn.TEMPORAL_SCOPE.ordinal()]);
+    assertEquals(
+        GtfsEntityScope.NOT_ESTABLISHED.name(),
+        inactiveTrip[GtfsIssueSummaryCsvColumn.SPATIAL_SCOPE.ordinal()]);
   }
 }
 

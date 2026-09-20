@@ -33,6 +33,9 @@ public enum GtfsIssueSummaryCsvColumn {
   /** how the entities stood to the modes activated for the run when the issue arose */
   MODAL_SCOPE,
 
+  /** whether the entities were ones the run was asked to include at all */
+  SELECTION_SCOPE,
+
   /** the issue itself */
   ISSUE,
 
@@ -43,14 +46,8 @@ public enum GtfsIssueSummaryCsvColumn {
   OUTCOME,
 
   /** how often the issue was registered */
-  OCCURRENCES,
+  OCCURRENCES;
 
-  /**
-   * How the issue stands in relation to the scope of the entities it arises for, which is what decides the population
-   * its occurrences are to be measured against. The total itself is not written, being a sum over the coverage tally
-   * that the reader can take for whichever grouping is of interest
-   */
-  SCOPE_RELATION;
 
   /**
    * Collect the column as it appears in the header row

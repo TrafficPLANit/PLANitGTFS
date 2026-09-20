@@ -303,6 +303,14 @@ public class GtfsToPlanitSydneyTest {
       // fuses with its pre-existing transfer zone
       assertEquals(5, routedServices.getLayers().getFirst().getServicesByMode(modes.get(FERRY)).size());
 
+      /* the report is a product of the run as much as the network is, and a figure that is merely wrong reads as a
+       * number rather than as a failure unless something asserts otherwise */
+      GtfsDiagnosticsAssertions.assertConsistent(gtfsIntermodalReader.getRawGtfsEntityDiagnostics());
+      GtfsDiagnosticsAssertions.assertSummaryFilesSimilar(
+          PLANIT_OUTPUT_DIR, PLANIT_REF_DIR, "gtfs_coverage_summary.csv");
+      GtfsDiagnosticsAssertions.assertSummaryFilesSimilar(
+          PLANIT_OUTPUT_DIR, PLANIT_REF_DIR, "gtfs_issue_summary.csv");
+
       PlanitAssertionUtils.assertNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
       PlanitAssertionUtils.assertZoningFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
       PlanitAssertionUtils.assertServiceNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);

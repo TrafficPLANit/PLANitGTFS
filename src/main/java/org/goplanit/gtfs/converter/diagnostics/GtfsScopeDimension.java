@@ -27,7 +27,17 @@ public enum GtfsScopeDimension {
   TEMPORAL,
 
   /** whether the entity serves a mode activated for the run */
-  MODAL;
+  MODAL,
+
+  /**
+   * whether the entity was one the run was asked to include at all, an exclusion naming it rather than describing it.
+   * <p>
+   * Unlike the others this filters on the entity's identity: a route left out by short name or a stop by id may sit
+   * squarely within the area, run on the chosen day and serve an activated mode, and still be none of the run's
+   * business. It is never partly so
+   * </p>
+   */
+  SELECTION;
 
   /**
    * The respects that narrow each kind of entity, in the order they settle as it is parsed.
@@ -43,18 +53,19 @@ public enum GtfsScopeDimension {
   public static List<GtfsScopeDimension> getApplicableTo(final GtfsObjectType entityType) {
     switch (entityType) {
       case STOP:
-        /* a stop is placed the moment it is read, and only then are the modes it serves considered */
-        return List.of(SPATIAL, MODAL);
+        /* a stop is placed and tested against the exclusions the moment it is read, and only then are the modes it
+         * serves considered */
+        return List.of(SPATIAL, SELECTION, MODAL);
       case CALENDAR:
         /* a calendar is the day filter itself, so it stands in time and nowhere else */
         return List.of(TEMPORAL);
       case ROUTE:
-        /* a route's own mode decides it first, then the days its trips run, then where those trips go */
-        return List.of(MODAL, TEMPORAL, SPATIAL);
+        /* the exclusions are tested first, then a route's own mode, then the days its trips run, then where they go */
+        return List.of(SELECTION, MODAL, TEMPORAL, SPATIAL);
       case TRIP:
       case STOP_TIME:
-        /* the day filter comes first, then the mode of the route the trip belongs to, then its stops */
-        return List.of(TEMPORAL, MODAL, SPATIAL);
+        /* the day filter comes first, then whatever its route was left out for, then its stops */
+        return List.of(TEMPORAL, SELECTION, MODAL, SPATIAL);
       default:
         return List.of();
     }

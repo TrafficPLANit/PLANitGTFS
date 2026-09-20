@@ -35,9 +35,18 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
     if(routeIssue != null) {
       switch (routeIssue) {
         case ROUTE_MODE_NOT_ACTIVATED:
+          /* the route was dropped for its mode, not for being left out by name, so the trip passed selection and
+           * stands outside only the modes the run covers */
+          data.getDiagnostics().registerSeenWithinScope(
+              GtfsObjectType.TRIP, GtfsScopeDimension.SELECTION, gtfsTrip.getTripId());
+          data.getDiagnostics().registerSeenOutOfScope(
+              GtfsObjectType.TRIP, GtfsScopeDimension.MODAL, gtfsTrip.getTripId());
           tripIssue = GtfsParseIssue.TRIP_ROUTE_MODE_NOT_ACTIVATED;
           break;
         case ROUTE_EXCLUDED_BY_SETTINGS:
+          /* the route was left out by name, which leaves the trip out of the run's business with it */
+          data.getDiagnostics().registerSeenOutOfScope(
+              GtfsObjectType.TRIP, GtfsScopeDimension.SELECTION, gtfsTrip.getTripId());
           tripIssue = GtfsParseIssue.TRIP_ROUTE_DISCARDED;
           break;
         case ROUTE_NO_SERVICES_LAYER_FOR_MODE:
@@ -101,6 +110,13 @@ public class GtfsPlanitFileHandlerTrips extends GtfsFileHandlerTrips {
       processMissingRoute(gtfsTrip);
       return;
     }
+
+    /* SELECTION and MODAL SCOPE: the route survived being left out by name and its own mode test, so the trip
+     * belonging to it does too */
+    diagnostics.registerSeenWithinScope(
+        GtfsObjectType.TRIP, GtfsScopeDimension.SELECTION, gtfsTrip.getTripId());
+    diagnostics.registerSeenWithinScope(
+        GtfsObjectType.TRIP, GtfsScopeDimension.MODAL, gtfsTrip.getTripId());
 
     // in PLANit we distinguish between scheduled and frequency based trips in their concrete instance. Therefore, we postpone
     // parsing the GTFS entity here until we have identified which of the two this trip relates to (the PLANit trip will be

@@ -7,6 +7,7 @@ import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
@@ -890,7 +891,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       if(chosenNonClosestLink && !linkOverrideActive){
         data.getDiagnostics().registerIssue(
             GtfsParseIssue.STOP_POSSIBLY_ON_WRONG_SIDE_OF_ROAD, gtfsStopMode.getPredefinedModeType(),
-            gtfsStop.getStopId(),
+            withinAreaAndSelected(), gtfsStop.getStopId(),
             createIssueArgs(
                 gtfsStop,
                 accessResult.first().getIdsAsString(),
@@ -1233,12 +1234,25 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStop the issue concerns
    * @param issueArgs the issue's own arguments, if any
    */
+  /**
+   * Collect the standing of a GTFS stop that passed both the area and the exclusions, which every site below those
+   * checks concerns
+   *
+   * @return state
+   */
+  private static GtfsScopeState withinAreaAndSelected() {
+    return GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
+        .with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN)
+        .with(GtfsScopeDimension.SELECTION, GtfsEntityScope.IN);
+  }
+
   private void registerStopIssue(
       final GtfsParseIssue issue, final GtfsStop gtfsStop, final Object... issueArgs) {
-    /* a stop beyond the area is discarded before any of these sites is reached, so whatever arises here arose for a
-     * stop within the area. Stated rather than looked up, stops not being indexed individually */
+    /* a stop beyond the area, or left out by name, is discarded before any of these sites is reached, so whatever
+     * arises here arose for a stop that passed both. Stated rather than looked up, stops not being indexed
+     * individually */
     data.getDiagnostics().registerIssue(
-        issue, gtfsStop.getLocationType(), GtfsEntityScope.IN, gtfsStop.getStopId(),
+        issue, gtfsStop.getLocationType(), withinAreaAndSelected(), gtfsStop.getStopId(),
         createIssueArgs(gtfsStop, issueArgs));
   }
 
@@ -1276,7 +1290,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         distanceToBoundaryMeters <= MAX_DISTANCE_TO_BOUNDING_AREA_TO_REPORT_METERS
             ? GtfsParseIssue.STOP_JUST_OUTSIDE_BOUNDING_AREA
             : GtfsParseIssue.STOP_OUTSIDE_BOUNDING_AREA,
-        gtfsStop.getLocationType(), GtfsEntityScope.OUT, gtfsStop.getStopId(),
+        gtfsStop.getLocationType(),
+        GtfsScopeState.unsettledFor(GtfsObjectType.STOP).with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.OUT),
+        gtfsStop.getStopId(),
         createIssueArgs(gtfsStop, String.format("%.2f", distanceToBoundaryMeters)));
   }
 
@@ -1291,16 +1307,30 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
      * such rather than under whichever other check it would have failed first. It is discarded either way. What the
      * stop is and where it sits are both known here, so it is counted once, already settled */
     var scope = determineScope(gtfsStop);
+    boolean excludedBySettings = this.data.getSettings().isExcludedGtfsStop(gtfsStop.getStopId());
+
+    /* both respects a stop stands in at this point are answered here, so it is counted once already settled in both,
+     * which spares indexing every stop of the feed individually merely to move it between them afterwards */
     diagnostics.registerSeen(
-        GtfsObjectType.STOP, gtfsStop.getLocationType(), GtfsScopeDimension.SPATIAL, scope);
+        GtfsObjectType.STOP, gtfsStop.getLocationType(),
+        GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
+            .with(GtfsScopeDimension.SPATIAL, scope)
+            .with(GtfsScopeDimension.SELECTION,
+                excludedBySettings ? GtfsEntityScope.OUT : GtfsEntityScope.IN));
+
     if(scope == GtfsEntityScope.OUT){
       registerOutOfBoundingAreaDiscard(gtfsStop);
       return;
     }
 
-    if(this.data.getSettings().isExcludedGtfsStop(gtfsStop.getStopId())){
-      registerStopIssue(
-          GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, gtfsStop);
+    if(excludedBySettings){
+      /* within the area but left out by name, so it stands apart from the sites below where both were passed */
+      diagnostics.registerIssue(
+          GtfsParseIssue.STOP_EXCLUDED_BY_SETTINGS, gtfsStop.getLocationType(),
+          GtfsScopeState.unsettledFor(GtfsObjectType.STOP)
+              .with(GtfsScopeDimension.SPATIAL, GtfsEntityScope.IN)
+              .with(GtfsScopeDimension.SELECTION, GtfsEntityScope.OUT),
+          gtfsStop.getStopId(), createIssueArgs(gtfsStop));
       return;
     }
 

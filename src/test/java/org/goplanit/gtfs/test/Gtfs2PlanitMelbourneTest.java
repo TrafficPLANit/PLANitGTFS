@@ -155,6 +155,9 @@ public class Gtfs2PlanitMelbourneTest {
                         result.fourth());
       }
 
+      /* invariants only here, the figures themselves being pinned on the Sydney run */
+      GtfsDiagnosticsAssertions.assertConsistent(gtfsIntermodalReader.getRawGtfsEntityDiagnostics());
+
       PlanitAssertionUtils.assertNetworkFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
       PlanitAssertionUtils.assertZoningFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
       PlanitAssertionUtils.assertServiceNetworkFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);

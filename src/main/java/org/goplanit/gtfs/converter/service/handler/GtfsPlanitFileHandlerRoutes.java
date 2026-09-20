@@ -1,5 +1,7 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.enums.RouteType;
@@ -46,19 +48,30 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
   public void handle(GtfsRoute gtfsRoute) {
     data.getProfiler().registerSeenRoute(gtfsRoute.getRouteType(), gtfsRoute.getRouteId());
 
+    /* SELECTION SCOPE: a route left out by name is none of the run's business, whatever else is true of it */
     if(!data.getSettings().isGtfsRouteIncludedByShortName(gtfsRoute.getShortName())){
+      data.getDiagnostics().registerSeenOutOfScope(
+          GtfsObjectType.ROUTE, GtfsScopeDimension.SELECTION, gtfsRoute.getRouteId());
       data.getDiagnostics().registerIssue(
           GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS, gtfsRoute.getRouteType(), gtfsRoute.getRouteId());
       return;
     }
+    data.getDiagnostics().registerSeenWithinScope(
+        GtfsObjectType.ROUTE, GtfsScopeDimension.SELECTION, gtfsRoute.getRouteId());
 
+    /* MODAL SCOPE: the mode of a route is its own, and settles here. Its trips inherit it, a trip having no mode of
+     * its own beyond the route it belongs to */
     RouteType routeType = gtfsRoute.getRouteType();
     Mode planitMode = data.getPrimaryPlanitModeIfActivated(routeType);
     if(planitMode == null){
+      data.getDiagnostics().registerSeenOutOfScope(
+          GtfsObjectType.ROUTE, GtfsScopeDimension.MODAL, gtfsRoute.getRouteId());
       data.getDiagnostics().registerIssue(
           GtfsParseIssue.ROUTE_MODE_NOT_ACTIVATED, routeType, gtfsRoute.getRouteId());
       return;
     }
+    data.getDiagnostics().registerSeenWithinScope(
+        GtfsObjectType.ROUTE, GtfsScopeDimension.MODAL, gtfsRoute.getRouteId());
 
     /* obtain correct routed services layer and its current known services for our mode */
     var layer = data.getRoutedServicesLayer(planitMode);

@@ -30,6 +30,9 @@ public enum GtfsCoverageCsvColumn {
   /** whether the entities serve a mode activated for the run */
   MODAL_SCOPE,
 
+  /** whether the entities were ones the run was asked to include at all */
+  SELECTION_SCOPE,
+
   /** how many entities the feed holds of this type, subtype and scope */
   COUNT;
 

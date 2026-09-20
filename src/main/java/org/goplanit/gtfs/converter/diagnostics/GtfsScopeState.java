@@ -1,7 +1,7 @@
 package org.goplanit.gtfs.converter.diagnostics;
 
 import org.goplanit.gtfs.enums.GtfsObjectType;
-import org.goplanit.utils.misc.Triple;
+import org.goplanit.utils.misc.Quadruple;
 
 /**
  * Where an entity stands in every respect a run is narrowed by, taken together.
@@ -25,18 +25,22 @@ public class GtfsScopeState {
 
   static {
     var scopes = GtfsEntityScope.values();
-    INTERNED = new GtfsScopeState[scopes.length * scopes.length * scopes.length];
+    INTERNED = new GtfsScopeState[
+        scopes.length * scopes.length * scopes.length * scopes.length];
     for (var spatial : scopes) {
       for (var temporal : scopes) {
         for (var modal : scopes) {
-          INTERNED[indexOf(spatial, temporal, modal)] = new GtfsScopeState(spatial, temporal, modal);
+          for (var selection : scopes) {
+            INTERNED[indexOf(spatial, temporal, modal, selection)] =
+                new GtfsScopeState(spatial, temporal, modal, selection);
+          }
         }
       }
     }
   }
 
   /** the scopes held, in the order the respects are declared */
-  private final Triple<GtfsEntityScope, GtfsEntityScope, GtfsEntityScope> scopes;
+  private final Quadruple<GtfsEntityScope, GtfsEntityScope, GtfsEntityScope, GtfsEntityScope> scopes;
 
   /**
    * Constructor
@@ -44,10 +48,12 @@ public class GtfsScopeState {
    * @param spatial scope
    * @param temporal scope
    * @param modal scope
+   * @param selection scope
    */
   private GtfsScopeState(
-      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal) {
-    this.scopes = Triple.of(spatial, temporal, modal);
+      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal,
+      final GtfsEntityScope selection) {
+    this.scopes = Quadruple.of(spatial, temporal, modal, selection);
   }
 
   /**
@@ -56,12 +62,15 @@ public class GtfsScopeState {
    * @param spatial scope
    * @param temporal scope
    * @param modal scope
+   * @param selection scope
    * @return position
    */
   private static int indexOf(
-      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal) {
+      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal,
+      final GtfsEntityScope selection) {
     var range = GtfsEntityScope.values().length;
-    return (spatial.ordinal() * range * range) + (temporal.ordinal() * range) + modal.ordinal();
+    return (spatial.ordinal() * range * range * range) + (temporal.ordinal() * range * range)
+        + (modal.ordinal() * range) + selection.ordinal();
   }
 
   /**
@@ -70,11 +79,13 @@ public class GtfsScopeState {
    * @param spatial scope
    * @param temporal scope
    * @param modal scope
+   * @param selection scope
    * @return state
    */
   public static GtfsScopeState of(
-      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal) {
-    return INTERNED[indexOf(spatial, temporal, modal)];
+      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal,
+      final GtfsEntityScope selection) {
+    return INTERNED[indexOf(spatial, temporal, modal, selection)];
   }
 
   /**
@@ -88,7 +99,8 @@ public class GtfsScopeState {
     return of(
         scopeAtStart(GtfsScopeDimension.SPATIAL, entityType),
         scopeAtStart(GtfsScopeDimension.TEMPORAL, entityType),
-        scopeAtStart(GtfsScopeDimension.MODAL, entityType));
+        scopeAtStart(GtfsScopeDimension.MODAL, entityType),
+        scopeAtStart(GtfsScopeDimension.SELECTION, entityType));
   }
 
   /**
@@ -117,6 +129,8 @@ public class GtfsScopeState {
         return scopes.second();
       case MODAL:
         return scopes.third();
+      case SELECTION:
+        return scopes.fourth();
       default:
         throw new IllegalArgumentException(
             String.format("Unrecognised GTFS scope dimension %s encountered", dimension));
@@ -133,11 +147,13 @@ public class GtfsScopeState {
   public GtfsScopeState with(final GtfsScopeDimension dimension, final GtfsEntityScope scope) {
     switch (dimension) {
       case SPATIAL:
-        return of(scope, scopes.second(), scopes.third());
+        return of(scope, scopes.second(), scopes.third(), scopes.fourth());
       case TEMPORAL:
-        return of(scopes.first(), scope, scopes.third());
+        return of(scopes.first(), scope, scopes.third(), scopes.fourth());
       case MODAL:
-        return of(scopes.first(), scopes.second(), scope);
+        return of(scopes.first(), scopes.second(), scope, scopes.fourth());
+      case SELECTION:
+        return of(scopes.first(), scopes.second(), scopes.third(), scope);
       default:
         throw new IllegalArgumentException(
             String.format("Unrecognised GTFS scope dimension %s encountered", dimension));
