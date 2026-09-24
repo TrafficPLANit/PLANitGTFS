@@ -90,9 +90,11 @@ public final class AStarPtLegSegmentBatchExecutorService {
    * @param batchSize to use
    * @param cs service to schedule
    * @param mutableSubmittedCounter counter to track
+   * @return leg segments submitted across the batches, i.e. the whole of the work scheduled
    */
-  private void constructAndSubmitBatches(
+  private long constructAndSubmitBatches(
           int batchSize, CompletionService<SingleBatchResult> cs, int[] mutableSubmittedCounter) {
+    final long[] mutableLegSegmentCounter = new long[] { 0 };
     final List<AStarLegSegmentCallInput> singleBatch = new ArrayList<>(batchSize);
 
     // ---- produce batches ----
@@ -103,6 +105,7 @@ public final class AStarPtLegSegmentBatchExecutorService {
         leg.forEachSegment(seg0 -> {
           ServiceLegSegmentImpl seg = (ServiceLegSegmentImpl) seg0;
           singleBatch.add(new AStarLegSegmentCallInput(layer, seg));
+          ++mutableLegSegmentCounter[0];
 
           if (singleBatch.size() >= batchSize) {
             final List<AStarLegSegmentCallInput> toSubmit = new ArrayList<>(singleBatch);
@@ -122,6 +125,8 @@ public final class AStarPtLegSegmentBatchExecutorService {
       cs.submit(() -> processBatch(toSubmit));
       mutableSubmittedCounter[0]++;
     }
+
+    return mutableLegSegmentCounter[0];
   }
 
   /**
@@ -129,9 +134,11 @@ public final class AStarPtLegSegmentBatchExecutorService {
    *
    * @param cs service used
    * @param numBatches batches scheduled to await
+   * @param totalLegSegments scheduled across those batches, against which progress is reported
    * @throws InterruptedException if error
    */
-  private void awaitAndConsumeBatchResults(CompletionService<SingleBatchResult> cs, int numBatches)
+  private void awaitAndConsumeBatchResults(
+          CompletionService<SingleBatchResult> cs, int numBatches, long totalLegSegments)
           throws InterruptedException, ExecutionException {
     long nextLogAt = 1_000; // doubling threshold (1k,2k,4k,...)
     var profiler = sharedData.getProfiler();
@@ -143,7 +150,7 @@ public final class AStarPtLegSegmentBatchExecutorService {
       profiler.registerProcessedLegSegments(r.processedLegSegments, r.validPathsFound);
 
       if (profiler.getProcessedLegSegments() >= nextLogAt) {
-        profiler.logProgress();
+        profiler.logProgress(totalLegSegments);
         nextLogAt *= 2;
       }
     }
@@ -632,9 +639,9 @@ public final class AStarPtLegSegmentBatchExecutorService {
     try {
 
       // schedule and trigger
-      constructAndSubmitBatches(batchSize, cs, submitted);
+      long totalLegSegments = constructAndSubmitBatches(batchSize, cs, submitted);
       // consume results when done
-      awaitAndConsumeBatchResults(cs, submitted[0]);
+      awaitAndConsumeBatchResults(cs, submitted[0], totalLegSegments);
 
     } finally {
       // JDK guidance: shutdown unused executors to reclaim resources [3](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)

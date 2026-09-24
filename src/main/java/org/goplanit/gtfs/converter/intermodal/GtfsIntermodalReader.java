@@ -2,6 +2,7 @@ package org.goplanit.gtfs.converter.intermodal;
 
 import org.goplanit.converter.PairConverterReader;
 import org.goplanit.converter.intermodal.IntermodalReader;
+import org.goplanit.gtfs.converter.GtfsCleanUpDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityDiagnostics;
@@ -249,11 +250,18 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     this.rawGtfsEntityDiagnostics.merge(servicesReader.getRawGtfsEntityDiagnostics());
     this.rawGtfsEntityDiagnostics.merge(zoningReader.getRawGtfsEntityDiagnostics());
     this.planitEntityDiagnostics = integrator.getPlanitEntityDiagnostics();
+    /* the zones stops are boarded from were derived by the stop stage, which reports nothing on its own here */
+    this.planitEntityDiagnostics.merge(zoningReader.getPlanitEntityDiagnostics());
     var cleanUpDiagnostics = new GtfsCleanUpDiagnostics(this.planitEntityDiagnostics);
 
     /* the stops behind each trip, taken before any clean up detaches the legs that name them */
     var gtfsStopIdsBySchedule = GtfsCleanUpDiagnostics.captureGtfsStopIdsBySchedule(
         servicesResult.second(), servicesReader.getServiceNodeToGtfsStopIdMapping());
+
+    /* what each clean-up step takes away is established here and reported as one account, so the steps stating it
+     * themselves as they go would say the same thing twice */
+    servicesResult.first().getTransportLayers().forEach(l -> l.getLayerModifier().setLogModifications(false));
+    servicesResult.second().getLayers().forEach(l -> l.getLayerModifier().setLogModifications(false));
 
     /* SERVICE NETWORK CLEAN-UP */
     {
@@ -321,6 +329,14 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
     /* ZONING CLEAN-UP */
     {
+      /* what this step takes away is established here and reported as one account, so the modifier stating it as it
+       * goes would say the same thing twice */
+      zoning.getZoningModifier().setLogModifications(false);
+
+      var transferZonesBefore = GtfsCleanUpDiagnostics.collectById(zoning.getTransferZones());
+      var connectoidsBefore = GtfsCleanUpDiagnostics.collectById(zoning.getTransferConnectoids());
+      var transferZoneGroupsBefore = GtfsCleanUpDiagnostics.collectById(zoning.getTransferZoneGroups());
+
       if(getSettings().getZoningSettings().isRemoveUnusedTransferZones()){
         //todo: verify the services are correctly updated and use the right zone ids etc.!
 
@@ -334,17 +350,25 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
         // --> now recreate ids
         ZoningModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(zoning);
       }
+
+      cleanUpDiagnostics.registerRemovedById(
+          GtfsPlanitEntityType.TRANSFER_ZONE, GtfsPlanitEntityIssue.TRANSFER_ZONE_DANGLING_AFTER_CLEAN_UP,
+          transferZonesBefore, GtfsCleanUpDiagnostics.collectById(zoning.getTransferZones()));
+      cleanUpDiagnostics.registerRemovedById(
+          GtfsPlanitEntityType.CONNECTOID, GtfsPlanitEntityIssue.CONNECTOID_UNUSED_AFTER_CLEAN_UP,
+          connectoidsBefore, GtfsCleanUpDiagnostics.collectById(zoning.getTransferConnectoids()));
+      cleanUpDiagnostics.registerRemovedById(
+          GtfsPlanitEntityType.TRANSFER_ZONE_GROUP,
+          GtfsPlanitEntityIssue.TRANSFER_ZONE_GROUP_DANGLING_AFTER_CLEAN_UP,
+          transferZoneGroupsBefore, GtfsCleanUpDiagnostics.collectById(zoning.getTransferZoneGroups()));
     }
 
     /* every step has had its turn, so what each type started out as and what is left of it is now settled */
     cleanUpDiagnostics.registerPresence();
 
-    /* log final result */
+    /* log final result, the zoning, service network and routed services being accounted for by the report below */
     LOGGER.info("Final result Stats:");
     parentNetwork.logInfo(LoggingUtils.networkPrefix(parentNetwork.getId()));
-    zoning.logInfo(LoggingUtils.zoningPrefix(zoning.getId()));
-    servicesResult.first().logInfo(LoggingUtils.serviceNetworkPrefix(servicesResult.first().getId()));
-    servicesResult.second().logInfo(LoggingUtils.routedServicesPrefix(servicesResult.second().getId()));
 
     /* every stage has run and the result is final, so what became of the feed can be reported */
     GtfsCoverageReport.report(

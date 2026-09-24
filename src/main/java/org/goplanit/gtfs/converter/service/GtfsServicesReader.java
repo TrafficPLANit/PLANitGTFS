@@ -1,7 +1,11 @@
 package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.converter.PairConverterReader;
+import org.goplanit.gtfs.converter.GtfsCleanUpDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityDiagnostics;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.enums.GtfsObjectType;
@@ -20,14 +24,17 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
+import org.goplanit.utils.service.routed.RoutedTripSchedule;
 
 import java.nio.charset.StandardCharsets;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.function.Function;
@@ -152,6 +159,13 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
   /** what became of the GTFS entities read, available once reading completed */
   private GtfsParseDiagnostics rawGtfsEntityDiagnostics;
+
+  /** what became of the PLANit entities built here, established only where this reader is the whole parse and so
+   * the only stage able to report them */
+  private GtfsPlanitEntityDiagnostics planitEntityDiagnostics;
+
+  /** records what the clean-up steps applied here take away again, null where another stage reports them */
+  private GtfsCleanUpDiagnostics cleanUpDiagnostics;
 
   /** whether this reader reports what became of the feed itself, which it does unless it is one stage of a wider parse */
   private boolean reportCoverage = true;
@@ -335,15 +349,62 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
-   * Log some stats on the now available PLANit entities in memory
+   * Collect the trip schedules present, where what the clean-up takes away is being recorded
+   *
+   * @param fileHandlerData to collect from
+   * @return trip schedules by the mode they run, null where nothing is being recorded
    */
-  private void logPlanitStats(GtfsServicesHandlerData fileHandlerData) {
+  private Map<RoutedTripSchedule, String> tripSchedulesWhenRecording(
+      final GtfsServicesHandlerData fileHandlerData) {
+    return cleanUpDiagnostics == null
+        ? null : GtfsCleanUpDiagnostics.collectTripSchedules(fileHandlerData.getRoutedServices());
+  }
 
-    fileHandlerData.getServiceNetwork().logInfo(
-        LoggingUtils.serviceNetworkPrefix(fileHandlerData.getServiceNetwork().getId()));
-    fileHandlerData.getRoutedServices().logInfo(
-        LoggingUtils.routedServicesPrefix(fileHandlerData.getRoutedServices().getId()));
+  /**
+   * Collect the routed services present, where what the clean-up takes away is being recorded
+   *
+   * @param fileHandlerData to collect from
+   * @return routed services by the mode they run, null where nothing is being recorded
+   */
+  private Map<RoutedService, String> routedServicesWhenRecording(
+      final GtfsServicesHandlerData fileHandlerData) {
+    return cleanUpDiagnostics == null
+        ? null : GtfsCleanUpDiagnostics.collectRoutedServices(fileHandlerData.getRoutedServices());
+  }
 
+  /**
+   * Collect the departures present, where what the clean-up takes away is being recorded
+   *
+   * @param fileHandlerData to collect from
+   * @return departures by the mode they run, null where nothing is being recorded
+   */
+  private Map<RoutedTripDeparture, String> departuresWhenRecording(
+      final GtfsServicesHandlerData fileHandlerData) {
+    return cleanUpDiagnostics == null
+        ? null : GtfsCleanUpDiagnostics.collectDepartures(fileHandlerData.getRoutedServices());
+  }
+
+  /**
+   * Register what the PLANit entities amount to now that every step has run, the service network being untouched by
+   * the clean-up and therefore counted from its containers rather than established by comparison
+   *
+   * @param fileHandlerData holding the entities built
+   */
+  private void registerPlanitEntityPresence(final GtfsServicesHandlerData fileHandlerData) {
+    long serviceNodes = 0;
+    long serviceLegs = 0;
+    long serviceLegSegments = 0;
+    for(var layer : fileHandlerData.getServiceNetwork().getTransportLayers()){
+      serviceNodes += layer.getServiceNodes().size();
+      serviceLegs += layer.getLegs().size();
+      serviceLegSegments += layer.getLegSegments().size();
+    }
+    planitEntityDiagnostics.registerCreated(GtfsPlanitEntityType.SERVICE_NODE, serviceNodes);
+    planitEntityDiagnostics.registerCreated(GtfsPlanitEntityType.SERVICE_LEG, serviceLegs);
+    planitEntityDiagnostics.registerCreated(GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, serviceLegSegments);
+
+    /* every step has had its turn, so what each type started out as and what is left of it is now settled */
+    cleanUpDiagnostics.registerPresence();
   }
 
   /**
@@ -375,14 +436,26 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* due to time period based filtering it is possible that trips have just a single valid stop, meaning no single
     leg. These need to be removed */
     var gtfsTripIdsBeforeRemoval = collectGtfsTripIds(fileHandlerData.getRoutedServices());
+    var tripSchedulesBeforeRemoval = tripSchedulesWhenRecording(fileHandlerData);
     GtfsRoutedServicesModifierUtils.removeScheduledTripsWithoutLegs(fileHandlerData.getRoutedServices());
     registerRemovedGtfsTrips(fileHandlerData, gtfsTripIdsBeforeRemoval);
+    if(cleanUpDiagnostics != null){
+      cleanUpDiagnostics.registerRemoved(
+          GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsPlanitEntityIssue.TRIP_SCHEDULE_WITHOUT_LEGS,
+          tripSchedulesBeforeRemoval, tripSchedulesWhenRecording(fileHandlerData));
+    }
 
     /* due to routed being created beforehand without knowing what trips are eligible, routes can end up without
     having trips in the valid time period. These need to be removed */
     var gtfsRouteIdsBeforeRemoval = collectGtfsRouteIds(fileHandlerData.getRoutedServices());
+    var routedServicesBeforeRemoval = routedServicesWhenRecording(fileHandlerData);
     GtfsRoutedServicesModifierUtils.removeServiceRoutesWithoutTrips(fileHandlerData.getRoutedServices());
     registerRemovedGtfsRoutes(fileHandlerData, gtfsRouteIdsBeforeRemoval);
+    if(cleanUpDiagnostics != null){
+      cleanUpDiagnostics.registerRemoved(
+          GtfsPlanitEntityType.ROUTED_SERVICE, GtfsPlanitEntityIssue.ROUTED_SERVICE_WITHOUT_TRIPS_IN_SCOPE,
+          routedServicesBeforeRemoval, routedServicesWhenRecording(fileHandlerData));
+    }
     /* due to removal of service routes, or some modes not being supported, it is possible entire modes no longer
     have any routes associated with them. These need to be removed */
     GtfsRoutedServicesModifierUtils.removeEmptyRoutedServices(fileHandlerData.getRoutedServices());
@@ -392,12 +465,25 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* optional optimisation/processing */
     if(getSettings().isGroupIdenticalGtfsTrips()){
       LOGGER.info("Optimising: Consolidating GTFS trip departures with identical relative schedules...");
+      var tripSchedulesBeforeConsolidation = tripSchedulesWhenRecording(fileHandlerData);
       GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(fileHandlerData.getRoutedServices());
+      if(cleanUpDiagnostics != null){
+        cleanUpDiagnostics.registerRemoved(
+            GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE,
+            GtfsPlanitEntityIssue.TRIP_SCHEDULE_CONSOLIDATED_INTO_IDENTICAL,
+            tripSchedulesBeforeConsolidation, tripSchedulesWhenRecording(fileHandlerData));
+      }
     }
 
     /* due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we often
     see duplicate departure times occurring. these need to be removed */
+    var departuresBeforeRemoval = departuresWhenRecording(fileHandlerData);
     GtfsRoutedServicesModifierUtils.removeDuplicateTripDepartures(fileHandlerData.getRoutedServices());
+    if(cleanUpDiagnostics != null){
+      cleanUpDiagnostics.registerRemoved(
+          GtfsPlanitEntityType.DEPARTURE, GtfsPlanitEntityIssue.DEPARTURE_DUPLICATE_SCHEDULED_TIME,
+          departuresBeforeRemoval, departuresWhenRecording(fileHandlerData));
+    }
 
     LOGGER.info("Processing: GTFS services Done");
   }
@@ -447,20 +533,24 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     }
     logSettings();
 
+    if(reportCoverage){
+      /* no later stage accounts for what is built here, so what becomes of it is recorded as the steps run */
+      this.planitEntityDiagnostics = GtfsPlanitEntityDiagnostics.create();
+      this.cleanUpDiagnostics = new GtfsCleanUpDiagnostics(this.planitEntityDiagnostics);
+    }
+
     /* main processing  */
     doMainProcessing(fileHandlerData);
 
     /* retain what became of the GTFS entities read, so it remains available to whoever drives this reader */
     this.rawGtfsEntityDiagnostics = fileHandlerData.getDiagnostics();
 
-    /* log stats */
-    fileHandlerData.getProfiler().logProcessingStats();
-    logPlanitStats(fileHandlerData);
-
     if(reportCoverage){
+      registerPlanitEntityPresence(fileHandlerData);
+
       /* this reader is the whole parse, so what became of the feed is complete and can be reported */
       GtfsCoverageReport.report(
-          this.rawGtfsEntityDiagnostics, null, getSettings().isPersistParseDiagnostics(),
+          this.rawGtfsEntityDiagnostics, this.planitEntityDiagnostics, getSettings().isPersistParseDiagnostics(),
           getSettings().isPersistByDesignIssues(), getSettings().getParseDiagnosticsOutputDirectory());
     }
 

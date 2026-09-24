@@ -64,7 +64,6 @@ public class GtfsDirectedConnectoidHelper {
       /* 2) index connectoids on transfer zone, so we can collect it by transfer zone as well */
       data.registerTransferZoneToConnectoidModes(transferZone, type, newConnectoid, allowedModes);
 
-      data.getProfiler().incrementCreatedConnectoids();
     }
 
     return createdConnectoids;

@@ -1,4 +1,4 @@
-package org.goplanit.gtfs.converter.intermodal;
+package org.goplanit.gtfs.converter;
 
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsIssueDisposition;
@@ -34,7 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Records what the clean-up steps that align the parsed services with the physical network take away again.
+ * Records what the clean-up steps applied to the parsed services take away again.
  * <p>
  * What each step removes is established by comparing the entities present before it ran with those present after,
  * rather than by the step reporting it itself, the steps residing in the PLANit core where GTFS has no place. The
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  *
  * @author markr
  */
-class GtfsCleanUpDiagnostics {
+public class GtfsCleanUpDiagnostics {
 
   /** subtype a removal is reported within when nothing is recorded of where the GTFS entities behind it stood */
   private static final String TRIP_NOT_RECORDED_SUBTYPE = "TRIP_NOT_RECORDED";
@@ -77,7 +77,7 @@ class GtfsCleanUpDiagnostics {
    * removal says about the parser follows from the cause rather than from the outcome
    * </p>
    */
-  static class TruncationOutcome {
+  public static class TruncationOutcome {
 
     /** issue the schedule is reported under */
     private final GtfsPlanitEntityIssue issue;
@@ -155,7 +155,7 @@ class GtfsCleanUpDiagnostics {
    *
    * @param diagnostics to record what is removed into
    */
-  GtfsCleanUpDiagnostics(final GtfsPlanitEntityDiagnostics diagnostics) {
+  public GtfsCleanUpDiagnostics(final GtfsPlanitEntityDiagnostics diagnostics) {
     this.diagnostics = diagnostics;
   }
 
@@ -165,7 +165,7 @@ class GtfsCleanUpDiagnostics {
    * @param serviceNetwork to collect from
    * @return service nodes present
    */
-  static Set<ServiceNode> collectServiceNodes(final ServiceNetwork serviceNetwork) {
+  public static Set<ServiceNode> collectServiceNodes(final ServiceNetwork serviceNetwork) {
     Set<ServiceNode> serviceNodes = createIdentitySet();
     serviceNetwork.getTransportLayers().forEach(layer -> layer.getServiceNodes().forEach(serviceNodes::add));
     return serviceNodes;
@@ -177,7 +177,7 @@ class GtfsCleanUpDiagnostics {
    * @param routedServices to collect from
    * @return routed services present, by identity as a removal renumbers what survives
    */
-  static Map<RoutedService, String> collectRoutedServices(final RoutedServices routedServices) {
+  public static Map<RoutedService, String> collectRoutedServices(final RoutedServices routedServices) {
     Map<RoutedService, String> services = new IdentityHashMap<>();
     forEachRoutedService(routedServices, service -> services.put(service, modeOf(service)));
     return services;
@@ -189,7 +189,7 @@ class GtfsCleanUpDiagnostics {
    * @param routedServices to collect from
    * @return trip schedules present, by identity as a removal renumbers what survives
    */
-  static Map<RoutedTripSchedule, String> collectTripSchedules(final RoutedServices routedServices) {
+  public static Map<RoutedTripSchedule, String> collectTripSchedules(final RoutedServices routedServices) {
     Map<RoutedTripSchedule, String> tripSchedules = new IdentityHashMap<>();
     forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
         tripSchedule -> tripSchedules.put(tripSchedule, modeOf(service))));
@@ -203,7 +203,7 @@ class GtfsCleanUpDiagnostics {
    * @param routedServices to collect from
    * @return departures present, by identity as a removal renumbers what survives
    */
-  static Map<RoutedTripDeparture, String> collectDepartures(final RoutedServices routedServices) {
+  public static Map<RoutedTripDeparture, String> collectDepartures(final RoutedServices routedServices) {
     Map<RoutedTripDeparture, String> departures = new IdentityHashMap<>();
     forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
         tripSchedule -> tripSchedule.getDepartures().forEach(
@@ -222,6 +222,43 @@ class GtfsCleanUpDiagnostics {
   }
 
   /**
+   * Collect the entities a container holds, held by identity as a removal renumbers what survives
+   *
+   * @param <E> type of entity
+   * @param entities to collect
+   * @return entities present
+   */
+  public static <E extends ExternalIdAble> Set<E> collectById(final Iterable<E> entities) {
+    Set<E> present = createIdentitySet();
+    entities.forEach(present::add);
+    return present;
+  }
+
+  /**
+   * Record which entities of a type a clean-up step took away, what is left behind being what is in the result, the
+   * entities the step was presented with having been accounted for where they came about
+   *
+   * @param <E> type of entity
+   * @param entityType concerned
+   * @param issue the step removes the entities under
+   * @param before entities present before the step ran
+   * @param after entities present after the step ran
+   */
+  public <E extends ExternalIdAble> void registerRemovedById(
+      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
+      final Set<E> before, final Set<E> after) {
+    /* whatever the step was handed beyond what was there before the parse began is an addition, whichever stage
+     * made it, so the account arrives at what the step leaves behind */
+    diagnostics.registerDesired(
+        entityType,
+        before.size() - diagnostics.getPreExisting(entityType) - diagnostics.getDesired(entityType));
+    diagnostics.registerCreated(entityType, after.size());
+    before.stream().filter(entity -> !after.contains(entity)).forEach(
+        entity -> diagnostics.registerIssue(
+            issue, String.valueOf(entity.getId()), entity.getIdsAsString()));
+  }
+
+  /**
    * Record how many entities of a type a clean-up step was presented with, how many it left behind, and which ones it
    * took away.
    * <p>
@@ -235,7 +272,7 @@ class GtfsCleanUpDiagnostics {
    * @param before entities present before the step ran
    * @param after entities present after the step ran
    */
-  <E extends ExternalIdAble> void registerRemoved(
+  public <E extends ExternalIdAble> void registerRemoved(
       final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
       final Set<E> before, final Set<E> after) {
     registerRemoved(entityType, issue, withoutSubType(before), withoutSubType(after));
@@ -264,7 +301,7 @@ class GtfsCleanUpDiagnostics {
    * @param before entities present before the step ran, against the subdivision each belongs to
    * @param after entities present after the step ran, against the subdivision each belongs to
    */
-  <E extends ExternalIdAble> void registerRemoved(
+  public <E extends ExternalIdAble> void registerRemoved(
       final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
       final Map<E, String> before, final Map<E, String> after) {
     notePresence(entityType, before, after);
@@ -312,7 +349,7 @@ class GtfsCleanUpDiagnostics {
    * Record how many entities of each type the clean-up was presented with and how many it left behind, taken across
    * all of its steps
    */
-  void registerPresence() {
+  public void registerPresence() {
     presentBeforeCleanUp.forEach((entityType, counts) -> counts.forEach(
         (subType, count) -> diagnostics.registerDesired(entityType, subType, count)));
     presentAfterCleanUp.forEach((entityType, counts) -> counts.forEach(
@@ -346,7 +383,7 @@ class GtfsCleanUpDiagnostics {
    * @param after entities present after it ran, against the subdivision each belongs to
    * @param outcomeOf what the truncation made of a removed entity, and what brought it about
    */
-  <E extends ExternalIdAble> void registerTruncated(
+  public <E extends ExternalIdAble> void registerTruncated(
       final GtfsPlanitEntityType entityType, final Map<E, String> before, final Map<E, String> after,
       final Function<E, TruncationOutcome> outcomeOf) {
     notePresence(entityType, before, after);
@@ -372,7 +409,7 @@ class GtfsCleanUpDiagnostics {
    * @return the pair of stops each leg of a schedule runs between, by leg, held by identity as a removal renumbers
    *     what survives. Positions are kept so a leg found unmapped later can be matched to the stops it ran between
    */
-  static Map<RoutedTripSchedule, List<Pair<String, String>>> captureGtfsStopIdsBySchedule(
+  public static Map<RoutedTripSchedule, List<Pair<String, String>>> captureGtfsStopIdsBySchedule(
       final RoutedServices routedServices, final Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
     Map<RoutedTripSchedule, List<Pair<String, String>>> gtfsStopIdsBySchedule = new IdentityHashMap<>();
     forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
@@ -425,7 +462,7 @@ class GtfsCleanUpDiagnostics {
    * @param gtfsStopIdsBySchedule the stops each leg of each schedule ran between, captured before the clean up began
    * @return outcome per schedule, held by identity as a removal renumbers what survives
    */
-  static Map<RoutedTripSchedule, TruncationOutcome> classifyTruncationOutcomes(
+  public static Map<RoutedTripSchedule, TruncationOutcome> classifyTruncationOutcomes(
       final RoutedServices routedServices, final GtfsParseDiagnostics gtfsDiagnostics,
       final Map<RoutedTripSchedule, List<Pair<String, String>>> gtfsStopIdsBySchedule) {
     Map<RoutedTripSchedule, TruncationOutcome> outcomes = new IdentityHashMap<>();

@@ -13,6 +13,31 @@ package org.goplanit.gtfs.converter.diagnostics;
  */
 public enum GtfsPlanitEntityIssue implements GtfsIssue {
 
+  /**
+   * no transfer zone could be established for a stop the run covers, neither by matching it to a pre-existing zone nor
+   * by creating one for it, so the stop cannot be boarded from anywhere. The stop stands within scope, so nothing
+   * about where or when it runs accounts for this
+   */
+  /**
+   * a transfer zone was left serving no stop once the services had been brought in line with the physical network,
+   * and a zone nothing is boarded from is of no use
+   */
+  TRANSFER_ZONE_DANGLING_AFTER_CLEAN_UP(
+      GtfsPlanitEntityType.TRANSFER_ZONE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
+      "Transfer zone removed, no stop left using it", null, Templates.REMOVED_ENTITY_IDS),
+
+  /** a connectoid was left granting access to no transfer zone any service still reaches */
+  TRANSFER_ZONE_GROUP_DANGLING_AFTER_CLEAN_UP(
+      GtfsPlanitEntityType.TRANSFER_ZONE_GROUP, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
+      "Transfer zone group removed, no transfer zone left in it", null, Templates.REMOVED_ENTITY_IDS),
+
+  CONNECTOID_UNUSED_AFTER_CLEAN_UP(
+      GtfsPlanitEntityType.CONNECTOID, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
+      "Connectoid removed, no longer used by any service", null, Templates.REMOVED_ENTITY_IDS),
+
   /** an endpoint stop of the leg segment has no transfer zone, so the network cannot be reached from it */
   LEG_SEGMENT_STOP_WITHOUT_TRANSFER_ZONE(
       GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
@@ -47,6 +72,24 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       GtfsPlanitEntityType.SERVICE_NODE, GtfsIssueDisposition.BY_DESIGN,
       GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
       "Service node outside network area", null, Templates.REMOVED_ENTITY_IDS),
+
+  /**
+   * a trip schedule was left with a single stop once the trips outside the chosen period had gone, and a single stop
+   * is no leg, so there is no run left to schedule
+   */
+  TRIP_SCHEDULE_WITHOUT_LEGS(
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
+      "Trip schedule removed, a single stop leaves no leg", null, Templates.REMOVED_ENTITY_IDS),
+
+  /**
+   * a routed service was left with no trips at all once the trips outside the chosen period had gone, a service that
+   * runs nothing not being a service. What became of the trips themselves is reported against those trips
+   */
+  ROUTED_SERVICE_WITHOUT_TRIPS_IN_SCOPE(
+      GtfsPlanitEntityType.ROUTED_SERVICE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
+      "Routed service removed, no trips left within the chosen scope", null, Templates.REMOVED_ENTITY_IDS),
 
   /**
    * a routed service was left with no trips at all once the truncation had cut back or removed each of them, and a

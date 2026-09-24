@@ -54,7 +54,7 @@ public class GtfsTransferZoneHelper {
     /* platform name */
     transferZone.addTransferZonePlatformName(gtfsStop.getPlatformCode());
 
-    data.getProfiler().incrementCreatedTransferZones();
+    data.getProfiler().registerCreatedTransferZone();
 
     return  transferZone;
   }

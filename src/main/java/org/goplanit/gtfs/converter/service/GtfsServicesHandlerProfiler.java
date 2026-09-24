@@ -54,24 +54,6 @@ public class GtfsServicesHandlerProfiler {
   }
 
   /**
-   * log counters regarding main processing phase
-   *
-   */
-  public void logProcessingStats() {
-    LOGGER.info(String.format("[STATS] discarded %d duplicate GTFS trip stop time entries",
-        diagnostics.getOccurrences(GtfsParseIssue.STOP_TIME_DUPLICATE)));
-
-    diagnostics.getSeenBySubType(GtfsObjectType.ROUTE).forEach(
-        (routeType, count) -> LOGGER.info(String.format("[STATS] processed %d GTFS routes - %s ", count, routeType)));
-    LOGGER.info(String.format(
-        "[STATS] processed %d GTFS trips", diagnostics.getSeenInFeed(GtfsObjectType.TRIP)));
-    LOGGER.info(String.format(
-        "[STATS] processed %d GTFS trip stop times", diagnostics.getSeenInFeed(GtfsObjectType.STOP_TIME)));
-    LOGGER.info(String.format(
-        "[STATS] processed %d GTFS trip frequency entries", diagnostics.getSeenInFeed(GtfsObjectType.FREQUENCY)));
-  }
-
-  /**
    * reset the profiler, replacing rather than clearing what was recorded so that anyone holding the diagnostics
    * collected so far keeps them
    */

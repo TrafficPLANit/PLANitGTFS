@@ -8,6 +8,8 @@ import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdBreakEdge
 import org.goplanit.gtfs.converter.zoning.handler.GtfsPlanitFileHandlerStops;
 import org.goplanit.gtfs.converter.diagnostics.GtfsCoverageReport;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityDiagnostics;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerProfiler;
 import org.goplanit.gtfs.enums.GtfsFileType;
@@ -64,6 +66,9 @@ public class GtfsZoningReader implements ZoningReader {
 
   /** what became of the GTFS entities read, available once reading completed */
   private GtfsParseDiagnostics rawGtfsEntityDiagnostics;
+
+  /** what the stop stage derived from the feed, retained once reading completed */
+  private GtfsPlanitEntityDiagnostics planitEntityDiagnostics;
 
   /** whether this reader reports what became of the feed itself, which it does unless it is one stage of a wider parse */
   private boolean reportCoverage = true;
@@ -134,6 +139,8 @@ public class GtfsZoningReader implements ZoningReader {
     /* profiler to use, recording into diagnostics sized as configured before any entity reaches them */
     var handlerProfiler = new GtfsZoningHandlerProfiler(
         GtfsParseDiagnostics.create(
+            getSettings().getDiagnosticsRetentionLimit(), getSettings().getDiagnosticsSampleSize()),
+        GtfsPlanitEntityDiagnostics.create(
             getSettings().getDiagnosticsRetentionLimit(), getSettings().getDiagnosticsSampleSize()));
     return new GtfsZoningHandlerData(getSettings(), zoning, serviceNetwork, routedServices, handlerProfiler);
   }
@@ -145,6 +152,11 @@ public class GtfsZoningReader implements ZoningReader {
    */
   private void processGtfsStops(GtfsZoningHandlerData gtfsZoningHandlerData) {
     LOGGER.info("Processing: mapping GTFS Stops...");
+    var planitEntityDiagnostics = gtfsZoningHandlerData.getProfiler().getPlanitEntityDiagnostics();
+
+    /* what the zoning already held, the feed being one contributor to it rather than its author. Counted from the
+     * containers themselves so that every path adding to them is accounted for, whichever stage takes it */
+    registerZoningPresence(planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerPreExisting);
     /* PLANit specific handler */
     var stopsHandler = new GtfsPlanitFileHandlerStops(gtfsZoningHandlerData);
 
@@ -168,6 +180,52 @@ public class GtfsZoningReader implements ZoningReader {
         gtfsZoningHandlerData.getBoundingAreaHelper(),
         gtfsZoningHandlerData.getConverterData());
     accessEgressExecutor.execute(getSettings().accessEgressInjectionSettings);
+
+    registerZoningPresence(planitEntityDiagnostics, (diagnostics, entityType, count) ->
+        /* what is there now beyond what was there before is what the stop stage put there */
+        diagnostics.registerDesired(entityType, count - diagnostics.getPreExisting(entityType)));
+
+    /* stops outnumber the zones they are boarded from, a feed identifying a stop per route or direction where the
+     * zoning holds the single place they board from, so how they divide over those places is recorded while the
+     * mapping that states it is still around */
+    planitEntityDiagnostics.registerSharing(
+        GtfsPlanitEntityType.STOP_TRANSFER_ZONE_MAPPING,
+        gtfsZoningHandlerData.getMappedGtfsStopsPerTransferZone());
+  }
+
+  /**
+   * Apply the given registration to the zoning entities the feed contributes to, each against the number of them
+   * the zoning holds at this moment
+   *
+   * @param planitEntityDiagnostics to register into
+   * @param registration to apply
+   */
+  private void registerZoningPresence(
+      final GtfsPlanitEntityDiagnostics planitEntityDiagnostics, final ZoningPresenceRegistration registration) {
+    registration.apply(
+        planitEntityDiagnostics, GtfsPlanitEntityType.TRANSFER_ZONE, zoning.getTransferZones().size());
+    registration.apply(
+        planitEntityDiagnostics, GtfsPlanitEntityType.CONNECTOID, zoning.getTransferConnectoids().size());
+    registration.apply(
+        planitEntityDiagnostics, GtfsPlanitEntityType.TRANSFER_ZONE_GROUP, zoning.getTransferZoneGroups().size());
+  }
+
+  /**
+   * How a count of zoning entities present is recorded
+   */
+  @FunctionalInterface
+  private interface ZoningPresenceRegistration {
+
+    /**
+     * Record the given number of entities of the given type
+     *
+     * @param planitEntityDiagnostics to record into
+     * @param entityType concerned
+     * @param numberOfEntities present
+     */
+    void apply(
+        GtfsPlanitEntityDiagnostics planitEntityDiagnostics, GtfsPlanitEntityType entityType,
+        long numberOfEntities);
   }
 
 
@@ -239,14 +297,15 @@ public class GtfsZoningReader implements ZoningReader {
 
     /* retain what became of the GTFS entities read, so it remains available to whoever drives this reader */
     this.rawGtfsEntityDiagnostics = zoningHandlerData.getDiagnostics();
-
-    /* log stats */
-    zoningHandlerData.getProfiler().logProcessingStats(zoning);
+    this.planitEntityDiagnostics = zoningHandlerData.getProfiler().getPlanitEntityDiagnostics();
 
     if(reportCoverage){
+      /* no clean-up follows, so what the zoning holds now is what is in the result */
+      registerZoningPresence(this.planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerCreated);
+
       /* this reader is the whole parse, so what became of the feed is complete and can be reported */
       GtfsCoverageReport.report(
-          this.rawGtfsEntityDiagnostics, null, getSettings().isPersistParseDiagnostics(),
+          this.rawGtfsEntityDiagnostics, this.planitEntityDiagnostics, getSettings().isPersistParseDiagnostics(),
           getSettings().isPersistByDesignIssues(), getSettings().getParseDiagnosticsOutputDirectory());
     }
 
@@ -268,6 +327,7 @@ public class GtfsZoningReader implements ZoningReader {
     readInvoked = false;
     gtfsStopIdToTransferZoneMapping = null;
     rawGtfsEntityDiagnostics = null;
+    planitEntityDiagnostics = null;
   }
 
   /**
@@ -286,6 +346,15 @@ public class GtfsZoningReader implements ZoningReader {
    */
   public GtfsParseDiagnostics getRawGtfsEntityDiagnostics() {
     return rawGtfsEntityDiagnostics;
+  }
+
+  /**
+   * Collect what the stop stage derived from the feed, only available once reading completed
+   *
+   * @return diagnostics, null when reading has yet to take place
+   */
+  public GtfsPlanitEntityDiagnostics getPlanitEntityDiagnostics() {
+    return planitEntityDiagnostics;
   }
 
   /**

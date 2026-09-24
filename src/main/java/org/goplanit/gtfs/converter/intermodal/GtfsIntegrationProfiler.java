@@ -85,13 +85,19 @@ public class GtfsIntegrationProfiler {
 
   /**
    * Log how far the search has progressed as a single line, suitable for emitting repeatedly while results are still
-   * coming in
+   * coming in.
+   * <p>
+   * How far along the search is, is what the line is for, so it is stated against the work there is rather than
+   * against the work done so far, which would put every line at its own completion
+   * </p>
+   *
+   * @param totalLegSegments a path is to be searched for, the whole of the work
    */
-  public void logProgress() {
-    LOGGER.info(String.format("Service leg segments mapped to network: %s",
+  public void logProgress(final long totalLegSegments) {
+    LOGGER.info(String.format("Service leg segments searched: %s, of which mapped to network: %d",
         LoggingUtils.countWithPercentage(
-            planitEntityDiagnostics.getCreated(GtfsPlanitEntityType.SERVICE_LEG_SEGMENT),
-            planitEntityDiagnostics.getDesired(GtfsPlanitEntityType.SERVICE_LEG_SEGMENT))));
+            planitEntityDiagnostics.getDesired(GtfsPlanitEntityType.SERVICE_LEG_SEGMENT), totalLegSegments),
+        planitEntityDiagnostics.getCreated(GtfsPlanitEntityType.SERVICE_LEG_SEGMENT)));
   }
 
   /**

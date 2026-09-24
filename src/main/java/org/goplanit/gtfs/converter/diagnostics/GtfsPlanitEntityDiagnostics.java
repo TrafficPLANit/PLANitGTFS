@@ -11,11 +11,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
@@ -41,6 +43,12 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
 
   /** listing the recorded occurrences are written to */
   private static final String ISSUES_FILE_NAME = "gtfs_planit_entity_issues.csv";
+
+  /** entities of each type that were already in the result before the converter added anything to it */
+  private final Map<GtfsPlanitEntityType, LongAdder> preExistingByType = new ConcurrentHashMap<>();
+
+  /** how many entities of the type nested under hold how many entities of a type, by type */
+  private final Map<GtfsPlanitEntityType, SortedMap<Long, Long>> sharingByType = new ConcurrentHashMap<>();
 
   /** entities of each type, and of each subdivision of it, the converter set out to build */
   private final Map<GtfsPlanitEntityType, Map<String, LongAdder>> desiredByType = new ConcurrentHashMap<>();
@@ -206,35 +214,24 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   }
 
   /**
-   * State what is in the result both against what the losses carried over from the feed side left behind and against
-   * everything that was to be built.
-   * <p>
-   * The first says how much of what reached the PLANit side survived it, which is the only figure that speaks of this
-   * stage; the second says how much of the feed came through everything, which is what a reader takes away from the
-   * report as a whole
-   * </p>
+   * State what is in the result alongside the account that arrives at it, being what was already there, what the
+   * parse added to it, and what was taken away again once the result was brought in line with the physical network
    *
-   * @param created that are in the result
-   * @param survivingKnockOn that the feed side losses left behind
-   * @param desired that were to be built
-   * @return created value
+   * @param inResult that are in the result
+   * @param preExisting that were there before the parse added anything
+   * @param added by the parse
+   * @return presence value
    */
   private static String createPresenceValue(
-      final long created, final long survivingKnockOn, final long desired) {
+      final long inResult, final long preExisting, final long added) {
+    if (preExisting == 0 && added == 0) {
+      /* nothing was counted before or after, the entity being one that is established rather than accumulated, so
+       * the count stands on its own */
+      return String.valueOf(inResult);
+    }
     return String.format(
-        "%d (%.2f%% after filtering, post-GTFS pruning, %.2f%% of potential total)",
-        created, asPercentage(created, survivingKnockOn), asPercentage(created, desired));
-  }
-
-  /**
-   * Express a count as a percentage of a population
-   *
-   * @param count to express
-   * @param population to express it against
-   * @return percentage, zero where the population is empty
-   */
-  private static double asPercentage(final long count, final long population) {
-    return population > 0 ? (100.0 * count) / population : 0.0;
+        "%d (%d pre-existing, %d added, %d removed)",
+        inResult, preExisting, added, preExisting + added - inResult);
   }
 
   /**
@@ -251,6 +248,42 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
         issue.getEntityType(), occurrence.getEntitySubType(), issue.name(),
         getDispositionOf(issue, occurrence.getEntitySubType()),
         occurrence.getEntityId(), occurrence.getExpandedDetail());
+  }
+
+  /**
+   * Register entities of a type that were already in the result before the converter added anything to it
+   *
+   * @param entityType concerned
+   * @param numberOfEntities present beforehand
+   */
+  public void registerPreExisting(final GtfsPlanitEntityType entityType, final long numberOfEntities) {
+    preExistingByType.computeIfAbsent(entityType, absentType -> new LongAdder()).add(numberOfEntities);
+  }
+
+  /**
+   * Collect how many entities of a type were already in the result before the converter added anything to it
+   *
+   * @param entityType to collect for
+   * @return number present beforehand
+   */
+  public long getPreExisting(final GtfsPlanitEntityType entityType) {
+    var counter = preExistingByType.get(entityType);
+    return counter != null ? counter.sum() : 0;
+  }
+
+  /**
+   * Register how the entities of a type divide over the entities of the type it is nested under, so that a count
+   * exceeding the one it is reported beneath can be reconciled with it
+   *
+   * @param entityType concerned
+   * @param entitiesPerNestingEntity entities of the type held by each entity of the type it is nested under, one
+   *          entry per entity holding at least one
+   */
+  public void registerSharing(
+      final GtfsPlanitEntityType entityType, final Collection<Long> entitiesPerNestingEntity) {
+    var distribution = new TreeMap<Long, Long>();
+    entitiesPerNestingEntity.forEach(entities -> distribution.merge(entities, 1L, Long::sum));
+    sharingByType.put(entityType, distribution);
   }
 
   /**
@@ -460,12 +493,15 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * @return subdivisions, empty where the type is not subdivided
    */
   public Set<String> getSubTypes(final GtfsPlanitEntityType entityType) {
-    var counters = desiredByType.get(entityType);
-    if (counters == null) {
-      return Collections.emptySet();
-    }
-    return counters.keySet().stream().filter(subType -> !NO_SUBTYPE.equals(subType)).collect(
-        Collectors.toCollection(TreeSet::new));
+    var subTypes = new TreeSet<String>();
+    /* a subdivision an entity ended up in need not be one anything was expected of, how an entity came about being
+     * settled as it comes about rather than in advance */
+    Stream.of(desiredByType.get(entityType), createdByType.get(entityType))
+        .filter(Objects::nonNull)
+        .forEach(counters -> counters.keySet().stream()
+            .filter(subType -> !NO_SUBTYPE.equals(subType))
+            .forEach(subTypes::add));
+    return subTypes;
   }
 
   /**
@@ -520,6 +556,8 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * @param other to absorb
    */
   public void merge(final GtfsPlanitEntityDiagnostics other) {
+    other.preExistingByType.forEach((type, counter) -> preExistingByType.computeIfAbsent(
+        type, absentType -> new LongAdder()).add(counter.sum()));
     other.desiredByType.forEach((type, counters) -> counters.forEach(
         (subType, counter) -> collectCounter(
             collectSubTypeCounters(desiredByType, type), subType).add(counter.sum())));
@@ -529,6 +567,7 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
     other.lostByType.forEach((type, counters) -> counters.forEach(
         (subType, counter) -> collectCounter(
             collectSubTypeCounters(lostByType, type), subType).add(counter.sum())));
+    sharingByType.putAll(other.sharingByType);
     issues.merge(other.issues);
     other.dispositionBySubType.forEach((issue, dispositions) -> dispositionBySubType.computeIfAbsent(
         issue, absentIssue -> new ConcurrentHashMap<>()).putAll(dispositions));
@@ -544,19 +583,6 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   public void logSummary() {
     LOGGER.info(LoggingUtils.surroundWithBrackets("PLANIT ENTITIES") + "derived from the feed");
 
-    LOGGER.info(LoggingUtils.settingsValue(
-        "Present in result", "count (share after post-GTFS pruning, share of potential total)", 2));
-    for (var entityType : GtfsPlanitEntityType.values()) {
-      if (getDesired(entityType) == 0) {
-        continue;
-      }
-      LOGGER.info(LoggingUtils.settingsValue(
-          entityType.getLabel(),
-          createPresenceValue(
-              getCreated(entityType), getSurvivingKnockOn(entityType), getDesired(entityType)), 3));
-      logSubTypesOf(entityType);
-    }
-
     var knockOn = new ArrayList<GtfsPlanitEntityIssue>();
     var ownLosses = new ArrayList<GtfsPlanitEntityIssue>();
     for (var issue : GtfsPlanitEntityIssue.values()) {
@@ -565,8 +591,28 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
       }
       (issue.isKnockOnFromGtfsParsing() ? knockOn : ownLosses).add(issue);
     }
-    logLostBuildingResult(ownLosses);
+
+    /* what the feed cost, then what building the result cost, then what that leaves, so that a reader arrives at the
+     * totals having already seen what they are the remainder of */
     logKnockOnFromGtfsParsing(knockOn);
+    logLostBuildingResult(ownLosses);
+
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Final result", "count (pre-existing, added by the parse, removed again)", 2));
+    for (var component : GtfsPlanitComponent.values()) {
+      var reportedTypes = Arrays.stream(GtfsPlanitEntityType.values())
+          .filter(entityType -> entityType.getComponent() == component)
+          .filter(entityType -> entityType.getNestedUnder() == null)
+          .filter(entityType -> getDesired(entityType) > 0 || getCreated(entityType) > 0)
+          .collect(Collectors.toList());
+      if (reportedTypes.isEmpty()) {
+        continue;
+      }
+
+      /* the component the entities end up in, so a reader can tell which part of the result an entry speaks of */
+      LOGGER.info(LoggingUtils.settingsEntry(component.getLabel(), 3));
+      reportedTypes.forEach(entityType -> logPresenceOf(entityType, 4));
+    }
   }
 
   /**
@@ -646,20 +692,80 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    *
    * @param entityType to log for
    */
-  private void logSubTypesOf(final GtfsPlanitEntityType entityType) {
+  private void logPresenceOf(final GtfsPlanitEntityType entityType, final int indent) {
+    LOGGER.info(LoggingUtils.settingsValue(
+        entityType.getLabel(),
+        appendSharing(
+            entityType,
+            createPresenceValue(
+                getCreated(entityType), getPreExisting(entityType), getDesired(entityType))), indent));
+    logSubTypesOf(entityType, indent + 1);
+
+    /* a type subdividing this one counts the same entities from another angle, so it belongs underneath it rather
+     * than beside it, where two counts that cannot agree read as though they should */
+    Arrays.stream(GtfsPlanitEntityType.values())
+        .filter(nestedType -> nestedType.getNestedUnder() == entityType)
+        .filter(nestedType -> getDesired(nestedType) > 0 || getCreated(nestedType) > 0)
+        .forEach(nestedType -> logPresenceOf(nestedType, indent + 1));
+  }
+
+  /**
+   * Append how the entities of a type divide over the entities of the type it is nested under, where that was
+   * established, so that a count exceeding the one above it is explained rather than left to read as a disagreement
+   *
+   * @param entityType to append for
+   * @param presence to append to
+   * @return presence, with the division appended where there is one
+   */
+  private String appendSharing(final GtfsPlanitEntityType entityType, final String presence) {
+    var sharing = sharingByType.get(entityType);
+    if (sharing == null || sharing.isEmpty()) {
+      return presence;
+    }
+
+    var split = sharing.entrySet().stream()
+        .map(entry -> String.format("%d with %d", entry.getValue(), entry.getKey()))
+        .collect(Collectors.joining(", "));
+    return String.format(
+        "%s across %d %ss (%s)",
+        presence, sharing.values().stream().mapToLong(Long::longValue).sum(),
+        entityType.getNestedUnder().getLabel(), split);
+  }
+
+  /**
+   * Log how an entity type divides over the subdivisions it was counted under, largest first
+   *
+   * @param entityType to log for
+   * @param indent to log at
+   */
+  private void logSubTypesOf(final GtfsPlanitEntityType entityType, final int indent) {
     var subTypes = getSubTypes(entityType);
-    if (subTypes.size() < 2) {
-      /* a single subdivision only restates the entry above it */
+    if (subTypes.size() < 2 && subTypes.stream().noneMatch(subType -> GtfsZoningEntityOrigin.findByName(subType) != null)) {
+      /* a single subdivision only restates the entry above it, unless it says how the entities came about, which the
+       * entry above cannot say */
       return;
     }
 
     subTypes.stream()
-        .sorted((left, right) -> Long.compare(getDesired(entityType, right), getDesired(entityType, left)))
+        .sorted((left, right) -> Long.compare(getCreated(entityType, right), getCreated(entityType, left)))
         .forEach(subType -> LOGGER.info(LoggingUtils.settingsValue(
-            subType,
-            createPresenceValue(
-                getCreated(entityType, subType), getSurvivingKnockOn(entityType, subType),
-                getDesired(entityType, subType)), 4)));
+            describeSubType(subType), describeSubTypePresence(entityType, subType), indent)));
+  }
+
+  /**
+   * Describe what a subdivision of an entity type holds, which is what is in the result where that is counted for the
+   * subdivision, and otherwise what the parse added within it, a subdivision naming how an entity came about saying
+   * nothing about what later became of it
+   *
+   * @param entityType to describe for
+   * @param subType to describe for
+   * @return value
+   */
+  private String describeSubTypePresence(final GtfsPlanitEntityType entityType, final String subType) {
+    long created = getCreated(entityType, subType);
+    return created > 0
+        ? createPresenceValue(created, 0, getDesired(entityType, subType))
+        : String.valueOf(getDesired(entityType, subType));
   }
 
   /**
@@ -697,11 +803,15 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * </p>
    *
    * @param subType to describe
-   * @return description, the subtype itself where it names no issue
+   * @return description, the subtype itself where it names neither an issue nor a way an entity came about
    */
   private static String describeSubType(final String subType) {
     var originIssue = GtfsParseIssue.findByName(subType);
-    return originIssue != null ? originIssue.getDescription() : subType;
+    if (originIssue != null) {
+      return originIssue.getDescription();
+    }
+    var transferZoneOrigin = GtfsZoningEntityOrigin.findByName(subType);
+    return transferZoneOrigin != null ? transferZoneOrigin.getDescription() : subType;
   }
 
   /**
@@ -755,6 +865,8 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   @Override
   public void reset() {
     super.reset();
+    preExistingByType.clear();
+    sharingByType.clear();
     desiredByType.clear();
     createdByType.clear();
     lostByType.clear();

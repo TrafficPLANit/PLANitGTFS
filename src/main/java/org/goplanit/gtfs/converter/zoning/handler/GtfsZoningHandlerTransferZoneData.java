@@ -4,7 +4,6 @@ import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.mode.Mode;
@@ -16,6 +15,7 @@ import org.locationtech.jts.index.quadtree.Quadtree;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.logging.Logger;
 
 /**
@@ -139,16 +139,16 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    * A stop id indexes a single stop, so registering a second stop under an id already taken displaces the first, which
    * is returned to the caller to account for
    * </p>
+   * <p>
+   * A stop likewise indexes a single transfer zone, being boarded from one place however many the settings map it to,
+   * so the last zone registered for it is the one its services call at
+   * </p>
    *
    * @param gtfsStop to register on PLANit transfer zone
    * @param transferZone to register one
    * @return the stop displaced by this registration, null when the id was free or held this same stop
    */
   public GtfsStop registerMappedGtfsStop(GtfsStop gtfsStop, TransferZone transferZone) {
-    var mappedTransferZone = mappedTransferZoneByGtfsStopId.get(gtfsStop);
-    if(mappedTransferZone != null && !mappedTransferZone.equals(transferZone)){
-      throw new PlanItRunTimeException("Different transfer zone attempted to be mapped to a single GTFS stop (STOP_ID %s), this is not allowed", gtfsStop.getStopId());
-    }
     mappedTransferZoneByGtfsStopId.put(gtfsStop.getStopId(), transferZone);
 
     var oldStop = mappedGtfsStops.put(gtfsStop.getStopId(), gtfsStop);
@@ -163,6 +163,17 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    */
   public TransferZone getMappedTransferZone(GtfsStop gtfsStop){
     return mappedTransferZoneByGtfsStopId.get(gtfsStop.getStopId());
+  }
+
+  /**
+   * Collect, for each transfer zone carrying at least one mapped GTFS stop, how many stops it carries, a transfer
+   * zone serving as many stops as the feed separately identifies for the place it represents
+   *
+   * @return number of mapped GTFS stops per transfer zone
+   */
+  public Collection<Long> getMappedGtfsStopsPerTransferZone() {
+    return mappedTransferZoneByGtfsStopId.values().stream().collect(
+        Collectors.groupingBy(Function.identity(), Collectors.counting())).values();
   }
 
   /**

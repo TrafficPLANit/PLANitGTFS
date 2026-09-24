@@ -279,11 +279,6 @@ public class GtfsServicesAndZoningReaderIntegrator {
       e.printStackTrace();
     }
 
-    /* progress is reported at doubling thresholds only, so the final total requires its own entry. What could not be
-     * mapped is not reported here, the reader that drives this integration accounting for it alongside the other
-     * stages once they have all run */
-    profiler.logProgress();
-
     if(!PlanitCrsUtils.isLinearCRSWithLengthCompatibleUnit(originalCrs)){
       revertLinearCrsTransformationTo(originalCrs);
     }

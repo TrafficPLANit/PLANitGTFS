@@ -9,6 +9,7 @@ import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsZoningEntityOrigin;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.GtfsObjectType;
@@ -599,18 +600,20 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStop      to create new TransferZone for
    * @param primaryGtfsStopModes PLANit modes associated with GTFS stop
    * @param nearbyTransferZones to consider
-   * @return found match (not attached yet), null if no match is found, the mode can be the primary mode initially provided, or a compatible alternative mode
+   * @return found match (not attached yet) and the rule that identified it, both null if no match is found. The mode
+   *          can be the primary mode initially provided, or a compatible alternative mode
    *          that is deemed a valid alternative. If the latter is the case, the found transfer zone is not compatible with the primary mode
    */
-  private TransferZone findMatchFromExistingTransferZone(
+  private Pair<TransferZone, GtfsZoningEntityOrigin> findMatchFromExistingTransferZone(
       GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes, Collection<TransferZone> nearbyTransferZones) {
     PlanItRunTimeException.throwIfNull(gtfsStop,"GTFS stop null, this is not allowed");
 
     if(nearbyTransferZones.isEmpty()){
-      return null;
+      return Pair.of(null, null);
     }
 
     TransferZone theTransferZone = null;
+    GtfsZoningEntityOrigin theOrigin = null;
     for (var primaryMode : primaryGtfsStopModes) {
 
       var consideredTransferZones = new ArrayList<>(nearbyTransferZones);
@@ -645,13 +648,15 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         }
       }
 
-      var modeTransferZone = findMatchingExistingTransferZoneByPlatformOrLinks(gtfsStop, primaryMode, nearbyTransferZones);
+      var modeMatch = findMatchingExistingTransferZoneByPlatformOrLinks(gtfsStop, primaryMode, nearbyTransferZones);
+      var modeTransferZone = modeMatch.first();
       if (theTransferZone != null && theTransferZone != modeTransferZone) {
         throw new PlanItRunTimeException("GTFS stop %s %s (location %s) supports multiple modes, but could not " +
                 "map those to a single transfer zone, this shouldn't happen, verify correctness",
                 gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord());
       }
       theTransferZone = modeTransferZone;
+      theOrigin = modeMatch.second();
     }
 
     if (theTransferZone == null) {
@@ -663,7 +668,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
           nearbyTransferZones.stream().map(tz -> "[" + tz.getXmlId() + ", name: " + tz.getName() + "," +
                   " ext id: " + tz.getExternalId() + "]").collect(Collectors.joining())));
     }
-    return theTransferZone;
+    return Pair.of(theTransferZone, theOrigin);
   }
 
   /**
@@ -674,11 +679,11 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStop      to create new TransferZone for
    * @param primaryMode PLANit mode associated with GTFS stop
    * @param nearbyTransferZones to consider, note this container will be pruned if zones are not eligible
-   * @return found match (not attached yet), null if no match is found, the mode can be the primary mode initially
-   *         provided, or a compatible alternative mode that is deemed a valid alternative. If the latter is the case,
-   *         the found transfer zone is not compatible with the primary mode
+   * @return found match (not attached yet) and the rule that identified it, both null if no match is found. The mode
+   *         can be the primary mode initially provided, or a compatible alternative mode that is deemed a valid
+   *         alternative. If the latter is the case, the found transfer zone is not compatible with the primary mode
    */
-  private TransferZone findMatchingExistingTransferZoneByPlatformOrLinks(
+  private Pair<TransferZone, GtfsZoningEntityOrigin> findMatchingExistingTransferZoneByPlatformOrLinks(
           final GtfsStop gtfsStop, final Mode primaryMode, final Collection<TransferZone> nearbyTransferZones) {
     PlanItRunTimeException.throwIfNull(primaryMode,"GTFS stop's associated PLANit mode null, " +
             "this is not allowed");
@@ -690,8 +695,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     /* try to match on platform name first as it is most trustworthy... */
     var matchedTransferZone = matchByPlatform(gtfsStop, nearbyTransferZones, allEligibleModes);
     if(matchedTransferZone != null){
-      data.getProfiler().incrementMatchedTransferZonesOnPlatformName();
-      return matchedTransferZone;
+      return Pair.of(matchedTransferZone, GtfsZoningEntityOrigin.MATCHED_ON_PLATFORM_NAME);
     }
 
     /* identify preferred access link (segments) for GTFS stop as if there were no existing transfer zones to
@@ -708,7 +712,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
           gtfsStop.getStopId(), data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
               nearbyTransferZones.stream().map(tz -> "[" + tz.getXmlId() + ", name: " + tz.getName() +
                       ", ext id: " + tz.getExternalId() + "]").collect(Collectors.joining())));
-      return null;
+      return Pair.of(null, null);
     }
 
     /* filter nearby links based on the transfer zone links that are deemed possibly compatible */
@@ -719,7 +723,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       /* all nearby transfer zone access links are too far, so unlikely they make sense to use */
       registerStopIssue(
           GtfsParseIssue.STOP_NEARBY_TRANSFER_ZONE_WITHOUT_ACCESS_SEGMENTS, gtfsStop);
-      return null;
+      return Pair.of(null, null);
     }
 
     /* find best option from provided options. In this case we do allow upstream extreme nodes of an access
@@ -737,7 +741,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
                   Collectors.joining(",")),
           nearbyTransferZones.stream().map(tz -> "("+tz.getIdsAsString()+")").collect(
                   Collectors.joining(","))));
-      return null;
+      return Pair.of(null, null);
     }
 
     /* try to match based on preferred access link segments versus used access link segments by existing nearby
@@ -753,13 +757,12 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     matchedTransferZone = matchedTransferZoneAndConnectoid.first();
     var matchedConnectoid = matchedTransferZoneAndConnectoid.second();
     if(matchedTransferZone != null){
-      data.getProfiler().incrementMatchedTransferZonesOnAccessLinkSegment();
 
       /* pinpointed to link(s), log if required */
       if(data.getSettings().isLogGtfsStopToLinkMapping(gtfsStop.getStopId())){
         logGtfsStopToLinkMapping(gtfsStop, matchedTransferZone, matchedConnectoid);
       }
-      return matchedTransferZone;
+      return Pair.of(matchedTransferZone, GtfsZoningEntityOrigin.MATCHED_ON_ACCESS_LINK_SEGMENT);
     }
 
     /* try to match based on closeness and an acceptable angle difference between a virtual transferzone-to-road-line
@@ -788,7 +791,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       logGtfsStopToLinkMapping(gtfsStop, matchedTransferZone, matchedConnectoid);
     }
 
-    return matchedTransferZone;
+    return Pair.of(
+        matchedTransferZone,
+        matchedTransferZone != null ? GtfsZoningEntityOrigin.MATCHED_ON_CLOSEST_ACCEPTABLE_ANGLE : null);
   }
 
   /**
@@ -1052,12 +1057,25 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * Attach the GTFS stop to the given transfer zone
+   * Attach the GTFS stop to the given transfer zone, reporting the zone it displaces where it had one
    *
    * @param gtfsStop to attach
    * @param transferZone to attach to
    */
   private void attachToTransferZone(GtfsStop gtfsStop, TransferZone transferZone) {
+    attachToTransferZone(gtfsStop, transferZone, true);
+  }
+
+  /**
+   * Attach the GTFS stop to the given transfer zone
+   *
+   * @param gtfsStop to attach
+   * @param transferZone to attach to
+   * @param reportDisplacedTransferZone whether to report the zone the stop was mapped to before, if any, which a
+   *          caller mapping the stop to several zones in turn reports for itself once it has settled on one
+   */
+  private void attachToTransferZone(
+      GtfsStop gtfsStop, TransferZone transferZone, boolean reportDisplacedTransferZone) {
     /* augment external id with GTFS stop id + index by this id in separate map */
     if(!transferZone.getExternalId().contains(gtfsStop.getStopId())) {
       transferZone.appendExternalId(gtfsStop.getStopId());
@@ -1077,8 +1095,15 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       transferZone.addTransferZonePlatformName(gtfsStop.getPlatformCode());
     }
 
-    /* update tracking data */
+    /* update tracking data. A stop is boarded from a single zone, so mapping it to another leaves the one it held
+     * with the stop's identity and modes but without the services calling at it */
+    var displacedTransferZone = reportDisplacedTransferZone ? data.getMappedTransferZone(gtfsStop) : null;
     data.registerMappedGtfsStop(gtfsStop, transferZone);
+    if(displacedTransferZone != null && !displacedTransferZone.equals(transferZone)){
+      registerStopIssue(
+          GtfsParseIssue.STOP_TRANSFER_ZONE_MAPPING_NOT_BOARDED, gtfsStop,
+          displacedTransferZone.getIdsAsString(), transferZone.getIdsAsString());
+    }
     if(data.getSettings().isLogMappedGtfsZones()) {
       LOGGER.info(String.format("Mapped GTFS stop %s %s at location %s to existing Transfer zone %s %s",
           gtfsStop.getStopId(), gtfsStop.getStopName(), gtfsStop.getLocationAsCoord().toString(),
@@ -1094,7 +1119,6 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param primaryGtfsStopModes identified mode(s) for GTFS stop
    */
   private void handleStopPlatform(final GtfsStop gtfsStop, final List<Mode> primaryGtfsStopModes) {
-    data.getProfiler().incrementCount(GtfsObjectType.STOP);
 
     var projectedGtfsStopLocation = (Point) PlanitJtsUtils.transformGeometry(
         gtfsStop.getLocationAsPoint(),data.getCrsTransformGtfsToPlanit());
@@ -1103,10 +1127,13 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
         projectedGtfsStopLocation, data.getSettings().getGtfsStopToTransferZoneSearchRadiusMeters(), data);
 
     TransferZone theTransferZone = null;
+    GtfsZoningEntityOrigin theTransferZoneOrigin = null;
     if(!nearbyTransferZones.isEmpty() &&
         !data.getSettings().isForceCreateNewTransferZoneForGtfsStop(gtfsStop.getStopId())) {
 
-      theTransferZone = findMatchFromExistingTransferZone(gtfsStop, primaryGtfsStopModes, nearbyTransferZones);
+      var existingMatch = findMatchFromExistingTransferZone(gtfsStop, primaryGtfsStopModes, nearbyTransferZones);
+      theTransferZone = existingMatch.first();
+      theTransferZoneOrigin = existingMatch.second();
 
     }
 
@@ -1144,9 +1171,13 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
       attachToTransferZone(gtfsStop, theTransferZone);
       if(!createNewTransferZone){
-        data.getProfiler().incrementAugmentedTransferZones();
+        data.getProfiler().registerMatchedTransferZone(theTransferZoneOrigin);
       }
-    }else if(!nearbyTransferZones.isEmpty()){
+    }else{
+      registerStopIssue(GtfsParseIssue.STOP_WITHOUT_TRANSFER_ZONE, gtfsStop);
+    }
+
+    if(theTransferZone == null && !nearbyTransferZones.isEmpty()){
       registerStopIssue(
           GtfsParseIssue.STOP_NEARBY_TRANSFER_ZONE_UNUSABLE, gtfsStop,
               nearbyTransferZones.size(),
@@ -1164,6 +1195,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    */
   private void handleOverwrittenTransferZoneMapping(GtfsStop gtfsStop, List<Mode> primaryGtfsStopModes) {
     var transferZoneIdAndTypePairs = data.getSettings().getOverwrittenGtfsStopTransferZoneMapping(gtfsStop.getStopId());
+    var attachedTransferZones = new LinkedHashSet<TransferZone>();
     for(var transferZoneIdAndTypePair : transferZoneIdAndTypePairs) {
       TransferZone transferZone = null;
       if (transferZoneIdAndTypePair.second() == IdMapperType.EXTERNAL_ID) {
@@ -1189,9 +1221,29 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
       updateTransferZoneConnectoidSecondaryCompatibleModes(
           transferZone, ZoneConnectoidType.PT_VEHICLE_STOP, primaryGtfsStopModes);
-      attachToTransferZone(gtfsStop, transferZone);
+      /* which of the zones the settings name is the one boarded from is settled once they have all been applied */
+      attachToTransferZone(gtfsStop, transferZone, false);
+      attachedTransferZones.add(transferZone);
+      registerStopIssue(
+          GtfsParseIssue.STOP_TRANSFER_ZONE_MAPPING_OVERWRITTEN, gtfsStop, transferZone.getIdsAsString());
     }
 
+    if(attachedTransferZones.isEmpty()) {
+      return;
+    }
+
+    /* settings may pin a stop to more than one transfer zone, which is a single stop having found its zones rather
+     * than as many stops as it was given zones */
+    data.getProfiler().registerTransferZoneMappedBySettings();
+
+    /* the stop is boarded from a single zone however many it is pinned to, so the others carry its identity and
+     * modes without ever being reached by the services calling at it */
+    var boardedTransferZone = data.getMappedTransferZone(gtfsStop);
+    attachedTransferZones.stream().filter(
+        transferZone -> !transferZone.equals(boardedTransferZone)).forEach(
+        transferZone -> registerStopIssue(
+            GtfsParseIssue.STOP_TRANSFER_ZONE_MAPPING_NOT_BOARDED, gtfsStop,
+            transferZone.getIdsAsString(), boardedTransferZone.getIdsAsString()));
   }
 
   /**

@@ -308,6 +308,39 @@ public enum GtfsParseIssue implements GtfsIssue {
       "stop %1$s at (%2$s, %3$s), %4$s nearby transfer zone(s): %5$s"),
 
   /**
+   * No transfer zone could be established for the stop, neither by matching a pre-existing one nor by creating one
+   * for it, so nothing in the zoning represents it and no service can call at it
+   */
+  STOP_WITHOUT_TRANSFER_ZONE(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, true,
+      GtfsIssueLogPolicy.COLLATED, "No transfer zone established for stop within scope", null),
+
+  /**
+   * Settings manually map the stop to a pre-existing transfer zone, so the rules that would otherwise decide where it
+   * belongs were not applied. Not a shortcoming but an instruction carried out, stated so that a stop placed by hand
+   * is not mistaken for one the parser placed
+   */
+  STOP_TRANSFER_ZONE_MAPPING_OVERWRITTEN(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.BY_DESIGN, false,
+      GtfsIssueLogPolicy.COLLATED, "Stop manually mapped to transfer zone by settings",
+      "transfer zone %4$s",
+      "stop %1$s at (%2$s, %3$s), transfer zone %4$s"),
+
+  /**
+   * The stop is mapped to more than one transfer zone, either because settings name several for it, the stop
+   * covering platforms the zoning holds separately, or because the feed holds the stop more than once and each entry
+   * found its own. A stop is boarded from a single zone, so the others take on the stop's identity and modes without
+   * ever being reached by the services calling at it, which is the mapping being honoured as far as it can be rather
+   * than anything being wrong with it
+   */
+  STOP_TRANSFER_ZONE_MAPPING_NOT_BOARDED(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.LIMITATION, false,
+      GtfsIssueLogPolicy.COLLATED,
+      "Stop mapped to several transfer zones, its services routing through one of them only",
+      "transfer zone %4$s, services routing through %5$s",
+      "stop %1$s at (%2$s, %3$s), transfer zone %4$s, services routing through %5$s"),
+
+  /**
    * Settings manually map the stop to a transfer zone that does not exist in the zoning, so the instruction cannot be
    * carried out. A configuration error rather than a feed or parser issue, hence reported the moment it arises
    */

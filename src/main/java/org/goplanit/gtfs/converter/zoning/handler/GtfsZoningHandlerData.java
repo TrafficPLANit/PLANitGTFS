@@ -276,6 +276,15 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   }
 
   /**
+   * Collect, for each transfer zone carrying at least one mapped GTFS stop, how many stops it carries
+   *
+   * @return number of mapped GTFS stops per transfer zone
+   */
+  public Collection<Long> getMappedGtfsStopsPerTransferZone() {
+    return transferZoneData.getMappedGtfsStopsPerTransferZone();
+  }
+
+  /**
    * Check if transfer zone already has a mapped GTFS stop
    * @param transferZone to check
    * @return true when already mapped by GTFS stop, false otherwise
