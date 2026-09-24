@@ -2,6 +2,7 @@ package org.goplanit.gtfs.converter.service;
 
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.enums.RouteType;
 
@@ -103,9 +104,12 @@ public class GtfsServicesHandlerProfiler {
   }
 
   /**
-   * Register a GTFS stop time encountered in the feed, irrespective of what becomes of it
+   * Register a GTFS stop time encountered in the feed, standing as given
+   *
+   * @param state the stop time stands in, which a stop time is counted against rather than indexed under, a feed
+   *          holding millions of them
    */
-  public void registerSeenStopTime() {
-    diagnostics.registerSeen(GtfsObjectType.STOP_TIME);
+  public void registerSeenStopTime(final GtfsScopeState state) {
+    diagnostics.registerSeen(GtfsObjectType.STOP_TIME, null, state);
   }
 }

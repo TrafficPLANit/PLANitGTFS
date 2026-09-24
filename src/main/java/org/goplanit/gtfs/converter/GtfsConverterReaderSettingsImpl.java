@@ -31,6 +31,9 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   /** by default the parse diagnostics are written to this directory, relative to the working directory */
   public static final String DEFAULT_PARSE_DIAGNOSTICS_OUTPUT_DIRECTORY = "gtfs_diagnostics";
 
+  /** by default what the run was asked to leave out is counted but not listed entity by entity */
+  public static final boolean DEFAULT_PERSIST_BY_DESIGN_ISSUES = false;
+
   /** Input source to use */
   private URL inputSource;
 
@@ -52,6 +55,9 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
 
   /** directory the parse diagnostics are written to */
   private String parseDiagnosticsOutputDirectory = DEFAULT_PARSE_DIAGNOSTICS_OUTPUT_DIRECTORY;
+
+  /** whether the persisted detail lists what the run was asked to leave out entity by entity */
+  private boolean persistByDesignIssues = DEFAULT_PERSIST_BY_DESIGN_ISSUES;
 
   /** how many occurrences of each issue are kept for reporting */
   private int diagnosticsRetentionLimit = GtfsDiagnosticsBase.DEFAULT_MAX_RETAINED_PER_ISSUE;
@@ -84,6 +90,7 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
     //todo
     this.persistParseDiagnostics = DEFAULT_PERSIST_PARSE_DIAGNOSTICS;
     this.parseDiagnosticsOutputDirectory = DEFAULT_PARSE_DIAGNOSTICS_OUTPUT_DIRECTORY;
+    this.persistByDesignIssues = DEFAULT_PERSIST_BY_DESIGN_ISSUES;
     this.diagnosticsRetentionLimit = GtfsDiagnosticsBase.DEFAULT_MAX_RETAINED_PER_ISSUE;
     this.diagnosticsSampleSize = LogCollator.DEFAULT_LOG_SAMPLE_SIZE_OF_RETAINED;
   }
@@ -155,6 +162,24 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
     this.persistParseDiagnostics = persistParseDiagnostics;
   }
 
+  /** Verify whether the persisted detail lists what the run was asked to leave out entity by entity, those being
+   * expected rather than a shortcoming and running to millions of entries on a sizeable feed, while their totals are
+   * reported either way
+   *
+   * @return true when listed, false otherwise
+   */
+  public boolean isPersistByDesignIssues() {
+    return persistByDesignIssues;
+  }
+
+  /** Set whether the persisted detail lists what the run was asked to leave out entity by entity
+   *
+   * @param persistByDesignIssues to set
+   */
+  public void setPersistByDesignIssues(boolean persistByDesignIssues) {
+    this.persistByDesignIssues = persistByDesignIssues;
+  }
+
   /** The directory the parse diagnostics are written to
    *
    * @return output directory
@@ -221,6 +246,8 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
        * path nobody finds */
       LOGGER.info(LoggingUtils.settingsValue(
           "Persist parse diagnostics to", getParseDiagnosticsOutputDirectory(), level));
+      LOGGER.info(LoggingUtils.settingsValue(
+          "Persist by design issues", isPersistByDesignIssues(), level));
     }else{
       LOGGER.info(LoggingUtils.settingsValue("Persist parse diagnostics", false, level));
     }

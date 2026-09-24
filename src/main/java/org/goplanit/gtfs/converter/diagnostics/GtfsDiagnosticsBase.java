@@ -5,6 +5,7 @@ import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.LoggingUtils;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -37,7 +38,7 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
   private static final Logger LOGGER = Logger.getLogger(GtfsDiagnosticsBase.class.getCanonicalName());
 
   /** upper bound on entity ids retained per issue for reporting, keeping totals exact regardless */
-  public static final int DEFAULT_MAX_RETAINED_PER_ISSUE = 10_000;
+  public static final int DEFAULT_MAX_RETAINED_PER_ISSUE = 100;
 
   /** shared empty arguments, so registering an issue that takes no context allocates nothing */
   protected static final Object[] NO_DETAIL_ARGS = new Object[0];
@@ -243,6 +244,17 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
   }
 
   protected String createIssueLogEntry(final I issue) {
+    return createIssueLogEntry(issue, 2);
+  }
+
+  /**
+   * Create what a reported issue says, at the given depth, for a report that groups its issues under a heading
+   *
+   * @param issue to report
+   * @param level depth to state it at
+   * @return created log entry
+   */
+  protected String createIssueLogEntry(final I issue, final int level) {
     var collator = collatorFor(issue);
     var template = collator.getTemplate(issue.name());
     var label = String.format("%s | %s", issue.getEntityLabel(), issue.getDescription());
@@ -271,7 +283,7 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
         }
       }
     }
-    return LoggingUtils.settingsValue(label, value.toString(), 2);
+    return LoggingUtils.settingsValue(label, value.toString(), level);
   }
 
   /**
@@ -337,31 +349,57 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
   }
 
   /**
+   * Collect what an occurrence of an issue says about the parser, which is what its issue is declared with unless an
+   * implementation can tell its occurrences apart
+   *
+   * @param issue the occurrence belongs to
+   * @param occurrence to collect for
+   * @return disposition
+   */
+  protected GtfsIssueDisposition getDispositionOf(final I issue, final LogCollator.Occurrence occurrence) {
+    return issue.getDisposition();
+  }
+
+  /**
    * Persist one row per recorded occurrence held by the given collator
    *
    * @param filePath to write to
    * @param collator holding the occurrences
    * @param headers of the file, in column order
    * @param outcome what became of the entities the file covers
+   * @param persistByDesignIssues whether occurrences of what the run was asked to leave out are written as well
    */
   protected void persistEntityIssues(
-      final Path filePath, final LogCollator collator, final String[] headers, final GtfsParseOutcome outcome) {
+      final Path filePath, final LogCollator collator, final String[] headers, final GtfsParseOutcome outcome,
+      final boolean persistByDesignIssues) {
+    var curtailed = new ArrayList<String>();
     try (var csvWriter = SimpleCsvWriter.create(filePath, headers)) {
       for (var template : collator.getTemplatesByOccurrencesDescending()) {
         var issue = issueValueOf(template.getTemplateId());
+        boolean anyWritten = false;
         for (var occurrence : template.getRetainedOccurrences()) {
+          if (!persistByDesignIssues && getDispositionOf(issue, occurrence) == GtfsIssueDisposition.BY_DESIGN) {
+            continue;
+          }
           writeIssueRow(csvWriter, issue, occurrence, outcome);
+          anyWritten = true;
         }
-        if (template.hasUnretainedOccurrences() && issue.getLogPolicy() != GtfsIssueLogPolicy.SILENT_COUNT_ONLY) {
-          /* the rows are a sample rather than the record, so say so here instead of letting the row count be read
-           * as the total. A silently counted issue carries no detail by design, so its unretained occurrences are
-           * not a shortfall to report */
-          LOGGER.warning(String.format(
-              "%s lists %d of %d %s occurrences, raise the retention limit to list them all",
-              filePath.getFileName(), template.getRetainedOccurrences().size(), template.getOccurrences(),
-              issue.name()));
+        if (anyWritten && template.hasUnretainedOccurrences()
+            && issue.getLogPolicy() != GtfsIssueLogPolicy.SILENT_COUNT_ONLY) {
+          /* a silently counted issue carries no detail by design, so its unretained occurrences are not a shortfall
+           * to report, nor are those of an issue that is not written at all */
+          curtailed.add(String.format(
+              "%s %d of %d", issue.name(), template.getRetainedOccurrences().size(), template.getOccurrences()));
         }
       }
+    }
+
+    if (!curtailed.isEmpty()) {
+      /* the rows are a sample rather than the record, so say so here instead of letting the row count be read as the
+       * total. Said once for the file, naming what it holds a sample of, rather than once per issue */
+      LOGGER.warning(String.format(
+          "%s lists a sample of [%s], raise the retention limit to list them all",
+          filePath.getFileName(), String.join(", ", curtailed)));
     }
   }
 

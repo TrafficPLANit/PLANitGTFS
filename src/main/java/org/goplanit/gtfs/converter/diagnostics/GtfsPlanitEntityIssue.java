@@ -15,12 +15,14 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
 
   /** an endpoint stop of the leg segment has no transfer zone, so the network cannot be reached from it */
   LEG_SEGMENT_STOP_WITHOUT_TRANSFER_ZONE(
-      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM, false, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.GTFS_PARSING, false, GtfsIssueLogPolicy.COLLATED,
       "Endpoint stop has no transfer zone", Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
   /** an endpoint of the leg segment has no connectoid granting access to the network for its mode */
   LEG_SEGMENT_ENDPOINT_WITHOUT_ACCESS_CONNECTOID(
-      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM, false, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, false, GtfsIssueLogPolicy.COLLATED,
       "Endpoint has no usable access connectoid", Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
   /**
@@ -29,18 +31,21 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    * transfer zone does have connectoids, just not at the node the stop was mapped to
    */
   LEG_SEGMENT_ENDPOINT_ACCESS_NODE_MISMATCH(
-      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM, false, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, false, GtfsIssueLogPolicy.COLLATED,
       "Unable to find available transfer zone access nodes, GTFS stop likely mapped to incorrect physical access node",
       Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
   /** no physical path exists between the endpoints of the leg segment for its mode */
   LEG_SEGMENT_NO_ELIGIBLE_PHYSICAL_PATH(
-      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM, false, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, false, GtfsIssueLogPolicy.COLLATED,
       "No eligible physical path between endpoints", Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
   /** a service node was removed because it lies beyond the area the physical network covers */
   SERVICE_NODE_OUTSIDE_NETWORK_AREA(
-      GtfsPlanitEntityType.SERVICE_NODE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.SERVICE_NODE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
       "Service node outside network area", null, Templates.REMOVED_ENTITY_IDS),
 
   /**
@@ -48,7 +53,8 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    * service that runs nothing is not a service. What became of the trips themselves is reported against those trips
    */
   ROUTED_SERVICE_WITHOUT_TRIPS(
-      GtfsPlanitEntityType.ROUTED_SERVICE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.ROUTED_SERVICE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
       "Routed service removed, no trips left after truncation", null, Templates.REMOVED_ENTITY_IDS),
 
   /**
@@ -56,7 +62,8 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    * by one viable trip per remaining run of consecutive legs, each with its departure times adjusted
    */
   TRIP_SCHEDULE_TRUNCATED_TO_NETWORK(
-      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
       "Trip schedule truncated to network area", null, Templates.REMOVED_ENTITY_IDS),
 
   /**
@@ -64,7 +71,8 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    * outright. Distinct from a truncation that came to nothing: this one was never a candidate for cutting back
    */
   TRIP_SCHEDULE_REMOVED_OUTSIDE_NETWORK_AREA(
-      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
       "Trip schedule removed, ran wholly outside network area", null, Templates.REMOVED_ENTITY_IDS),
 
   /**
@@ -72,7 +80,8 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    * no leg of it having survived, so it was removed rather than cut back
    */
   TRIP_SCHEDULE_REMOVED_TRUNCATION_NOT_VIABLE(
-      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.PROBLEM, true, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
       "Trip schedule removed, truncation left no viable trip", null, Templates.REMOVED_ENTITY_IDS),
 
   /**
@@ -82,13 +91,25 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    * the loss away
    */
   TRIP_SCHEDULE_UNMAPPED_DESPITE_CONSECUTIVE_STOPS(
-      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.PROBLEM, true, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
       "Trip schedule removed, no leg mapped between consecutive stops within network area", null,
       Templates.REMOVED_ENTITY_IDS),
 
+  /**
+   * a trip schedule was folded into another running the same legs at the same relative times, the two being
+   * indistinguishable once the truncation had cut each back to the part within the network area. Its departures carry
+   * over to the schedule it was folded into, so what it ran is kept while the schedule itself is not
+   */
+  TRIP_SCHEDULE_CONSOLIDATED_INTO_IDENTICAL(
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
+      "Trip schedule consolidated into an identically scheduled one", null, Templates.REMOVED_ENTITY_IDS),
+
   /** several departures of a trip schedule share the same scheduled time */
   DEPARTURE_DUPLICATE_SCHEDULED_TIME(
-      GtfsPlanitEntityType.DEPARTURE, GtfsIssueDisposition.PROBLEM, true, GtfsIssueLogPolicy.COLLATED,
+      GtfsPlanitEntityType.DEPARTURE, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
       "Duplicate trip schedule departure time", null, Templates.REMOVED_ENTITY_IDS);
 
   /**
@@ -122,6 +143,9 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
   /** what the issue says about the parser */
   private final GtfsIssueDisposition disposition;
 
+  /** where the loss originates */
+  private final GtfsIssueOrigin origin;
+
   /** whether the entity is lost to the issue, which only an entity that existed in the first place can be */
   private final boolean discarding;
 
@@ -139,6 +163,7 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    *
    * @param entityType PLANit entity type the issue applies to
    * @param disposition what the issue says about the parser
+   * @param origin where the loss originates
    * @param discarding whether the entity is lost to the issue
    * @param logPolicy how the issue reaches the log
    * @param description readable description used when reporting
@@ -148,6 +173,7 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
   GtfsPlanitEntityIssue(
       final GtfsPlanitEntityType entityType,
       final GtfsIssueDisposition disposition,
+      final GtfsIssueOrigin origin,
       final boolean discarding,
       final GtfsIssueLogPolicy logPolicy,
       final String description,
@@ -155,6 +181,7 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       final String persistedDetailTemplate) {
     this.entityType = entityType;
     this.disposition = disposition;
+    this.origin = origin;
     this.discarding = discarding;
     this.logPolicy = logPolicy;
     this.description = description;
@@ -168,6 +195,24 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    */
   public GtfsPlanitEntityType getEntityType() {
     return entityType;
+  }
+
+  /**
+   * Collect where the loss originates
+   *
+   * @return origin
+   */
+  public GtfsIssueOrigin getOrigin() {
+    return origin;
+  }
+
+  /**
+   * Verify whether the loss carries over from what the feed side already reported
+   *
+   * @return true when it originates in the GTFS parsing, false otherwise
+   */
+  public boolean isKnockOnFromGtfsParsing() {
+    return origin == GtfsIssueOrigin.GTFS_PARSING;
   }
 
   /**

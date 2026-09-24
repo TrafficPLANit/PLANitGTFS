@@ -1320,6 +1320,10 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     /* GTFS mode compatibility */
     final List<Mode> gtfsStopModes = data.getSupportedPtModes(gtfsStop);
     if(gtfsStopModes == null){
+      /* MODAL SCOPE: no service reaching the stop is no less an answer in this respect than a service of a mode the
+       * run does not cover, so it settles here rather than leaving the stop standing in no respect at all */
+      diagnostics.registerSeenOutOfScope(
+          GtfsObjectType.STOP, GtfsScopeDimension.MODAL, gtfsStop.getLocationType(), gtfsStop.getStopId());
       registerStopIssue(
           GtfsParseIssue.STOP_NOT_SERVED_BY_ANY_PARSED_SERVICE, gtfsStop);
       return;

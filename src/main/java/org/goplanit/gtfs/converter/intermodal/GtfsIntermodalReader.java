@@ -301,7 +301,13 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
       if (getSettings().getServiceSettings().isGroupIdenticalGtfsTrips()) {
         LOGGER.info("Optimising: Consolidating remaining GTFS trip departures with identical " +
                 "relative schedules...");
+        var tripSchedulesBeforeConsolidation = GtfsCleanUpDiagnostics.collectTripSchedules(servicesResult.second());
         GtfsRoutedServicesModifierUtils.groupIdenticallyScheduledPlanitTrips(servicesResult.second());
+
+        cleanUpDiagnostics.registerRemoved(
+            GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE,
+            GtfsPlanitEntityIssue.TRIP_SCHEDULE_CONSOLIDATED_INTO_IDENTICAL,
+            tripSchedulesBeforeConsolidation, GtfsCleanUpDiagnostics.collectTripSchedules(servicesResult.second()));
       }
       /* CLEAN-UP: Due to grouping as well as the fact that GTFS is not perfect and may contain duplicate trips, we
        * often see duplicate departure times occurring. these need to be removed */
@@ -330,6 +336,9 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
       }
     }
 
+    /* every step has had its turn, so what each type started out as and what is left of it is now settled */
+    cleanUpDiagnostics.registerPresence();
+
     /* log final result */
     LOGGER.info("Final result Stats:");
     parentNetwork.logInfo(LoggingUtils.networkPrefix(parentNetwork.getId()));
@@ -340,7 +349,7 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     /* every stage has run and the result is final, so what became of the feed can be reported */
     GtfsCoverageReport.report(
         this.rawGtfsEntityDiagnostics, this.planitEntityDiagnostics, getSettings().isPersistParseDiagnostics(),
-        getSettings().getParseDiagnosticsOutputDirectory());
+        getSettings().isPersistByDesignIssues(), getSettings().getParseDiagnosticsOutputDirectory());
 
     /* combined result */
     return Quadruple.of(parentNetwork, zoning, servicesResult.first(), servicesResult.second());

@@ -2,6 +2,7 @@ package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
 import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.entity.GtfsStopTime;
 import org.goplanit.gtfs.entity.GtfsTrip;
@@ -298,31 +299,128 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   }
 
   /**
+   * Collect where a GTFS stop time sits relative to the area the run covers, which its own stop answers and which is
+   * therefore the one respect the stop times file settles without looking beyond itself
+   *
+   * @param gtfsStopTime to collect for
+   * @return scope, not established where no stop was placed at all
+   */
+  private GtfsEntityScope collectStopTimeSpatialScope(final GtfsStopTime gtfsStopTime) {
+    if(!data.hasGtfsStopScope()){
+      return GtfsEntityScope.NOT_ESTABLISHED;
+    }
+    return data.isGtfsStopWithinArea(gtfsStopTime.getStopId()) ? GtfsEntityScope.IN : GtfsEntityScope.OUT;
+  }
+
+  /**
+   * Collect the issue naming why a stop time standing as given was ruled out, so that a respect accounts for what it
+   * cost rather than only stating how much it cost
+   *
+   * @param dimension the stop time was first ruled out in
+   * @return issue to register, null where the respect ruled nothing out
+   */
+  private static GtfsParseIssue collectStopTimeIssueOf(final GtfsScopeDimension dimension) {
+    switch (dimension) {
+      case TEMPORAL:
+        return GtfsParseIssue.STOP_TIME_TRIP_NOT_ACTIVE_ON_DAY;
+      case SELECTION:
+        return GtfsParseIssue.STOP_TIME_ROUTE_EXCLUDED;
+      case MODAL:
+        return GtfsParseIssue.STOP_TIME_ROUTE_MODE_NOT_ACTIVATED;
+      case SPATIAL:
+        return GtfsParseIssue.STOP_TIME_OUTSIDE_NETWORK_AREA;
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Settle where a GTFS stop time stands in every respect the run is narrowed by and count it there, naming the
+   * respect that ruled it out where one did.
+   * <p>
+   * Counted against the standing rather than indexed under its own id, a feed holding millions of stop times. Where it
+   * sits comes from its own stop, while the day it runs, the modes it serves and whether it was asked for belong to the
+   * trip it is part of, and so are taken from where that trip was settled. That standing survives the trip's own
+   * discard, being held against the trip id rather than against the trip
+   * </p>
+   * <p>
+   * The time period the run covers narrows trips rather than stop times and is settled only once every stop time of a
+   * trip has been seen, so it is reported against the trip and leaves no mark here
+   * </p>
+   *
+   * @param gtfsStopTime to settle
+   * @return state it was counted at
+   */
+  private GtfsScopeState registerSeenStopTimeInScope(final GtfsStopTime gtfsStopTime) {
+    var diagnostics = data.getDiagnostics();
+    var tripState = diagnostics.getSettledState(GtfsObjectType.TRIP, gtfsStopTime.getTripId());
+    if(tripState == null){
+      tripState = GtfsScopeState.unsettledFor(GtfsObjectType.TRIP);
+    }
+
+    var state = GtfsScopeState.of(
+        collectStopTimeSpatialScope(gtfsStopTime),
+        tripState.get(GtfsScopeDimension.TEMPORAL),
+        tripState.get(GtfsScopeDimension.MODAL),
+        tripState.get(GtfsScopeDimension.SELECTION));
+    data.getProfiler().registerSeenStopTime(state);
+
+    var ruledOutAt = collectRespectRulingOut(state);
+    if(ruledOutAt != null){
+      diagnostics.registerIssue(collectStopTimeIssueOf(ruledOutAt), state, null);
+    }
+    return state;
+  }
+
+  /**
+   * Collect the respect that ruled a stop time standing as given out of scope
+   *
+   * @param state the stop time stands in
+   * @return respect, null where none ruled it out
+   */
+  private GtfsScopeDimension collectRespectRulingOut(final GtfsScopeState state) {
+    var ruledOutAt = data.getDiagnostics().getReportedRespectOf(GtfsObjectType.STOP_TIME, state);
+    return ruledOutAt != null && state.get(ruledOutAt) == GtfsEntityScope.OUT ? ruledOutAt : null;
+  }
+
+  /**
    * Handle a GTFS stop time for a given trip
    */
   @Override
   public void handle(GtfsStopTime gtfsStopTime) {
-    data.getProfiler().registerSeenStopTime();
+    /* SCOPE: settled before anything is made of the stop time, a stop time of a trip already discarded standing
+     * somewhere just as one that is parsed does. Every issue below is registered against that standing, so that an
+     * occurrence is reported where its stop time was counted rather than apart from it, and only where the stop time
+     * was not already let go by a respect, a single stop time being accounted for once */
+    var state = registerSeenStopTimeInScope(gtfsStopTime);
+    boolean ruledOutOfScope = collectRespectRulingOut(state) != null;
 
     if(data.getDiagnostics().isDiscarded(GtfsObjectType.TRIP, gtfsStopTime.getTripId())) {
-      data.getDiagnostics().registerIssue(
-          GtfsParseIssue.STOP_TIME_OF_DISCARDED_TRIP, gtfsStopTime.getTripId());
+      if(!ruledOutOfScope){
+        /* the trip went for a cause that is no matter of scope, which a respect therefore cannot name */
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_TIME_OF_DISCARDED_TRIP, state, gtfsStopTime.getTripId());
+      }
       return;
     }
 
     /* PREP */
     GtfsTrip gtfsTrip = data.getGtfsTripByGtfsTripId(gtfsStopTime.getTripId());
     if(gtfsTrip == null){
-      data.getDiagnostics().registerIssue(
-          GtfsParseIssue.STOP_TIME_TRIP_UNRESOLVED, gtfsStopTime.getTripId());
+      if(!ruledOutOfScope){
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_TIME_TRIP_UNRESOLVED, state, gtfsStopTime.getTripId());
+      }
       return;
     }
 
     var planitRoutedService = data.getRoutedServiceByExternalId(gtfsTrip.getRouteId());
     if(planitRoutedService == null){
-      data.getDiagnostics().registerIssue(
-          GtfsParseIssue.STOP_TIME_ROUTE_UNRESOLVED, gtfsTrip.getTripId(),
-          gtfsTrip.getRouteId(), gtfsStopTime.getStopId());
+      if(!ruledOutOfScope){
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_TIME_ROUTE_UNRESOLVED, state, gtfsTrip.getTripId(),
+            gtfsTrip.getRouteId(), gtfsStopTime.getStopId());
+      }
       return;
     }
     /* the trip before this one has had all its stop times seen, so whether any of them fell within the time period
@@ -373,10 +471,12 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
     /* GTFS may contain virtually identical entries in terms of arrival departure times for the same trip and stop. These are filtered here */
     if(!isTripDepartureTime && prevSameTripStopTime!= null && isConsideredEqual(gtfsStopTime, prevSameTripStopTime)){
-      data.getDiagnostics().registerIssue(
-          GtfsParseIssue.STOP_TIME_DUPLICATE,
-          gtfsStopTime.getTripId(),
-          gtfsStopTime.getStopId(), gtfsStopTime.getStopSequence());
+      if(!ruledOutOfScope){
+        data.getDiagnostics().registerIssue(
+            GtfsParseIssue.STOP_TIME_DUPLICATE, state,
+            gtfsStopTime.getTripId(),
+            gtfsStopTime.getStopId(), gtfsStopTime.getStopSequence());
+      }
       return;
     }
 
@@ -392,8 +492,10 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
     /* STOP_TIME - INTERMEDIATE STOP */
     else{
       if(prevStopTimeTrip == null){
-        data.getDiagnostics().registerIssue(
-            GtfsParseIssue.STOP_TIME_NON_CONSECUTIVE, gtfsStopTime.getTripId());
+        if(!ruledOutOfScope){
+          data.getDiagnostics().registerIssue(
+              GtfsParseIssue.STOP_TIME_NON_CONSECUTIVE, state, gtfsStopTime.getTripId());
+        }
         return;
       }
 

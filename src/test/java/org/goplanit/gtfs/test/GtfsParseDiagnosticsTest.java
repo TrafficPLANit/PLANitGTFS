@@ -282,7 +282,7 @@ public class GtfsParseDiagnosticsTest {
         GtfsParseIssue.STOP_POSSIBLY_ON_WRONG_SIDE_OF_ROAD, "s1", "Central Station", "151.2", "-33.8",
         "id: 7, xmlId: l_7, extId: 71", "Eddy Avenue", "id: 9, xmlId: l_9, extId: 91");
 
-    diagnostics.persist(tempDir);
+    diagnostics.persist(tempDir, true);
 
     var discards = Files.readAllLines(tempDir.resolve("gtfs_discards.csv"), StandardCharsets.UTF_8);
     var issues = Files.readAllLines(tempDir.resolve("gtfs_issues.csv"), StandardCharsets.UTF_8);
@@ -304,6 +304,26 @@ public class GtfsParseDiagnosticsTest {
   }
 
   @Test
+  public void persistLeavesOutByDesignIssuesTest() throws IOException {
+    var diagnostics = GtfsParseDiagnostics.create();
+
+    diagnostics.registerSeen(GtfsObjectType.ROUTE, 10);
+    diagnostics.registerSeen(GtfsObjectType.STOP_TIME, 20);
+    diagnostics.registerIssue(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS, "r1");
+    diagnostics.registerIssue(GtfsParseIssue.STOP_TIME_DUPLICATE, "t1", "s9", "4");
+
+    diagnostics.persist(tempDir, false);
+    var discards = Files.readAllLines(tempDir.resolve("gtfs_discards.csv"), StandardCharsets.UTF_8);
+
+    /* what the run was asked to leave out is not listed entity by entity, what it did not ask for still is */
+    assertEquals(2, discards.size());
+    assertTrue(discards.get(1).contains("STOP_TIME_DUPLICATE"));
+
+    /* its total is reported either way, the listing being a detail behind the count rather than the count itself */
+    assertEquals(1, diagnostics.getOccurrences(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS));
+  }
+
+  @Test
   public void persistedCoverageRowsAreDisjointTest() throws IOException {
     var diagnostics = GtfsParseDiagnostics.create();
 
@@ -314,7 +334,7 @@ public class GtfsParseDiagnosticsTest {
     diagnostics.registerSeen(GtfsObjectType.STOP_TIME, 1000);
     diagnostics.registerIssue(GtfsParseIssue.STOP_TIME_DUPLICATE, "st1", "s1", "1");
 
-    diagnostics.persist(tempDir);
+    diagnostics.persist(tempDir, true);
     var rows = Files.readAllLines(tempDir.resolve("gtfs_coverage_summary.csv"), StandardCharsets.UTF_8);
 
     long countOfRoutes = 0;
@@ -363,7 +383,7 @@ public class GtfsParseDiagnosticsTest {
     diagnostics.registerSeenOutOfScope(GtfsObjectType.TRIP, GtfsScopeDimension.TEMPORAL, "t1");
     diagnostics.registerIssue(GtfsParseIssue.TRIP_SERVICE_ID_NOT_ACTIVE_ON_DAY, "t1");
 
-    diagnostics.persist(tempDir);
+    diagnostics.persist(tempDir, true);
     var rows = Files.readAllLines(tempDir.resolve("gtfs_issue_summary.csv"), StandardCharsets.UTF_8);
 
     var scopesByIssue = new java.util.HashMap<String, String[]>();
@@ -388,4 +408,5 @@ public class GtfsParseDiagnosticsTest {
         inactiveTrip[GtfsIssueSummaryCsvColumn.SPATIAL_SCOPE.ordinal()]);
   }
 }
+
 

@@ -587,7 +587,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param entityId the GTFS id of the entity concerned, may be null when not entity specific
    */
   public void registerIssue(final GtfsParseIssue issue, final String entityId) {
-    registerIssue(issue, null, entityId, NO_DETAIL_ARGS);
+    registerIssue(issue, (Enum<?>) null, entityId, NO_DETAIL_ARGS);
   }
 
   /**
@@ -599,7 +599,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * @param detailArgs the arguments the issue's detail template expects
    */
   public void registerIssue(final GtfsParseIssue issue, final String entityId, final Object... detailArgs) {
-    registerIssue(issue, null, entityId, detailArgs);
+    registerIssue(issue, (Enum<?>) null, entityId, detailArgs);
   }
 
   /**
@@ -614,6 +614,20 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   public void registerIssue(
       final GtfsParseIssue issue, final Enum<?> subType, final String entityId, final Object... detailArgs) {
     registerIssue(issue, subType, null, entityId, detailArgs);
+  }
+
+  /**
+   * Register an issue against an entity whose scope the call site knows and which falls under no subType
+   *
+   * @param issue encountered
+   * @param state the entity stood in when the issue arose
+   * @param entityId the GTFS id of the entity concerned, may be null when not entity specific
+   * @param detailArgs the arguments the issue's detail template expects
+   */
+  public void registerIssue(
+      final GtfsParseIssue issue, final GtfsScopeState state, final String entityId,
+      final Object... detailArgs) {
+    registerIssue(issue, null, state, entityId, detailArgs);
   }
 
   /**
@@ -1595,16 +1609,47 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   public void logSummary() {
     logScopeSummary();
 
-    /* an entity type narrowed in no respect the run established has no funnel to report its losses under, so they are
-     * gathered here rather than left unsaid */
-    var unscopedTypes = Arrays.stream(GtfsObjectType.values()).filter(
-        entityType -> getSeenInFeed(entityType) > 0 && getSettledRespectsOf(entityType).isEmpty()).collect(
-        Collectors.toList());
-    if (!unscopedTypes.isEmpty()) {
-      LOGGER.info(LoggingUtils.surroundWithBrackets("ISSUES") + "of entities whose scope was never established");
-      unscopedTypes.forEach(
-          entityType -> logIssuesReportedAt(entityType, null, getSeenInFeed(entityType), "feed", 1, true));
+    /* an occurrence the funnel above places at no respect, its entity having been let go before its standing could be
+     * told, is gathered here rather than left unsaid */
+    var withoutScope = Arrays.stream(GtfsParseIssue.values())
+        .map(issue -> Map.entry(issue, getOccurrencesWithoutEstablishedScope(issue)))
+        .filter(entry -> entry.getValue() > 0)
+        .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
+        .collect(Collectors.toList());
+    if (!withoutScope.isEmpty()) {
+      LOGGER.info(
+          LoggingUtils.surroundWithBrackets("UNKNOWN SCOPE") + "of entities whose scope was never established");
+      withoutScope.forEach(entry -> LOGGER.info(LoggingUtils.settingsValue(
+          String.format("%s | %s", entry.getKey().getEntityLabel(), entry.getKey().getDescription()),
+          LoggingUtils.countWithPercentage(
+              entry.getValue(), getSeenInFeed(entry.getKey().getEntityType()), "feed")
+              + " [" + entry.getKey().getDisposition() + "]", 1)));
     }
+  }
+
+  /**
+   * Collect how often an issue was registered against entities the report places at no respect at all.
+   * <p>
+   * An occurrence stands either at the respect that ruled its entity out or, where none did, among those within scope
+   * throughout. One whose entity was let go before any respect that applies to it could be settled stands at neither,
+   * and so is reported nowhere unless it is gathered separately
+   * </p>
+   *
+   * @param issue to total for
+   * @return occurrences the funnel places nowhere
+   */
+  public long getOccurrencesWithoutEstablishedScope(final GtfsParseIssue issue) {
+    var respects = getSettledRespectsOf(issue.getEntityType());
+    if (respects.isEmpty()) {
+      /* a type narrowed in no respect the run established has no funnel to be placed in at all */
+      return getOccurrences(issue);
+    }
+
+    long placed = getOccurrencesReportedAt(issue, null);
+    for (var dimension : respects) {
+      placed += getOccurrencesFilteredAt(issue, dimension);
+    }
+    return getOccurrences(issue) - placed;
   }
 
   /**
@@ -1612,14 +1657,15 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * to the entities that produced it
    *
    * @param outputDirectory to write the files to, created when absent
+   * @param persistByDesignIssues whether occurrences of what the run was asked to leave out are written as well
    */
-  public void persist(final Path outputDirectory) {
+  public void persist(final Path outputDirectory, final boolean persistByDesignIssues) {
     persistEntityIssues(
         outputDirectory.resolve("gtfs_discards.csv"), discards, GtfsIssueCsvColumn.getHeaders(),
-        GtfsParseOutcome.DISCARDED);
+        GtfsParseOutcome.DISCARDED, persistByDesignIssues);
     persistEntityIssues(
         outputDirectory.resolve("gtfs_issues.csv"), retainedIssues, GtfsIssueCsvColumn.getHeaders(),
-        GtfsParseOutcome.PARSED);
+        GtfsParseOutcome.PARSED, persistByDesignIssues);
     persistCoverageSummary(outputDirectory.resolve("gtfs_coverage_summary.csv"));
     persistIssueSummary(outputDirectory.resolve("gtfs_issue_summary.csv"));
   }

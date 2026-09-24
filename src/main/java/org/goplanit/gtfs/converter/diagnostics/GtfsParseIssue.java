@@ -121,13 +121,40 @@ public enum GtfsParseIssue implements GtfsIssue {
   /* SERVICES - stop times */
 
   /**
-   * Stop time belongs to a trip that was discarded. Registered for every stop time of every discarded trip, so it
-   * deliberately carries no template: composing context for an occurrence arriving in the millions costs more than the
-   * context is worth, and the trip's own discard already records the reason
+   * Stop time belongs to a trip that was discarded for a cause that is not a matter of scope, the stop times of a trip
+   * beyond the day, the modes or the selection the run covers being named by the respect concerned instead.
+   * <p>
+   * Counted and nothing more, as every issue of a stop time is: a feed the size of Sydney's holds millions of them, and
+   * the trip's own discard already records what befell it
+   * </p>
    */
   STOP_TIME_OF_DISCARDED_TRIP(
       GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.BY_DESIGN, true,
-      GtfsIssueLogPolicy.COLLATED, "Stop time of a discarded trip", null),
+      GtfsIssueLogPolicy.SILENT_COUNT_ONLY, "Stop time of a discarded trip", null),
+
+  /** stop time belongs to a trip running on no day the run was configured for */
+  STOP_TIME_TRIP_NOT_ACTIVE_ON_DAY(
+      GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.BY_DESIGN, true,
+      GtfsIssueLogPolicy.SILENT_COUNT_ONLY, "Stop time of a trip not running on the chosen day", null),
+
+  /** stop time belongs to a trip of a route left out of the run by name */
+  STOP_TIME_ROUTE_EXCLUDED(
+      GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.BY_DESIGN, true,
+      GtfsIssueLogPolicy.SILENT_COUNT_ONLY, "Stop time of a route excluded from the run", null),
+
+  /** stop time belongs to a trip of a route serving a mode the run does not cover */
+  STOP_TIME_ROUTE_MODE_NOT_ACTIVATED(
+      GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.BY_DESIGN, true,
+      GtfsIssueLogPolicy.SILENT_COUNT_ONLY, "Stop time of a route whose mode is not activated", null),
+
+  /**
+   * the stop of the stop time lies beyond the area the physical network covers, which the run reports against rather
+   * than parses by, so the stop time is read in full and comes to nothing only once the services are aligned with that
+   * network
+   */
+  STOP_TIME_OUTSIDE_NETWORK_AREA(
+      GtfsParseStage.SERVICES, GtfsObjectType.STOP_TIME, GtfsIssueDisposition.BY_DESIGN, false,
+      GtfsIssueLogPolicy.SILENT_COUNT_ONLY, "Stop time at a stop outside the network area", null),
 
   /** stop time repeats one already parsed for the same trip */
   STOP_TIME_DUPLICATE(

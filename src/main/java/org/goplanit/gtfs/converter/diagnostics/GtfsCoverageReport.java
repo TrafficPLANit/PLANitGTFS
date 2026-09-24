@@ -32,12 +32,14 @@ public final class GtfsCoverageReport {
    * @param planitEntityDiagnostics what became of the PLANit entities derived from them, null when the parse derived
    *                                none
    * @param persist whether to write the per entity detail behind the totals to disk
+   * @param persistByDesignIssues whether that detail covers what the run was asked to leave out as well
    * @param outputDirectory to write that detail to, only used when persisting
    */
   public static void report(
       final GtfsParseDiagnostics rawGtfsEntityDiagnostics,
       final GtfsPlanitEntityDiagnostics planitEntityDiagnostics,
       final boolean persist,
+      final boolean persistByDesignIssues,
       final String outputDirectory) {
 
     LOGGER.info("Coverage:");
@@ -51,9 +53,9 @@ public final class GtfsCoverageReport {
     }
 
     var directory = Path.of(outputDirectory);
-    rawGtfsEntityDiagnostics.persist(directory);
+    rawGtfsEntityDiagnostics.persist(directory, persistByDesignIssues);
     if(planitEntityDiagnostics != null) {
-      planitEntityDiagnostics.persist(directory);
+      planitEntityDiagnostics.persist(directory, persistByDesignIssues);
     }
     LOGGER.info(String.format("Persisted parse diagnostics to %s", directory.toAbsolutePath()));
   }

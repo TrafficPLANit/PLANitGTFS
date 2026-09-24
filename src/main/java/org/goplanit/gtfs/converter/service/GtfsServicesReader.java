@@ -461,7 +461,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
       /* this reader is the whole parse, so what became of the feed is complete and can be reported */
       GtfsCoverageReport.report(
           this.rawGtfsEntityDiagnostics, null, getSettings().isPersistParseDiagnostics(),
-          getSettings().getParseDiagnosticsOutputDirectory());
+          getSettings().isPersistByDesignIssues(), getSettings().getParseDiagnosticsOutputDirectory());
     }
 
     /* return parsed GTFS services in PLANit memory model form*/

@@ -5,11 +5,16 @@ import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.LoggingUtils;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
@@ -31,11 +36,27 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   /** The logger for this class */
   private static final Logger LOGGER = Logger.getLogger(GtfsPlanitEntityDiagnostics.class.getCanonicalName());
 
-  /** entities of each type the converter set out to build */
-  private final Map<GtfsPlanitEntityType, LongAdder> desiredByType = new ConcurrentHashMap<>();
+  /** subdivision an entity is counted under where it belongs to none */
+  private static final String NO_SUBTYPE = "";
 
-  /** entities of each type that came about */
-  private final Map<GtfsPlanitEntityType, LongAdder> createdByType = new ConcurrentHashMap<>();
+  /** listing the recorded occurrences are written to */
+  private static final String ISSUES_FILE_NAME = "gtfs_planit_entity_issues.csv";
+
+  /** entities of each type, and of each subdivision of it, the converter set out to build */
+  private final Map<GtfsPlanitEntityType, Map<String, LongAdder>> desiredByType = new ConcurrentHashMap<>();
+
+  /** entities of each type, and of each subdivision of it, that came about */
+  private final Map<GtfsPlanitEntityType, Map<String, LongAdder>> createdByType = new ConcurrentHashMap<>();
+
+  /**
+   * Entities of each type, and of each subdivision of it, lost building the PLANit result rather than through the
+   * feed side losing what they were to be built from.
+   * <p>
+   * Counted alongside the issues that name them because an issue is not recorded per subdivision of its entity type,
+   * so what a subdivision lost of its own accord cannot be read back off them
+   * </p>
+   */
+  private final Map<GtfsPlanitEntityType, Map<String, LongAdder>> lostByType = new ConcurrentHashMap<>();
 
   /** occurrences of every issue recorded */
   private final LogCollator issues;
@@ -142,7 +163,78 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    */
   @Override
   protected long getDenominator(final GtfsPlanitEntityIssue issue) {
-    return getDesired(issue.getEntityType());
+    return issue.isKnockOnFromGtfsParsing()
+        ? getDesired(issue.getEntityType()) : getSurvivingKnockOn(issue.getEntityType());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected String getDenominatorLabel(final GtfsPlanitEntityIssue issue) {
+    return issue.isKnockOnFromGtfsParsing() ? super.getDenominatorLabel(issue) : "surviving knock-on";
+  }
+
+  /**
+   * Collect the entities of a type that the losses carried over from the feed side left behind, which is what became
+   * of them plus what was subsequently lost building the PLANit result.
+   * <p>
+   * The population an issue of PLANit's own making could have arisen for. Measured against everything that was to be
+   * built, such an issue reads as negligible whenever the feed side took away most of it, which says how much of the
+   * feed reached here rather than how much of what reached here was lost
+   * </p>
+   *
+   * @param entityType to collect for
+   * @return number left for the PLANit side to lose
+   */
+  private long getSurvivingKnockOn(final GtfsPlanitEntityType entityType) {
+    long ownLosses = Arrays.stream(GtfsPlanitEntityIssue.values())
+        .filter(issue -> issue.getEntityType() == entityType && !issue.isKnockOnFromGtfsParsing())
+        .mapToLong(this::getOccurrences).sum();
+    return getCreated(entityType) + ownLosses;
+  }
+
+  /**
+   * Collect the entities within a subdivision of a type that the losses carried over from the feed side left behind
+   *
+   * @param entityType to collect for
+   * @param subType to collect for
+   * @return number left for the PLANit side to lose
+   */
+  private long getSurvivingKnockOn(final GtfsPlanitEntityType entityType, final String subType) {
+    return getCreated(entityType, subType) + sumOf(lostByType.get(entityType), subType);
+  }
+
+  /**
+   * State what is in the result both against what the losses carried over from the feed side left behind and against
+   * everything that was to be built.
+   * <p>
+   * The first says how much of what reached the PLANit side survived it, which is the only figure that speaks of this
+   * stage; the second says how much of the feed came through everything, which is what a reader takes away from the
+   * report as a whole
+   * </p>
+   *
+   * @param created that are in the result
+   * @param survivingKnockOn that the feed side losses left behind
+   * @param desired that were to be built
+   * @return created value
+   */
+  private static String createPresenceValue(
+      final long created, final long survivingKnockOn, final long desired) {
+    return String.format(
+        "%d (%.2f%% after filtering, post-GTFS pruning, %.2f%% of potential total)",
+        created, asPercentage(created, survivingKnockOn), asPercentage(created, desired));
+  }
+
+  /**
+   * Express a count as a percentage of a population
+   *
+   * @param count to express
+   * @param population to express it against
+   * @return percentage, zero where the population is empty
+   */
+  private static double asPercentage(final long count, final long population) {
+    return population > 0 ? (100.0 * count) / population : 0.0;
   }
 
   /**
@@ -169,7 +261,21 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * @param numberOfEntities that were to be in the result
    */
   public void registerDesired(final GtfsPlanitEntityType entityType, final long numberOfEntities) {
-    collectCounter(desiredByType, entityType).add(numberOfEntities);
+    registerDesired(entityType, null, numberOfEntities);
+  }
+
+  /**
+   * Register entities of a type, within a subdivision of it, that were to be in the result
+   *
+   * @param entityType concerned
+   * @param subType the entities belong to, null where the type is not subdivided
+   * @param numberOfEntities that were to be in the result
+   */
+  public void registerDesired(
+      final GtfsPlanitEntityType entityType, final String subType, final long numberOfEntities) {
+    collectCounter(
+        collectSubTypeCounters(desiredByType, entityType),
+        subType != null ? subType : NO_SUBTYPE).add(numberOfEntities);
   }
 
   /**
@@ -179,7 +285,48 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * @param numberOfEntities in the result
    */
   public void registerCreated(final GtfsPlanitEntityType entityType, final long numberOfEntities) {
-    collectCounter(createdByType, entityType).add(numberOfEntities);
+    registerCreated(entityType, null, numberOfEntities);
+  }
+
+  /**
+   * Register entities of a type, within a subdivision of it, that are in the result
+   *
+   * @param entityType concerned
+   * @param subType the entities belong to, null where the type is not subdivided
+   * @param numberOfEntities in the result
+   */
+  public void registerCreated(
+      final GtfsPlanitEntityType entityType, final String subType, final long numberOfEntities) {
+    collectCounter(
+        collectSubTypeCounters(createdByType, entityType),
+        subType != null ? subType : NO_SUBTYPE).add(numberOfEntities);
+  }
+
+  /**
+   * Register entities of a type, within a subdivision of it, lost building the PLANit result rather than through the
+   * feed side losing what they were to be built from
+   *
+   * @param entityType concerned
+   * @param subType the entities belong to, null where the type is not subdivided
+   * @param numberOfEntities lost
+   */
+  public void registerLost(
+      final GtfsPlanitEntityType entityType, final String subType, final long numberOfEntities) {
+    collectCounter(
+        collectSubTypeCounters(lostByType, entityType),
+        subType != null ? subType : NO_SUBTYPE).add(numberOfEntities);
+  }
+
+  /**
+   * Collect the counters held per subdivision of an entity type, creating them where the type is new
+   *
+   * @param counters to collect from
+   * @param entityType to collect for
+   * @return counters by subdivision
+   */
+  private static Map<String, LongAdder> collectSubTypeCounters(
+      final Map<GtfsPlanitEntityType, Map<String, LongAdder>> counters, final GtfsPlanitEntityType entityType) {
+    return counters.computeIfAbsent(entityType, absentType -> new ConcurrentHashMap<>());
   }
 
   /**
@@ -292,7 +439,57 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * @return number set out to build
    */
   public long getDesired(final GtfsPlanitEntityType entityType) {
-    var counter = desiredByType.get(entityType);
+    return sumOf(desiredByType.get(entityType));
+  }
+
+  /**
+   * Collect how many entities within a subdivision of a type the converter set out to build
+   *
+   * @param entityType to collect for
+   * @param subType to collect for
+   * @return number set out to build
+   */
+  public long getDesired(final GtfsPlanitEntityType entityType, final String subType) {
+    return sumOf(desiredByType.get(entityType), subType);
+  }
+
+  /**
+   * Collect the subdivisions an entity type was counted under, ordered by name
+   *
+   * @param entityType to collect for
+   * @return subdivisions, empty where the type is not subdivided
+   */
+  public Set<String> getSubTypes(final GtfsPlanitEntityType entityType) {
+    var counters = desiredByType.get(entityType);
+    if (counters == null) {
+      return Collections.emptySet();
+    }
+    return counters.keySet().stream().filter(subType -> !NO_SUBTYPE.equals(subType)).collect(
+        Collectors.toCollection(TreeSet::new));
+  }
+
+  /**
+   * Total the counters held per subdivision
+   *
+   * @param counters to total, may be null
+   * @return total
+   */
+  private static long sumOf(final Map<String, LongAdder> counters) {
+    return counters == null ? 0 : counters.values().stream().mapToLong(LongAdder::sum).sum();
+  }
+
+  /**
+   * Collect a single subdivision's counter
+   *
+   * @param counters to collect from, may be null
+   * @param subType to collect for
+   * @return count
+   */
+  private static long sumOf(final Map<String, LongAdder> counters, final String subType) {
+    if (counters == null) {
+      return 0;
+    }
+    var counter = counters.get(subType);
     return counter != null ? counter.sum() : 0;
   }
 
@@ -303,8 +500,18 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * @return number created
    */
   public long getCreated(final GtfsPlanitEntityType entityType) {
-    var counter = createdByType.get(entityType);
-    return counter != null ? counter.sum() : 0;
+    return sumOf(createdByType.get(entityType));
+  }
+
+  /**
+   * Collect how many entities within a subdivision of a type came about
+   *
+   * @param entityType to collect for
+   * @param subType to collect for
+   * @return number created
+   */
+  public long getCreated(final GtfsPlanitEntityType entityType, final String subType) {
+    return sumOf(createdByType.get(entityType), subType);
   }
 
   /**
@@ -313,8 +520,15 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * @param other to absorb
    */
   public void merge(final GtfsPlanitEntityDiagnostics other) {
-    other.desiredByType.forEach((type, counter) -> collectCounter(desiredByType, type).add(counter.sum()));
-    other.createdByType.forEach((type, counter) -> collectCounter(createdByType, type).add(counter.sum()));
+    other.desiredByType.forEach((type, counters) -> counters.forEach(
+        (subType, counter) -> collectCounter(
+            collectSubTypeCounters(desiredByType, type), subType).add(counter.sum())));
+    other.createdByType.forEach((type, counters) -> counters.forEach(
+        (subType, counter) -> collectCounter(
+            collectSubTypeCounters(createdByType, type), subType).add(counter.sum())));
+    other.lostByType.forEach((type, counters) -> counters.forEach(
+        (subType, counter) -> collectCounter(
+            collectSubTypeCounters(lostByType, type), subType).add(counter.sum())));
     issues.merge(other.issues);
     other.dispositionBySubType.forEach((issue, dispositions) -> dispositionBySubType.computeIfAbsent(
         issue, absentIssue -> new ConcurrentHashMap<>()).putAll(dispositions));
@@ -330,21 +544,122 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   public void logSummary() {
     LOGGER.info(LoggingUtils.surroundWithBrackets("PLANIT ENTITIES") + "derived from the feed");
 
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Present in result", "count (share after post-GTFS pruning, share of potential total)", 2));
     for (var entityType : GtfsPlanitEntityType.values()) {
       if (getDesired(entityType) == 0) {
         continue;
       }
       LOGGER.info(LoggingUtils.settingsValue(
-          String.format("%s in result", entityType.getLabel()),
-          LoggingUtils.countWithPercentage(getCreated(entityType), getDesired(entityType)), 2));
+          entityType.getLabel(),
+          createPresenceValue(
+              getCreated(entityType), getSurvivingKnockOn(entityType), getDesired(entityType)), 3));
+      logSubTypesOf(entityType);
     }
 
+    var knockOn = new ArrayList<GtfsPlanitEntityIssue>();
+    var ownLosses = new ArrayList<GtfsPlanitEntityIssue>();
     for (var issue : GtfsPlanitEntityIssue.values()) {
-      if (isReportedInSummary(issue)) {
-        LOGGER.info(createIssueLogEntry(issue));
-        logSubTypesOf(issue);
+      if (!isReportedInSummary(issue)) {
+        continue;
       }
+      (issue.isKnockOnFromGtfsParsing() ? knockOn : ownLosses).add(issue);
     }
+    logLostBuildingResult(ownLosses);
+    logKnockOnFromGtfsParsing(knockOn);
+  }
+
+  /**
+   * Log what was lost building the PLANit result itself, the feed side accounting for none of it.
+   * <p>
+   * These stand apart from what the feed cost: they are what the converter did to entities that had made it this far,
+   * and the only entries here a reader can act upon
+   * </p>
+   *
+   * @param issues to log, those whose loss originates here
+   */
+  private void logLostBuildingResult(final List<GtfsPlanitEntityIssue> issues) {
+    if (issues.isEmpty()) {
+      return;
+    }
+
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Lost building the PLANit result", "not accounted for by the feed side", 2));
+    issues.forEach(issue -> {
+      LOGGER.info(createIssueLogEntry(issue, 3));
+      logSubTypesOf(issue);
+    });
+  }
+
+  /**
+   * Log what was lost here because the GTFS entities behind it were lost, largest first.
+   * <p>
+   * How many were lost is worth stating, one discarded stop costing as many legs as it was a stop of, and that
+   * multiplier appears nowhere on the feed side. Why they were lost does not: it is the reason already given there,
+   * and repeating the split of it entry by entry says the same thing a second time in the same report. What is left is
+   * the count, with the listing holding the cause against each entity for anyone who needs to follow one through
+   * </p>
+   *
+   * @param issues to log, those whose loss carries over from the feed side
+   */
+  private void logKnockOnFromGtfsParsing(final List<GtfsPlanitEntityIssue> issues) {
+    if (issues.isEmpty()) {
+      return;
+    }
+
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Knock-on from GTFS parsing", "cause per entity in " + ISSUES_FILE_NAME, 2));
+    issues.stream()
+        .sorted((left, right) -> Long.compare(getOccurrences(right), getOccurrences(left)))
+        .forEach(issue -> {
+          LOGGER.info(LoggingUtils.settingsValue(
+              String.format("%s | %s", issue.getEntityLabel(), issue.getDescription()),
+              LoggingUtils.countWithPercentage(
+                  getOccurrences(issue), getDenominator(issue), getDenominatorLabel(issue)), 3));
+          logSubTypesWithoutGtfsCauseOf(issue);
+        });
+  }
+
+  /**
+   * Log the occurrences of a knock-on issue whose subdivision names no GTFS issue, the feed side accounting for
+   * everything but these
+   *
+   * @param issue to log for
+   */
+  private void logSubTypesWithoutGtfsCauseOf(final GtfsPlanitEntityIssue issue) {
+    getOccurrencesBySubType(issue).entrySet().stream()
+        .filter(entry -> GtfsParseIssue.findByName(entry.getKey()) == null)
+        .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
+        .forEach(entry -> LOGGER.info(LoggingUtils.settingsValue(
+            entry.getKey(),
+            LoggingUtils.countWithPercentage(entry.getValue(), getOccurrences(issue), "occurrences")
+                + " [" + getDispositionOf(issue, entry.getKey()) + "]", 4)));
+  }
+
+  /**
+   * Log how an entity type divides over the subdivisions it was counted under, each stated as what it is in the result
+   * against what was to be there, largest first.
+   * <p>
+   * A type that only ever falls short in part of what it covers reads as though it fell short throughout, the total
+   * alone being unable to tell one mode running as it should from another that lost nearly everything
+   * </p>
+   *
+   * @param entityType to log for
+   */
+  private void logSubTypesOf(final GtfsPlanitEntityType entityType) {
+    var subTypes = getSubTypes(entityType);
+    if (subTypes.size() < 2) {
+      /* a single subdivision only restates the entry above it */
+      return;
+    }
+
+    subTypes.stream()
+        .sorted((left, right) -> Long.compare(getDesired(entityType, right), getDesired(entityType, left)))
+        .forEach(subType -> LOGGER.info(LoggingUtils.settingsValue(
+            subType,
+            createPresenceValue(
+                getCreated(entityType, subType), getSurvivingKnockOn(entityType, subType),
+                getDesired(entityType, subType)), 4)));
   }
 
   /**
@@ -369,7 +684,7 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
         .forEach(entry -> LOGGER.info(LoggingUtils.settingsValue(
             describeSubType(entry.getKey()),
             LoggingUtils.countWithPercentage(entry.getValue(), total, "occurrences")
-                + " [" + getDispositionOf(issue, entry.getKey()) + "]", 3)));
+                + " [" + getDispositionOf(issue, entry.getKey()) + "]", 4)));
   }
 
   /**
@@ -413,11 +728,25 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * Persist one row per recorded occurrence
    *
    * @param outputDirectory to write to
+   * @param persistByDesignIssues whether occurrences of what the run was asked to leave out are written as well
    */
-  public void persist(final Path outputDirectory) {
+  public void persist(final Path outputDirectory, final boolean persistByDesignIssues) {
     persistEntityIssues(
-        outputDirectory.resolve("gtfs_planit_entity_issues.csv"), issues, GtfsPlanitEntityCsvColumn.getHeaders(),
-        null);
+        outputDirectory.resolve(ISSUES_FILE_NAME), issues, GtfsPlanitEntityCsvColumn.getHeaders(), null,
+        persistByDesignIssues);
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * A derived entity is lost for reasons that differ in kind within a single issue, so an occurrence is weighed by
+   * what its own subdivision earned rather than by what its issue is declared with
+   * </p>
+   */
+  @Override
+  protected GtfsIssueDisposition getDispositionOf(
+      final GtfsPlanitEntityIssue issue, final LogCollator.Occurrence occurrence) {
+    return getDispositionOf(issue, occurrence.getEntitySubType());
   }
 
   /**
@@ -428,6 +757,7 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
     super.reset();
     desiredByType.clear();
     createdByType.clear();
+    lostByType.clear();
     occurrencesBySubType.clear();
     dispositionBySubType.clear();
   }

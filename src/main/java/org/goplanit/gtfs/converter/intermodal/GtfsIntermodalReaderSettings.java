@@ -177,6 +177,25 @@ public class GtfsIntermodalReaderSettings implements ConverterReaderSettings {
     getZoningSettings().setPersistParseDiagnostics(persistParseDiagnostics);
   }
 
+  /** Verify whether the persisted detail lists what the run was asked to leave out entity by entity, those being
+   * expected rather than a shortcoming and running to millions of entries on a sizeable feed, while their totals are
+   * reported either way
+   *
+   * @return true when listed, false otherwise
+   */
+  public boolean isPersistByDesignIssues() {
+    return getServiceSettings().isPersistByDesignIssues();
+  }
+
+  /** Set whether the persisted detail lists what the run was asked to leave out entity by entity
+   *
+   * @param persistByDesignIssues to set
+   */
+  public void setPersistByDesignIssues(boolean persistByDesignIssues) {
+    getServiceSettings().setPersistByDesignIssues(persistByDesignIssues);
+    getZoningSettings().setPersistByDesignIssues(persistByDesignIssues);
+  }
+
   /** The directory the parse diagnostics are written to
    *
    * @return output directory

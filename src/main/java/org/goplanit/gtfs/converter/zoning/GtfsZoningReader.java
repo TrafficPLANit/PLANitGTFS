@@ -247,7 +247,7 @@ public class GtfsZoningReader implements ZoningReader {
       /* this reader is the whole parse, so what became of the feed is complete and can be reported */
       GtfsCoverageReport.report(
           this.rawGtfsEntityDiagnostics, null, getSettings().isPersistParseDiagnostics(),
-          getSettings().getParseDiagnosticsOutputDirectory());
+          getSettings().isPersistByDesignIssues(), getSettings().getParseDiagnosticsOutputDirectory());
     }
 
     /* generate mapping function now that mapping is known, for third parties to use if needed */
