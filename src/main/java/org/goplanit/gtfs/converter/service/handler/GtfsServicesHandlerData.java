@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter.service.handler;
 
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.service.GtfsServicesHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
@@ -300,8 +301,8 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
       return isEligibleDeparture.apply(departureTime.asLocalTimeAfterMidnight());
 
     }else{
-      LOGGER.severe("ServiceId active but GTFSCalendar entry does not match eligible active day, " +
-              "this should not happen");
+      getDiagnostics().registerIssue(
+          GtfsParseIssue.TRIP_CALENDAR_ACTIVE_DAY_MISMATCH, (String) null, serviceId);
       return false;
     }
   }

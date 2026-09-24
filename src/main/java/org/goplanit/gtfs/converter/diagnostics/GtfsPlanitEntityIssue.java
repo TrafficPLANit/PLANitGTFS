@@ -33,6 +33,25 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
       "Transfer zone group removed, no transfer zone left in it", null, Templates.REMOVED_ENTITY_IDS),
 
+  /**
+   * the connectoid holds no entry for the transfer zone whose modes were to be added to it, so the stop's modes
+   * never reach the network there and the zone may not be boardable for them
+   */
+  CONNECTOID_WITHOUT_ACCESS_ZONE_ENTRY(
+      GtfsPlanitEntityType.CONNECTOID, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, false, GtfsIssueLogPolicy.COLLATED,
+      "Connectoid modes not updated, it holds no entry for the transfer zone", null,
+      Templates.REMOVED_ENTITY_IDS),
+
+  /**
+   * a routed service carries no trips at all by the time the stops are read, a service that runs nothing being of no
+   * use to anything downstream and pointing at how it was built rather than at the feed
+   */
+  ROUTED_SERVICE_WITHOUT_TRIPS_AT_ZONING(
+      GtfsPlanitEntityType.ROUTED_SERVICE, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, false, GtfsIssueLogPolicy.COLLATED,
+      "Routed service holds no trips when the stops are read", null, Templates.REMOVED_ENTITY_IDS),
+
   CONNECTOID_UNUSED_AFTER_CLEAN_UP(
       GtfsPlanitEntityType.CONNECTOID, GtfsIssueDisposition.BY_DESIGN,
       GtfsIssueOrigin.PLANIT_CONSTRUCTION, true, GtfsIssueLogPolicy.COLLATED,
@@ -59,6 +78,17 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
       GtfsIssueOrigin.PLANIT_CONSTRUCTION, false, GtfsIssueLogPolicy.COLLATED,
       "Unable to find available transfer zone access nodes, GTFS stop likely mapped to incorrect physical access node",
+      Templates.DETAIL, Templates.PERSISTED_DETAIL),
+
+  /**
+   * the layer the leg segment resides on does not carry the mode the service runs, so there is nothing to search a
+   * path over. The leg segment is left unmapped, which should not arise and points at the layer the service was
+   * attributed to rather than at the feed
+   */
+  LEG_SEGMENT_MODE_NOT_ON_LAYER(
+      GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
+      GtfsIssueOrigin.PLANIT_CONSTRUCTION, false, GtfsIssueLogPolicy.COLLATED,
+      "Service layer does not support the mode the leg segment is attributed to",
       Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
   /** no physical path exists between the endpoints of the leg segment for its mode */
@@ -107,7 +137,8 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
   TRIP_SCHEDULE_TRUNCATED_TO_NETWORK(
       GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN,
       GtfsIssueOrigin.GTFS_PARSING, true, GtfsIssueLogPolicy.COLLATED,
-      "Trip schedule truncated to network area", null, Templates.REMOVED_ENTITY_IDS),
+      "Trip schedule truncated to network area", null, Templates.REMOVED_ENTITY_IDS,
+      GtfsIssueEffect.MODIFICATION),
 
   /**
    * a trip schedule ran wholly beyond the network area, so there was never a part of it to keep and it was removed
@@ -201,6 +232,9 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
   /** entity specific context accompanying the description */
   private final GtfsIssueDetail detail;
 
+  /** what the issue does to the entity it names */
+  private final GtfsIssueEffect effect;
+
   /**
    * Constructor
    *
@@ -222,6 +256,35 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       final String description,
       final String detailTemplate,
       final String persistedDetailTemplate) {
+    this(
+        entityType, disposition, origin, discarding, logPolicy, description, detailTemplate,
+        persistedDetailTemplate, GtfsIssueEffect.REMOVAL);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param entityType PLANit entity type the issue applies to
+   * @param disposition what the issue says about the parser
+   * @param origin where the loss originates
+   * @param discarding whether the entity is lost to the issue
+   * @param logPolicy how the issue reaches the log
+   * @param description readable description used when reporting
+   * @param detailTemplate format of the entity specific context as logged, null when the issue logs none
+   * @param persistedDetailTemplate format of the entity specific context as persisted, null to use the logged one
+   * @param effect what the issue does to the entity it names
+   */
+  GtfsPlanitEntityIssue(
+      final GtfsPlanitEntityType entityType,
+      final GtfsIssueDisposition disposition,
+      final GtfsIssueOrigin origin,
+      final boolean discarding,
+      final GtfsIssueLogPolicy logPolicy,
+      final String description,
+      final String detailTemplate,
+      final String persistedDetailTemplate,
+      final GtfsIssueEffect effect) {
+    this.effect = effect;
     this.entityType = entityType;
     this.disposition = disposition;
     this.origin = origin;
@@ -272,6 +335,15 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
   @Override
   public String getEntityIdLabel() {
     return entityType.getEntityIdLabel();
+  }
+
+  /**
+   * Verify whether the entity the issue names is still in the result, altered by it, rather than gone
+   *
+   * @return true when the entity is altered rather than removed, false otherwise
+   */
+  public boolean isModification() {
+    return effect == GtfsIssueEffect.MODIFICATION;
   }
 
   /**

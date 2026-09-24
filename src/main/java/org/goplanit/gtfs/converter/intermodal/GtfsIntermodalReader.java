@@ -20,7 +20,6 @@ import org.goplanit.service.routed.modifier.event.handler.SyncDeparturesXmlIdToI
 import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlIdToIdHandler;
 import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
@@ -215,9 +214,16 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     /* SERVICES without geo filter (since locations are currently only parsed when considering GTFS stops via
      * (transfer) zoning reader), hence all routes/services are initially mapped to PLANit equivalents but without
      * mapping to physical network yet */
+    /* DIAGNOSTICS: what is built and what becomes of it spans every stage below, so the account they record into
+     * is established before the first of them runs */
+    this.planitEntityDiagnostics = GtfsPlanitEntityDiagnostics.create();
+    var cleanUpDiagnostics = new GtfsCleanUpDiagnostics(this.planitEntityDiagnostics);
+
     GtfsServicesReader servicesReader =
             GtfsServicesReaderFactory.createWithoutCoverageReport(
                 parentNetwork, getSettings().getServiceSettings());
+    /* the services this reader builds are cleaned up here as well as there, so both are accounted for as one */
+    servicesReader.recordCleanUpInto(cleanUpDiagnostics);
     Pair<ServiceNetwork,RoutedServices> servicesResult = servicesReader.read();
 
     /* ZONING (PT stops as transfer zones) this parses GTFS stops and their locations, parsed GTFS stops are
@@ -249,10 +255,9 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     this.rawGtfsEntityDiagnostics = servicesReader.getRawGtfsEntityDiagnostics().newEmptyInstance();
     this.rawGtfsEntityDiagnostics.merge(servicesReader.getRawGtfsEntityDiagnostics());
     this.rawGtfsEntityDiagnostics.merge(zoningReader.getRawGtfsEntityDiagnostics());
-    this.planitEntityDiagnostics = integrator.getPlanitEntityDiagnostics();
+    this.planitEntityDiagnostics.merge(integrator.getPlanitEntityDiagnostics());
     /* the zones stops are boarded from were derived by the stop stage, which reports nothing on its own here */
     this.planitEntityDiagnostics.merge(zoningReader.getPlanitEntityDiagnostics());
-    var cleanUpDiagnostics = new GtfsCleanUpDiagnostics(this.planitEntityDiagnostics);
 
     /* the stops behind each trip, taken before any clean up detaches the legs that name them */
     var gtfsStopIdsBySchedule = GtfsCleanUpDiagnostics.captureGtfsStopIdsBySchedule(
@@ -365,10 +370,6 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
     /* every step has had its turn, so what each type started out as and what is left of it is now settled */
     cleanUpDiagnostics.registerPresence();
-
-    /* log final result, the zoning, service network and routed services being accounted for by the report below */
-    LOGGER.info("Final result Stats:");
-    parentNetwork.logInfo(LoggingUtils.networkPrefix(parentNetwork.getId()));
 
     /* every stage has run and the result is final, so what became of the feed can be reported */
     GtfsCoverageReport.report(

@@ -33,6 +33,11 @@ public enum GtfsParseIssue implements GtfsIssue {
       GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Route excluded by settings", null),
 
+  /** the feed's route type is not a number, so the mode the route serves cannot be established from it */
+  ROUTE_TYPE_UNREADABLE(
+      GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.PROBLEM, false,
+      GtfsIssueLogPolicy.COLLATED, "Route type could not be read as a GTFS route type", "route type %s"),
+
   /** route's mode is not among the activated modes for this run */
   ROUTE_MODE_NOT_ACTIVATED(
       GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, true,
@@ -68,6 +73,15 @@ public enum GtfsParseIssue implements GtfsIssue {
   TRIP_ROUTE_DISCARDED(
       GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Trip's route was discarded", "route %s"),
+
+  /**
+   * the calendar the trip's service id is active on matches neither the day the run covers nor the day before it,
+   * which cannot be, the service id having been retained because its calendar said it was active
+   */
+  TRIP_CALENDAR_ACTIVE_DAY_MISMATCH(
+      GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.PROBLEM, false,
+      GtfsIssueLogPolicy.COLLATED, "Trip's calendar matches neither the chosen day nor the one before it",
+      "service %s"),
 
   /** trip belongs to a route whose mode is not activated */
   TRIP_ROUTE_MODE_NOT_ACTIVATED(
@@ -192,6 +206,11 @@ public enum GtfsParseIssue implements GtfsIssue {
    * whatever the issue itself needs. A persisted occurrence therefore always names and locates the stop it concerns,
    * while the logged form selects only what fits a line, e.g. %4$s for the first issue specific argument
    */
+
+  /** the feed's location type is not a number, so what kind of place the stop is cannot be established from it */
+  STOP_LOCATION_TYPE_UNREADABLE(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, false,
+      GtfsIssueLogPolicy.COLLATED, "Stop location type could not be read as a GTFS stop location type", null),
 
   /**
    * Multiple GTFS stops found for the same GTFS STOP_ID. Only the last is kept and the earlier duplicate entry is
@@ -350,10 +369,34 @@ public enum GtfsParseIssue implements GtfsIssue {
       "transfer zone (%4$s, %5$s)",
       "stop %1$s at (%2$s, %3$s), transfer zone (%4$s, %5$s)"),
 
-  /** no link permitting the stop's mode was found within the search radius */
-  STOP_NO_MODE_COMPATIBLE_LINK_IN_RADIUS(
+  /**
+   * a link carrying the stop's mode lies close by but beyond the search radius, so widening the radius would attach
+   * the stop. The likeliest cause is a stop set back from the road, or a carriageway the network holds as a single
+   * centreline
+   */
+  STOP_MODE_COMPATIBLE_LINK_BEYOND_SEARCH_RADIUS(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, true,
-      GtfsIssueLogPolicy.COLLATED, "No nearby links found for GTFS stop within search radius", null,
+      GtfsIssueLogPolicy.COLLATED, "Nearest link carrying the stop's mode lies just beyond the search radius",
+      "%4$.0fm away",
+      "stop %1$s at (%2$s, %3$s), nearest link carrying its mode %4$.0fm away"),
+
+  /**
+   * links lie within the search radius but none of them carries any of the stop's modes, so the network is there and
+   * the mode is what stands in the way, whether through how the modes were mapped or what the network allows
+   */
+  STOP_NEARBY_LINKS_WITHOUT_STOP_MODE(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, true,
+      GtfsIssueLogPolicy.COLLATED, "Links within the search radius carry none of the stop's modes", null,
+      "stop %1$s at (%2$s, %3$s)"),
+
+  /**
+   * no link carrying the stop's mode lies anywhere near it, the network simply not extending to where the stop is.
+   * The run covers the area the network spans rather than the network itself, so a stop can stand within that area
+   * with nothing modelled around it, which is the extent supplied rather than a shortcoming of the parse
+   */
+  STOP_OUTSIDE_NETWORK_COVERAGE(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.BY_DESIGN, true,
+      GtfsIssueLogPolicy.COLLATED, "No modelled network near the stop", null,
       "stop %1$s at (%2$s, %3$s)"),
 
   /**

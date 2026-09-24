@@ -157,6 +157,7 @@ public class GtfsZoningReader implements ZoningReader {
     /* what the zoning already held, the feed being one contributor to it rather than its author. Counted from the
      * containers themselves so that every path adding to them is accounted for, whichever stage takes it */
     registerZoningPresence(planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerPreExisting);
+    registerPhysicalNetworkPresence(planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerPreExisting);
     /* PLANit specific handler */
     var stopsHandler = new GtfsPlanitFileHandlerStops(gtfsZoningHandlerData);
 
@@ -185,6 +186,11 @@ public class GtfsZoningReader implements ZoningReader {
         /* what is there now beyond what was there before is what the stop stage put there */
         diagnostics.registerDesired(entityType, count - diagnostics.getPreExisting(entityType)));
 
+    /* the network is only ever broken open, never cut back, so what it holds now is what is in the result. What it
+     * gained is recorded where each break happens rather than counted here, so that the two can be held against
+     * each other */
+    registerPhysicalNetworkPresence(planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerCreated);
+
     /* stops outnumber the zones they are boarded from, a feed identifying a stop per route or direction where the
      * zoning holds the single place they board from, so how they divide over those places is recorded while the
      * mapping that states it is still around */
@@ -208,6 +214,28 @@ public class GtfsZoningReader implements ZoningReader {
         planitEntityDiagnostics, GtfsPlanitEntityType.CONNECTOID, zoning.getTransferConnectoids().size());
     registration.apply(
         planitEntityDiagnostics, GtfsPlanitEntityType.TRANSFER_ZONE_GROUP, zoning.getTransferZoneGroups().size());
+  }
+
+  /**
+   * Apply the given registration to the physical network entities the feed contributes to, each against the number
+   * of them the network holds at this moment
+   *
+   * @param planitEntityDiagnostics to register into
+   * @param registration to apply
+   */
+  private void registerPhysicalNetworkPresence(
+      final GtfsPlanitEntityDiagnostics planitEntityDiagnostics, final ZoningPresenceRegistration registration) {
+    long nodes = 0;
+    long links = 0;
+    long linkSegments = 0;
+    for(var networkLayer : this.serviceNetwork.getParentNetwork().getTransportLayers()){
+      nodes += networkLayer.getNodes().size();
+      links += networkLayer.getLinks().size();
+      linkSegments += networkLayer.getLinkSegments().size();
+    }
+    registration.apply(planitEntityDiagnostics, GtfsPlanitEntityType.NODE, nodes);
+    registration.apply(planitEntityDiagnostics, GtfsPlanitEntityType.LINK, links);
+    registration.apply(planitEntityDiagnostics, GtfsPlanitEntityType.LINK_SEGMENT, linkSegments);
   }
 
   /**

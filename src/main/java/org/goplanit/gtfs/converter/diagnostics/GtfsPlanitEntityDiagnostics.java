@@ -585,16 +585,24 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
 
     var knockOn = new ArrayList<GtfsPlanitEntityIssue>();
     var ownLosses = new ArrayList<GtfsPlanitEntityIssue>();
+    var modifications = new ArrayList<GtfsPlanitEntityIssue>();
     for (var issue : GtfsPlanitEntityIssue.values()) {
       if (!isReportedInSummary(issue)) {
         continue;
       }
-      (issue.isKnockOnFromGtfsParsing() ? knockOn : ownLosses).add(issue);
+      if (issue.isModification()) {
+        /* the entity is still in the result, so whatever brought the change about it is not a shortfall to account
+         * for and does not belong among the entities that are gone */
+        modifications.add(issue);
+      } else {
+        (issue.isKnockOnFromGtfsParsing() ? knockOn : ownLosses).add(issue);
+      }
     }
 
-    /* what the feed cost, then what building the result cost, then what that leaves, so that a reader arrives at the
-     * totals having already seen what they are the remainder of */
+    /* what the feed cost, then what building the result changed and what it cost, then what that leaves, so that a
+     * reader arrives at the totals having already seen what they are the remainder of */
     logKnockOnFromGtfsParsing(knockOn);
+    logChangedBuildingResult(modifications);
     logLostBuildingResult(ownLosses);
 
     LOGGER.info(LoggingUtils.settingsValue(
@@ -613,6 +621,31 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
       LOGGER.info(LoggingUtils.settingsEntry(component.getLabel(), 3));
       reportedTypes.forEach(entityType -> logPresenceOf(entityType, 4));
     }
+  }
+
+  /**
+   * Log the entities building the PLANit result kept but altered, largest first.
+   * <p>
+   * These are not a shortfall: the entity is in the result, shaped to what the network it had to be expressed on
+   * allows. Stated among the losses they would read as entities gone, and the counts would appear to contradict what
+   * the result holds
+   * </p>
+   *
+   * @param issues to log, those that alter rather than remove
+   */
+  private void logChangedBuildingResult(final List<GtfsPlanitEntityIssue> issues) {
+    if (issues.isEmpty()) {
+      return;
+    }
+
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Changed building the PLANit result", "entity kept, altered to fit the result", 2));
+    issues.stream()
+        .sorted((left, right) -> Long.compare(getOccurrences(right), getOccurrences(left)))
+        .forEach(issue -> {
+          LOGGER.info(createIssueLogEntry(issue, 3));
+          logSubTypesOf(issue);
+        });
   }
 
   /**
@@ -740,7 +773,7 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    */
   private void logSubTypesOf(final GtfsPlanitEntityType entityType, final int indent) {
     var subTypes = getSubTypes(entityType);
-    if (subTypes.size() < 2 && subTypes.stream().noneMatch(subType -> GtfsZoningEntityOrigin.findByName(subType) != null)) {
+    if (subTypes.size() < 2 && subTypes.stream().noneMatch(subType -> GtfsPlanitEntityOrigin.findByName(subType) != null)) {
       /* a single subdivision only restates the entry above it, unless it says how the entities came about, which the
        * entry above cannot say */
       return;
@@ -810,7 +843,7 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
     if (originIssue != null) {
       return originIssue.getDescription();
     }
-    var transferZoneOrigin = GtfsZoningEntityOrigin.findByName(subType);
+    var transferZoneOrigin = GtfsPlanitEntityOrigin.findByName(subType);
     return transferZoneOrigin != null ? transferZoneOrigin.getDescription() : subType;
   }
 

@@ -8,6 +8,15 @@ package org.goplanit.gtfs.converter.diagnostics;
  */
 public enum GtfsPlanitEntityType {
 
+  /** a point on the physical network, added where a stop needs one to be reached from */
+  NODE(GtfsPlanitComponent.PHYSICAL_NETWORK),
+
+  /** a stretch of the physical network between two of its nodes, split where a node is added within it */
+  LINK(GtfsPlanitComponent.PHYSICAL_NETWORK),
+
+  /** a directed stretch of the physical network between two of its nodes */
+  LINK_SEGMENT(GtfsPlanitComponent.PHYSICAL_NETWORK),
+
   /** a zone a stop is boarded from, whether the feed brought it about or it was already in the zoning */
   TRANSFER_ZONE(GtfsPlanitComponent.ZONING),
 

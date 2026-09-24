@@ -433,6 +433,13 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
 
     //TODO: option to convert schedules to frequency based approach
 
+    if(cleanUpDiagnostics != null){
+      /* what each clean-up step takes away is established here and reported as one account, so the steps stating it
+       * themselves as they go would say the same thing twice */
+      fileHandlerData.getRoutedServices().getLayers().forEach(
+          l -> l.getLayerModifier().setLogModifications(false));
+    }
+
     /* due to time period based filtering it is possible that trips have just a single valid stop, meaning no single
     leg. These need to be removed */
     var gtfsTripIdsBeforeRemoval = collectGtfsTripIds(fileHandlerData.getRoutedServices());
@@ -533,7 +540,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     }
     logSettings();
 
-    if(reportCoverage){
+    if(reportCoverage && cleanUpDiagnostics == null){
       /* no later stage accounts for what is built here, so what becomes of it is recorded as the steps run */
       this.planitEntityDiagnostics = GtfsPlanitEntityDiagnostics.create();
       this.cleanUpDiagnostics = new GtfsCleanUpDiagnostics(this.planitEntityDiagnostics);
@@ -572,6 +579,17 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
    */
   public Function<ServiceNode, String> getServiceNodeToGtfsStopIdMapping(){
     return GtfsServicesHandlerData.getServiceNodeToGtfsStopIdMapping();
+  }
+
+  /**
+   * Record what the clean-up steps applied here take away into the given account rather than one of this reader's
+   * own, so that a stage that continues where this reader leaves off can report the whole of what was built and
+   * what became of it as one
+   *
+   * @param cleanUpDiagnostics to record into
+   */
+  public void recordCleanUpInto(final GtfsCleanUpDiagnostics cleanUpDiagnostics) {
+    this.cleanUpDiagnostics = cleanUpDiagnostics;
   }
 
   /**

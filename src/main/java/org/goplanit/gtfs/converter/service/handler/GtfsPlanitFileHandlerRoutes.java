@@ -62,6 +62,11 @@ public class GtfsPlanitFileHandlerRoutes extends GtfsFileHandlerRoutes {
     /* MODAL SCOPE: the mode of a route is its own, and settles here. Its trips inherit it, a trip having no mode of
      * its own beyond the route it belongs to */
     RouteType routeType = gtfsRoute.getRouteType();
+    if(routeType == null){
+      /* what the route serves cannot be established, which is recorded here rather than each time the value is read */
+      data.getDiagnostics().registerIssue(
+          GtfsParseIssue.ROUTE_TYPE_UNREADABLE, gtfsRoute.getRouteId(), gtfsRoute.getRouteTypeRaw());
+    }
     Mode planitMode = data.getPrimaryPlanitModeIfActivated(routeType);
     if(planitMode == null){
       data.getDiagnostics().registerSeenOutOfScope(

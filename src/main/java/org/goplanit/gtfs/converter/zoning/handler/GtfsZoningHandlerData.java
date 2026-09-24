@@ -16,6 +16,8 @@ import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
 import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityIssue;
 import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
 import org.goplanit.utils.misc.LogCollator;
 import org.goplanit.utils.misc.Pair;
@@ -102,12 +104,12 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
         PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, geoToolsInPlanitCrs.getCoordinateReferenceSystem());
 
     /* index: MODE -> (pre-existing) SERVICE NODE */
-    var emptyRoutedServices = new ArrayList<String>();
+    var emptyRoutedServices = new ArrayList<RoutedService>();
     for(var routedServiceLayer : getRoutedServices().getLayers()){
       for(var routedModeServices : routedServiceLayer) {
         for(var routedService : routedModeServices){
           if(!routedService.getTripInfo().hasAnyTrips()){
-            emptyRoutedServices.add(routedService.getIdsAsString());
+            emptyRoutedServices.add(routedService);
             continue;
           }
 
@@ -129,14 +131,9 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
         }
       }
     }
-    if(!emptyRoutedServices.isEmpty()){
-      LOGGER.warning(String.format(
-          "Found %d empty routed services, indicating sub-optimal or corrupt PLANit routed services, " +
-              "this shouldn't happen, e.g. %s",
-          emptyRoutedServices.size(),
-          String.join("; ", emptyRoutedServices.subList(
-              0, Math.min(LogCollator.DEFAULT_LOG_SAMPLE_SIZE_OF_RETAINED, emptyRoutedServices.size())))));
-    }
+    emptyRoutedServices.forEach(routedService -> getProfiler().getPlanitEntityDiagnostics().registerIssue(
+        GtfsPlanitEntityIssue.ROUTED_SERVICE_WITHOUT_TRIPS_AT_ZONING,
+        String.valueOf(routedService.getId()), routedService.getIdsAsString()));
 
     this.boundingAreaHelper = GtfsConverterReaderHelper.createBoundingAreaHelper(
         settings, getServiceNetwork().getParentNetwork());

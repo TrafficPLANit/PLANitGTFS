@@ -1,5 +1,7 @@
 package org.goplanit.gtfs.util;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityOrigin;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
@@ -126,6 +128,24 @@ public class GtfsLinkHelper {
   }
 
   /**
+   * Record what breaking a link open to reach a stop adds to the physical network, being the node the stop is
+   * reached from, the additional link the break leaves behind, and a segment per direction the link carries
+   *
+   * @param linkToBreak about to be broken, still whole
+   * @param data containing what the outcome is recorded into
+   */
+  private static void registerBrokenOpenForStopAccess(
+      final MacroscopicLink linkToBreak, final GtfsZoningHandlerData data){
+    var planitEntityDiagnostics = data.getProfiler().getPlanitEntityDiagnostics();
+    var origin = GtfsPlanitEntityOrigin.BROKEN_OPEN_FOR_STOP_ACCESS.getSubType();
+    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.NODE, origin, 1);
+    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.LINK, origin, 1);
+    planitEntityDiagnostics.registerDesired(
+        GtfsPlanitEntityType.LINK_SEGMENT, origin,
+        (linkToBreak.hasLinkSegmentAb() ? 1 : 0) + (linkToBreak.hasLinkSegmentBa() ? 1 : 0));
+  }
+
+  /**
    * break a PLANit link at the PLANit node location while also updating all related tracking indices and/or
    * PLANit network link and link segment references that might be affected by this process:
    * <ul>
@@ -145,6 +165,10 @@ public class GtfsLinkHelper {
       final MacroscopicLink linkToBreak,
       Collection<GraphModifierListener> temporaryListeners,
       GtfsZoningHandlerData data){
+
+    /* what breaking the link adds is recorded here, where the link it is taken from is still whole and the entities
+     * it yields can be attributed to it, rather than inferred afterwards from what the network grew by */
+    registerBrokenOpenForStopAccess(linkToBreak, data);
 
     /* BEFORE - add listeners */
     if(!CollectionUtils.nullOrEmpty(temporaryListeners)) {

@@ -8,6 +8,9 @@ package org.goplanit.gtfs.converter.diagnostics;
  */
 public enum GtfsPlanitComponent {
 
+  /** the roads and rails the services run over, which the feed adds to only where a stop needs an access point */
+  PHYSICAL_NETWORK("physical network"),
+
   /** the zones stops are boarded from and the access points granting them entry to the physical network */
   ZONING("zoning"),
 

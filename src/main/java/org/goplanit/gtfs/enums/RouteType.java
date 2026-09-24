@@ -8,7 +8,6 @@ import org.goplanit.utils.misc.StringUtils;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 /**
  * Defines the different (unextended) Route Types, i.e., modes:
@@ -141,8 +140,6 @@ public enum RouteType implements EnumOf<RouteType,Short>, EnumValue<Short> {
   MISCELLANEOUS_SERVICE	((short)	1700	),
   HORSE_DRAWN_CARRIAGE	((short)	1702	);
 
-  /** Logger to use */
-  private static final Logger LOGGER = Logger.getLogger(RouteType.class.getCanonicalName());
 
   private final short value;
 
@@ -191,9 +188,10 @@ public enum RouteType implements EnumOf<RouteType,Short>, EnumValue<Short> {
     try{
       return of(Short.valueOf(value));
     }catch (Exception e){
-      LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS route type",value));
+      /* a value that is no route type is reported against the route it was read for, where it can be counted and
+       * held against the feed, rather than here where it is read afresh each time it is asked for */
+      return null;
     }
-    return null;
   }
 
   /**

@@ -3,13 +3,12 @@ package org.goplanit.gtfs.converter.diagnostics;
 import java.util.Arrays;
 
 /**
- * How a GTFS stop came by the zoning entities it is boarded from, being either entities created for it or a
- * pre-existing transfer zone in the PLANit zoning it was attached to, in which case it records the rule that
- * identified the match.
+ * How a PLANit entity the converter records came about, being either an entity created for the feed or a pre-existing
+ * one it was attached to, in which case it records the rule that identified the match.
  *
  * @author markr
  */
-public enum GtfsZoningEntityOrigin {
+public enum GtfsPlanitEntityOrigin {
 
   /** no pre-existing zone was found for the stop, so the entity was created for it */
   CREATED_FOR_STOP("Newly created"),
@@ -27,7 +26,10 @@ public enum GtfsZoningEntityOrigin {
   MAPPED_BY_SETTINGS("Mapped to pre-existing transfer zone by settings"),
 
   /** added after the stops were read so that the zones they brought about can be reached for access and egress */
-  INJECTED_FOR_ACCESS_EGRESS("Injected for access and egress");
+  INJECTED_FOR_ACCESS_EGRESS("Injected for access and egress"),
+
+  /** a stop sits partway along a link, which is split there so that it has a node to be reached from */
+  BROKEN_OPEN_FOR_STOP_ACCESS("Added where a pre-existing link was broken open to reach a stop");
 
   /** readable description used when reporting */
   private final String description;
@@ -37,7 +39,7 @@ public enum GtfsZoningEntityOrigin {
    *
    * @param description readable description used when reporting
    */
-  GtfsZoningEntityOrigin(final String description) {
+  GtfsPlanitEntityOrigin(final String description) {
     this.description = description;
   }
 
@@ -65,7 +67,7 @@ public enum GtfsZoningEntityOrigin {
    * @param name to find for
    * @return origin, null when the name is not one
    */
-  public static GtfsZoningEntityOrigin findByName(final String name) {
+  public static GtfsPlanitEntityOrigin findByName(final String name) {
     return Arrays.stream(values()).filter(origin -> origin.name().equals(name)).findFirst().orElse(null);
   }
 }

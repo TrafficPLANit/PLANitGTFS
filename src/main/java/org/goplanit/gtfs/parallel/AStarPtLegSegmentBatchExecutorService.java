@@ -402,8 +402,9 @@ public final class AStarPtLegSegmentBatchExecutorService {
 
     SimpleDirectedPath chosenPath = null;
     if (!layer.supports(mode)) {
-      LOGGER.severe(String.format("Service layer does not seem to support the mode (%s), the service leg is " +
-              "attributed to, this shouldn't happen", mode.getName()));
+      registerLegSegmentIssue(
+          GtfsPlanitEntityIssue.LEG_SEGMENT_MODE_NOT_ON_LAYER,
+          gtfsStopIdUpstream, gtfsStopIdDownstream, mode, transferZoneUpstream, transferZoneDownstream);
       return null;
     }
 

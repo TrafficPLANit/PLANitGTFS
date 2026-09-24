@@ -4,7 +4,7 @@ import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityDiagnostics;
 import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityIssue;
 import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
-import org.goplanit.gtfs.converter.diagnostics.GtfsZoningEntityOrigin;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityOrigin;
 
 import java.util.logging.Logger;
 
@@ -92,7 +92,7 @@ public class GtfsZoningHandlerProfiler {
    *
    * @param origin the rule that identified the pre-existing zone as the stop's
    */
-  public void registerMatchedTransferZone(final GtfsZoningEntityOrigin origin){
+  public void registerMatchedTransferZone(final GtfsPlanitEntityOrigin origin){
     planitEntityDiagnostics.registerCreated(
         GtfsPlanitEntityType.STOP_TRANSFER_ZONE_MAPPING, origin.getSubType(), 1);
   }
@@ -103,7 +103,7 @@ public class GtfsZoningHandlerProfiler {
   public void registerTransferZoneMappedBySettings(){
     planitEntityDiagnostics.registerCreated(
         GtfsPlanitEntityType.STOP_TRANSFER_ZONE_MAPPING,
-        GtfsZoningEntityOrigin.MAPPED_BY_SETTINGS.getSubType(), 1);
+        GtfsPlanitEntityOrigin.MAPPED_BY_SETTINGS.getSubType(), 1);
   }
 
   /**
@@ -112,7 +112,7 @@ public class GtfsZoningHandlerProfiler {
   public void registerCreatedTransferZone(){
     planitEntityDiagnostics.registerCreated(
         GtfsPlanitEntityType.STOP_TRANSFER_ZONE_MAPPING,
-        GtfsZoningEntityOrigin.CREATED_FOR_STOP.getSubType(), 1);
+        GtfsPlanitEntityOrigin.CREATED_FOR_STOP.getSubType(), 1);
   }
 
 }
