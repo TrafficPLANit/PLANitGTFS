@@ -4,6 +4,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityDiagnostics;
 import org.goplanit.gtfs.parallel.AStarBatchExecutionData;
 import org.goplanit.gtfs.parallel.AStarPtLegSegmentBatchExecutorService;
@@ -37,6 +38,15 @@ public class GtfsServicesAndZoningReaderIntegrator {
   private final Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping;
 
   private final Function<String, TransferZone> gtfsStopIdToTransferZoneMapping;
+
+  /**
+   * what a GTFS stop was discarded for by the stages preceding this integration, null where it survived them.
+   * <p>
+   * An endpoint this integration cannot reach is only a fault of its own where the stop behind it was one the run
+   * meant to keep, so what became of that stop earlier decides how each such failure is to be read
+   * </p>
+   */
+  private final Function<String, GtfsParseIssue> gtfsStopIdToDiscardIssueMapping;
 
   /** profiler tracking what became of each service leg segment during integration */
   private final GtfsIntegrationProfiler profiler;
@@ -73,6 +83,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
             modeMappingData,
             serviceNodeToGtfsStopIdMapping,
             gtfsStopIdToTransferZoneMapping,
+            gtfsStopIdToDiscardIssueMapping,
             profiler,
             physicalCostApproach,
             eligibleServiceModes);
@@ -87,6 +98,8 @@ public class GtfsServicesAndZoningReaderIntegrator {
             "serviceNodeToGtfsStopIdMapping is null");
     PlanItRunTimeException.throwIfNull(this.gtfsStopIdToTransferZoneMapping,
             "gtfsStopIdToTransferZoneMapping is null");
+    PlanItRunTimeException.throwIfNull(this.gtfsStopIdToDiscardIssueMapping,
+            "gtfsStopIdToDiscardIssueMapping is null");
     PlanItRunTimeException.throwIfNull(this.serviceNetwork, "serviceNetwork is null");
     PlanItRunTimeException.throwIfNull(this.settings, "GTFS Intermodal reader settings is null");
     PlanItRunTimeException.throwIfNull(this.zoning, "zoning is null");
@@ -167,6 +180,32 @@ public class GtfsServicesAndZoningReaderIntegrator {
       Function<String, TransferZone> gtfsStopIdToTransferZoneMapping) {
     this(settings, zoning, serviceNetwork, routedServices, serviceNodeToGtfsStopIdMapping,
         gtfsStopIdToTransferZoneMapping,
+        /* nothing is known of what the preceding stages discarded, so no endpoint failure can be attributed to it */
+        gtfsStopId -> null);
+  }
+
+  /**
+   * Constructor allowing the caller to supply what the preceding stages discarded, so an endpoint that cannot be
+   * reached can be told apart from one that was never meant to be
+   *
+   * @param settings of the parent reader used
+   * @param zoning to integrate
+   * @param routedServices to integrate
+   * @param serviceNetwork to integrate
+   * @param serviceNodeToGtfsStopIdMapping mapping from PLANit service nodes to GTFS stop ids
+   * @param gtfsStopIdToTransferZoneMapping mapping from GTFS stop id to PLANit transfer zone
+   * @param gtfsStopIdToDiscardIssueMapping what a GTFS stop was discarded for by the preceding stages, if anything
+   */
+  public GtfsServicesAndZoningReaderIntegrator(
+      GtfsIntermodalReaderSettings settings,
+      Zoning zoning,
+      ServiceNetwork serviceNetwork,
+      RoutedServices routedServices,
+      Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping,
+      Function<String, TransferZone> gtfsStopIdToTransferZoneMapping,
+      Function<String, GtfsParseIssue> gtfsStopIdToDiscardIssueMapping) {
+    this(settings, zoning, serviceNetwork, routedServices, serviceNodeToGtfsStopIdMapping,
+        gtfsStopIdToTransferZoneMapping, gtfsStopIdToDiscardIssueMapping,
         new GtfsIntegrationProfiler(
             settings.getDiagnosticsRetentionLimit(), settings.getDiagnosticsSampleSize()));
   }
@@ -181,6 +220,7 @@ public class GtfsServicesAndZoningReaderIntegrator {
    * @param serviceNetwork to integrate
    * @param serviceNodeToGtfsStopIdMapping mapping from PLANit service nodes to GTFS stop ids
    * @param gtfsStopIdToTransferZoneMapping mapping from GTFS stop id to PLANit transfer zone
+   * @param gtfsStopIdToDiscardIssueMapping what a GTFS stop was discarded for by the preceding stages, if anything
    * @param profiler to record into
    */
   public GtfsServicesAndZoningReaderIntegrator(
@@ -190,12 +230,14 @@ public class GtfsServicesAndZoningReaderIntegrator {
       RoutedServices routedServices,
       Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping,
       Function<String, TransferZone> gtfsStopIdToTransferZoneMapping,
+      Function<String, GtfsParseIssue> gtfsStopIdToDiscardIssueMapping,
       GtfsIntegrationProfiler profiler) {
 
     this.profiler = profiler;
 
     this.serviceNodeToGtfsStopIdMapping = serviceNodeToGtfsStopIdMapping;
     this.gtfsStopIdToTransferZoneMapping = gtfsStopIdToTransferZoneMapping;
+    this.gtfsStopIdToDiscardIssueMapping = gtfsStopIdToDiscardIssueMapping;
 
     this.settings = settings;
     this.zoning = zoning;

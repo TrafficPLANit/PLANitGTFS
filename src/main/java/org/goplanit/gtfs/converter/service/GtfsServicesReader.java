@@ -114,6 +114,29 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
         gtfsRouteId -> diagnostics.registerIssue(GtfsParseIssue.ROUTE_WITHOUT_TRIPS, gtfsRouteId));
   }
 
+  /**
+   * Record the GTFS entities the area the physical network covers places outside it, which is settled once every stop
+   * time naming them has been read.
+   * <p>
+   * That area is reported against rather than parsed by, so nothing removes what it places outside and the respect
+   * would otherwise state how much it ruled out without anything saying why. Only what survived the clean-ups is swept,
+   * an entity they removed already carrying the reason it went
+   * </p>
+   *
+   * @param fileHandlerData to register with
+   */
+  private static void registerGtfsEntitiesOutsideNetworkArea(final GtfsServicesHandlerData fileHandlerData) {
+    var diagnostics = fileHandlerData.getDiagnostics();
+    collectGtfsRouteIds(fileHandlerData.getRoutedServices()).stream().filter(
+        gtfsRouteId -> diagnostics.getSettledScope(
+            GtfsObjectType.ROUTE, GtfsScopeDimension.SPATIAL, gtfsRouteId) == GtfsEntityScope.OUT).forEach(
+        gtfsRouteId -> diagnostics.registerIssue(GtfsParseIssue.ROUTE_OUTSIDE_NETWORK_AREA, gtfsRouteId));
+    collectGtfsTripIds(fileHandlerData.getRoutedServices()).stream().filter(
+        gtfsTripId -> diagnostics.getSettledScope(
+            GtfsObjectType.TRIP, GtfsScopeDimension.SPATIAL, gtfsTripId) == GtfsEntityScope.OUT).forEach(
+        gtfsTripId -> diagnostics.registerIssue(GtfsParseIssue.TRIP_OUTSIDE_NETWORK_AREA, gtfsTripId));
+  }
+
   
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReader.class.getCanonicalName());
@@ -211,7 +234,7 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     stopTimeFileReader.read(StandardCharsets.UTF_8);
 
     /* no stop time follows the last trip to mark its scope as settled, so it is considered here */
-    tripStopTimeHandler.discardFinalTripWhenWhollyOutsideArea();
+    tripStopTimeHandler.settleFinalTrip();
 
     /* logging in case user required bespoke tracking of GTFS stop frequented GTFS routes */
     tripStopTimeHandler.getUniqueRoutesForTrackedGtfsStops().forEach(
@@ -363,6 +386,8 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
     /* due to removal of service routes, or some modes not being supported, it is possible entire modes no longer
     have any routes associated with them. These need to be removed */
     GtfsRoutedServicesModifierUtils.removeEmptyRoutedServices(fileHandlerData.getRoutedServices());
+
+    registerGtfsEntitiesOutsideNetworkArea(fileHandlerData);
 
     /* optional optimisation/processing */
     if(getSettings().isGroupIdenticalGtfsTrips()){

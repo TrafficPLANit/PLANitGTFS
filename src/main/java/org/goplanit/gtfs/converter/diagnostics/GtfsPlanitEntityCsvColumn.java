@@ -13,6 +13,12 @@ public enum GtfsPlanitEntityCsvColumn {
   /** PLANit entity type the issue applies to */
   ENTITY_TYPE,
 
+  /**
+   * what became of the feed entities the entity was to be built from, empty where it could not be established. A
+   * PLANit entity has no classifying field of its own, so its failures are subdivided by their origin instead
+   */
+  SUBTYPE,
+
   /** the issue itself */
   ISSUE,
 

@@ -62,6 +62,13 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    */
   private GtfsStopTime prevSameTripStopTime;
 
+  /** track the GTFS trip of the previous stop time read whether or not it was taken up, a trip only taken up from the
+   * first of its stop times departing within the time period the run covers */
+  private GtfsTrip prevSeenTrip;
+
+  /** whether any stop time of the previously seen GTFS trip was taken up */
+  private boolean prevSeenTripTaken;
+
   /**
    * @return compare by ids and departure arrival time, when all equal, it is considered equal for our intents and purposes and true is returned, false otherwise
    */
@@ -260,10 +267,33 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   }
 
   /**
-   * Drop the final GTFS trip when it lies wholly beyond the area the run covers, there being no following stop time to
-   * mark that its scope has settled
+   * Settle a GTFS trip none of whose stop times were taken up, every one of them having departed outside the time
+   * period the run covers.
+   * <p>
+   * That window narrows the run in time just as the chosen day does, so the trip stands outside its temporal scope and
+   * is named there. Settled only once the last of the trip's stop times has been seen, a trip whose departure falls
+   * outside the window still being taken up from the first stop time that falls within it
+   * </p>
+   *
+   * @param gtfsTrip to settle, ignored when null
+   * @param taken whether any stop time of it was taken up, in which case there is nothing to settle
    */
-  public void discardFinalTripWhenWhollyOutsideArea() {
+  private void settleTripWhenNeverWithinTimePeriod(final GtfsTrip gtfsTrip, final boolean taken) {
+    if(gtfsTrip == null || taken){
+      return;
+    }
+
+    var diagnostics = data.getDiagnostics();
+    diagnostics.registerSeenOutOfScope(
+        GtfsObjectType.TRIP, GtfsScopeDimension.TEMPORAL, gtfsTrip.getTripId());
+    diagnostics.registerIssue(GtfsParseIssue.TRIP_OUTSIDE_TIME_PERIOD, gtfsTrip.getTripId());
+  }
+
+  /**
+   * Settle the final GTFS trip, there being no following stop time to mark that its scope has settled
+   */
+  public void settleFinalTrip() {
+    settleTripWhenNeverWithinTimePeriod(prevSeenTrip, prevSeenTripTaken);
     discardTripWhenWhollyOutsideArea(prevStopTimeTrip);
   }
 
@@ -295,6 +325,14 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
           gtfsTrip.getRouteId(), gtfsStopTime.getStopId());
       return;
     }
+    /* the trip before this one has had all its stop times seen, so whether any of them fell within the time period
+     * the run covers is now known */
+    if(gtfsTrip != prevSeenTrip){
+      settleTripWhenNeverWithinTimePeriod(prevSeenTrip, prevSeenTripTaken);
+      prevSeenTrip = gtfsTrip;
+      prevSeenTripTaken = false;
+    }
+
     boolean logTrackedRoute = (activatedLoggingForGtfsRoutesByShortName.contains(planitRoutedService.getName()));
     var layer = data.getServiceNetwork().getLayerByMode(planitRoutedService.getMode());
 
@@ -327,10 +365,9 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
     /* verify if departure time of this trip falls within eligible time window, if not and we do not allow for partial trips, discard the trip fully */
     if(isTripDepartureTime && !data.isDepartureTimeOfServiceIdWithinEligibleTimePeriod(gtfsTrip.getServiceId(), departureTime)){
-      /* outside time period of interest for any day the trip runs, do not parse, unless maybe later stops fall in time windows and we want to check that */
-      if(!data.getSettings().isIncludePartialGtfsTripsIfStopsInTimePeriod()) {
-        data.getDiagnostics().registerIssue(GtfsParseIssue.TRIP_OUTSIDE_TIME_PERIOD, gtfsTrip.getTripId());
-      }
+      /* outside time period of interest for any day the trip runs, do not parse, unless maybe later stops fall in time
+       * windows and we want to check that. Named once the trip's last stop time has been seen rather than here, this
+       * test being met by every stop time of a trip that is never taken up */
       return;
     }
 
@@ -385,6 +422,7 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
 
     this.prevSameTripStopTime = gtfsStopTime;
     this.prevStopTimeTrip = gtfsTrip;
+    this.prevSeenTripTaken = true;
   }
 
   /**
@@ -394,6 +432,8 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   public void reset(){
     prevSameTripStopTime = null;
     prevStopTimeTrip = null;
+    prevSeenTrip = null;
+    prevSeenTripTaken = false;
     uniqueRoutesForStopsIfLoggingRequired.clear();
   }
 

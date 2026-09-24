@@ -4,6 +4,7 @@ import org.goplanit.algorithms.shortest.ShortestPathAStar;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntegrationProfiler;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
@@ -51,6 +52,16 @@ public class AStarBatchExecutionData {
 
   private final Function<String, TransferZone> gtfsStopIdToTransferZoneMapping;
 
+  /**
+   * what a GTFS stop was discarded for during the preceding stages, null where it survived them or was never seen.
+   * <p>
+   * An endpoint of a leg segment that cannot be reached is only worth reporting as a fault of this integration when
+   * the stop behind it was one the run meant to keep. Where it was already let go for a reason of its own, that reason
+   * is the explanation and this lookup supplies it
+   * </p>
+   */
+  private final Function<String, GtfsParseIssue> gtfsStopIdToDiscardIssueMapping;
+
   /** shortest path algorithm used specific to each mode (and its link segment costs). We make it thread local so
    * it can be used in multi-threaded setup as it is not thread safe to use across threads */
   private ThreadLocal<Map<Mode, ShortestPathAStar>> shortestPathAlgoByModePerThread =
@@ -86,6 +97,7 @@ public class AStarBatchExecutionData {
    * @param modeMappingData functionality and utils on mode mapping between GTFS and PLANit modes
    * @param serviceNodeToGtfsStopIdMapping mapping to use
    * @param gtfsStopIdToTransferZoneMapping mapping to use
+   * @param gtfsStopIdToDiscardIssueMapping what a GTFS stop was discarded for by the preceding stages, if anything
    * @param profiler             to track integration statistics and diagnostics into
    * @param physicalCost         to use for cost provision
    * @param eligibleServiceModes to use for creation of link segment costs per mode
@@ -97,6 +109,7 @@ public class AStarBatchExecutionData {
           GtfsConverterModeMappingData modeMappingData,
           Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping,
           Function<String, TransferZone> gtfsStopIdToTransferZoneMapping,
+          Function<String, GtfsParseIssue> gtfsStopIdToDiscardIssueMapping,
           GtfsIntegrationProfiler profiler,
           AbstractPhysicalCost physicalCost,
           Collection<Mode> eligibleServiceModes){
@@ -105,6 +118,7 @@ public class AStarBatchExecutionData {
     this.modeMappingData = modeMappingData;
     this.serviceNodeToGtfsStopIdMapping = serviceNodeToGtfsStopIdMapping;
     this.gtfsStopIdToTransferZoneMapping = gtfsStopIdToTransferZoneMapping;
+    this.gtfsStopIdToDiscardIssueMapping = gtfsStopIdToDiscardIssueMapping;
     this.profiler = profiler;
 
 
@@ -153,6 +167,15 @@ public class AStarBatchExecutionData {
 
   public  Function<String, TransferZone> getGtfsStopIdToTransferZoneMapping(){
     return gtfsStopIdToTransferZoneMapping;
+  }
+
+  /**
+   * Collect what a GTFS stop was discarded for by the stages preceding this integration
+   *
+   * @return mapping from GTFS stop id to the issue it was discarded for, yielding null where it was not
+   */
+  public Function<String, GtfsParseIssue> getGtfsStopIdToDiscardIssueMapping(){
+    return gtfsStopIdToDiscardIssueMapping;
   }
 
   /**

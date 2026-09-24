@@ -43,10 +43,48 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       GtfsPlanitEntityType.SERVICE_NODE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
       "Service node outside network area", null, Templates.REMOVED_ENTITY_IDS),
 
-  /** a trip schedule was cut back or removed because part of it could not be mapped to the physical network */
-  TRIP_SCHEDULE_TRUNCATED_UNMAPPED(
+  /**
+   * a routed service was left with no trips at all once the truncation had cut back or removed each of them, and a
+   * service that runs nothing is not a service. What became of the trips themselves is reported against those trips
+   */
+  ROUTED_SERVICE_WITHOUT_TRIPS(
+      GtfsPlanitEntityType.ROUTED_SERVICE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
+      "Routed service removed, no trips left after truncation", null, Templates.REMOVED_ENTITY_IDS),
+
+  /**
+   * a trip schedule ran beyond the network area and was cut back to the part within it, the original being replaced
+   * by one viable trip per remaining run of consecutive legs, each with its departure times adjusted
+   */
+  TRIP_SCHEDULE_TRUNCATED_TO_NETWORK(
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
+      "Trip schedule truncated to network area", null, Templates.REMOVED_ENTITY_IDS),
+
+  /**
+   * a trip schedule ran wholly beyond the network area, so there was never a part of it to keep and it was removed
+   * outright. Distinct from a truncation that came to nothing: this one was never a candidate for cutting back
+   */
+  TRIP_SCHEDULE_REMOVED_OUTSIDE_NETWORK_AREA(
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN, true, GtfsIssueLogPolicy.COLLATED,
+      "Trip schedule removed, ran wholly outside network area", null, Templates.REMOVED_ENTITY_IDS),
+
+  /**
+   * a trip schedule reached the network area and was put through the truncation, yet nothing usable was left of it,
+   * no leg of it having survived, so it was removed rather than cut back
+   */
+  TRIP_SCHEDULE_REMOVED_TRUNCATION_NOT_VIABLE(
       GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.PROBLEM, true, GtfsIssueLogPolicy.COLLATED,
-      "Trip schedule truncated, unmapped to physical network", null, Templates.REMOVED_ENTITY_IDS),
+      "Trip schedule removed, truncation left no viable trip", null, Templates.REMOVED_ENTITY_IDS),
+
+  /**
+   * a trip schedule was put through the same truncation and nothing was left of it even though two of its stops ran
+   * one after the other within the network area, so a leg between them ought to have been mappable. Alone among the
+   * ways a schedule is lost here this one names no boundary, and so stands against the parser rather than explaining
+   * the loss away
+   */
+  TRIP_SCHEDULE_UNMAPPED_DESPITE_CONSECUTIVE_STOPS(
+      GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.PROBLEM, true, GtfsIssueLogPolicy.COLLATED,
+      "Trip schedule removed, no leg mapped between consecutive stops within network area", null,
+      Templates.REMOVED_ENTITY_IDS),
 
   /** several departures of a trip schedule share the same scheduled time */
   DEPARTURE_DUPLICATE_SCHEDULED_TIME(

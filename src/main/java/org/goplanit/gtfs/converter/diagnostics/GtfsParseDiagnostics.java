@@ -1060,12 +1060,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       final String denominatorLabel, final int depth, final boolean filteredByTheRespect) {
     var accountedFor = new LongAdder();
     collectIssuesReportedAt(entityType, dimension, filteredByTheRespect).forEach((issue, occurrences) -> {
+      /* a silently counted issue is named here as any other, the entry being a total rather than a listing: what
+       * makes listing a hundred thousand stops of another region pointless is the listing, not the fact that the
+       * area is why they went. Leaving it unsaid is what left a respect stating how much it ruled out without ever
+       * saying why */
       accountedFor.add(occurrences);
-      if (!isReportedInSummary(issue)) {
-        /* counted towards what the respect filtered, but never named: listing the stops of another region tells
-         * nobody anything, which is the whole point of counting them silently */
-        return;
-      }
       LOGGER.info(LoggingUtils.settingsValue(
           issue.getDescription(),
           LoggingUtils.countWithPercentage(occurrences, denominator, denominatorLabel)
@@ -1304,6 +1303,36 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
+   * Collect the scope states entities of the given type were tallied under
+   *
+   * @param entityType to collect for
+   * @return states, empty when the type was never registered
+   */
+  public Set<GtfsScopeState> getSeenStates(final GtfsObjectType entityType) {
+    var subTypeCounters = seenByEntityTypeSubTypeAndScope.get(entityType);
+    if (subTypeCounters == null) {
+      return Collections.emptySet();
+    }
+    return subTypeCounters.values().stream().flatMap(
+        scopeCounters -> scopeCounters.keySet().stream()).collect(Collectors.toSet());
+  }
+
+  /**
+   * Collect the scope states an issue was registered against
+   *
+   * @param issue to collect for
+   * @return states, empty when the issue never arose
+   */
+  public Set<GtfsScopeState> getIssueStates(final GtfsParseIssue issue) {
+    var subTypeCounters = issuesBySubTypeAndScope.get(issue);
+    if (subTypeCounters == null) {
+      return Collections.emptySet();
+    }
+    return subTypeCounters.values().stream().flatMap(
+        scopeCounters -> scopeCounters.keySet().stream()).collect(Collectors.toSet());
+  }
+
+  /**
    * Collect the subTypes an issue was registered under, ordered by subType
    *
    * @param issue to collect for
@@ -1503,14 +1532,14 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
          * two never faced this one, and counting it here blames it for a loss it had no part in */
         long facing = getSeenFacing(entityType, dimension);
         long within = getSeenWithinScopeUpTo(entityType, dimension);
-        long filtered = facing - within;
+        long ruledOut = facing - within;
 
-        if (filtered > 0) {
+        if (ruledOut > 0) {
           var value = new StringBuilder(String.format(
-              "%d of %d reaching (%.2f%%), %d filtered",
-              within, facing, facing > 0 ? (100.0 * within) / facing : 0.0, filtered));
+              "%d of %d reaching (%.2f%%), %d ruled out",
+              within, facing, facing > 0 ? (100.0 * within) / facing : 0.0, ruledOut));
 
-          /* only where being partly within is a distinction worth drawing, the filtered count already saying how
+          /* only where being partly within is a distinction worth drawing, the ruled out count already saying how
            * many fell outside altogether */
           var reachingByScope = getSeenReachingByScope(entityType, dimension);
           if (reachingByScope.getOrDefault(GtfsEntityScope.PARTIAL, 0L) > 0) {
@@ -1523,13 +1552,14 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
               label + " within " + dimension.getReportedName(), value.toString(), 1));
 
           long accountedFor = logIssuesReportedAt(
-              entityType, dimension, filtered, "filtered", 2, true);
-          if (filtered > accountedFor) {
-            /* a respect judges an entity out whether or not the run acts on it: without a configured bounding area
-             * scope is measured and not parsed by, so these went into the result regardless */
+              entityType, dimension, ruledOut, "ruled out", 2, true);
+          if (ruledOut > accountedFor) {
+            /* every respect names what it ruled out, so this stands only where something went unregistered. Stating
+             * the count rather than accounting for it keeps the entries beneath a respect adding up to it, the gap
+             * being in what was recorded rather than in what is reported */
             LOGGER.info(LoggingUtils.settingsValue(
-                "filtered but parsed regardless",
-                LoggingUtils.countWithPercentage(filtered - accountedFor, filtered, "filtered"), 2));
+                "Ruled out without a reason recorded",
+                LoggingUtils.countWithPercentage(ruledOut - accountedFor, ruledOut, "ruled out"), 2));
           }
         }
 
@@ -1539,7 +1569,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
           long lost = within - getSeenFacing(entityType, next);
           if (lost > 0) {
             LOGGER.info(LoggingUtils.settingsValue(
-                "filters reducing next scope baseline", String.valueOf(lost), 2));
+                "Filters reducing next scope baseline", String.valueOf(lost), 2));
             logIssuesReportedAt(entityType, next, lost, "reduced baseline", 3, false);
           }
         }

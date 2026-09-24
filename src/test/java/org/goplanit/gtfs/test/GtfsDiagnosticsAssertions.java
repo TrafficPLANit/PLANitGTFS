@@ -34,7 +34,34 @@ public final class GtfsDiagnosticsAssertions {
   public static void assertConsistent(final GtfsParseDiagnostics diagnostics) {
     assertScopeNarrowsMonotonically(diagnostics);
     assertOccurrencesStandAtExactlyOneRespect(diagnostics);
-    assertNoRespectFiltersMoreThanReachedIt(diagnostics);
+    assertOccurrencesStandWhereTheirEntityWasTallied(diagnostics);
+    assertRespectsAccountForWhatTheyRuledOut(diagnostics);
+  }
+
+  /**
+   * Assert that every scope an issue was registered against is one its entity type was actually tallied under.
+   * <p>
+   * The tally and the issue register speak about the same entities, the one saying how many stood where and the other
+   * why they were let go. Where an entity type is not indexed by id the two are established separately and can
+   * disagree, a respect then stating how much it ruled out while the entities it ruled out stand somewhere that
+   * respect never reports on
+   * </p>
+   *
+   * @param diagnostics to verify
+   */
+  public static void assertOccurrencesStandWhereTheirEntityWasTallied(final GtfsParseDiagnostics diagnostics) {
+    for (var issue : GtfsParseIssue.values()) {
+      if (diagnostics.getOccurrences(issue) == 0) {
+        continue;
+      }
+      var tallied = diagnostics.getSeenStates(issue.getEntityType());
+      for (var state : diagnostics.getIssueStates(issue)) {
+        assertTrue(
+            tallied.contains(state),
+            String.format(
+                "%s stands at %s, a scope no %s was tallied under", issue, state, issue.getEntityType()));
+      }
+    }
   }
 
   /**
@@ -89,30 +116,38 @@ public final class GtfsDiagnosticsAssertions {
   }
 
   /**
-   * Assert that no respect has more issues laid at it than it filtered, a respect accounting for what it took away
-   * and never for more
+   * Assert that each respect accounts for exactly what it ruled out, neither leaving an entity without a reason nor
+   * claiming more than it took away.
+   * <p>
+   * A respect that rules out more than its entries name reports how much it cost without ever saying why, which is
+   * the one thing a reader cannot recover from the report itself. That the reason is known is not enough: it has to
+   * have been recorded against the entity, at the respect that decided it, or the two accounts drift apart
+   * </p>
    *
    * @param diagnostics to verify
    */
-  public static void assertNoRespectFiltersMoreThanReachedIt(final GtfsParseDiagnostics diagnostics) {
+  public static void assertRespectsAccountForWhatTheyRuledOut(final GtfsParseDiagnostics diagnostics) {
     for (var entityType : GtfsObjectType.values()) {
-      long reaching = diagnostics.getSeenInFeed(entityType);
       for (var dimension : diagnostics.getSettledRespectsOf(entityType)) {
-        long within = diagnostics.getSeenWithinScopeUpTo(entityType, dimension);
-        long filtered = reaching - within;
+        /* what faced the respect rather than what survived the one before it, an entity lost in scope between the two
+         * never having faced this one */
+        long ruledOut =
+            diagnostics.getSeenFacing(entityType, dimension)
+                - diagnostics.getSeenWithinScopeUpTo(entityType, dimension);
 
+        /* those the respect was the first to put out, rather than those merely standing at it, an entity whose scope
+         * was never established standing there without the respect having ruled on it at all */
         long accountedFor = 0;
         for (var issue : GtfsParseIssue.values()) {
           if (issue.getEntityType() == entityType) {
-            accountedFor += diagnostics.getOccurrencesReportedAt(issue, dimension);
+            accountedFor += diagnostics.getOccurrencesFilteredAt(issue, dimension);
           }
         }
-        assertTrue(
-            accountedFor <= filtered,
+        assertEquals(
+            ruledOut, accountedFor,
             String.format(
-                "%s at %s accounts for %d entities while only %d were filtered there",
-                entityType, dimension, accountedFor, filtered));
-        reaching = within;
+                "%s at %s ruled out %d entities while its entries account for %d",
+                entityType, dimension, ruledOut, accountedFor));
       }
     }
   }

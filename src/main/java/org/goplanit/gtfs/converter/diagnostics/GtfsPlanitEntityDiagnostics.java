@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
@@ -36,6 +39,25 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
 
   /** occurrences of every issue recorded */
   private final LogCollator issues;
+
+  /**
+   * How often each issue arose within each subdivision of it.
+   * <p>
+   * Counted here rather than read back off the retained occurrences because those are capped for reporting, so on a
+   * sizeable feed they are a sample and the split taken from them would be one too
+   * </p>
+   */
+  private final Map<GtfsPlanitEntityIssue, Map<String, LongAdder>> occurrencesBySubType = new ConcurrentHashMap<>();
+
+  /**
+   * What each subdivision of an issue says about the parser.
+   * <p>
+   * Held per subdivision rather than per occurrence because the two agree: a subdivision names where the entities in
+   * it stood, and that is what decides the disposition, so every occurrence within one carries the same
+   * </p>
+   */
+  private final Map<GtfsPlanitEntityIssue, Map<String, GtfsIssueDisposition>> dispositionBySubType =
+      new ConcurrentHashMap<>();
 
   /**
    * Constructor
@@ -134,8 +156,9 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
       final SimpleCsvWriter csvWriter, final GtfsPlanitEntityIssue issue, final LogCollator.Occurrence occurrence,
       final GtfsParseOutcome outcome) {
     csvWriter.writeRow(
-        issue.getEntityType(), issue.name(), issue.getDisposition(), occurrence.getEntityId(),
-        occurrence.getExpandedDetail());
+        issue.getEntityType(), occurrence.getEntitySubType(), issue.name(),
+        getDispositionOf(issue, occurrence.getEntitySubType()),
+        occurrence.getEntityId(), occurrence.getExpandedDetail());
   }
 
   /**
@@ -168,8 +191,98 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    */
   public void registerIssue(
       final GtfsPlanitEntityIssue issue, final String entityId, final Object... detailArgs) {
-    /* PLANit entity types are not subdivided, so no subtype accompanies their occurrences */
     registerIssueOccurrence(issue, entityId, null, detailArgs);
+  }
+
+  /**
+   * Register a single occurrence of an issue that arose within a subdivision of its entity type.
+   * <p>
+   * A PLANit entity type is not subdivided the way a GTFS one is, having no field in the feed that classifies it.
+   * What does subdivide its failures is what became of the feed entities it was to be built from, which is a property
+   * of the occurrence rather than of the entity, and so is supplied per occurrence here
+   * </p>
+   *
+   * @param issue encountered
+   * @param entityId identifying the GTFS entities the entity was to be built from
+   * @param subType the occurrence arose within, may be null when it could not be established
+   * @param detailArgs the arguments the issue's detail template expects
+   */
+  public void registerIssueWithSubType(
+      final GtfsPlanitEntityIssue issue, final String entityId, final String subType, final Object... detailArgs) {
+    registerIssueWithSubType(issue, entityId, subType, issue.getDisposition(), detailArgs);
+  }
+
+  /**
+   * Register a single occurrence of an issue that arose within a subdivision of its entity type, carrying the
+   * disposition that subdivision earns rather than the one its issue is declared with.
+   * <p>
+   * An issue is declared with the disposition that fits an entity the run meant to keep. Where the entities behind
+   * an occurrence were not such entities, the caller knows it and says so here, so a count is not read as a backlog
+   * when what it holds was never wanted
+   * </p>
+   *
+   * @param issue encountered
+   * @param entityId identifying the GTFS entities the entity was to be built from
+   * @param subType the occurrence arose within, may be null when it could not be established
+   * @param disposition the occurrence carries
+   * @param detailArgs the arguments the issue's detail template expects
+   */
+  public void registerIssueWithSubType(
+      final GtfsPlanitEntityIssue issue, final String entityId, final String subType,
+      final GtfsIssueDisposition disposition, final Object... detailArgs) {
+    registerIssueOccurrence(issue, entityId, subType, detailArgs);
+    if (subType != null) {
+      collectCounter(
+          occurrencesBySubType.computeIfAbsent(issue, absentIssue -> new ConcurrentHashMap<>()), subType).increment();
+      dispositionBySubType.computeIfAbsent(issue, absentIssue -> new ConcurrentHashMap<>()).put(subType, disposition);
+    }
+  }
+
+  /**
+   * Collect what a subdivision of an issue says about the parser, being what its issue is declared with where the
+   * subdivision earned nothing of its own
+   *
+   * @param issue to collect for
+   * @param subType to collect for
+   * @return disposition
+   */
+  public GtfsIssueDisposition getDispositionOf(final GtfsPlanitEntityIssue issue, final String subType) {
+    var dispositions = dispositionBySubType.get(issue);
+    var disposition = dispositions != null ? dispositions.get(subType) : null;
+    return disposition != null ? disposition : issue.getDisposition();
+  }
+
+  /**
+   * Collect how often an issue arose under each disposition its occurrences earned
+   *
+   * @param issue to collect for
+   * @return occurrences by disposition, in the order the dispositions are declared
+   */
+  public SortedMap<GtfsIssueDisposition, Long> getOccurrencesByDisposition(final GtfsPlanitEntityIssue issue) {
+    var byDisposition = new TreeMap<GtfsIssueDisposition, Long>();
+    var occurrences = getOccurrencesBySubType(issue);
+    if (occurrences.isEmpty()) {
+      byDisposition.put(issue.getDisposition(), getOccurrences(issue));
+      return byDisposition;
+    }
+    occurrences.forEach((subType, count) -> byDisposition.merge(
+        getDispositionOf(issue, subType), count, Long::sum));
+    return byDisposition;
+  }
+
+  /**
+   * Collect how often the given issue arose within each subdivision of it, most frequent first
+   *
+   * @param issue to collect for
+   * @return occurrences by subtype, empty where the issue is not subdivided
+   */
+  public SortedMap<String, Long> getOccurrencesBySubType(final GtfsPlanitEntityIssue issue) {
+    var occurrences = new TreeMap<String, Long>();
+    var subTypeCounters = occurrencesBySubType.get(issue);
+    if (subTypeCounters != null) {
+      subTypeCounters.forEach((subType, counter) -> occurrences.put(subType, counter.sum()));
+    }
+    return occurrences;
   }
 
   /**
@@ -203,6 +316,12 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
     other.desiredByType.forEach((type, counter) -> collectCounter(desiredByType, type).add(counter.sum()));
     other.createdByType.forEach((type, counter) -> collectCounter(createdByType, type).add(counter.sum()));
     issues.merge(other.issues);
+    other.dispositionBySubType.forEach((issue, dispositions) -> dispositionBySubType.computeIfAbsent(
+        issue, absentIssue -> new ConcurrentHashMap<>()).putAll(dispositions));
+    other.occurrencesBySubType.forEach((issue, subTypeCounters) -> subTypeCounters.forEach(
+        (subType, counter) -> collectCounter(
+            occurrencesBySubType.computeIfAbsent(issue, absentIssue -> new ConcurrentHashMap<>()), subType)
+            .add(counter.sum())));
   }
 
   /**
@@ -223,8 +342,71 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
     for (var issue : GtfsPlanitEntityIssue.values()) {
       if (isReportedInSummary(issue)) {
         LOGGER.info(createIssueLogEntry(issue));
+        logSubTypesOf(issue);
       }
     }
+  }
+
+  /**
+   * Log how an issue divides over what became of the feed entities behind it, most frequent first.
+   * <p>
+   * This is what makes a large count readable: an issue is declared with the single disposition that fits it worst,
+   * so a total alone reads as though every occurrence were that bad. The split says how many actually were
+   * </p>
+   *
+   * @param issue to log for
+   */
+  private void logSubTypesOf(final GtfsPlanitEntityIssue issue) {
+    var occurrencesBySubType = getOccurrencesBySubType(issue);
+    if (occurrencesBySubType.size() < 2) {
+      /* a single subdivision only restates the entry above it */
+      return;
+    }
+
+    long total = occurrencesBySubType.values().stream().mapToLong(Long::longValue).sum();
+    occurrencesBySubType.entrySet().stream()
+        .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
+        .forEach(entry -> LOGGER.info(LoggingUtils.settingsValue(
+            describeSubType(entry.getKey()),
+            LoggingUtils.countWithPercentage(entry.getValue(), total, "occurrences")
+                + " [" + getDispositionOf(issue, entry.getKey()) + "]", 3)));
+  }
+
+  /**
+   * Describe a subdivision as the log speaks of it.
+   * <p>
+   * Where the subdivision names the GTFS issue a loss originated in, it is stated exactly as that issue is stated
+   * where it was first reported. The same loss seen twice reads as the same loss, rather than as an entry the reader
+   * has to match to another by its constant. A listing outliving the run keeps the constant, which is what a later
+   * reader can join on
+   * </p>
+   *
+   * @param subType to describe
+   * @return description, the subtype itself where it names no issue
+   */
+  private static String describeSubType(final String subType) {
+    var originIssue = GtfsParseIssue.findByName(subType);
+    return originIssue != null ? originIssue.getDescription() : subType;
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * A derived entity is lost for reasons that differ in kind within a single issue, most of them because the feed
+   * entities behind it were never wanted, so a single declared disposition would describe a fraction of the count
+   * and misrepresent the rest. The split is stated instead
+   * </p>
+   */
+  @Override
+  protected String createDispositionLabel(final GtfsPlanitEntityIssue issue) {
+    var byDisposition = getOccurrencesByDisposition(issue);
+    if (byDisposition.size() < 2) {
+      return byDisposition.isEmpty()
+          ? issue.getDisposition().name() : byDisposition.firstKey().name();
+    }
+    return byDisposition.entrySet().stream()
+        .map(entry -> String.format("%d %s", entry.getValue(), entry.getKey()))
+        .collect(Collectors.joining(", "));
   }
 
   /**
@@ -246,5 +428,7 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
     super.reset();
     desiredByType.clear();
     createdByType.clear();
+    occurrencesBySubType.clear();
+    dispositionBySubType.clear();
   }
 }

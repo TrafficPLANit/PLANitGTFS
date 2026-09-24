@@ -17,6 +17,9 @@ public enum GtfsPlanitEntityType {
   /** a directed leg between two consecutive stops of a service */
   SERVICE_LEG_SEGMENT("GTFS stop pairs"),
 
+  /** a service running the trips of a single GTFS route */
+  ROUTED_SERVICE,
+
   /** the relative schedule a trip of a service adheres to */
   ROUTED_TRIP_SCHEDULE,
 

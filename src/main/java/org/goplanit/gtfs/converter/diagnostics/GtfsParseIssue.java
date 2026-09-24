@@ -4,6 +4,7 @@ import org.goplanit.gtfs.enums.GtfsObjectType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +42,14 @@ public enum GtfsParseIssue implements GtfsIssue {
   ROUTE_OUTSIDE_BOUNDING_AREA(
       GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Route runs wholly outside bounding area", null),
+
+  /**
+   * every trip of the route runs wholly beyond the area the physical network covers, which the run reports against
+   * rather than parses by, so the route is read in full and removed only once the services are aligned with that network
+   */
+  ROUTE_OUTSIDE_NETWORK_AREA(
+      GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, false,
+      GtfsIssueLogPolicy.COLLATED, "Route runs wholly outside network area", null),
 
   /** route retained no trips once its trips were filtered */
   ROUTE_WITHOUT_TRIPS(
@@ -89,6 +98,14 @@ public enum GtfsParseIssue implements GtfsIssue {
   TRIP_OUTSIDE_BOUNDING_AREA(
       GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.BY_DESIGN, true,
       GtfsIssueLogPolicy.COLLATED, "Trip runs wholly outside bounding area", null),
+
+  /**
+   * every stop of the trip lies beyond the area the physical network covers, which the run reports against rather than
+   * parses by, so the trip is read in full and removed only once the services are aligned with that network
+   */
+  TRIP_OUTSIDE_NETWORK_AREA(
+      GtfsParseStage.SERVICES, GtfsObjectType.TRIP, GtfsIssueDisposition.BY_DESIGN, false,
+      GtfsIssueLogPolicy.COLLATED, "Trip runs wholly outside network area", null),
 
   /** trip yielded no service legs */
   TRIP_WITHOUT_LEGS(
@@ -557,4 +574,23 @@ public enum GtfsParseIssue implements GtfsIssue {
   public static List<GtfsParseIssue> getIssuesForEntityType(final GtfsObjectType entityType) {
     return Arrays.stream(values()).filter(issue -> issue.getEntityType() == entityType).collect(Collectors.toList());
   }
+
+  /**
+   * Collect the issue going by the given name, where one does.
+   * <p>
+   * Unlike {@code valueOf} an unrecognised name is not an error here. A name reaching this is one recorded elsewhere
+   * as the origin of a loss, and such a name need not be an issue at all, so not finding one is an answer rather
+   * than a failure
+   * </p>
+   *
+   * @param name to look for, may be null
+   * @return issue going by it, null where none does
+   */
+  public static GtfsParseIssue findByName(final String name) {
+    return name != null ? BY_NAME.get(name) : null;
+  }
+
+  /** every issue by its name, so one can be found by it without an exception standing in for a miss */
+  private static final Map<String, GtfsParseIssue> BY_NAME =
+      Arrays.stream(values()).collect(Collectors.toMap(Enum::name, issue -> issue));
 }

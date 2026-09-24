@@ -2,6 +2,8 @@ package org.goplanit.gtfs.parallel;
 
 import org.goplanit.algorithms.shortest.ShortestPathAStar;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.gtfs.converter.diagnostics.GtfsIssueDisposition;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityIssue;
 import org.goplanit.network.layer.service.ServiceLegSegmentImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -41,6 +43,12 @@ public final class AStarPtLegSegmentBatchExecutorService {
 
   /** default threads is one less than available processors or 1 if that is 0*/
   private static final int DEFAULT_NUM_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+
+  /**
+   * subtype an unreachable endpoint is reported within when the stop behind it was one the run kept, this being the
+   * only such subtype not named after the issue the stop was let go for, there being none
+   */
+  private static final String ENDPOINT_STOP_RETAINED_SUBTYPE = "STOP_RETAINED";
 
   /**
    * Inputs to a single A* shortest path search for a given service leg segment which will be executed in batches
@@ -250,12 +258,85 @@ public final class AStarPtLegSegmentBatchExecutorService {
       final String gtfsStopIdUpstream, final String gtfsStopIdDownstream,
       final Mode mode,
       final TransferZone transferZoneUpstream, final TransferZone transferZoneDownstream) {
-    sharedData.getProfiler().getPlanitEntityDiagnostics().registerIssue(
+    registerLegSegmentIssue(
+            issue, null, null, gtfsStopIdUpstream, gtfsStopIdDownstream, mode,
+            transferZoneUpstream, transferZoneDownstream);
+  }
+
+  /**
+   * Register an issue that befell a service leg segment, within the subdivision it arose in
+   *
+   * @param issue encountered
+   * @param subType the occurrence arose within, may be null when it could not be established
+   * @param disposition the occurrence carries, may be null to fall back on what the issue declares
+   * @param gtfsStopIdUpstream GTFS stop id of the upstream endpoint
+   * @param gtfsStopIdDownstream GTFS stop id of the downstream endpoint
+   * @param mode the leg segment was to be carried by, may be null
+   * @param transferZoneUpstream the upstream endpoint was to be reached through, may be null
+   * @param transferZoneDownstream the downstream endpoint was to be reached through, may be null
+   */
+  private void registerLegSegmentIssue(
+      final GtfsPlanitEntityIssue issue, final String subType, final GtfsIssueDisposition disposition,
+      final String gtfsStopIdUpstream, final String gtfsStopIdDownstream,
+      final Mode mode,
+      final TransferZone transferZoneUpstream, final TransferZone transferZoneDownstream) {
+    sharedData.getProfiler().getPlanitEntityDiagnostics().registerIssueWithSubType(
             issue,
             String.format("%s->%s", gtfsStopIdUpstream, gtfsStopIdDownstream),
+            subType,
+            disposition != null ? disposition : issue.getDisposition(),
             mode != null ? mode.getName() : "none",
             transferZoneUpstream != null ? transferZoneUpstream.getIdsAsString() : "none",
             transferZoneDownstream != null ? transferZoneDownstream.getIdsAsString() : "none");
+  }
+
+  /**
+   * Determine what to attribute an unreachable endpoint to, being what the stop behind it was already discarded for
+   * where that happened, and otherwise the fact that it was not.
+   * <p>
+   * Both endpoints can be unreachable at once and for different reasons, yet the segment is lost only once and so
+   * stands in one subdivision. The reason nearest to the run's own choosing decides, a segment with an endpoint
+   * legitimately outside what was asked for having been unreachable whatever the parser did, so that counting it
+   * against the parser on account of its other endpoint would overstate what is left to fix
+   * </p>
+   *
+   * @param gtfsStopIdUpstream GTFS stop id of the upstream endpoint
+   * @param transferZoneUpstream the upstream endpoint was to be reached through, may be null
+   * @param gtfsStopIdDownstream GTFS stop id of the downstream endpoint
+   * @param transferZoneDownstream the downstream endpoint was to be reached through, may be null
+   * @return issue the stop was discarded for, null where it was one the run kept
+   */
+  private GtfsParseIssue determineUnreachableEndpointCause(
+      final String gtfsStopIdUpstream, final TransferZone transferZoneUpstream,
+      final String gtfsStopIdDownstream, final TransferZone transferZoneDownstream) {
+    var discardIssueOf = sharedData.getGtfsStopIdToDiscardIssueMapping();
+
+    GtfsParseIssue determining = null;
+    if (transferZoneUpstream == null) {
+      determining = nearestToByDesign(determining, discardIssueOf.apply(gtfsStopIdUpstream));
+    }
+    if (transferZoneDownstream == null) {
+      determining = nearestToByDesign(determining, discardIssueOf.apply(gtfsStopIdDownstream));
+    }
+    return determining;
+  }
+
+  /**
+   * Collect whichever of the two issues sits nearest to being by design, absent issues not competing
+   *
+   * @param current best so far, may be null
+   * @param candidate to weigh against it, may be null
+   * @return the nearer of the two, null only when both are
+   */
+  private static GtfsParseIssue nearestToByDesign(final GtfsParseIssue current, final GtfsParseIssue candidate) {
+    if (candidate == null) {
+      return current;
+    }
+    if (current == null) {
+      return candidate;
+    }
+    /* dispositions are declared from the most deliberate to the least, so the earlier of the two decides */
+    return candidate.getDisposition().ordinal() < current.getDisposition().ordinal() ? candidate : current;
   }
 
   /**
@@ -281,7 +362,12 @@ public final class AStarPtLegSegmentBatchExecutorService {
     if(transferZoneUpstream==null || transferZoneDownstream == null){
       /* likely no mapping found for stops due to physical network not being close enough, i.e.,
        * routes/legs/nodes fall outside bounding box of physical network we are mapping to */
+      var endpointCause = determineUnreachableEndpointCause(
+              gtfsStopIdUpstream, transferZoneUpstream, gtfsStopIdDownstream, transferZoneDownstream);
       registerLegSegmentIssue(GtfsPlanitEntityIssue.LEG_SEGMENT_STOP_WITHOUT_TRANSFER_ZONE,
+              endpointCause != null ? endpointCause.name() : ENDPOINT_STOP_RETAINED_SUBTYPE,
+              /* the loss belongs to whatever befell the stop, so it says of the parser exactly what that did */
+              endpointCause != null ? endpointCause.getDisposition() : null,
               gtfsStopIdUpstream, gtfsStopIdDownstream, mode, transferZoneUpstream, transferZoneDownstream);
       return null;
     }

@@ -10,6 +10,7 @@ import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
 import org.goplanit.gtfs.converter.service.GtfsServicesReader;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderFactory;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderFactory;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.util.GtfsRoutedServicesModifierUtils;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
@@ -237,7 +238,9 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
         servicesResult.first(),
         servicesResult.second(),
         servicesReader.getServiceNodeToGtfsStopIdMapping(),
-        zoningReader.getGtfsStopIdToTransferZoneMapping());
+        zoningReader.getGtfsStopIdToTransferZoneMapping(),
+        /* the stops were read by the zoning stage, so what became of each of them is recorded in its account */
+        gtfsStopId -> zoningReader.getRawGtfsEntityDiagnostics().getDiscardIssue(GtfsObjectType.STOP, gtfsStopId));
     integrator.execute();
 
     /* DIAGNOSTICS: each stage recorded its own account, none of which says much on its own. Bring them together here,
@@ -247,6 +250,10 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
     this.rawGtfsEntityDiagnostics.merge(zoningReader.getRawGtfsEntityDiagnostics());
     this.planitEntityDiagnostics = integrator.getPlanitEntityDiagnostics();
     var cleanUpDiagnostics = new GtfsCleanUpDiagnostics(this.planitEntityDiagnostics);
+
+    /* the stops behind each trip, taken before any clean up detaches the legs that name them */
+    var gtfsStopIdsBySchedule = GtfsCleanUpDiagnostics.captureGtfsStopIdsBySchedule(
+        servicesResult.second(), servicesReader.getServiceNodeToGtfsStopIdMapping());
 
     /* SERVICE NETWORK CLEAN-UP */
     {
@@ -264,16 +271,29 @@ public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, Ro
 
     /* ROUTED SERVICES CLEAN-UP */
     {
+      var routedServicesBefore = GtfsCleanUpDiagnostics.collectRoutedServices(servicesResult.second());
       var tripSchedulesBefore = GtfsCleanUpDiagnostics.collectTripSchedules(servicesResult.second());
+
+      /* what the truncation will make of each schedule, taken now because it clears away what it removes and the
+       * service network it is judged against has already been cut back to what the physical network covers */
+      var truncationOutcomes = GtfsCleanUpDiagnostics.classifyTruncationOutcomes(
+          servicesResult.second(), this.rawGtfsEntityDiagnostics, gtfsStopIdsBySchedule);
 
       /* CLEAN-UP: remove all routes/services that fall outside the physical network's bounding box, i.e.,
        * remained unmapped and therefore have no mapping populated with respect to their parent service network
        * (and physical network) */
       truncateToServiceNetwork(servicesResult.second());
 
+      cleanUpDiagnostics.registerTruncated(
+          GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE,
+          tripSchedulesBefore, GtfsCleanUpDiagnostics.collectTripSchedules(servicesResult.second()),
+          truncationOutcomes::get);
+
+      /* the same truncation takes the service along with the last of its trips, which is a loss of its own: a route
+       * that reached the area and left no service behind is not accounted for by what befell any single trip of it */
       cleanUpDiagnostics.registerRemoved(
-          GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsPlanitEntityIssue.TRIP_SCHEDULE_TRUNCATED_UNMAPPED,
-          tripSchedulesBefore, GtfsCleanUpDiagnostics.collectTripSchedules(servicesResult.second()));
+          GtfsPlanitEntityType.ROUTED_SERVICE, GtfsPlanitEntityIssue.ROUTED_SERVICE_WITHOUT_TRIPS,
+          routedServicesBefore, GtfsCleanUpDiagnostics.collectRoutedServices(servicesResult.second()));
 
       /* CLEAN-UP: optional optimisation/processing. Note while we already did this in the services reader as well,
        * due to the above truncation trips have been altered and as a result more trips will now have identical

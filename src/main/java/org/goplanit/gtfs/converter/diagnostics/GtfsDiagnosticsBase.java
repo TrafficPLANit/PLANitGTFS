@@ -231,13 +231,24 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
    * @param issue to report
    * @return created log entry
    */
+  /**
+   * Create what a reported issue says about the parser, which by default is the single disposition it is declared
+   * with. An implementation whose occurrences do not share one states the split instead
+   *
+   * @param issue to report
+   * @return created label
+   */
+  protected String createDispositionLabel(final I issue) {
+    return issue.getDisposition().name();
+  }
+
   protected String createIssueLogEntry(final I issue) {
     var collator = collatorFor(issue);
     var template = collator.getTemplate(issue.name());
     var label = String.format("%s | %s", issue.getEntityLabel(), issue.getDescription());
     var value = new StringBuilder(LoggingUtils.countWithPercentage(
         getOccurrences(issue), getDenominator(issue), getDenominatorLabel(issue)));
-    value.append(" [").append(issue.getDisposition()).append("]");
+    value.append(" [").append(createDispositionLabel(issue)).append("]");
 
     if (template != null) {
       /* context accompanies the sampled entities where it was composed, so the line states what kind of case this is
