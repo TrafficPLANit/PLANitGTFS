@@ -9,6 +9,6 @@ package org.goplanit.gtfs.enums;
 public enum GtfsFileTypePresence {
     
   REQUIRED,
-  OTPTIONAL,
+  OPTIONAL,
   CONDITIONALLY_REQUIRED;
 }

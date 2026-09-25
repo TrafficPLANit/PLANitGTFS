@@ -1,30 +1,27 @@
 package org.goplanit.gtfs.reader;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
+import com.univocity.parsers.csv.CsvFormat;
+import com.univocity.parsers.csv.CsvParser;
+import com.univocity.parsers.csv.CsvParserSettings;
+import org.goplanit.gtfs.entity.GtfsObject;
+import org.goplanit.gtfs.entity.GtfsObjectFactory;
 import org.goplanit.gtfs.enums.GtfsColumnType;
 import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.handler.GtfsFileHandler;
-import org.goplanit.gtfs.entity.GtfsObject;
-import org.goplanit.gtfs.entity.GtfsObjectFactory;
 import org.goplanit.gtfs.scheme.GtfsFileScheme;
 import org.goplanit.gtfs.util.GtfsFileConditions;
 import org.goplanit.gtfs.util.GtfsUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.StringUtils;
+
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A GTFS file reader containing generic code for any GTFS file
@@ -52,23 +49,25 @@ public abstract class GtfsFileReaderBase {
   /** conditions regarding the presence of this file */
   private GtfsFileConditions filePresenceCondition; 
   
-  /** Validate header map against supported keys for this file
-   * 
-   * @param headerMap to validate
-   * @return true when all header entries are supported, false otherwise
+  /** Report the header entries of this file that are not supported keys and are therefore not read.
+   * <p>
+   * Unknown columns are a property of the file's shape rather than of any entity in it, so they are reported once per
+   * file, naming each, rather than per column or against the entities the file holds
+   * </p>
+   *
+   * @param headerMap to inspect
    */
-  private boolean isValid(Map<String, Integer> headerMap) {
+  private void logUnsupportedColumnHeaders(Map<String, Integer> headerMap) {
     EnumSet<GtfsKeyType> supportedKeys = GtfsUtils.getSupportedKeys(fileScheme.getObjectType());
-    boolean unsupportedColumns = false;
-    for(String headerEntry : headerMap.keySet()) {
-      if(!GtfsKeyType.valueIn(supportedKeys,headerEntry.trim())) {
-        LOGGER.warning(String.format("Encountered unknown GTFS column header (%s), column will be ignored",headerEntry));
-        unsupportedColumns = true;
-      }
-    }
+    var unsupportedColumns = headerMap.keySet().stream().filter(
+        headerEntry -> !GtfsKeyType.valueIn(supportedKeys, headerEntry.trim())).sorted().collect(
+            Collectors.joining(", "));
 
-    return !unsupportedColumns;
-  }  
+    if(!unsupportedColumns.isEmpty()) {
+      LOGGER.warning(String.format("Encountered unknown GTFS column headers in %s, columns will be ignored (%s)",
+          fileScheme.getFileType().value(), unsupportedColumns));
+    }
+  }
 
   /** Map the headers in the file to the correct GTFS keys. Since the headers might have spaces or non-lowercase characters we preserve the 
    * actual parsed header as key but account for these anomalies when finding the appropriate key that goes with it. 
@@ -108,31 +107,42 @@ public abstract class GtfsFileReaderBase {
    * @param columnsToParse to use
    * @return numberOfParsedRecords
    */
-  private long parseGtfsRecords(final CSVParser csvParser, final Map<String, GtfsKeyType> columnsToParse) {
+  private long parseGtfsRecords(final CsvParser csvParser,
+                                final Map<String, GtfsKeyType> columnsToParse,
+                                final Map<String, Integer> columnToIndexMap) {
+
     LongAdder numRecords = new LongAdder();
-    Iterator<CSVRecord> entryIterator = csvParser.iterator();
-    while(entryIterator.hasNext()) {
-      
-      CSVRecord gtfsEntryRecord = entryIterator.next();
+
+    String[] row;
+    while ((row = csvParser.parseNext()) != null) {
+      // 1. Create GTFS object for this row
       GtfsObject gtfsObject = GtfsObjectFactory.create(fileScheme.getObjectType());
-      
-      /* populate */
-      for(Entry<String, GtfsKeyType> entry : columnsToParse.entrySet()) {
+
+      // 2. Populate fields
+      for (Map.Entry<String, GtfsKeyType> entry : columnsToParse.entrySet()) {
+        final String columnName = entry.getKey();
         final GtfsKeyType key = entry.getValue();
-        final String value = gtfsEntryRecord.get(entry.getKey());
+
+        // get index in raw row
+        final Integer idx = columnToIndexMap.get(columnName);
+        if (idx == null) {
+          continue; // ignore columns not present
+        }
+
+        final String value = row[idx];
         gtfsObject.put(key, value);
       }
-      
-      /* delegate to handler */
-      for(GtfsFileHandler<? extends GtfsObject> handler : handlers) {
+
+      // 3. Delegate to each handler (same as before)
+      for (GtfsFileHandler<? extends GtfsObject> handler : handlers) {
         handler.handleRaw(gtfsObject);
       }
 
       numRecords.increment();
     }
 
-    /* delegate to handler to finalise */
-    for(GtfsFileHandler<? extends GtfsObject> handler : handlers) {
+    // Finalise handlers
+    for (GtfsFileHandler<? extends GtfsObject> handler : handlers) {
       handler.handleComplete();
     }
 
@@ -215,7 +225,7 @@ public abstract class GtfsFileReaderBase {
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);
     this.gtfsLocation = validGtfsLocation ? gtfsLocation : null;
     if(!validGtfsLocation){
-      LOGGER.warning(String.format("Provided GTFS location (%s)is neither a directory nor a zip file, unable to instantiate file reader", gtfsLocation));
+      LOGGER.warning(String.format("Provided GTFS location (%s) is neither a directory nor a zip file, unable to instantiate file reader", gtfsLocation));
     }
   }
   
@@ -225,36 +235,74 @@ public abstract class GtfsFileReaderBase {
    * @param charSetToUse the charset to use
    */
   public void read(Charset charSetToUse) {
-            
-    try (InputStream gtfsInputStream =
-             GtfsUtils.createInputStream(gtfsLocation, fileScheme, filePresenceCondition, settings.isLogGtfsFileInputStreamInfo())){
-      if(gtfsInputStream!=null) {
-        Reader gtfsInputReader = new InputStreamReader(gtfsInputStream, charSetToUse);
-        CSVParser csvParser = new CSVParser(gtfsInputReader, CSVFormat.DEFAULT.withHeader());
 
-        var headerWithBom = csvParser.getHeaderMap();
+    // use Univocity as it is faster than Commons CSV parser
+    CsvParserSettings csvParserSettings = new CsvParserSettings();
+    // does not work intuitively, do it manually instead
+    csvParserSettings.setHeaderExtractionEnabled(false);
+    csvParserSettings.setLineSeparatorDetectionEnabled(true);
+    // to avoid race conditions, we force to read on same thread, otherwise we see occasional problems here
+    csvParserSettings.setReadInputOnSeparateThread(false);
+
+    // Dialect tuned to GTFS expectations:
+    CsvFormat format = csvParserSettings.getFormat();
+    format.setDelimiter(',');
+    format.setQuote('"');
+    format.setQuoteEscape('"');
+
+    // If GTFS is clean, avoid extra whitespace work:
+//    settings.setIgnoreLeadingWhitespaces(false);
+//    settings.setIgnoreTrailingWhitespaces(false);
+//    settings.setNullValue("");
+//    settings.setEmptyValue("");
+
+    // Create the parser
+    CsvParser parser = new CsvParser(csvParserSettings);
+
+    try (InputStream is = GtfsUtils.createInputStream(
+            gtfsLocation,
+            fileScheme,
+            filePresenceCondition,
+            settings.isLogGtfsFileInputStreamInfo())) { // from zip entry
+      if(is.available() == 0){
+        if(filePresenceCondition.isOptional()){
+          LOGGER.info(String.format("Skipping optional %s: not available",this.fileScheme.getFileType().value()));
+          return;
+        }else{
+          throw new PlanItRunTimeException("non-optional %s not available, this should not happen",
+                  this.fileScheme.getFileType().value());
+        }
+      }
+      parser.beginParsing(is, charSetToUse);
+
+      // parse first row as header
+      String[] headers = parser.parseNext();
+      if(headers == null){
+        LOGGER.severe(String.format("Header for %s - %s seems to be missing, check if file is available or valid",
+            gtfsLocation, fileScheme.getFileType().value()));
+      }else{
+
         Map<String, Integer> headerMap = new HashMap<>();
-        headerWithBom.forEach( (k,v) -> headerMap.put(StringUtils.removeBOM(k),v));
-
-        if(!isValid(headerMap)) {
-          LOGGER.warning(String.format("Header for %s - %s contains ignored columns, ", gtfsLocation, fileScheme.getFileType().value()));
+        for (int index =0 ; index< headers.length; index ++) {
+          headerMap.put(StringUtils.removeBOM(headers[index]), index);
         }
 
+        logUnsupportedColumnHeaders(headerMap);
+
         // use csv header map to preserve BOM as csv parser relies on exact mapping of header to obtain column entries
-        long numRecords = parseGtfsRecords(csvParser, filterExcludedColumns(mapHeadersToGtfsKeys(headerWithBom)));
+        long numRecords = parseGtfsRecords(parser, filterExcludedColumns(mapHeadersToGtfsKeys(headerMap)), headerMap);
         if(settings.isLogGtfsFileInputStreamInfo()){
           LOGGER.info(String.format("Processed %d records from input stream", numRecords));
         }
 
-        csvParser.close();
-        gtfsInputReader.close();
-        gtfsInputStream.close();
-      }else{
-        LOGGER.warning(String.format("Empty input stream for (location: %s, scheme: %s", gtfsLocation.toString(), fileScheme));
       }
-    }catch(Exception e) {
-      LOGGER.severe(String.format("Error during parsing of GTFS file (%s - %s)",gtfsLocation.toString(), fileScheme.getFileType().value()));
+
+    }catch(Exception e){
+      LOGGER.severe(String.format("Error during parsing of GTFS file (%s - %s)",
+              gtfsLocation.toString(), fileScheme.getFileType().value()));
       throw new PlanItRunTimeException(e.getMessage(), e);
+    } finally {
+      parser.stopParsing();
     }
   }
   

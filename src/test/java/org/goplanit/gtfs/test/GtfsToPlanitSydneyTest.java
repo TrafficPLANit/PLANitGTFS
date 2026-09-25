@@ -8,11 +8,11 @@ import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.gtfs.util.test.SydneyGtfsServicesSettingsUtils;
 import org.goplanit.gtfs.util.test.SydneyGtfsZoningSettingsUtils;
 import org.goplanit.io.converter.intermodal.*;
+import org.goplanit.io.test.PlanitAssertionUtils;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.Pair;
@@ -34,7 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Unit tests for Gtfs's API basic functionality
+ * Unit tests for Gtfs's API basic functionality. PLANit reference network and zoning are expected to be synced with
+ * the results produced in the PLANitOSM
+ * repo (Sydney: src/test/resources/planit/sydney/osm_intermodal_no_services_access_egress_attach, so they can easily be
+ * updated
  * 
  * @author markr
  *
@@ -48,7 +51,11 @@ public class GtfsToPlanitSydneyTest {
   public static final Path GTFS_NSW_NO_SHAPES = Path.of("GTFS","NSW","greatersydneygtfsstaticnoshapes.zip");
 
   private static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
-  private static final String PLANIT_INPUT_PATH = Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
+  private static final String PLANIT_INPUT_PATH =
+      Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
+  final String PLANIT_REF_DIR = Path.of(
+      PLANIT_INPUT_PATH,"reference").toAbsolutePath().toString();
+
 
   public static MacroscopicNetwork macroscopicNetwork;
 
@@ -63,7 +70,8 @@ public class GtfsToPlanitSydneyTest {
     LOGGER.setLevel(Level.SEVERE);
 
     /* parse PLANit intermodal network from disk to memory */
-    PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
+    PlanitIntermodalReader planitReader =
+        PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
     var planitIntermodalNetworkTuple = planitReader.read();
     macroscopicNetwork = planitIntermodalNetworkTuple.first();
     zoning = planitIntermodalNetworkTuple.second();
@@ -82,19 +90,25 @@ public class GtfsToPlanitSydneyTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on underlying networks/zoning,
-   * just collate all data for a given reference day
+   * Test that attempts to extract PLANit routed services from GTFS data (no filtering based on
+   * underlying networks/zoning, just collate all data for a given reference day
    */
   @Test
   public void testGtfsRoutedServicesReader() {
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
-      String GTFS_FILES_DIR = UrlUtils.asLocalPath(UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
+      String GTFS_FILES_DIR = UrlUtils.asLocalPath(
+          UrlUtils.createFromLocalPathOrResource(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
 
       var networkCopy = macroscopicNetwork.deepClone();
       GtfsServicesReader servicesReader = GtfsServicesReaderFactory.create(
           networkCopy, GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
+
+      /* own directory, this test writes no PLANit outputs to sit alongside */
+      servicesReader.getSettings().setParseDiagnosticsOutputDirectory(
+          Path.of(RESOURCE_PATH.toString(),"testcases","sydney","services_only").toAbsolutePath().toString());
+
       Pair<ServiceNetwork,RoutedServices> servicesPair = servicesReader.read();
 
       var serviceNetwork = servicesPair.first();
@@ -110,12 +124,13 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),92381);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),92381);
 
+      var serviceLayer = routedServices.getLayers().getFirst();
       assertEquals(routedServices.getLayers().size(),1);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(BUS)).size(),7903);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(LIGHTRAIL)).size(),5);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(TRAIN)).size(),39);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(SUBWAY)).size(),0);
-      assertEquals(routedServices.getLayers().getFirst().getServicesByMode(macroscopicNetwork.getModes().get(FERRY)).size(),23);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(BUS)).size(),7903);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(LIGHTRAIL)).size(),5);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(TRAIN)).size(),39);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(SUBWAY)).size(),0);
+      assertEquals(serviceLayer.getServicesByMode(macroscopicNetwork.getModes().get(FERRY)).size(),23);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
@@ -127,19 +142,21 @@ public class GtfsToPlanitSydneyTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services, service network and zoning from GTFS data given the PLANit network exists,
-   * but it has no transfer zones yet,i.e., all transfer zones (stops) are to be based on the GTFS data only.
+   * Test that attempts to extract PLANit routed services, service network and zoning from GTFS data given the
+   * PLANit network exists, but it has no transfer zones yet,i.e., all transfer zones (stops) are to be based on the
+   * GTFS data only.
    */
   @Test
-  public void testGtfsIntermodalReaderWithoutPreExistingPlanitTransferZones() {
+  public void testGtfsIntermodalReaderIgnorePreExistingPlanitTransferZones() {
 
     try {
       //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES)).toAbsolutePath().toString();
       var GTFS_FILES_DIR = GTFS_NSW_NO_SHAPES.toString();
 
+      var copiedNetwork = macroscopicNetwork.deepClone();
       /* construct intermodal reader without pre-existing zoning */
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(
-          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, macroscopicNetwork, RouteTypeChoice.EXTENDED);
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, copiedNetwork, RouteTypeChoice.EXTENDED);
 
       /* 6-10 in the morning as time period filter */
       gtfsIntermodalReader.getSettings().getServiceSettings().addTimePeriodFilter(
@@ -150,36 +167,41 @@ public class GtfsToPlanitSydneyTest {
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
       //gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
-      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getZoningSettings(), false);
-      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getServiceSettings());
+      /* own directory, this test writes no PLANit outputs to sit alongside */
+      gtfsIntermodalReader.getSettings().setParseDiagnosticsOutputDirectory(
+          Path.of(RESOURCE_PATH.toString(),"testcases","sydney","no_pre_existing_zones").toAbsolutePath().toString());
 
-      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
+      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getZoningSettings(), false);
+      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getServiceSettings());
+
+      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result =
+          gtfsIntermodalReader.readWithServices();
 
       var network = result.first();
       var zoning = result.second();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
-      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
-      // and a conscious choice has to be made whether this is better or not before changing the below results
       assertEquals(1, network.getTransportLayers().size());
-      assertEquals(1383, network.getTransportLayers().getFirst().getLinks().size());
-      assertEquals(1161, network.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2735, network.getTransportLayers().getFirst().getLinkSegments().size());
-      assertEquals(71, network.getTransportLayers().getFirst().getLinkSegmentTypes().size());
+      assertEquals(1307, network.getTransportLayers().getFirst().getNumberOfLinks());
+      assertEquals(1102, network.getTransportLayers().getFirst().getNumberOfNodes());
+      assertEquals(2429, network.getTransportLayers().getFirst().getNumberOfLinkSegments());
+      assertEquals(56, network.getTransportLayers().getFirst().getNumberOfBannedMovements());
 
       assertEquals(0, zoning.getOdZones().size());
-      assertEquals(119, zoning.getTransferZones().size());
+      assertEquals(100, zoning.getTransferZones().size()); // was 109
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(154, zoning.getTransferConnectoids().size());
+      assertEquals(153, zoning.getTransferConnectoids().size()); // was 177
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),99);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),97); // was99
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),84);
-      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),84);
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegSegments().size(),82); // was 84
+      assertEquals(serviceNetwork.getTransportLayers().getFirst().getLegs().size(),82); // was 84
 
       assertEquals(routedServices.getLayers().size(),1);
       Modes modes = macroscopicNetwork.getModes();
@@ -199,21 +221,21 @@ public class GtfsToPlanitSydneyTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services, service network and zoning  from GTFS data given the PLANit network already has existing transfer
-   * zones present that will be fused/merged when found in GTFS
+   * Test that attempts to extract PLANit routed services, service network and zoning  from GTFS data given the PLANit
+   * network already has existing transfer zones present that will be fused/merged when found in GTFS
    */
   @Test
   public void testGtfsIntermodalReaderWithPreExistingPlanitTransferZones() {
 
     try {
-      //String GTFS_FILES_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_NSW_NO_SHAPES.toString())).toAbsolutePath().toString();
       var GTFS_FILES_DIR = GTFS_NSW_NO_SHAPES.toString();
 
-      /* instead of using existing memory model for network and zoning, we use a PLANit intermodal reader to pass instead and
-       * let the GTFS reader perform the internal memory model construction
-       */
-      var planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
-      var gtfsSettings =  new GtfsIntermodalReaderSettings(GTFS_FILES_DIR, CountryNames.AUSTRALIA, RouteTypeChoice.EXTENDED);
+      /* instead of using existing memory model for network and zoning, we use a PLANit intermodal reader to
+      parse instead and let the GTFS reader perform the internal memory model construction */
+      var planitReader = PlanitIntermodalReaderFactory.create(
+          new PlanitIntermodalReaderSettings(PLANIT_INPUT_PATH));
+      var gtfsSettings =  new GtfsIntermodalReaderSettings(
+          GTFS_FILES_DIR, CountryNames.AUSTRALIA, RouteTypeChoice.EXTENDED);
 
       /* 6-10 in the morning as time period filter */
       gtfsSettings.getServiceSettings().setDayOfWeek(DayOfWeek.THURSDAY);
@@ -221,57 +243,78 @@ public class GtfsToPlanitSydneyTest {
           LocalTime.of(6,0,0),
           LocalTime.of(9, 59,59));
 
+      final String PLANIT_OUTPUT_DIR =
+          Path.of(RESOURCE_PATH.toString(),"testcases","sydney").toAbsolutePath().toString();
+
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(gtfsSettings, planitReader);
 
       /* log mappings, useful for debugging if needed */
 //    gtfsIntermodalReader.getSettings().getZoningSettings().setLogMappedGtfsZones(true);
 //    gtfsIntermodalReader.getSettings().getZoningSettings().setLogCreatedGtfsZones(true);
 
-      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getZoningSettings(), true);
-      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(gtfsIntermodalReader.getSettings().getServiceSettings());
+      /* alongside the PLANit outputs, so each test keeps its own diagnostics rather than overwriting a shared set */
+      gtfsIntermodalReader.getSettings().setParseDiagnosticsOutputDirectory(PLANIT_OUTPUT_DIR);
 
-      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
+      SydneyGtfsZoningSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getZoningSettings(), true);
+      SydneyGtfsServicesSettingsUtils.minimiseVerifiedWarnings(
+          gtfsIntermodalReader.getSettings().getServiceSettings());
 
-      macroscopicNetwork = result.first();
-      zoning = result.second();
+      var result = gtfsIntermodalReader.readWithServices();
+      var parsedNetwork = result.first();
+      var parsedZoning = result.second();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
       /* PLANit intermodal writer --> to supply file based outputs if needed (example) */
-      final String PLANIT_OUTPUT_DIR = Path.of(RESOURCE_PATH.toString(),"testcases","sydney").toAbsolutePath().toString();
       PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
       planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
       planitIntermodalWriter.getSettings().setOutputDirectory(PLANIT_OUTPUT_DIR);
-      planitIntermodalWriter.writeWithServices(macroscopicNetwork, zoning, serviceNetwork, routedServices);
+      planitIntermodalWriter.writeWithServices(parsedNetwork, parsedZoning, serviceNetwork, routedServices);
 
-      //todo: it is not manually verified the below numbers are correct, but if this fails, we at least know something has changed in how we process the same underlying data
-      // and a conscious choice has to be made whether this is better or not before changing the below results
-      assertEquals(macroscopicNetwork.getTransportLayers().size(),1);
-      assertEquals(1353, macroscopicNetwork.getTransportLayers().getFirst().getLinks().size());
-      assertEquals(1131, macroscopicNetwork.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2675, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegments().size());
-      assertEquals(71, macroscopicNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
+      assertEquals(parsedNetwork.getTransportLayers().size(),1);
+      assertEquals(1276, parsedNetwork.getTransportLayers().getFirst().getLinks().size());
+      assertEquals(1071, parsedNetwork.getTransportLayers().getFirst().getNodes().size());
+      assertEquals(2367, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(52, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
 
-      assertEquals(0, zoning.getOdZones().size());
-      assertEquals(143, zoning.getTransferZones().size());
-      assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(182, zoning.getTransferConnectoids().size());
+      assertEquals(0, parsedZoning.getOdZones().size());
+      // was 142, then 102 while the bounding area was enforced when creating transfer zones but not when fusing with
+      // pre-existing ones, letting a GTFS stop outside the area keep a pre-existing zone alive
+      assertEquals(101, parsedZoning.getTransferZones().size());
+      assertEquals(0, parsedZoning.getOdConnectoids().size());
+      assertEquals(128, parsedZoning.getTransferConnectoids().size()); // was 191 at one point (probably consolidated)
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
-      assertEquals(100, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size());
+      assertEquals(97, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size()); // was 100, then 98
 
       /* service nodes correspond to stops which are situated uniquely depending on the side of the road/track. Hence,
        * for now there is an equal number of legs and leg segments ad no bi-directional entries are identified */
-      assertEquals(88, serviceNetwork.getTransportLayers().getFirst().getLegSegments().size());
-      assertEquals(88, serviceNetwork.getTransportLayers().getFirst().getLegs().size());
+      assertEquals(82, serviceNetwork.getTransportLayers().getFirst().getLegSegments().size()); //was 88, then 86
+      assertEquals(82, serviceNetwork.getTransportLayers().getFirst().getLegs().size()); // was 88, then 86
 
       assertEquals(routedServices.getLayers().size(),1);
-      Modes modes = macroscopicNetwork.getModes();
+      Modes modes = parsedNetwork.getModes();
       assertEquals(53, routedServices.getLayers().getFirst().getServicesByMode(modes.get(BUS)).size());
       assertEquals(2, routedServices.getLayers().getFirst().getServicesByMode(modes.get(LIGHTRAIL)).size());
       assertEquals(8, routedServices.getLayers().getFirst().getServicesByMode(modes.get(TRAIN)).size());
       assertEquals(0, routedServices.getLayers().getFirst().getServicesByMode(modes.get(SUBWAY)).size());
-      assertEquals(6, routedServices.getLayers().getFirst().getServicesByMode(modes.get(FERRY)).size());
+      // was 6, the GTFS stop of the additional ferry service lies outside the bounding area and therefore no longer
+      // fuses with its pre-existing transfer zone
+      assertEquals(5, routedServices.getLayers().getFirst().getServicesByMode(modes.get(FERRY)).size());
+
+      /* the report is a product of the run as much as the network is, and a figure that is merely wrong reads as a
+       * number rather than as a failure unless something asserts otherwise */
+      GtfsDiagnosticsAssertions.assertConsistent(gtfsIntermodalReader.getRawGtfsEntityDiagnostics());
+      GtfsDiagnosticsAssertions.assertSummaryFilesSimilar(
+          PLANIT_OUTPUT_DIR, PLANIT_REF_DIR, "gtfs_coverage_summary.csv");
+      GtfsDiagnosticsAssertions.assertSummaryFilesSimilar(
+          PLANIT_OUTPUT_DIR, PLANIT_REF_DIR, "gtfs_issue_summary.csv");
+
+      PlanitAssertionUtils.assertNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertZoningFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertServiceNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertRoutedServicesFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());

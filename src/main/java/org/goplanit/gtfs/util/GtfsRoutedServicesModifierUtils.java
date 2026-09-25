@@ -68,6 +68,7 @@ public class GtfsRoutedServicesModifierUtils {
 
   }
 
+
   /**
    * Given that due to time period and day based filtering it is possible some GTFS trips only end up with a single stop, which means
    * they have no valid leg timings. This method can be used to clean up, i.e., remove those trips (and we recreate their underlying ids)

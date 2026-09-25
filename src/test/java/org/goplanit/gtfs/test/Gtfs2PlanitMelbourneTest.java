@@ -1,5 +1,7 @@
 package org.goplanit.gtfs.test;
 
+import org.goplanit.geoio.converter.intermodal.GeometryIntermodalWriter;
+import org.goplanit.geoio.converter.intermodal.GeometryIntermodalWriterFactory;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderFactory;
 import org.goplanit.gtfs.converter.intermodal.GtfsIntermodalReaderSettings;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Envelope;
 
 import java.nio.file.Path;
 import java.time.DayOfWeek;
@@ -29,7 +32,10 @@ import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * JUnit test cases for converting networks from one format to another
+ * JUnit test cases for converting networks from one format to another. The PLANit reference network and zoning
+ * used here should be in sync with the result produced in the PLANitOSM Melbourne test named:
+ * osm_intermodal_no_services_bb. This way when anything material changes in how we parse OSM we can update this
+ * network and zoning via that repo.
  * 
  * @author markr
  *
@@ -38,7 +44,12 @@ public class Gtfs2PlanitMelbourneTest {
 
   public static final Path RESOURCE_PATH = Path.of("src", "test", "resources");
 
-  public static final Path GTFS_VIC_NO_SHAPES = Path.of("GTFS", "VIC", "melbourne_gtfs_9_3_2023_no_shapes.zip");
+  public static final Path GTFS_VIC_NO_SHAPES =
+      Path.of("GTFS", "VIC", "melbourne_gtfs_9_3_2023_no_shapes.zip");
+
+  /** bounding area to apply */
+  public static final Envelope MELBOURNE_SIMPLE_BOUNDING_BOX =
+      new Envelope(144.995842, 144.921341, -37.855068,-37.786996);
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -62,26 +73,32 @@ public class Gtfs2PlanitMelbourneTest {
   }
 
   /**
-   * Test that attempts to extract PLANit routed services, and service network from GTFS data to supplement an existing PLANit network and zoning (stops)
-   * read from disk and then persist the result in the PLANit data format.
+   * Test that attempts to extract PLANit routed services, and service network from GTFS data to supplement an
+   * existing PLANit network and zoning (stops) read from disk and then persist the result in the PLANit data format.
    */
   @Test
   public void test2Gtfs2PlanitIntermodalWithServices_6_10AM_THU() {
 
-    final String PLANIT_INPUT_DIR = Path.of(RESOURCE_PATH.toString(), "planit","melbourne").toAbsolutePath().toString();
-    final String GTFS_FILES_INPUT_DIR = Path.of(ResourceUtils.getResourceUri(GTFS_VIC_NO_SHAPES.toString())).toAbsolutePath().toString();
-    final String PLANIT_OUTPUT_DIR = Path.of(RESOURCE_PATH.toString(),"testcases","melbourne").toAbsolutePath().toString();
-    final String PLANIT_REF_DIR = Path.of(RESOURCE_PATH.toString(),"planit","melbourne","reference").toAbsolutePath().toString();
+    final String PLANIT_INPUT_DIR = Path.of(
+        RESOURCE_PATH.toString(), "planit","melbourne").toAbsolutePath().toString();
+    final String GTFS_FILES_INPUT_DIR = Path.of(
+        ResourceUtils.getResourceUri(GTFS_VIC_NO_SHAPES.toString())).toAbsolutePath().toString();
+    final String OUTPUT_DIR = Path.of(
+        RESOURCE_PATH.toString(),"testcases","melbourne").toAbsolutePath().toString();
+    final String PLANIT_REF_DIR = Path.of(
+        RESOURCE_PATH.toString(),"planit","melbourne","reference").toAbsolutePath().toString();
 
     try {
 
       /* parse PLANit intermodal network (without services) from disk to memory */
-      PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(new PlanitIntermodalReaderSettings(PLANIT_INPUT_DIR));
+      PlanitIntermodalReader planitReader = PlanitIntermodalReaderFactory.create(
+          new PlanitIntermodalReaderSettings(PLANIT_INPUT_DIR));
       var planitIntermodalNetworkTuple = planitReader.read();
       var planitNetwork = planitIntermodalNetworkTuple.first();
       var planitZoning = planitIntermodalNetworkTuple.second();
 
-      var inputSettings = new GtfsIntermodalReaderSettings(GTFS_FILES_INPUT_DIR,  CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
+      var inputSettings = new GtfsIntermodalReaderSettings(
+              GTFS_FILES_INPUT_DIR,  CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
 
       /* 6-10 in the morning as time period filter */
       inputSettings.getServiceSettings().addTimePeriodFilter(
@@ -89,7 +106,8 @@ public class Gtfs2PlanitMelbourneTest {
           LocalTime.of(9, 59,59));
 
       MelbourneGtfsServicesSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getServiceSettings());
-      MelbourneGtfsZoningSettingsUtils.minimiseVerifiedWarnings2023(inputSettings.getZoningSettings(), true);
+      MelbourneGtfsZoningSettingsUtils.minimiseVerifiedWarnings2023(
+          inputSettings.getZoningSettings(), true);
 
       /* debugging option examples*/
       {
@@ -106,26 +124,44 @@ public class Gtfs2PlanitMelbourneTest {
       /* the GTFS reader */
       var gtfsIntermodalReader = GtfsIntermodalReaderFactory.create(planitNetwork, planitZoning, inputSettings);
 
+      /* alongside the PLANit outputs, so each test keeps its own diagnostics rather than overwriting a shared set */
+      gtfsIntermodalReader.getSettings().setParseDiagnosticsOutputDirectory(OUTPUT_DIR);
+
       /* execute */
-      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result = gtfsIntermodalReader.readWithServices();
+      Quadruple<MacroscopicNetwork, Zoning, ServiceNetwork, RoutedServices> result =
+          gtfsIntermodalReader.readWithServices();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
 
       /* PLANit intermodal writer */
-      PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
-      planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
-      planitIntermodalWriter.getSettings().setOutputDirectory(PLANIT_OUTPUT_DIR);
+      {
+        PlanitIntermodalWriter planitIntermodalWriter = PlanitIntermodalWriterFactory.create();
+        planitIntermodalWriter.getSettings().setCountry(gtfsIntermodalReader.getSettings().getCountryName());
+        planitIntermodalWriter.getSettings().setOutputDirectory(OUTPUT_DIR);
 
-      /* configure routed service writer */
-      planitIntermodalWriter.getSettings().getRoutedServicesSettings().setLogServicesWithoutTrips(true);
+        /* configure routed service writer */
+        planitIntermodalWriter.getSettings().getRoutedServicesSettings().setLogServicesWithoutTrips(true);
 
-      /* persist */
-      planitIntermodalWriter.writeWithServices(planitNetwork, planitZoning, serviceNetwork, routedServices);
+        /* persist */
+        planitIntermodalWriter.writeWithServices(planitNetwork, planitZoning, serviceNetwork, routedServices);
+      }
 
-      PlanitAssertionUtils.assertNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
-      PlanitAssertionUtils.assertZoningFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
-      PlanitAssertionUtils.assertServiceNetworkFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
-      PlanitAssertionUtils.assertRoutedServicesFilesSimilar(PLANIT_OUTPUT_DIR, PLANIT_REF_DIR);
+      /* Geopackage intermodal writer (for inspection only) */
+      {
+        GeometryIntermodalWriterFactory.create(OUTPUT_DIR, CountryNames.AUSTRALIA).writeWithServices(
+                        result.first(),
+                        result.second(),
+                        result.third(),
+                        result.fourth());
+      }
+
+      /* invariants only here, the figures themselves being pinned on the Sydney run */
+      GtfsDiagnosticsAssertions.assertConsistent(gtfsIntermodalReader.getRawGtfsEntityDiagnostics());
+
+      PlanitAssertionUtils.assertNetworkFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertZoningFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertServiceNetworkFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
+      PlanitAssertionUtils.assertRoutedServicesFilesSimilar(OUTPUT_DIR, PLANIT_REF_DIR);
 
     } catch (Exception e) {
       e.printStackTrace();
