@@ -104,7 +104,7 @@ public class GtfsZoningReader implements ZoningReader {
     var referenceNetwork = this.serviceNetwork.getParentNetwork();
     for(MacroscopicNetworkLayer networkLayer : referenceNetwork.getTransportLayers()){
       var layerModifier = networkLayer.getLayerModifier();
-      layerModifier.removeAllListeners();
+      layerModifier.removeAllNonInternalListeners();
 
       /* whenever a link(segment) is broken we ensure that its XML id is synced with the internal id to ensure it
       remains unique */
