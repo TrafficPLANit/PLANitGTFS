@@ -96,6 +96,8 @@ public class Gtfs2PlanitMelbourneTest {
       var planitIntermodalNetworkTuple = planitReader.read();
       var planitNetwork = planitIntermodalNetworkTuple.first();
       var planitZoning = planitIntermodalNetworkTuple.second();
+      /* counted now, since integrating GTFS changes the network in place */
+      int inputIntersectionCount = IntersectionAssertions.countIntersections(planitNetwork);
 
       var inputSettings = new GtfsIntermodalReaderSettings(
               GTFS_FILES_INPUT_DIR,  CountryNames.AUSTRALIA, DayOfWeek.THURSDAY, RouteTypeChoice.EXTENDED);
@@ -132,6 +134,7 @@ public class Gtfs2PlanitMelbourneTest {
           gtfsIntermodalReader.readWithServices();
       var serviceNetwork = result.third();
       var routedServices = result.fourth();
+      IntersectionAssertions.assertIntersectionsKeptAndConsistent(inputIntersectionCount, result.first());
 
       /* PLANit intermodal writer */
       {

@@ -225,7 +225,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
     /* 2) make sure a valid stop_location on each remaining link can be created (for example if stop_location
     would be on an extreme node, it is possible no access link segment upstream of that node remains
      *    which would render an otherwise valid position invalid */
-    var linkSegmentsWithConnectoidLocation = new HashSet<MacroscopicLinkSegment>();
+    /* ordered by id, so what follows never depends on the order of a hash set */
+    var linkSegmentsWithConnectoidLocation =
+        new TreeSet<MacroscopicLinkSegment>(Comparator.comparingLong(MacroscopicLinkSegment::getId));
     for(var accessMode : eligibleAccessModes) {
 
       Function<String, String> overwrittenAccessLinkToSourceId = null;
@@ -865,34 +867,38 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       final var linkWithIdMapper = data.getSettings().getOverwrittenGtfsStopToLinkMapping(gtfsStop.getStopId());
       boolean linkOverrideActive = linkWithIdMapper != null && linkWithIdMapper.bothNotNull();
 
-      /* find connectoid location for first acceptable stop-mode combination */
+      /* find connectoid location for first acceptable stop-mode combination, chosen among all candidate access
+       * segments, see GtfsDirectedConnectoidHelper#chooseConnectoidLocation */
       Point connectoidLocation = null;
       Function<String, String> overwrittenAccessLinkToSourceId = null;
+      final String accessLinkSourceId = linkToSourceId.apply(accessResult.first());
 
-      CONNECTOID_FOUND:
       for(var currEligibleMode : allEligibleModes) {
 
-        if (linkOverrideActive) {
-          /* if there is an override for this GTFS stop -> construct the function mapping needed on-the-fly */
-          overwrittenAccessLinkToSourceId = createOverwrittenAccessLinkToSourceIdFunction(gtfsStop, currEligibleMode);
-        }
+        /* if there is an override for this GTFS stop -> construct the function mapping needed on-the-fly */
+        final Function<String, String> overwrittenForMode = linkOverrideActive ?
+            createOverwrittenAccessLinkToSourceIdFunction(gtfsStop, currEligibleMode) : null;
+        overwrittenAccessLinkToSourceId = overwrittenForMode;
 
-        for(var linkSegment : accessResult.second()) {
-          connectoidLocation = ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLinkSegment(
-              gtfsStop.getStopId(),
-              projectedGtfsStopLocation,
-              linkSegment /* access link segment*/,
-              linkToSourceId.apply(accessResult.first()),
-              currEligibleMode,
-              data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
-              null,
-              null,
-              overwrittenAccessLinkToSourceId,
-              data.getSettings().getCountryName(), data.getGeoToolsInPlanitCrs());
+        connectoidLocation = GtfsDirectedConnectoidHelper.chooseConnectoidLocation(
+            projectedGtfsStopLocation,
+            accessResult.second(),
+            accessLinkSegment -> ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLinkSegment(
+                gtfsStop.getStopId(),
+                projectedGtfsStopLocation,
+                accessLinkSegment,
+                accessLinkSourceId,
+                currEligibleMode,
+                data.getSettings().getGtfsStopToLinkSearchRadiusMeters(),
+                null,
+                null,
+                overwrittenForMode,
+                data.getSettings().getCountryName(), data.getGeoToolsInPlanitCrs()),
+            currEligibleMode,
+            data.getGeoToolsInPlanitCrs());
 
-          if (connectoidLocation != null && !connectoidLocation.isEmpty()) {
-            break CONNECTOID_FOUND;
-          }
+        if (connectoidLocation != null) {
+          break;
         }
       }
 
@@ -916,7 +922,7 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
       /* create access node and break links if needed */
       var networkLayer = data.getServiceNetwork().getParentNetwork().getLayerByMode(gtfsStopMode);
       var accessNodeResult = GtfsLinkHelper.extractNodeByLinkGeometryLocation(
-              connectoidLocation, accessResult.first() /* access link */, networkLayer, data);
+              connectoidLocation, accessResult.first() /* access link */, gtfsStopMode, networkLayer, data);
       Node accessNode = accessNodeResult.first();
 
       /* when we choose an existing node on the closest link as access node --> then the access result identified

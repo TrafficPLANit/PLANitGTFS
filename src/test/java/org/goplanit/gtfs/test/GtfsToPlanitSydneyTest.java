@@ -185,15 +185,15 @@ public class GtfsToPlanitSydneyTest {
       var routedServices = result.fourth();
 
       assertEquals(1, network.getTransportLayers().size());
-      assertEquals(1307, network.getTransportLayers().getFirst().getNumberOfLinks());
-      assertEquals(1102, network.getTransportLayers().getFirst().getNumberOfNodes());
-      assertEquals(2429, network.getTransportLayers().getFirst().getNumberOfLinkSegments());
+      assertEquals(1331, network.getTransportLayers().getFirst().getNumberOfLinks()); // was 1310
+      assertEquals(1126, network.getTransportLayers().getFirst().getNumberOfNodes()); // was 1105
+      assertEquals(2471, network.getTransportLayers().getFirst().getNumberOfLinkSegments()); // was 2431
       assertEquals(56, network.getTransportLayers().getFirst().getNumberOfBannedMovements());
 
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(100, zoning.getTransferZones().size()); // was 109
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(153, zoning.getTransferConnectoids().size()); // was 177
+      assertEquals(155, zoning.getTransferConnectoids().size()); // was 177, then 154
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),97); // was99
@@ -273,17 +273,20 @@ public class GtfsToPlanitSydneyTest {
       planitIntermodalWriter.writeWithServices(parsedNetwork, parsedZoning, serviceNetwork, routedServices);
 
       assertEquals(parsedNetwork.getTransportLayers().size(),1);
-      assertEquals(1276, parsedNetwork.getTransportLayers().getFirst().getLinks().size());
-      assertEquals(1071, parsedNetwork.getTransportLayers().getFirst().getNodes().size());
-      assertEquals(2367, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size());
+      assertEquals(1300, parsedNetwork.getTransportLayers().getFirst().getLinks().size()); // was 1279
+      assertEquals(1095, parsedNetwork.getTransportLayers().getFirst().getNodes().size()); // was 1074
+      assertEquals(2409, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size()); // was 2369
       assertEquals(52, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
+      IntersectionAssertions.assertIntersectionsKeptAndConsistent(
+          IntersectionAssertions.countIntersections(macroscopicNetwork), parsedNetwork);
 
       assertEquals(0, parsedZoning.getOdZones().size());
       // was 142, then 102 while the bounding area was enforced when creating transfer zones but not when fusing with
       // pre-existing ones, letting a GTFS stop outside the area keep a pre-existing zone alive
       assertEquals(101, parsedZoning.getTransferZones().size());
       assertEquals(0, parsedZoning.getOdConnectoids().size());
-      assertEquals(128, parsedZoning.getTransferConnectoids().size()); // was 191 at one point (probably consolidated)
+      // was 191 at one point (probably consolidated), then 128
+      assertEquals(129, parsedZoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(97, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size()); // was 100, then 98
