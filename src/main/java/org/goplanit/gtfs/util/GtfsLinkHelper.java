@@ -1,28 +1,31 @@
 package org.goplanit.gtfs.util;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityOrigin;
+import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.ConnectoidUtils;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.connectoid.ConnectoidUtils;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.zoning.modifier.event.handler.UpdateDirectedConnectoidsOnBreakLinkSegmentHandler;
-import org.locationtech.jts.geom.CoordinateFilter;
-import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.linearref.LinearLocation;
-import org.locationtech.jts.precision.GeometryPrecisionReducer;
-import org.locationtech.jts.util.CoordinateArrayFilter;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Utils class related to GTFS and PLANit link functionality
@@ -31,76 +34,171 @@ import java.util.*;
  */
 public class GtfsLinkHelper {
 
+  /** maximum distance in metres from a stop location to an end node of its access link for that end node to be used
+   * as the access node, rather than breaking the link right next to it */
+  public static final double END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M = 5.0;
+
   /**
+   * Find the end node of a link that a stop location is the same as, or extremely close to, within
+   * {@link #END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M}. Using it as the access node avoids breaking the link. When both end
+   * nodes are that close, node B is taken.
+   *
+   * @param stopLocationInPlanitCrs to find the end node for
+   * @param link whose end nodes are considered
+   * @param geoUtils to measure the distance with
+   * @return the end node, null when neither is that close
+   */
+  public static Node findEndNodeWithinReachOfLocation(
+      final Point stopLocationInPlanitCrs, final MacroscopicLink link, final PlanitJtsCrsUtils geoUtils){
+    if(geoUtils.isDistanceWithinMetres(
+        link.getNodeB().getPosition(), stopLocationInPlanitCrs, END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M)){
+      return link.getNodeB();
+    }
+    return geoUtils.isDistanceWithinMetres(
+        link.getNodeA().getPosition(), stopLocationInPlanitCrs, END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M) ?
+        link.getNodeA() : null;
+  }
+
+  /**
+   * Verify if an end node of an access link may be reused as the access node of a stop, rather than breaking the link.
+   * It may, unless it is a dead end for the access mode: no link there other than the access link has a segment the
+   * mode may use. A dead end is only reached in the direction running into it, so the link is broken at the stop
+   * instead, letting both directions reach it. Ferries are the exception: a vessel turns around at a wharf, so a wharf
+   * at a dead end serves it fully.
+   *
+   * @param endNode of the access link
+   * @param accessLink the stop is reached along
+   * @param accessMode of the stop
+   * @return true when it may be reused, false otherwise
+   */
+  public static boolean isEndNodeReusableAsAccessNode(
+      final Node endNode, final MacroscopicLink accessLink, final Mode accessMode){
+    if(accessMode.isPredefinedModeType(PredefinedModeType.FERRY)){
+      return true;
+    }
+    return endNode.<MacroscopicLink>getLinks().stream().anyMatch(
+        link -> !link.idEquals(accessLink) && link.isModeAllowedOnAnySegment(accessMode));
+  }
+
+   /**
    * Find nearby links based on a given search radius
-   * @param location point location to search around (in WGS84 CRS)
+   * @param locationInPlanitCrs point location to search around
    * @param pointSearchRadiusMeters search radius to apply
    * @param data containing state
    * @return found links around this location (in network CRS)
    */
-  public static Collection<MacroscopicLink> findNearbyLinks(Point location, double pointSearchRadiusMeters, GtfsZoningHandlerData data) {
-    //todo change implementation so it does not necessarily require WGS84 input locations as it is inconsistent with the utils class
-    var searchEnvelope = data.getGeoTools().createBoundingBox(location.getX(),location.getY(),pointSearchRadiusMeters);
-    searchEnvelope = PlanitJtsUtils.transformEnvelope(searchEnvelope, data.getCrsTransform());
-    return GeoContainerUtils.queryEdgeQuadtree(data.getGeoIndexedLinks(), searchEnvelope);
+  public static Collection<MacroscopicLink> findNearbyLinks(
+      Point locationInPlanitCrs, double pointSearchRadiusMeters, GtfsZoningHandlerData data) {
+
+    var searchEnvelope = data.getGeoToolsInPlanitCrs().createBoundingBox(
+        locationInPlanitCrs.getX(), locationInPlanitCrs.getY() ,pointSearchRadiusMeters);
+    return data.getConverterData().findLinksSpatiallyAcrossLayers(searchEnvelope);
   }
 
-  /** Extract/create a PLANit node based on the given location. Either it already exists as a PLANit node, or it is internal to an existing link. In the latter case
-   * a new node is created and the existing link is broken. In the former case, we simply collect the PLANit node. When we break the link all relevant GTFS relate state
-   * data is also updated to reflect the enw situation appropriately
+  /** Extract/create a PLANit node based on the given location. Either it already exists as a PLANit node, or it
+   * is internal to an existing link. In the latter case a new node is created and the existing link is broken. In
+   * the former case, we simply collect the PLANit node. An end node of the link is only collected when it may be
+   * reused for the access mode, see {@link #isEndNodeReusableAsAccessNode(Node, MacroscopicLink, Mode)}, or when the
+   * location is that end node itself. When we break the link all relevant GTFS relate state data is also updated to
+   * reflect the enw situation appropriately
    *
-   * @param gtfsStopNodeLocation to collect/create PLANit node for (can be slightly altered in case of rounding/syncing with reference link geometry)
+   * @param stopLocationInPlanitCrs to collect/create PLANit node for (can be slightly altered in case of
+   *                                rounding/syncing
+   *                             with reference link geometry)
    * @param referenceLink the location is related to, can be internal can be an extreme node
+   * @param accessMode of the stop the node is for
    * @param networkLayer to extract node on
    * @param data containing state
-   * @return PLANit node collected/created, and flag indicating if this required breaking a link and node is newly created (true), false otherwise
+   * @return PLANit node collected/created, and flag indicating if this required breaking a link and node is
+   * newly created (true), false otherwise
    */
   public static Pair<Node,Boolean> extractNodeByLinkGeometryLocation(
-      Point gtfsStopNodeLocation, final MacroscopicLink referenceLink, final MacroscopicNetworkLayer networkLayer, final GtfsZoningHandlerData data){
-    PlanItRunTimeException.throwIfNull(gtfsStopNodeLocation, "Stop node location is null, not allowed");
-    PlanItRunTimeException.throwIfNull(referenceLink, "Designated access link for GTFS stop is null, not allowed");
+      Point stopLocationInPlanitCrs,
+      final MacroscopicLink referenceLink,
+      final Mode accessMode,
+      final MacroscopicNetworkLayer networkLayer,
+      final GtfsZoningHandlerData data){
 
-    /* prefer to use extreme node of access link which avoids breaking links, but it should be the same or extremely close to the extreme node to be eligible */
-    final double extremeNodeMaxDistanceMeters = 5.0;
-    Node planitNode = data.getGeoTools().isDistanceWithinMetres(referenceLink.getNodeA().getPosition(), gtfsStopNodeLocation, extremeNodeMaxDistanceMeters) ?  referenceLink.getNodeA() : null;
-    planitNode = data.getGeoTools().isDistanceWithinMetres(referenceLink.getNodeB().getPosition(), gtfsStopNodeLocation, extremeNodeMaxDistanceMeters) ?  referenceLink.getNodeB() : planitNode;
-    if(planitNode != null) {
+    PlanItRunTimeException.throwIfNull(stopLocationInPlanitCrs,
+        "Stop node location is null, not allowed");
+    PlanItRunTimeException.throwIfNull(referenceLink,
+        "Designated access link for GTFS stop is null, not allowed");
+
+    /* prefer to use extreme node of access link which avoids breaking links, but it should be the same or extremely
+    close to the extreme node to be eligible, and not a dead end unless the location is that very node */
+    Node planitNode = findEndNodeWithinReachOfLocation(
+        stopLocationInPlanitCrs, referenceLink, data.getGeoToolsInPlanitCrs());
+    if(planitNode != null && (isEndNodeReusableAsAccessNode(planitNode, referenceLink, accessMode) ||
+        planitNode.isPositionEqual2D(stopLocationInPlanitCrs.getCoordinate(), Precision.EPSILON_6))) {
       return Pair.of(planitNode, Boolean.FALSE);
     }
 
     // New node required
 
-    /* in case location is not yet an explicit point on the link's geometry, we explicitly inject it to allow for link breaking at this point (search with minimal margin to avoid missing a match due to
-       precision issues in case the link was persisted to disk and parsed with reduced precision */
-    int existingCoordinatePosition = PlanitJtsUtils.findFirstCoordinatePosition(gtfsStopNodeLocation.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
+    /* in case location is not yet an explicit point on the link's geometry, we explicitly inject it to allow
+    for link breaking at this point (search with minimal margin to avoid missing a match due to
+    precision issues in case the link was persisted to disk and parsed with reduced precision */
+    int existingCoordinatePosition = PlanitJtsUtils.findFirstCoordinatePosition(
+        stopLocationInPlanitCrs.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
     if(existingCoordinatePosition<0){
-      LinearLocation projectedLinearLocationOnLink = PlanitEntityGeoUtils.extractClosestProjectedLinearLocationToGeometryFromEdge(gtfsStopNodeLocation, referenceLink, data.getGeoTools());
+      LinearLocation projectedLinearLocationOnLink =
+          PlanitEntityGeoUtils.extractClosestProjectedLinearLocationToGeometryFromEdge(
+              stopLocationInPlanitCrs, referenceLink, data.getGeoToolsInPlanitCrs());
       referenceLink.updateGeometryInjectCoordinateAtProjectedLocation(projectedLinearLocationOnLink);
       /* update coordinate position */
-      existingCoordinatePosition = PlanitJtsUtils.findFirstCoordinatePosition(gtfsStopNodeLocation.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
+      existingCoordinatePosition = PlanitJtsUtils.findFirstCoordinatePosition(
+          stopLocationInPlanitCrs.getCoordinate(), referenceLink.getGeometry(), Precision.EPSILON_6).orElse(-1);
     }
-    /* to make sure the location of the node and that of the link is exactly the same (avoid rounding due to tolerance used abve in matching we update the location used to the link's internal location that was created/existed. */
-    gtfsStopNodeLocation = PlanitJtsUtils.createPoint(referenceLink.getGeometry().getCoordinateN(existingCoordinatePosition));
+    /* to make sure the location of the node and that of the link is exactly the same (avoid rounding due to tolerance
+     used above in matching we update the location used to the link's internal location that was created/existed. */
+    stopLocationInPlanitCrs =
+        PlanitJtsUtils.createPoint(referenceLink.getGeometry().getCoordinateN(existingCoordinatePosition));
 
-    /* location is internal to an existing link, create new PLANit node at this location to serve as the new point of demarcation for the link that is to be broken */
-    planitNode = networkLayer.getNodes().getFactory().registerNew(gtfsStopNodeLocation, true);
+    /* location is internal to an existing link, create new PLANit node at this location to serve as the new point
+    of demarcation for the link that is to be broken */
+    planitNode = networkLayer.getNodes().getFactory().registerNew(stopLocationInPlanitCrs, true);
 
-    /* register additional actions on breaking link via listener for connectoid update (see above) as connectoids and their access links might be affected/invalidated when
+    /* register additional actions on breaking link via listener for connectoid update (see above) as connectoids
+    and their access links might be affected/invalidated when
     * breaking links, this listener accounts for that */
-    /* TODO: refactor this so it does not require this whole preparing of data. Ideally this is handled more elegantly than now */
-    Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink =
-        ConnectoidUtils.findDirectedConnectoidsReferencingLinks(List.of(referenceLink), data.getDirectedConnectoidsByLocation(networkLayer));
-    GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(connectoidsAccessNodeLocationBeforeBreakLink);
+    /* TODO: refactor this so it does not require this whole preparing of data. Ideally this is handled more
+        elegantly than now */
+    Set<TransferConnectoid> connectoidsAccessNodeLocationBeforeBreakLink =
+        ConnectoidUtils.findDirectedConnectoidsReferencingLinks(
+            List.of(referenceLink),
+            data.getConverterData().getConnectoidData().getTransferConnectoidsByLocation(
+                networkLayer).values().stream().flatMap(Collection::stream));
+    GraphModifierListener listener = new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(
+        connectoidsAccessNodeLocationBeforeBreakLink);
 
-    /* now perform the breaking of links at the given node and update related tracking/reference information to broken link(segment)(s) where needed */
+    /* now perform the breaking of links at the given node and update related tracking/reference
+    information to broken link(segment)(s) where needed */
     breakLinksAtPlanitNode(planitNode, networkLayer, referenceLink, List.of(listener), data);
 
     return Pair.of(planitNode, Boolean.TRUE);
   }
 
   /**
-   * break a PLANit link at the PLANit node location while also updating all related tracking indices and/or PLANit network link and link segment references
-   * that might be affected by this process:
+   * Record what breaking a link open to reach a stop adds to the physical network, being the node the stop is
+   * reached from, the additional link the break leaves behind, and a segment per direction the link carries
+   *
+   * @param linkToBreak about to be broken, still whole
+   * @param data containing what the outcome is recorded into
+   */
+  private static void registerBrokenOpenForStopAccess(
+      final MacroscopicLink linkToBreak, final GtfsZoningHandlerData data){
+    var planitEntityDiagnostics = data.getProfiler().getPlanitEntityDiagnostics();
+    var origin = GtfsPlanitEntityOrigin.BROKEN_OPEN_FOR_STOP_ACCESS.getSubType();
+    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.NODE, origin, 1);
+    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.LINK, origin, 1);
+    planitEntityDiagnostics.registerDesired(
+        GtfsPlanitEntityType.LINK_SEGMENT, origin,
+        (linkToBreak.hasLinkSegmentAb() ? 1 : 0) + (linkToBreak.hasLinkSegmentBa() ? 1 : 0));
+  }
+
+  /**
+   * break a PLANit link at the PLANit node location while also updating all related tracking indices and/or
+   * PLANit network link and link segment references that might be affected by this process:
    * <ul>
    * <li>tracking of geo indexed PLANit links</li>
    * <li>connectoid access link segments affected by breaking of link (if any)</li>
@@ -108,39 +206,52 @@ public class GtfsLinkHelper {
    *  @param planitNode to break link at (its location, it is assumed node has already been created)
    * @param networkLayer       the node and link(s) reside on
    * @param linkToBreak       the link to break
-   * @param temporaryListeners graph modifier listeners to register and apply when  breaking link(s) at PLANit node location, and unregister afterwards
+   * @param temporaryListeners graph modifier listeners to register and apply when  breaking link(s) at PLANit
+   *                           node location, and unregister afterwards
    * @param data containing state
    */
   public static void breakLinksAtPlanitNode(
-      final Node planitNode, final MacroscopicNetworkLayer networkLayer, final MacroscopicLink linkToBreak, Collection<GraphModifierListener> temporaryListeners, GtfsZoningHandlerData data){
+      final Node planitNode,
+      final MacroscopicNetworkLayer networkLayer,
+      final MacroscopicLink linkToBreak,
+      Collection<GraphModifierListener> temporaryListeners,
+      GtfsZoningHandlerData data){
+
+    /* what breaking the link adds is recorded here, where the link it is taken from is still whole and the entities
+     * it yields can be attributed to it, rather than inferred afterwards from what the network grew by */
+    registerBrokenOpenForStopAccess(linkToBreak, data);
 
     /* BEFORE - add listeners */
     if(!CollectionUtils.nullOrEmpty(temporaryListeners)) {
       temporaryListeners.forEach(l -> networkLayer.getLayerModifier().addListener(l));
     }
 
-    {
+    try {
       /* BEFORE - LOCAL TRACKING DATA CONSISTENCY */
       {
-        /* remove links from spatial index when they are broken up and their geometry changes, after breaking more links exist with smaller geometries... insert those after as replacements*/
-        data.removeGeoIndexedLink(linkToBreak);
+        /* remove links from spatial index when they are broken up and their geometry changes, after breaking
+        more links exist with smaller geometries... insert those after as replacements*/
+        data.getConverterData().removeLinkFromSpatialLinkIndex(linkToBreak);
       }
 
       /* break links */
       Map<Long, Pair<MacroscopicLink, MacroscopicLink>> newlyBrokenLinks = networkLayer.getLayerModifier().breakAt(
-          linkToBreak, planitNode, data.getGeoTools().getCoordinateReferenceSystem());
+          List.of(linkToBreak),
+          planitNode,
+          data.getGeoToolsInPlanitCrs().getCoordinateReferenceSystem());
 
 
       /* AFTER - TRACKING DATA CONSISTENCY */
       {
         /* insert created/updated links and their geometries to spatial index instead */
-        newlyBrokenLinks.forEach( (id, linkPair) -> data.addGeoIndexedLinks(linkPair.first(), linkPair.second()));
+        newlyBrokenLinks.forEach( (id, linkPair) ->
+            data.getConverterData().addLinksToSpatialLinkIndex(networkLayer, linkPair.first(), linkPair.second()));
       }
-    }
-
-    /* AFTER - remove listeners */
-    if(!CollectionUtils.nullOrEmpty(temporaryListeners)) {
-      temporaryListeners.forEach(l -> networkLayer.getLayerModifier().removeListener(l));
+    } finally {
+      /* AFTER - remove listeners */
+      if(!CollectionUtils.nullOrEmpty(temporaryListeners)) {
+        temporaryListeners.forEach(l -> networkLayer.getLayerModifier().removeListener(l));
+      }
     }
   }
 }

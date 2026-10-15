@@ -9,8 +9,8 @@ public class MelbourneGtfsServicesSettingsUtils {
 
 
   /**
-   * When applied to the 2023 PBF it suppresses and addresses warnings deemed issues that are NOT to be fixed in the parser
-   * but would detract from assessing the logs.
+   * When applied to the 2023 PBF it suppresses and addresses warnings deemed issues that are NOT to be
+   * fixed in the parser but would detract from assessing the logs.
    *
    * @param settings to apply to
    */

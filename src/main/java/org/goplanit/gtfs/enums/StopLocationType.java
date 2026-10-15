@@ -4,7 +4,6 @@ import org.goplanit.utils.enums.EnumOf;
 import org.goplanit.utils.enums.EnumValue;
 import org.goplanit.utils.misc.StringUtils;
 
-import java.util.logging.Logger;
 
 /**
  * Defines the different stop location types:
@@ -25,8 +24,6 @@ public enum StopLocationType implements EnumOf<StopLocationType, Short>, EnumVal
   GENERIC_NODE ((short)3),
   BOARDING_AREA ((short)4);
 
-  /** Logger to use */
-  private static final Logger LOGGER = Logger.getLogger(StopLocationType.class.getCanonicalName());
 
   private final short value;
 
@@ -77,8 +74,9 @@ public enum StopLocationType implements EnumOf<StopLocationType, Short>, EnumVal
 
       return of(Short.valueOf(value));
     }catch (Exception e){
-      LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS Stop Location Type",value));
+      /* a value that is no location type is reported against the stop it was read for, where it can be counted and
+       * held against the feed, rather than here where it is read afresh each time it is asked for */
+      return null;
     }
-    return null;
   }
 }

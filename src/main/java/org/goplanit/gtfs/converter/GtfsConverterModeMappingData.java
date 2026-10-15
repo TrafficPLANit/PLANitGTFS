@@ -1,24 +1,21 @@
 package org.goplanit.gtfs.converter;
 
-import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.containers.ContainerUtils;
 import org.goplanit.utils.containers.ListUtils;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static org.goplanit.gtfs.util.GtfsConverterReaderHelper.createCombinedActivatedPlanitModes;
 
 /**
  * Base class with shared data used by all derived classes
  */
-public class GtfsConverterHandlerData {
+public class GtfsConverterModeMappingData {
 
   /** based on the settings create a single consolidated set of activated PLANit modes combining the predefined mode mappings
    * that materialise as actual mode instances */
@@ -47,10 +44,10 @@ public class GtfsConverterHandlerData {
    * @param serviceNetwork to use
    * @param settings to use
    */
-  public GtfsConverterHandlerData(final ServiceNetwork serviceNetwork, GtfsConverterReaderSettingsWithModeMapping settings){
+  public GtfsConverterModeMappingData(final ServiceNetwork serviceNetwork, GtfsConverterReaderSettingsWithModeMapping settings){
     this.serviceNetwork = serviceNetwork;
     this.activatedPlanitModesByGtfsMode = createCombinedActivatedPlanitModes(settings, getServiceNetwork().getParentNetwork().getModes());
-    this.activatedPlanitModes = activatedPlanitModesByGtfsMode.values().stream().flatMap(e -> e.stream()).collect(Collectors.toSet());
+    this.activatedPlanitModes = activatedPlanitModesByGtfsMode.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
     this.settings = settings;
 
 
@@ -85,7 +82,7 @@ public class GtfsConverterHandlerData {
   /** activated planit modes, note that initialise should have been called before this is populated
    * @return activated planit mode instances including predefined mode versions
    */
-  public Set<Mode> getActivatedPlanitModesByGtfsMode(){
+  public Set<Mode> getActivatedPlanitModes(){
     return Collections.unmodifiableSet(activatedPlanitModes);
   }
 
