@@ -24,6 +24,12 @@ public class GtfsFileReaderAgencies extends GtfsFileReaderBase {
     super(new GtfsAgenciesScheme(), gtfsLocation, filePresenceCondition);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Agencies have nothing to configure, whatever the column type
+   * </p>
+   */
   @Override
   protected void initialiseColumnConfiguration(GtfsColumnType columnType) {
 

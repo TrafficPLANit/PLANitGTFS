@@ -53,14 +53,17 @@ public class GtfsToPlanitSydneyTest {
   private static final String PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR = Path.of("planit","sydney").toString();
   private static final String PLANIT_INPUT_PATH =
       Path.of(ResourceUtils.getResourceUri(PLANIT_SYDNEY_INTERMODAL_NETWORK_DIR)).toAbsolutePath().toString();
-  final String PLANIT_REF_DIR = Path.of(
-      PLANIT_INPUT_PATH,"reference").toAbsolutePath().toString();
-
-
   public static MacroscopicNetwork macroscopicNetwork;
 
   public static Zoning zoning;
 
+  final String PLANIT_REF_DIR = Path.of(
+      PLANIT_INPUT_PATH,"reference").toAbsolutePath().toString();
+
+
+  /**
+   * Create the logger, and read the PLANit network and zoning the tests add services to, once for all tests
+   */
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
@@ -78,12 +81,18 @@ public class GtfsToPlanitSydneyTest {
     LOGGER.setLevel(Level.INFO);
   }
 
+  /**
+   * Close the logger and reset the ids once all tests ran
+   */
   @AfterAll
   public static void tearDown() {
     Logging.closeLogger(LOGGER);
     IdGenerator.reset();
   }
 
+  /**
+   * Reset the ids after each test
+   */
   @AfterEach
   public void after() {
     IdGenerator.reset();
@@ -185,15 +194,16 @@ public class GtfsToPlanitSydneyTest {
       var routedServices = result.fourth();
 
       assertEquals(1, network.getTransportLayers().size());
-      assertEquals(1331, network.getTransportLayers().getFirst().getNumberOfLinks()); // was 1310
-      assertEquals(1126, network.getTransportLayers().getFirst().getNumberOfNodes()); // was 1105
-      assertEquals(2471, network.getTransportLayers().getFirst().getNumberOfLinkSegments()); // was 2431
-      assertEquals(56, network.getTransportLayers().getFirst().getNumberOfBannedMovements());
+      assertEquals(1337, network.getTransportLayers().getFirst().getNumberOfLinks()); // was 1310
+      assertEquals(1132, network.getTransportLayers().getFirst().getNumberOfNodes()); // was 1105
+      assertEquals(2483, network.getTransportLayers().getFirst().getNumberOfLinkSegments()); // was 2431
+      assertEquals(44, network.getTransportLayers().getFirst().getNumberOfBannedTurns()); // was 56, see below
+      // a turn that no mode banned by its restriction can make, e.g. from a cycleway onto a road, gets no ban
 
       assertEquals(0, zoning.getOdZones().size());
       assertEquals(100, zoning.getTransferZones().size()); // was 109
       assertEquals(0, zoning.getOdConnectoids().size());
-      assertEquals(155, zoning.getTransferConnectoids().size()); // was 177, then 154
+      assertEquals(152, zoning.getTransferConnectoids().size()); // was 177, then 154
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size(),97); // was99
@@ -273,9 +283,9 @@ public class GtfsToPlanitSydneyTest {
       planitIntermodalWriter.writeWithServices(parsedNetwork, parsedZoning, serviceNetwork, routedServices);
 
       assertEquals(parsedNetwork.getTransportLayers().size(),1);
-      assertEquals(1300, parsedNetwork.getTransportLayers().getFirst().getLinks().size()); // was 1279
-      assertEquals(1095, parsedNetwork.getTransportLayers().getFirst().getNodes().size()); // was 1074
-      assertEquals(2409, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size()); // was 2369
+      assertEquals(1308, parsedNetwork.getTransportLayers().getFirst().getLinks().size()); // was 1279
+      assertEquals(1103, parsedNetwork.getTransportLayers().getFirst().getNodes().size()); // was 1074
+      assertEquals(2425, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size()); // was 2369
       assertEquals(52, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
       IntersectionAssertions.assertIntersectionsKeptAndConsistent(
           IntersectionAssertions.countIntersections(macroscopicNetwork), parsedNetwork);
@@ -286,7 +296,7 @@ public class GtfsToPlanitSydneyTest {
       assertEquals(101, parsedZoning.getTransferZones().size());
       assertEquals(0, parsedZoning.getOdConnectoids().size());
       // was 191 at one point (probably consolidated), then 128
-      assertEquals(129, parsedZoning.getTransferConnectoids().size());
+      assertEquals(128, parsedZoning.getTransferConnectoids().size());
 
       assertEquals(serviceNetwork.getTransportLayers().size(),1);
       assertEquals(97, serviceNetwork.getTransportLayers().getFirst().getServiceNodes().size()); // was 100, then 98

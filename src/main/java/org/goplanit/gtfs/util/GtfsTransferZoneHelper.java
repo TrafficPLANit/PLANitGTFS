@@ -4,11 +4,11 @@ import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.utils.geo.GeoContainerUtils;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
+import org.goplanit.utils.geo.PlanitGraphGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.CharacterUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneType;
 import org.locationtech.jts.geom.Coordinate;
@@ -117,9 +117,8 @@ public class GtfsTransferZoneHelper {
       }
       var entry = connectoid.getAsDirectedAccessZoneEntry(transferZone, PT_VEHICLE_STOP);
       for(var accessSegment : entry.getAccessLinkSegments()){
-        success = success ||
-            (localProjection!=null && GtfsLinkSegmentHelper.isGeometryOnCorrectSideOfLinkSegment(
-                    localProjection, (LinkSegment) accessSegment, leftHandDrive, data.getGeoToolsInPlanitCrs()));
+        success = success || (localProjection!=null && leftHandDrive ==
+            PlanitGraphGeoUtils.isGeometryLeftOf(localProjection, accessSegment, data.getGeoToolsInPlanitCrs()));
         if(allConnectoidsMustMatch && !success) {
           break;
         }

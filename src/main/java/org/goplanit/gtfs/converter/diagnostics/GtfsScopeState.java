@@ -43,20 +43,6 @@ public class GtfsScopeState {
   private final Quadruple<GtfsEntityScope, GtfsEntityScope, GtfsEntityScope, GtfsEntityScope> scopes;
 
   /**
-   * Constructor
-   *
-   * @param spatial scope
-   * @param temporal scope
-   * @param modal scope
-   * @param selection scope
-   */
-  private GtfsScopeState(
-      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal,
-      final GtfsEntityScope selection) {
-    this.scopes = Quadruple.of(spatial, temporal, modal, selection);
-  }
-
-  /**
    * Collect the position the given combination is held at
    *
    * @param spatial scope
@@ -71,6 +57,32 @@ public class GtfsScopeState {
     var range = GtfsEntityScope.values().length;
     return (spatial.ordinal() * range * range * range) + (temporal.ordinal() * range * range)
         + (modal.ordinal() * range) + selection.ordinal();
+  }
+
+  /**
+   * Collect the scope a respect starts in for the given entity type
+   *
+   * @param dimension respect concerned
+   * @param entityType to collect for
+   * @return scope
+   */
+  private static GtfsEntityScope scopeAtStart(
+      final GtfsScopeDimension dimension, final GtfsObjectType entityType) {
+    return dimension.appliesTo(entityType) ? GtfsEntityScope.NOT_ESTABLISHED : GtfsEntityScope.NOT_APPLICABLE;
+  }
+
+  /**
+   * Constructor
+   *
+   * @param spatial scope
+   * @param temporal scope
+   * @param modal scope
+   * @param selection scope
+   */
+  private GtfsScopeState(
+      final GtfsEntityScope spatial, final GtfsEntityScope temporal, final GtfsEntityScope modal,
+      final GtfsEntityScope selection) {
+    this.scopes = Quadruple.of(spatial, temporal, modal, selection);
   }
 
   /**
@@ -101,18 +113,6 @@ public class GtfsScopeState {
         scopeAtStart(GtfsScopeDimension.TEMPORAL, entityType),
         scopeAtStart(GtfsScopeDimension.MODAL, entityType),
         scopeAtStart(GtfsScopeDimension.SELECTION, entityType));
-  }
-
-  /**
-   * Collect the scope a respect starts in for the given entity type
-   *
-   * @param dimension respect concerned
-   * @param entityType to collect for
-   * @return scope
-   */
-  private static GtfsEntityScope scopeAtStart(
-      final GtfsScopeDimension dimension, final GtfsObjectType entityType) {
-    return dimension.appliesTo(entityType) ? GtfsEntityScope.NOT_ESTABLISHED : GtfsEntityScope.NOT_APPLICABLE;
   }
 
   /**
@@ -158,36 +158,6 @@ public class GtfsScopeState {
         throw new IllegalArgumentException(
             String.format("Unrecognised GTFS scope dimension %s encountered", dimension));
     }
-  }
-
-  /**
-   * Verify whether the entity was within scope in every respect that applies to it, which is what makes it one the run
-   * could actually have parsed. A respect that does not apply cannot rule anything out and so does not weigh in
-   *
-   * @return true when within scope throughout, false otherwise
-   */
-  public boolean isWithinScopeThroughout() {
-    for (var dimension : GtfsScopeDimension.values()) {
-      var scope = get(dimension);
-      if (scope.isApplicable() && !scope.isWithinArea()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Verify whether any respect settled at all
-   *
-   * @return true when at least one settled, false otherwise
-   */
-  public boolean hasAnySettled() {
-    for (var dimension : GtfsScopeDimension.values()) {
-      if (get(dimension).isEstablished()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

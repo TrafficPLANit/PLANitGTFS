@@ -43,6 +43,9 @@ public enum StopLocationType implements EnumOf<StopLocationType, Short>, EnumVal
     this.value = value;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Short getValue(){
     return value;

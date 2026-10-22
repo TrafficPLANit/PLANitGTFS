@@ -40,6 +40,12 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
       this.mappedTransferZonesByGtfsStopId = mappedTransferZonesByGtfsStopId;
     }
 
+    /**
+     * Collect the transfer zone a GTFS stop is mapped to
+     *
+     * @param gtfsStopId to collect the transfer zone for
+     * @return transfer zone, null when the stop is mapped to none
+     */
     @Override
     public TransferZone apply(String gtfsStopId) {
       return mappedTransferZonesByGtfsStopId.get(gtfsStopId);

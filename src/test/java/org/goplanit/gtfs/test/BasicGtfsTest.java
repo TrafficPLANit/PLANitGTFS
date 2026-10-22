@@ -39,6 +39,9 @@ public class BasicGtfsTest {
   public static final Path GTFS_SEQ_ALL = Path.of(RESOURCES_GTFS.toString(),"SEQ","SEQGTFS.zip");
 
 
+  /**
+   * Create the logger once for all tests
+   */
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
@@ -46,6 +49,9 @@ public class BasicGtfsTest {
     }
   }
 
+  /**
+   * Close the logger and reset the ids once all tests ran
+   */
   @AfterAll
   public static void tearDown() {
     Logging.closeLogger(LOGGER);

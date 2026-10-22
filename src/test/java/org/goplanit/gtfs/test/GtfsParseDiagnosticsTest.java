@@ -39,6 +39,9 @@ public class GtfsParseDiagnosticsTest {
   @TempDir
   Path tempDir;
 
+  /**
+   * What was seen is what was parsed plus what was discarded, and the discards split by disposition
+   */
   @Test
   public void seenParsedAndDiscardedReconcileTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -58,6 +61,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(0, diagnostics.getDiscarded(GtfsObjectType.ROUTE, GtfsIssueDisposition.PROBLEM));
   }
 
+  /**
+   * An issue carried by an entity parsed regardless does not count as a discard
+   */
   @Test
   public void retainedIssueDoesNotDiscardTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -77,6 +83,9 @@ public class GtfsParseDiagnosticsTest {
     assertFalse(diagnostics.isDiscarded(GtfsObjectType.STOP, "s1"));
   }
 
+  /**
+   * A discarded trip can be asked after by its id, with the issue it was discarded for
+   */
   @Test
   public void suppressionIndexTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -89,6 +98,9 @@ public class GtfsParseDiagnosticsTest {
     assertNull(diagnostics.getDiscardIssue(GtfsObjectType.TRIP, "t2"));
   }
 
+  /**
+   * A discarded stop time is counted but not indexed by its id
+   */
   @Test
   public void stopTimesCountedButNotIndexedTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -100,6 +112,9 @@ public class GtfsParseDiagnosticsTest {
     assertFalse(diagnostics.isDiscarded(GtfsObjectType.STOP_TIME, "st1"));
   }
 
+  /**
+   * Discards registered without anything seen leave nothing parsed rather than a negative count
+   */
   @Test
   public void parsedNeverNegativeTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -110,6 +125,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(0, diagnostics.getParsed(GtfsObjectType.TRIP));
   }
 
+  /**
+   * Resetting forgets what was seen, what was discarded and the discard index
+   */
   @Test
   public void resetTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -123,6 +141,9 @@ public class GtfsParseDiagnosticsTest {
     assertFalse(diagnostics.isDiscarded(GtfsObjectType.TRIP, "t1"));
   }
 
+  /**
+   * Every issue names a stage, an entity type, a disposition and a description, and every stage has issues
+   */
   @Test
   public void everyIssueIsSelfConsistentTest() {
     /* an issue has to name a stage, an entity type and a disposition for the report to place it in a column */
@@ -138,6 +159,9 @@ public class GtfsParseDiagnosticsTest {
         stage -> assertFalse(GtfsParseIssue.getIssuesForStage(stage).isEmpty()));
   }
 
+  /**
+   * Counts per subtype add up to the totals of their entity type, and the subtypes are ordered by name
+   */
   @Test
   public void categoryBreakdownTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -165,6 +189,9 @@ public class GtfsParseDiagnosticsTest {
         List.copyOf(diagnostics.getSeenBySubType(GtfsObjectType.ROUTE).keySet()));
   }
 
+  /**
+   * Counting only keeps the totals exact and the discard index working while listing no entities
+   */
   @Test
   public void countsOnlyRetainsNoEntitiesTest() {
     var diagnostics = GtfsParseDiagnostics.createCountsOnly();
@@ -180,6 +207,9 @@ public class GtfsParseDiagnosticsTest {
     assertTrue(diagnostics.isDiscarded(GtfsObjectType.TRIP, "t1"));
   }
 
+  /**
+   * An empty instance made from another leaves that one as it was
+   */
   @Test
   public void newEmptyInstanceLeavesOriginalIntactTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -195,6 +225,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(0, replacement.getDiscarded(GtfsObjectType.TRIP));
   }
 
+  /**
+   * Merging stages that recorded different entity types adds up their counts and keeps their discard indexes
+   */
   @Test
   public void mergeOfDisjointEntityTypesTest() {
     /* mirrors the real split: the services stage records routes and trips, the stop stage records stops */
@@ -223,6 +256,9 @@ public class GtfsParseDiagnosticsTest {
     assertTrue(services.isDiscarded(GtfsObjectType.TRIP, "t1"));
   }
 
+  /**
+   * Merging stages that both recorded an entity type is refused and leaves the totals as they were
+   */
   @Test
   public void mergeRejectsOverlappingEntityTypeTest() {
     var first = GtfsParseDiagnostics.create();
@@ -238,6 +274,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(10, first.getSeenInFeed(GtfsObjectType.STOP));
   }
 
+  /**
+   * An entity type that one side only recorded issues for still counts as recorded when merging
+   */
   @Test
   public void mergeRejectsOverlapIntroducedByIssuesOnlyTest() {
     /* the overlap is on stops even though only one side ever counted a stop as seen */
@@ -250,6 +289,9 @@ public class GtfsParseDiagnosticsTest {
     assertThrows(PlanItRunTimeException.class, () -> first.merge(second));
   }
 
+  /**
+   * Merging stages that both recorded an entity type adds up their counts when explicitly allowed
+   */
   @Test
   public void mergeAllowsOverlapWhenExplicitlyPermittedTest() {
     var first = GtfsParseDiagnostics.create();
@@ -262,6 +304,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(15, first.getSeenInFeed(GtfsObjectType.STOP));
   }
 
+  /**
+   * Merging nothing changes nothing
+   */
   @Test
   public void mergeOfNullIsHarmlessTest() {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -270,6 +315,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(10, diagnostics.getSeenInFeed(GtfsObjectType.STOP));
   }
 
+  /**
+   * The discards, the retained issues and the coverage summary are written, with each detail composed by its issue
+   */
   @Test
   public void persistTest() throws IOException {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -303,6 +351,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(4, summary.size());
   }
 
+  /**
+   * Discards the run was asked for are not listed when left out of what is written, while still being counted
+   */
   @Test
   public void persistLeavesOutByDesignIssuesTest() throws IOException {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -323,6 +374,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(1, diagnostics.getOccurrences(GtfsParseIssue.ROUTE_EXCLUDED_BY_SETTINGS));
   }
 
+  /**
+   * The rows of the coverage summary are disjoint and add up to what the feed holds, per entity type
+   */
   @Test
   public void persistedCoverageRowsAreDisjointTest() throws IOException {
     var diagnostics = GtfsParseDiagnostics.create();
@@ -363,6 +417,9 @@ public class GtfsParseDiagnosticsTest {
     assertEquals(diagnostics.getSeenInFeed(GtfsObjectType.STOP_TIME), countOfStopTimes);
   }
 
+  /**
+   * Each row of the issue summary states where its entities stood in every respect when the issue arose
+   */
   @Test
   public void persistedIssueSummaryStatesWhereEntitiesStoodTest() throws IOException {
     var diagnostics = GtfsParseDiagnostics.create();

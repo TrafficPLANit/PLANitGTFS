@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -22,7 +23,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.function.ToLongFunction;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
  * </p>
  * <p>
  * Counts are kept on two axes. Every entity is counted against its type, and where a call site supplies one, also
- * against a subType within that type such as the route type a route belongs to. The same entity therefore appears in
+ * against a subtype within that type such as the route type a route belongs to. The same entity therefore appears in
  * aggregate and broken down, without either being derived from the other.
  * </p>
  * <p>
@@ -44,7 +45,9 @@ import java.util.stream.Collectors;
  * own record of the same fact.
  * </p>
  * <p>
- * Safe for concurrent use, which the integration stage requires since it maps leg segments from worker threads.
+ * Counting entities and registering issues are safe for concurrent use, which the integration stage requires since
+ * it maps leg segments from worker threads. Settling where an entity stands is not: it is only done while the files
+ * are read, one at a time.
  * </p>
  *
  * @author markr
@@ -86,15 +89,15 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   private static final Set<GtfsObjectType> SCOPE_INDEXED_ENTITY_TYPES =
       Set.of(GtfsObjectType.ROUTE, GtfsObjectType.TRIP, GtfsObjectType.STOP);
 
-  /** stands in for a subType where a call site supplied none, a map needing a key either way */
+  /** stands in for a subtype where a call site supplied none, a map needing a key either way */
   private static final String NO_SUBTYPE = "";
 
   /**
-   * How many GTFS entities of each type were encountered, within their subType and their scope.
+   * How many GTFS entities of each type were encountered, within their subtype and their scope.
    * <p>
    * One tally rather than one per axis. Every entity encountered occupies exactly one cell of it and moves between
-   * cells as its scope settles, so what the feed holds, what has a scope and what was within the area are all read off the
-   * same counters and cannot come to disagree
+   * cells as its scope settles, so what the feed holds, what has a scope and what was within the area are all read off
+   * the same counters and cannot come to disagree
    * </p>
    */
   private final Map<GtfsObjectType, Map<String, Map<GtfsScopeState, LongAdder>>> seenByEntityTypeSubTypeAndScope =
@@ -105,12 +108,12 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       new EnumMap<>(GtfsObjectType.class);
 
   /**
-   * How often each issue was registered, per subType where one was supplied and per the scope the entity stood in at
+   * How often each issue was registered, per subtype where one was supplied and per the scope the entity stood in at
    * the moment it arose.
    * <p>
-   * The scope makes the classification checkable rather than asserted: an issue firing only against entities within the area
-   * is a measure of the parser, one firing against entities beyond the area is a measure of the ground the feed
-   * covers, and the rows say which without anyone having to reason it out
+   * The scope makes the classification checkable rather than asserted: an issue firing only against entities within
+   * the area is a measure of the parser, one firing against entities beyond the area is a measure of the ground the
+   * feed covers, and the rows say which without anyone having to reason it out
    * </p>
    */
   private final Map<GtfsParseIssue, Map<String, Map<GtfsScopeState, LongAdder>>> issuesBySubTypeAndScope =
@@ -136,6 +139,433 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /** discarded entity ids and the issue responsible, for the discard indexed entity types only */
   private final Map<GtfsObjectType, Map<String, GtfsParseIssue>> discardedEntityIndex =
       new EnumMap<>(GtfsObjectType.class);
+
+  /**
+   * Collect the respects of an entity type up to and including the given one, in the order they settle
+   *
+   * @param entityType to collect for
+   * @param dimension to collect up to
+   * @return respects passed by the time this one is reached, the respect itself included
+   */
+  private static List<GtfsScopeDimension> collectRespectsUpTo(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
+    var upTo = new ArrayList<GtfsScopeDimension>();
+    for (var candidate : GtfsScopeDimension.getApplicableTo(entityType)) {
+      upTo.add(candidate);
+      if (candidate == dimension) {
+        break;
+      }
+    }
+    return upTo;
+  }
+
+  /**
+   * Collect the issues of a type matching the given predicate on whether they discard and, optionally, their
+   * disposition
+   *
+   * @param entityType to match
+   * @param discarding whether the issues sought discard the entity
+   * @param disposition to match, null to match any
+   * @return matching issues
+   */
+  private static List<GtfsParseIssue> getIssues(
+      final GtfsObjectType entityType, final boolean discarding, final GtfsIssueDisposition disposition) {
+    return Arrays.stream(GtfsParseIssue.values()).filter(
+        issue -> issue.getEntityType() == entityType && issue.isDiscarding() == discarding &&
+            (disposition == null || issue.getDisposition() == disposition)).collect(Collectors.toList());
+  }
+
+  /**
+   * Collect the counter holding the entities of a type encountered within a subtype and a scope, creating it when
+   * genuinely absent
+   *
+   * @param entityType to collect for
+   * @param subType to collect for, null when none was supplied
+   * @param state to collect for
+   * @return counter
+   */
+  private LongAdder collectSeenCounter(
+      final GtfsObjectType entityType, final String subType, final GtfsScopeState state) {
+    return seenByEntityTypeSubTypeAndScope
+        .computeIfAbsent(entityType, type -> new ConcurrentHashMap<>())
+        .computeIfAbsent(subType != null ? subType : NO_SUBTYPE, type -> new ConcurrentHashMap<>())
+        .computeIfAbsent(state, type -> new LongAdder());
+  }
+
+  /**
+   * Settle the scope of an entity in a respect, moving it between cells of the tally so it stays counted exactly once
+   *
+   * @param entityType encountered
+   * @param dimension to settle
+   * @param entityId identifying the entity
+   * @param subType the entity was seen under, null to look it up
+   * @param scope it settles at, ignored where the entity is already ruled out in this respect
+   */
+  private void settleScope(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final String entityId,
+      final Enum<?> subType, final GtfsEntityScope scope) {
+    var index = scopeByEntityId.get(entityType);
+    if (index == null || entityId == null) {
+      return;
+    }
+    if (!dimension.appliesTo(entityType)) {
+      throw new IllegalArgumentException(String.format(
+          "GTFS %s scope does not apply to %s, unable to register it", dimension, entityType));
+    }
+
+    var knownState = index.getOrDefault(entityId, GtfsScopeState.unsettledFor(entityType));
+    if (knownState.get(dimension) == GtfsEntityScope.OUT || knownState.get(dimension) == scope) {
+      return;
+    }
+
+    /* stated by the call site where it has it to hand, which spares indexing a subtype per entity merely to find the
+     * cell the entity is to be moved out of */
+    var settledState = knownState.with(dimension, scope);
+    var subTypeName = subType != null ? subType.name() : getSeenSubType(entityType, entityId);
+    var previousCounter = collectSeenCounter(entityType, subTypeName, knownState);
+    if (previousCounter.sum() <= 0) {
+      return;
+    }
+
+    previousCounter.decrement();
+    collectSeenCounter(entityType, subTypeName, settledState).increment();
+    index.put(entityId, settledState);
+  }
+
+  /**
+   * Collect every GTFS entity type this instance recorded anything for, whether entities seen or issues registered,
+   * so a type that only ever produced discards still counts as recorded
+   *
+   * @return recorded entity types
+   */
+  private Set<GtfsObjectType> collectRecordedEntityTypes() {
+    var recorded = EnumSet.noneOf(GtfsObjectType.class);
+    seenByEntityTypeSubTypeAndScope.keySet().forEach(entityType -> {
+      if (getSeenInFeed(entityType) > 0) {
+        recorded.add(entityType);
+      }
+    });
+    for (var issue : GtfsParseIssue.values()) {
+      if (getOccurrences(issue) > 0) {
+        recorded.add(issue.getEntityType());
+      }
+    }
+    return recorded;
+  }
+
+  /**
+   * Total the entities of a type and, where given, a subtype, whose state satisfies the given condition
+   *
+   * @param entityType to total for
+   * @param subType to total for, null to total across every subtype
+   * @param condition the state is to satisfy
+   * @return number encountered
+   */
+  private long sumSeen(
+      final GtfsObjectType entityType, final String subType,
+      final Predicate<GtfsScopeState> condition) {
+    var subTypeCounters = seenByEntityTypeSubTypeAndScope.get(entityType);
+    if (subTypeCounters == null) {
+      return 0;
+    }
+    return subTypeCounters.entrySet().stream()
+        .filter(entry -> subType == null || entry.getKey().equals(subType))
+        .mapToLong(entry -> entry.getValue().entrySet().stream()
+            .filter(scoped -> condition.test(scoped.getKey()))
+            .mapToLong(scoped -> scoped.getValue().sum()).sum()).sum();
+  }
+
+  /**
+   * Collect how often each issue of an entity type was registered against entities standing at the given respect,
+   * i.e. those the respect is the first to have ruled out, or those within scope throughout where none is given
+   *
+   * @param entityType to collect for
+   * @param dimension to collect for, null for the entities within scope throughout
+   * @param filteredByTheRespect true for the occurrences the respect was the first to rule out, false for those that
+   *                             left before it could be established
+   * @return occurrences per issue, ordered by occurrences descending
+   */
+  private Map<GtfsParseIssue, Long> collectIssuesReportedAt(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final boolean filteredByTheRespect) {
+    var byIssue = new LinkedHashMap<GtfsParseIssue, Long>();
+    /* silently counted issues are included so that what a respect filtered still adds up, even where the entities it
+     * concerns are deliberately never named. Leaving them out reported a respect's own discards as entities parsed
+     * regardless of it */
+    Arrays.stream(GtfsParseIssue.values())
+        .filter(issue -> issue.getEntityType() == entityType && getOccurrences(issue) > 0)
+        .map(issue -> Map.entry(issue, dimension == null
+            ? getOccurrencesReportedAt(issue, null)
+            : (filteredByTheRespect
+                ? getOccurrencesFilteredAt(issue, dimension) : getOccurrencesLostBefore(issue, dimension))))
+        .filter(entry -> entry.getValue() > 0)
+        .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
+        .forEach(entry -> byIssue.put(entry.getKey(), entry.getValue()));
+    return byIssue;
+  }
+
+  /**
+   * Total the occurrences of an issue reported at the given respect, see
+   * {@link #getReportedRespectOf(GtfsObjectType, GtfsScopeState)}, within a subtype where given, whose state satisfies
+   * the given condition
+   *
+   * @param issue to total for
+   * @param subType to total for, null to total across every subtype
+   * @param dimension concerned, null for the entities within scope throughout
+   * @param condition the state is to satisfy
+   * @return occurrences
+   */
+  private long countOccurrencesAt(
+      final GtfsParseIssue issue, final String subType, final GtfsScopeDimension dimension,
+      final Predicate<GtfsScopeState> condition) {
+    var subTypeCounters = issuesBySubTypeAndScope.get(issue);
+    if (subTypeCounters == null) {
+      return 0;
+    }
+    return subTypeCounters.entrySet().stream()
+        .filter(entry -> subType == null || entry.getKey().equals(subType))
+        .mapToLong(entry -> entry.getValue().entrySet().stream()
+            .filter(scoped -> getReportedRespectOf(issue.getEntityType(), scoped.getKey()) == dimension
+                && condition.test(scoped.getKey()))
+            .mapToLong(scoped -> scoped.getValue().sum()).sum()).sum();
+  }
+
+  /**
+   * Report the issues standing at a respect, each broken down by the subtypes it arose within where that says
+   * anything beyond the total
+   *
+   * @param entityType concerned
+   * @param dimension concerned, null for the entities within scope throughout
+   * @param denominator the occurrences are a share of
+   * @param denominatorLabel naming what the denominator holds
+   * @param depth to report at
+   * @param filteredByTheRespect true for the occurrences the respect was the first to rule out, false for those that
+   *                             left before it could be established
+   * @return occurrences reported
+   */
+  private long logIssuesReportedAt(
+      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final long denominator,
+      final String denominatorLabel, final int depth, final boolean filteredByTheRespect) {
+    var accountedFor = new LongAdder();
+    collectIssuesReportedAt(entityType, dimension, filteredByTheRespect).forEach((issue, occurrences) -> {
+      /* a silently counted issue is named here as any other, the entry being a total rather than a listing: what
+       * makes listing a hundred thousand stops of another region pointless is the listing, not the fact that the
+       * area is why they went. Leaving it unsaid is what left a respect stating how much it ruled out without ever
+       * saying why */
+      accountedFor.add(occurrences);
+      LOGGER.info(LoggingUtils.settingsValue(
+          issue.getDescription(),
+          LoggingUtils.countWithPercentage(occurrences, denominator, denominatorLabel)
+              + " [" + issue.getDisposition() + "]",
+          depth));
+
+      var subTypes = getSubTypesOf(issue).stream().filter(subType -> !NO_SUBTYPE.equals(subType)).collect(
+          Collectors.toList());
+      if (subTypes.size() < 2) {
+        /* a single subtype only restates the entry above it */
+        return;
+      }
+      subTypes.stream()
+          .map(subType -> Map.entry(subType, countOccurrencesAt(issue, subType, dimension, state -> true)))
+          .filter(entry -> entry.getValue() > 0)
+          .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
+          .forEach(entry -> LOGGER.info(LoggingUtils.settingsValue(
+              entry.getKey(), String.valueOf(entry.getValue()), depth + 1)));
+    });
+    return accountedFor.sum();
+  }
+
+  /**
+   * Log what the feed holds and how much of it was ever within the area of the run, so that the denominator every share
+   * below is measured against is stated rather than assumed.
+   * <p>
+   * An entity type whose scope could not be established is reported as such rather than silently counted as wholly in
+   * reach, since the two look identical in the resulting percentages
+   * </p>
+   */
+  private void logScopeSummary() {
+    LOGGER.info(LoggingUtils.surroundWithBrackets("SCOPE") + "of the feed relative to what the run covers");
+    for (var entityType : GtfsObjectType.values()) {
+      long seen = getSeenInFeed(entityType);
+      if (seen == 0) {
+        continue;
+      }
+
+      /* the same shape the issue entries take, an entity label and what is being said about it, so the two blocks
+       * read as one report rather than two */
+      var label = String.format("%s | %ss", entityType.name().toLowerCase(), entityType.name().toLowerCase());
+      LOGGER.info(LoggingUtils.settingsValue(label + " in feed", String.valueOf(seen), 1));
+
+      /* one entry per respect, in the order they settle, each a share of whatever reached it rather than of the feed.
+       * A share of the feed flattens the chain: it cannot tell a gate that costs little from one that costs almost
+       * everything, which is the only thing worth knowing about a funnel */
+      var respects = getSettledRespectsOf(entityType);
+      long reaching = seen;
+      for (int index = 0; index < respects.size(); ++index) {
+        var dimension = respects.get(index);
+
+        /* what faced the respect, rather than what survived the one before it: an entity lost in scope between the
+         * two never faced this one, and counting it here blames it for a loss it had no part in */
+        long facing = getSeenFacing(entityType, dimension);
+        long within = getSeenWithinScopeUpTo(entityType, dimension);
+        long ruledOut = facing - within;
+
+        if (ruledOut > 0) {
+          var value = new StringBuilder(String.format(
+              "%d of %d reaching (%.2f%%), %d ruled out",
+              within, facing, facing > 0 ? (100.0 * within) / facing : 0.0, ruledOut));
+
+          /* only where being partly within is a distinction worth drawing, the ruled out count already saying how
+           * many fell outside altogether */
+          var reachingByScope = getSeenReachingByScope(entityType, dimension);
+          if (reachingByScope.getOrDefault(GtfsEntityScope.PARTIAL, 0L) > 0) {
+            value.append("  [").append(reachingByScope.entrySet().stream().filter(
+                entry -> entry.getKey().isWithinArea()).map(
+                entry -> String.format("%s %d", entry.getKey().name(), entry.getValue())).collect(
+                Collectors.joining(", "))).append("]");
+          }
+          LOGGER.info(LoggingUtils.settingsValue(
+              label + " within " + dimension.getReportedName(), value.toString(), 1));
+
+          long accountedFor = logIssuesReportedAt(
+              entityType, dimension, ruledOut, "ruled out", 2, true);
+          if (ruledOut > accountedFor) {
+            /* every respect names what it ruled out, so this stands only where something went unregistered. Stating
+             * the count rather than accounting for it keeps the entries beneath a respect adding up to it, the gap
+             * being in what was recorded rather than in what is reported */
+            LOGGER.info(LoggingUtils.settingsValue(
+                "Ruled out without a reason recorded",
+                LoggingUtils.countWithPercentage(ruledOut - accountedFor, ruledOut, "ruled out"), 2));
+          }
+        }
+
+        /* what left in scope before the next respect could be applied, which is why fewer face it than survived here */
+        if (index + 1 < respects.size()) {
+          var next = respects.get(index + 1);
+          long lost = within - getSeenFacing(entityType, next);
+          if (lost > 0) {
+            LOGGER.info(LoggingUtils.settingsValue(
+                "Filters reducing next scope baseline", String.valueOf(lost), 2));
+            logIssuesReportedAt(entityType, next, lost, "reduced baseline", 3, false);
+          }
+        }
+
+        reaching = within;
+      }
+
+      /* and what was lost among the entities that came through every respect, which is what the parser itself cost */
+      if (reaching > 0 && !getSettledRespectsOf(entityType).isEmpty()) {
+        LOGGER.info(LoggingUtils.settingsValue(
+            label + " within scope", String.valueOf(reaching), 1));
+        logIssuesReportedAt(entityType, null, reaching, "within scope", 2, true);
+      }
+    }
+  }
+
+  /**
+   * Persist one row per issue and, where its entity type is subdivided, per subtype it arose within, stating what each
+   * share was measured against.
+   * <p>
+   * The logged summary collapses an issue to a single line so that it stays readable; a share there can only name the
+   * population it was measured against. Here the denominator and what it holds are written out, so a figure read from
+   * the report can be checked rather than taken on trust
+   * </p>
+   *
+   * @param filePath to write to
+   */
+  private void persistIssueSummary(final Path filePath) {
+    try (var csvWriter = SimpleCsvWriter.create(filePath, GtfsIssueSummaryCsvColumn.getHeaders())) {
+      for (var issue : GtfsParseIssue.values()) {
+        if (getOccurrences(issue) == 0) {
+          continue;
+        }
+        var outcome = issue.isDiscarding() ? GtfsParseOutcome.DISCARDED : GtfsParseOutcome.PARSED;
+        /* the rows are disjoint and sum to the issue's total, so no row restating that total is written */
+        var subTypeCounters = issuesBySubTypeAndScope.get(issue);
+        for (var subType : getSubTypesOf(issue)) {
+          var scopeCounters = subTypeCounters.get(subType);
+          if (scopeCounters == null) {
+            continue;
+          }
+          scopeCounters.keySet().stream().sorted(Comparator.comparing(GtfsScopeState::toString)).forEach(state -> {
+            long occurrences = scopeCounters.get(state).sum();
+            if (occurrences > 0) {
+              writeIssueSummaryRow(
+                  csvWriter, issue, NO_SUBTYPE.equals(subType) ? null : subType, state, occurrences, outcome);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Write a single row of the issue summary. Neither a total nor a share is written: both follow from where the
+   * entity stood, which the row already carries, and from the coverage tally
+   *
+   * @param csvWriter to write with
+   * @param issue the row reports on
+   * @param subType the row reports on, null where the entity type is not subdivided
+   * @param state the entities stood in when the issue arose
+   * @param occurrences of the issue within the subtype and scope
+   * @param outcome what became of the entities it arose for
+   */
+  private void writeIssueSummaryRow(
+      final SimpleCsvWriter csvWriter, final GtfsParseIssue issue, final String subType, final GtfsScopeState state,
+      final long occurrences, final GtfsParseOutcome outcome) {
+    csvWriter.writeRow(
+        issue.getStage(),
+        issue.getEntityType(),
+        subType,
+        state.get(GtfsScopeDimension.SPATIAL),
+        state.get(GtfsScopeDimension.TEMPORAL),
+        state.get(GtfsScopeDimension.MODAL),
+        state.get(GtfsScopeDimension.SELECTION),
+        issue.name(),
+        issue.getDisposition(),
+        outcome.getLabel(),
+        occurrences);
+  }
+
+  /**
+   * Persist the tally the whole report is derived from, one row per entity type, subtype and scope.
+   * <p>
+   * Written as the raw counts rather than as the populations the log speaks in. What the feed holds, what reached the
+   * point its scope could be told and what was within the area are each a sum over these rows, so a reader can take
+   * whichever grouping is of interest instead of being limited to the three the log happens to print
+   * </p>
+   * <p>
+   * The unsettled scope is written along with the rest. Without it the rows would not sum to what the feed holds,
+   * which is the one total every other figure is read against
+   * </p>
+   *
+   * @param filePath to write to
+   */
+  private void persistCoverageSummary(final Path filePath) {
+    try (var csvWriter = SimpleCsvWriter.create(filePath, GtfsCoverageCsvColumn.getHeaders())) {
+      for (var entityType : GtfsObjectType.values()) {
+        var subTypeCounters = seenByEntityTypeSubTypeAndScope.get(entityType);
+        if (subTypeCounters == null) {
+          continue;
+        }
+        new TreeSet<>(subTypeCounters.keySet()).forEach(subType -> {
+          var scopeCounters = subTypeCounters.get(subType);
+          scopeCounters.keySet().stream().sorted(Comparator.comparing(GtfsScopeState::toString)).forEach(state -> {
+            long count = scopeCounters.get(state).sum();
+            if (count > 0) {
+              csvWriter.writeRow(
+                  entityType,
+                  NO_SUBTYPE.equals(subType) ? null : subType,
+                  state.get(GtfsScopeDimension.SPATIAL),
+                  state.get(GtfsScopeDimension.TEMPORAL),
+                  state.get(GtfsScopeDimension.MODAL),
+                  state.get(GtfsScopeDimension.SELECTION),
+                  count);
+            }
+          });
+        });
+      }
+    }
+  }
 
   /**
    * Constructor
@@ -221,9 +651,6 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
 
   /**
    * {@inheritDoc}
-   */
-  /**
-   * {@inheritDoc}
    * <p>
    * Everything the feed holds, this standing in only for the flat listing the base class offers. The summary places
    * each issue at the respect that filtered its entities and measures it against whatever reached that respect, so
@@ -281,24 +708,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect the counter holding the entities of a type encountered within a subType and a scope, creating it when
-   * genuinely absent
-   *
-   * @param entityType to collect for
-   * @param subType to collect for, null when none was supplied
-   * @param scope to collect for
-   * @return counter
-   */
-  private LongAdder collectSeenCounter(
-      final GtfsObjectType entityType, final String subType, final GtfsScopeState state) {
-    return seenByEntityTypeSubTypeAndScope
-        .computeIfAbsent(entityType, type -> new ConcurrentHashMap<>())
-        .computeIfAbsent(subType != null ? subType : NO_SUBTYPE, type -> new ConcurrentHashMap<>())
-        .computeIfAbsent(state, type -> new LongAdder());
-  }
-
-  /**
-   * Register that an entity of the given type was encountered, counted both against its type and within a subType of
+   * Register that an entity of the given type was encountered, counted both against its type and within a subtype of
    * that type, e.g. a route within its route type
    *
    * @param entityType encountered
@@ -355,7 +765,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register that an entity of a known subType was ruled out in the given respect
+   * Register that an entity of a known subtype was ruled out in the given respect
    *
    * @param entityType encountered
    * @param dimension the entity was ruled out in
@@ -382,7 +792,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register that an entity of a known subType passed what the run is narrowed by in the given respect
+   * Register that an entity of a known subtype passed what the run is narrowed by in the given respect
    *
    * @param entityType encountered
    * @param dimension the entity passed in
@@ -393,45 +803,6 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       final GtfsObjectType entityType, final GtfsScopeDimension dimension, final Enum<?> subType,
       final String entityId) {
     settleScope(entityType, dimension, entityId, subType, GtfsEntityScope.IN);
-  }
-
-  /**
-   * Settle the scope of an entity in a respect, moving it between cells of the tally so it stays counted exactly once
-   *
-   * @param entityType encountered
-   * @param dimension to settle
-   * @param entityId identifying the entity
-   * @param scope it settles at, ignored where the entity is already ruled out in this respect
-   */
-  private void settleScope(
-      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final String entityId,
-      final Enum<?> subType, final GtfsEntityScope scope) {
-    var index = scopeByEntityId.get(entityType);
-    if (index == null || entityId == null) {
-      return;
-    }
-    if (!dimension.appliesTo(entityType)) {
-      throw new IllegalArgumentException(String.format(
-          "GTFS %s scope does not apply to %s, unable to register it", dimension, entityType));
-    }
-
-    var knownState = index.getOrDefault(entityId, GtfsScopeState.unsettledFor(entityType));
-    if (knownState.get(dimension) == GtfsEntityScope.OUT || knownState.get(dimension) == scope) {
-      return;
-    }
-
-    /* stated by the call site where it has it to hand, which spares indexing a subType per entity merely to find the
-     * cell the entity is to be moved out of */
-    var settledState = knownState.with(dimension, scope);
-    var subTypeName = subType != null ? subType.name() : getSeenSubType(entityType, entityId);
-    var previousCounter = collectSeenCounter(entityType, subTypeName, knownState);
-    if (previousCounter.sum() <= 0) {
-      return;
-    }
-
-    previousCounter.decrement();
-    collectSeenCounter(entityType, subTypeName, settledState).increment();
-    index.put(entityId, settledState);
   }
 
   /**
@@ -462,7 +833,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
 
   /**
    * Register that a number of entities of the given type were encountered, counted both against their type and within
-   * a subType of that type
+   * a subtype of that type
    *
    * @param entityType encountered
    * @param subType within the entity type
@@ -476,12 +847,13 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register that an entity of the given type was encountered within a subType and with its scope already settled, as
+   * Register that an entity of the given type was encountered within a subtype and with its scope already settled, as
    * is the case where what the entity is and where it sits are both known the moment it is read
    *
    * @param entityType encountered
    * @param subType within the entity type, may be null
-   * @param scope of the entity relative to the area the run covers
+   * @param dimension the scope is settled in
+   * @param scope of the entity in that respect
    */
   public void registerSeen(
       final GtfsObjectType entityType, final Enum<?> subType, final GtfsScopeDimension dimension,
@@ -492,7 +864,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register that an entity of the given type was encountered within a subType and standing as given, for an entity
+   * Register that an entity of the given type was encountered within a subtype and standing as given, for an entity
    * whose respects are all answered the moment it is read and which is therefore not indexed individually
    *
    * @param entityType encountered
@@ -505,7 +877,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register that an entity of the given type was encountered within a subType and standing as given, remembering
+   * Register that an entity of the given type was encountered within a subtype and standing as given, remembering
    * where it stands against its id so that a respect settling later can find it again
    *
    * @param entityType encountered
@@ -536,6 +908,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    * </p>
    *
    * @param entityType encountered
+   * @param dimension the part's scope is in
    * @param entityId identifying the entity the part belongs to
    * @param partScope of the part encountered
    */
@@ -603,7 +976,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register an issue against an entity, additionally counted within a subType of the entity's type so the issue is
+   * Register an issue against an entity, additionally counted within a subtype of the entity's type so the issue is
    * reported both in aggregate and broken down, e.g. routes lost per route type
    *
    * @param issue encountered
@@ -617,7 +990,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register an issue against an entity whose scope the call site knows and which falls under no subType
+   * Register an issue against an entity whose scope the call site knows and which falls under no subtype
    *
    * @param issue encountered
    * @param state the entity stood in when the issue arose
@@ -654,9 +1027,8 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       occurrenceState = state;
     }
 
-
-    /* a caller that cannot name the subType falls back on the one the entity was seen under, so that a discard
-     * registered away from where the entity was read still lands in the same subType as what was counted */
+    /* a caller that cannot name the subtype falls back on the one the entity was seen under, so that a discard
+     * registered away from where the entity was read still lands in the same subtype as what was counted */
     var subTypeName = subType != null ? subType.name() : getSeenSubType(issue.getEntityType(), entityId);
     registerIssueOccurrence(issue, entityId, subTypeName, detailArgs);
 
@@ -764,31 +1136,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect every GTFS entity type this instance recorded anything for, whether entities seen or issues registered,
-   * so a type that only ever produced discards still counts as recorded
-   *
-   * @return recorded entity types
-   */
-  private Set<GtfsObjectType> collectRecordedEntityTypes() {
-    var recorded = EnumSet.noneOf(GtfsObjectType.class);
-    seenByEntityTypeSubTypeAndScope.keySet().forEach(entityType -> {
-      if (getSeenInFeed(entityType) > 0) {
-        recorded.add(entityType);
-      }
-    });
-    for (var issue : GtfsParseIssue.values()) {
-      if (getOccurrences(issue) > 0) {
-        recorded.add(issue.getEntityType());
-      }
-    }
-    return recorded;
-  }
-
-  /**
-   * Collect how many entities of a type and, where given, a subType, were encountered with the given scope
+   * Collect how many entities of a type and, where given, a subtype, were encountered with the given scope
    *
    * @param entityType to collect for
-   * @param subType to collect for, null to total across every subType
+   * @param subType to collect for, null to total across every subtype
+   * @param dimension the scope is in
    * @param scope to collect for
    * @return number encountered
    */
@@ -800,31 +1152,10 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Total the entities of a type and, where given, a subType, whose state satisfies the given condition
-   *
-   * @param entityType to total for
-   * @param subType to total for, null to total across every subType
-   * @param condition the state is to satisfy
-   * @return number encountered
-   */
-  private long sumSeen(
-      final GtfsObjectType entityType, final String subType,
-      final java.util.function.Predicate<GtfsScopeState> condition) {
-    var subTypeCounters = seenByEntityTypeSubTypeAndScope.get(entityType);
-    if (subTypeCounters == null) {
-      return 0;
-    }
-    return subTypeCounters.entrySet().stream()
-        .filter(entry -> subType == null || entry.getKey().equals(subType))
-        .mapToLong(entry -> entry.getValue().entrySet().stream()
-            .filter(scoped -> condition.test(scoped.getKey()))
-            .mapToLong(scoped -> scoped.getValue().sum()).sum()).sum();
-  }
-
-  /**
    * Collect how many entities of a type were encountered with the given scope
    *
    * @param entityType to collect for
+   * @param dimension the scope is in
    * @param scope to collect for
    * @return number encountered
    */
@@ -845,10 +1176,10 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type and subType the feed holds
+   * Collect how many entities of a type and subtype the feed holds
    *
    * @param entityType to collect for
-   * @param subType to collect for, null to total across every subType
+   * @param subType to collect for, null to total across every subtype
    * @return number in the feed
    */
   public long getSeenInFeed(final GtfsObjectType entityType, final String subType) {
@@ -856,7 +1187,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type and subType the feed holds
+   * Collect how many entities of a type and subtype the feed holds
    *
    * @param entityType to collect for
    * @param subType to collect for
@@ -867,10 +1198,12 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type had their scope settled at all, i.e. reached the point where where they sit
-   * could be told. What the feed holds less this is what was dropped before that point was ever reached
+   * Collect how many entities of a type had their scope settled at all in the given respect, i.e. reached the point
+   * where it could be told where they stand in it. What the feed holds less this is what was dropped before that point
+   * was ever reached
    *
    * @param entityType to collect for
+   * @param dimension to collect for
    * @return number with a settled scope
    */
   public long getSeenWithScope(final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
@@ -878,10 +1211,12 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type and, where given, a subType, had their scope settled at all
+   * Collect how many entities of a type and, where given, a subtype, had their scope settled at all in the given
+   * respect
    *
    * @param entityType to collect for
-   * @param subType to collect for, null to total across every subType
+   * @param subType to collect for, null to total across every subtype
+   * @param dimension to collect for
    * @return number with a settled scope
    */
   public long getSeenWithScope(
@@ -890,11 +1225,12 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type were ever within the area of the run, i.e. wholly or partly within the area it
-   * covers. This is the denominator anything the parser achieved should be measured against
+   * Collect how many entities of a type were within scope in the given respect, wholly or partly. For the spatial
+   * respect this is the denominator anything the parser achieved should be measured against
    *
    * @param entityType to collect for
-   * @return number within the area
+   * @param dimension to collect for
+   * @return number within scope
    */
   public long getSeenWithinScope(final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
     return getSeenWithinScope(entityType, null, dimension);
@@ -911,7 +1247,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type and subType were within scope in the spatial respect
+   * Collect how many entities of a type and subtype were within scope in the spatial respect
    *
    * @param entityType to collect for
    * @param subType to collect for
@@ -922,11 +1258,13 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type and, where given, a subType, were ever within the area of the run
+   * Collect how many entities of a type and, where given, a subtype, were within scope in the given respect, wholly
+   * or partly
    *
    * @param entityType to collect for
-   * @param subType to collect for, null to total across every subType
-   * @return number within the area
+   * @param subType to collect for, null to total across every subtype
+   * @param dimension to collect for
+   * @return number within scope
    */
   public long getSeenWithinScope(
       final GtfsObjectType entityType, final String subType, final GtfsScopeDimension dimension) {
@@ -934,46 +1272,15 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how often each issue of an entity type was registered against entities standing at the given respect,
-   * i.e. those the respect is the first to have ruled out, or those within scope throughout where none is given
-   *
-   * @param entityType to collect for
-   * @param dimension to collect for, null for the entities within scope throughout
-   * @return occurrences per issue, ordered by occurrences descending
-   */
-  private Map<GtfsParseIssue, Long> collectIssuesReportedAt(
-      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final boolean filteredByTheRespect) {
-    var byIssue = new LinkedHashMap<GtfsParseIssue, Long>();
-    /* silently counted issues are included so that what a respect filtered still adds up, even where the entities it
-     * concerns are deliberately never named. Leaving them out reported a respect's own discards as entities parsed
-     * regardless of it */
-    Arrays.stream(GtfsParseIssue.values())
-        .filter(issue -> issue.getEntityType() == entityType && getOccurrences(issue) > 0)
-        .map(issue -> Map.entry(issue, dimension == null
-            ? getOccurrencesReportedAt(issue, null)
-            : (filteredByTheRespect
-                ? getOccurrencesFilteredAt(issue, dimension) : getOccurrencesLostBefore(issue, dimension))))
-        .filter(entry -> entry.getValue() > 0)
-        .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
-        .forEach(entry -> byIssue.put(entry.getKey(), entry.getValue()));
-    return byIssue;
-  }
-
-  /**
-   * Collect how often an issue was registered against entities standing at the given respect, i.e. those the respect
-   * is the first to have filtered, or those within scope throughout where none is given.
-   * <p>
-   * An occurrence stands at exactly one respect, so totalling this across the respects and the entities within scope
-   * yields the occurrences of the issue and nothing besides
-   * </p>
+   * Collect how often an issue was registered against entities the given respect was the first to rule out
    *
    * @param issue to total for
-   * @param dimension concerned, null for the entities within scope throughout
+   * @param dimension concerned, not null
    * @return occurrences
    */
   public long getOccurrencesFilteredAt(final GtfsParseIssue issue, final GtfsScopeDimension dimension) {
     return countOccurrencesAt(
-        issue, dimension, state -> state.get(dimension) == GtfsEntityScope.OUT);
+        issue, null, dimension, state -> state.get(dimension) == GtfsEntityScope.OUT);
   }
 
   /**
@@ -986,29 +1293,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
    */
   public long getOccurrencesLostBefore(final GtfsParseIssue issue, final GtfsScopeDimension dimension) {
     return countOccurrencesAt(
-        issue, dimension, state -> !state.get(dimension).isEstablished());
-  }
-
-  /**
-   * Total the occurrences of an issue standing at the given respect and satisfying the given condition
-   *
-   * @param issue to total for
-   * @param dimension concerned
-   * @param condition the state is to satisfy
-   * @return occurrences
-   */
-  private long countOccurrencesAt(
-      final GtfsParseIssue issue, final GtfsScopeDimension dimension,
-      final java.util.function.Predicate<GtfsScopeState> condition) {
-    var subTypeCounters = issuesBySubTypeAndScope.get(issue);
-    if (subTypeCounters == null) {
-      return 0;
-    }
-    return subTypeCounters.values().stream().mapToLong(
-        scopeCounters -> scopeCounters.entrySet().stream().filter(
-            entry -> getReportedRespectOf(issue.getEntityType(), entry.getKey()) == dimension
-                && condition.test(entry.getKey())).mapToLong(
-            entry -> entry.getValue().sum()).sum()).sum();
+        issue, null, dimension, state -> !state.get(dimension).isEstablished());
   }
 
   /**
@@ -1028,96 +1313,21 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
         + getSeenReachingByScope(entityType, dimension).getOrDefault(GtfsEntityScope.OUT, 0L);
   }
 
-  public long getOccurrencesReportedAt(final GtfsParseIssue issue, final GtfsScopeDimension dimension) {
-    var subTypeCounters = issuesBySubTypeAndScope.get(issue);
-    if (subTypeCounters == null) {
-      return 0;
-    }
-    return subTypeCounters.values().stream().mapToLong(
-        scopeCounters -> scopeCounters.entrySet().stream().filter(
-            entry -> getReportedRespectOf(issue.getEntityType(), entry.getKey()) == dimension).mapToLong(
-            entry -> entry.getValue().sum()).sum()).sum();
-  }
-
   /**
-   * Total the occurrences of an issue within a subType against entities standing at the given respect
+   * Collect how often an issue was registered against entities reported at the given respect, see
+   * {@link #getReportedRespectOf(GtfsObjectType, GtfsScopeState)}: those it was the first to rule out and those that
+   * left before it could be established, or those within scope throughout where no respect is given.
+   * <p>
+   * An occurrence is reported at exactly one respect, or among the entities within scope throughout, so totalling this
+   * over the respects and the entities within scope yields every occurrence of the issue and nothing besides
+   * </p>
    *
    * @param issue to total for
-   * @param subType to total for
    * @param dimension concerned, null for the entities within scope throughout
    * @return occurrences
    */
-  private long countIssueReportedAt(
-      final GtfsParseIssue issue, final String subType, final GtfsScopeDimension dimension) {
-    var subTypeCounters = issuesBySubTypeAndScope.get(issue);
-    if (subTypeCounters == null) {
-      return 0;
-    }
-    var scopeCounters = subTypeCounters.get(subType);
-    return scopeCounters == null ? 0 : scopeCounters.entrySet().stream().filter(
-        entry -> getReportedRespectOf(issue.getEntityType(), entry.getKey()) == dimension).mapToLong(
-        entry -> entry.getValue().sum()).sum();
-  }
-
-  /**
-   * Report the issues standing at a respect, each broken down by the subTypes it arose within where that says
-   * anything beyond the total
-   *
-   * @param entityType concerned
-   * @param dimension concerned, null for the entities within scope throughout
-   * @param denominator the occurrences are a share of
-   * @param denominatorLabel naming what the denominator holds
-   * @param depth to report at
-   */
-  private long logIssuesReportedAt(
-      final GtfsObjectType entityType, final GtfsScopeDimension dimension, final long denominator,
-      final String denominatorLabel, final int depth, final boolean filteredByTheRespect) {
-    var accountedFor = new LongAdder();
-    collectIssuesReportedAt(entityType, dimension, filteredByTheRespect).forEach((issue, occurrences) -> {
-      /* a silently counted issue is named here as any other, the entry being a total rather than a listing: what
-       * makes listing a hundred thousand stops of another region pointless is the listing, not the fact that the
-       * area is why they went. Leaving it unsaid is what left a respect stating how much it ruled out without ever
-       * saying why */
-      accountedFor.add(occurrences);
-      LOGGER.info(LoggingUtils.settingsValue(
-          issue.getDescription(),
-          LoggingUtils.countWithPercentage(occurrences, denominator, denominatorLabel)
-              + " [" + issue.getDisposition() + "]",
-          depth));
-
-      var subTypes = getSubTypesOf(issue).stream().filter(subType -> !NO_SUBTYPE.equals(subType)).collect(
-          Collectors.toList());
-      if (subTypes.size() < 2) {
-        /* a single subType only restates the entry above it */
-        return;
-      }
-      subTypes.stream()
-          .map(subType -> Map.entry(subType, countIssueReportedAt(issue, subType, dimension)))
-          .filter(entry -> entry.getValue() > 0)
-          .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
-          .forEach(entry -> LOGGER.info(LoggingUtils.settingsValue(
-              entry.getKey(), String.valueOf(entry.getValue()), depth + 1)));
-    });
-    return accountedFor.sum();
-  }
-
-  /**
-   * Collect how many entities of a type reached the given respect, i.e. how many were still within scope by the time
-   * the respect before it had been applied. The first respect is reached by everything the feed holds
-   *
-   * @param entityType to collect for
-   * @param dimension to collect for
-   * @return number reaching the respect
-   */
-  public long getSeenReaching(final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
-    GtfsScopeDimension preceding = null;
-    for (var candidate : getSettledRespectsOf(entityType)) {
-      if (candidate == dimension) {
-        break;
-      }
-      preceding = candidate;
-    }
-    return preceding == null ? getSeenInFeed(entityType) : getSeenWithinScopeUpTo(entityType, preceding);
+  public long getOccurrencesReportedAt(final GtfsParseIssue issue, final GtfsScopeDimension dimension) {
+    return countOccurrencesAt(issue, null, dimension, state -> true);
   }
 
   /**
@@ -1161,25 +1371,6 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       }
     }
     return unsettled;
-  }
-
-  /**
-   * Collect the respects of an entity type up to and including the given one, in the order they settle
-   *
-   * @param entityType to collect for
-   * @param dimension to collect up to
-   * @return respects passed by the time this one is reached, the respect itself included
-   */
-  private static List<GtfsScopeDimension> collectRespectsUpTo(
-      final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
-    var upTo = new ArrayList<GtfsScopeDimension>();
-    for (var candidate : GtfsScopeDimension.getApplicableTo(entityType)) {
-      upTo.add(candidate);
-      if (candidate == dimension) {
-        break;
-      }
-    }
-    return upTo;
   }
 
   /**
@@ -1228,10 +1419,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Verify whether the scope of entities of a type was established at all. Where it was not, every entity of that type
-   * has to be treated as within the area, there being nothing to say otherwise
+   * Verify whether the scope of entities of a type was established at all in the given respect. Where it was not,
+   * every entity of that type has to be treated as within scope in it, there being nothing to say otherwise
    *
    * @param entityType to verify for
+   * @param dimension to verify for
    * @return true when scope was recorded, false otherwise
    */
   public boolean hasScope(final GtfsObjectType entityType, final GtfsScopeDimension dimension) {
@@ -1249,11 +1441,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type were encountered per subType, ordered by subType so what is reported is
+   * Collect how many entities of a type were encountered per subtype, ordered by subtype so what is reported is
    * stable between runs
    *
    * @param entityType to collect for
-   * @return number seen per subType, empty when the type was never registered with one
+   * @return number seen per subtype, empty when the type was never registered with one
    */
   public SortedMap<String, Long> getSeenBySubType(final GtfsObjectType entityType) {
     var totals = new TreeMap<String, Long>();
@@ -1267,17 +1459,17 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect the subTypes an entity type was registered under, ordered by subType
+   * Collect the subtypes an entity type was registered under, ordered by subtype
    *
    * @param entityType to collect for
-   * @return subTypes
+   * @return subtypes
    */
   public Set<String> getSubTypes(final GtfsObjectType entityType) {
     return getSeenBySubType(entityType).keySet();
   }
 
   /**
-   * Collect how often an issue was registered within a subType
+   * Collect how often an issue was registered within a subtype
    *
    * @param issue to collect for
    * @param subType to collect for
@@ -1293,10 +1485,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how often an issue was registered within a subType against entities standing in the given scope
+   * Collect how often an issue was registered within a subtype against entities standing in the given scope
    *
    * @param issue to collect for
    * @param subType to collect for
+   * @param dimension the scope is in
    * @param scope to collect for
    * @return number of occurrences
    */
@@ -1347,10 +1540,10 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect the subTypes an issue was registered under, ordered by subType
+   * Collect the subtypes an issue was registered under, ordered by subtype
    *
    * @param issue to collect for
-   * @return subTypes
+   * @return subtypes
    */
   public Set<String> getSubTypesOf(final GtfsParseIssue issue) {
     var subTypeCounters = issuesBySubTypeAndScope.get(issue);
@@ -1358,10 +1551,10 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how often an issue was registered per subType, ordered by subType
+   * Collect how often an issue was registered per spatial scope of its entities, in the order the scopes are declared
    *
    * @param issue to collect for
-   * @return number of occurrences per subType
+   * @return number of occurrences per spatial scope, by scope name
    */
   @Override
   protected Map<String, Long> getOccurrencesByScope(final GtfsParseIssue issue) {
@@ -1390,22 +1583,6 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect the issues of a type matching the given predicate on whether they discard and, optionally, their
-   * disposition
-   *
-   * @param entityType to match
-   * @param discarding whether the issues sought discard the entity
-   * @param disposition to match, null to match any
-   * @return matching issues
-   */
-  private static List<GtfsParseIssue> getIssues(
-      final GtfsObjectType entityType, final boolean discarding, final GtfsIssueDisposition disposition) {
-    return Arrays.stream(GtfsParseIssue.values()).filter(
-        issue -> issue.getEntityType() == entityType && issue.isDiscarding() == discarding &&
-            (disposition == null || issue.getDisposition() == disposition)).collect(Collectors.toList());
-  }
-
-  /**
    * Collect how many entities of a type were discarded, across all issues responsible
    *
    * @param entityType to collect for
@@ -1427,7 +1604,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type were discarded within a subType, for issues of a given disposition
+   * Collect how many entities of a type were discarded within a subtype, for issues of a given disposition
    *
    * @param entityType to collect for
    * @param subType to collect for
@@ -1441,10 +1618,10 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type were discarded per subType, ordered by subType
+   * Collect how many entities of a type were discarded per subtype, ordered by subtype
    *
    * @param entityType to collect for
-   * @return number discarded per subType
+   * @return number discarded per subtype
    */
   public SortedMap<String, Long> getDiscardedBySubType(final GtfsObjectType entityType) {
     var totals = new TreeMap<String, Long>();
@@ -1466,7 +1643,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many issues were registered within a subType against entities of a type that were parsed regardless
+   * Collect how many issues were registered within a subtype against entities of a type that were parsed regardless
    *
    * @param entityType to collect for
    * @param subType to collect for
@@ -1488,7 +1665,7 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect how many entities of a type were encountered within a subType and not discarded
+   * Collect how many entities of a type were encountered within a subtype and not discarded
    *
    * @param entityType to collect for
    * @param subType to collect for
@@ -1497,7 +1674,6 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   public long getParsed(final GtfsObjectType entityType, final String subType) {
     return Math.max(0, getSeenInFeed(entityType, subType) - getDiscarded(entityType, subType, null));
   }
-
 
   /**
    * {@inheritDoc}
@@ -1513,98 +1689,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Log what the feed holds and how much of it was ever within the area of the run, so that the denominator every share
-   * below is measured against is stated rather than assumed.
-   * <p>
-   * An entity type whose scope could not be established is reported as such rather than silently counted as wholly in
-   * reach, since the two look identical in the resulting percentages
-   * </p>
-   */
-  private void logScopeSummary() {
-    LOGGER.info(LoggingUtils.surroundWithBrackets("SCOPE") + "of the feed relative to what the run covers");
-    for (var entityType : GtfsObjectType.values()) {
-      long seen = getSeenInFeed(entityType);
-      if (seen == 0) {
-        continue;
-      }
-
-      /* the same shape the issue entries take, an entity label and what is being said about it, so the two blocks
-       * read as one report rather than two */
-      var label = String.format("%s | %ss", entityType.name().toLowerCase(), entityType.name().toLowerCase());
-      LOGGER.info(LoggingUtils.settingsValue(label + " in feed", String.valueOf(seen), 1));
-
-      /* one entry per respect, in the order they settle, each a share of whatever reached it rather than of the feed.
-       * A share of the feed flattens the chain: it cannot tell a gate that costs little from one that costs almost
-       * everything, which is the only thing worth knowing about a funnel */
-      var respects = getSettledRespectsOf(entityType);
-      long reaching = seen;
-      var reachingLabel = "feed";
-      for (int index = 0; index < respects.size(); ++index) {
-        var dimension = respects.get(index);
-
-        /* what faced the respect, rather than what survived the one before it: an entity lost in scope between the
-         * two never faced this one, and counting it here blames it for a loss it had no part in */
-        long facing = getSeenFacing(entityType, dimension);
-        long within = getSeenWithinScopeUpTo(entityType, dimension);
-        long ruledOut = facing - within;
-
-        if (ruledOut > 0) {
-          var value = new StringBuilder(String.format(
-              "%d of %d reaching (%.2f%%), %d ruled out",
-              within, facing, facing > 0 ? (100.0 * within) / facing : 0.0, ruledOut));
-
-          /* only where being partly within is a distinction worth drawing, the ruled out count already saying how
-           * many fell outside altogether */
-          var reachingByScope = getSeenReachingByScope(entityType, dimension);
-          if (reachingByScope.getOrDefault(GtfsEntityScope.PARTIAL, 0L) > 0) {
-            value.append("  [").append(reachingByScope.entrySet().stream().filter(
-                entry -> entry.getKey().isWithinArea()).map(
-                entry -> String.format("%s %d", entry.getKey().name(), entry.getValue())).collect(
-                Collectors.joining(", "))).append("]");
-          }
-          LOGGER.info(LoggingUtils.settingsValue(
-              label + " within " + dimension.getReportedName(), value.toString(), 1));
-
-          long accountedFor = logIssuesReportedAt(
-              entityType, dimension, ruledOut, "ruled out", 2, true);
-          if (ruledOut > accountedFor) {
-            /* every respect names what it ruled out, so this stands only where something went unregistered. Stating
-             * the count rather than accounting for it keeps the entries beneath a respect adding up to it, the gap
-             * being in what was recorded rather than in what is reported */
-            LOGGER.info(LoggingUtils.settingsValue(
-                "Ruled out without a reason recorded",
-                LoggingUtils.countWithPercentage(ruledOut - accountedFor, ruledOut, "ruled out"), 2));
-          }
-        }
-
-        /* what left in scope before the next respect could be applied, which is why fewer face it than survived here */
-        if (index + 1 < respects.size()) {
-          var next = respects.get(index + 1);
-          long lost = within - getSeenFacing(entityType, next);
-          if (lost > 0) {
-            LOGGER.info(LoggingUtils.settingsValue(
-                "Filters reducing next scope baseline", String.valueOf(lost), 2));
-            logIssuesReportedAt(entityType, next, lost, "reduced baseline", 3, false);
-          }
-        }
-
-        reaching = within;
-        reachingLabel = dimension.getReportedName();
-      }
-
-      /* and what was lost among the entities that came through every respect, which is what the parser itself cost */
-      if (reaching > 0 && !getSettledRespectsOf(entityType).isEmpty()) {
-        LOGGER.info(LoggingUtils.settingsValue(
-            label + " within scope", String.valueOf(reaching), 1));
-        logIssuesReportedAt(entityType, null, reaching, "within scope", 2, true);
-      }
-    }
-  }
-
-  /**
-   * Log what was within the area, then the discards grouped by stage, followed by the issues carried by entities that were
-   * parsed regardless. Each line states its share of the entities of that type that were within the area, so a count is read
-   * against what it could have been rather than in isolation
+   * Log the scope of the feed: per entity type, what each respect ruled out and why, and what was lost among the
+   * entities within scope throughout, each a share of what reached that point. Then the occurrences whose entity was
+   * let go before its scope could be established
    */
   public void logSummary() {
     logScopeSummary();
@@ -1668,130 +1755,5 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
         GtfsParseOutcome.PARSED, persistByDesignIssues);
     persistCoverageSummary(outputDirectory.resolve("gtfs_coverage_summary.csv"));
     persistIssueSummary(outputDirectory.resolve("gtfs_issue_summary.csv"));
-  }
-
-
-  /**
-   * Persist one row per issue and, where its entity type is subdivided, per subtype it arose within, stating what each
-   * share was measured against.
-   * <p>
-   * The logged summary collapses an issue to a single line so that it stays readable; a share there can only name the
-   * population it was measured against. Here the denominator and what it holds are written out, so a figure read from
-   * the report can be checked rather than taken on trust
-   * </p>
-   *
-   * @param filePath to write to
-   */
-  private void persistIssueSummary(final Path filePath) {
-    try (var csvWriter = SimpleCsvWriter.create(filePath, GtfsIssueSummaryCsvColumn.getHeaders())) {
-      for (var issue : GtfsParseIssue.values()) {
-        if (getOccurrences(issue) == 0) {
-          continue;
-        }
-        var outcome = issue.isDiscarding() ? GtfsParseOutcome.DISCARDED : GtfsParseOutcome.PARSED;
-        /* the rows are disjoint and sum to the issue's total, so no row restating that total is written */
-        var subTypeCounters = issuesBySubTypeAndScope.get(issue);
-        for (var subType : getSubTypesOf(issue)) {
-          var scopeCounters = subTypeCounters.get(subType);
-          if (scopeCounters == null) {
-            continue;
-          }
-          new TreeMap<String, GtfsScopeState>(){{
-            scopeCounters.keySet().forEach(state -> put(state.toString(), state));
-          }}.values().forEach(state -> {
-            long occurrences = scopeCounters.get(state).sum();
-            if (occurrences > 0) {
-              writeIssueSummaryRow(
-                  csvWriter, issue, NO_SUBTYPE.equals(subType) ? null : subType, state, occurrences, outcome);
-            }
-          });
-        }
-      }
-    }
-  }
-
-  /**
-   * Write a single row of the issue summary. Neither a total nor a share is written: both follow from where the
-   * entity stood, which the row already carries, and from the coverage tally
-   *
-   * @param csvWriter to write with
-   * @param issue the row reports on
-   * @param subType the row reports on, null where the entity type is not subdivided
-   * @param scope the entities stood in when the issue arose
-   * @param occurrences of the issue within the subtype and scope
-   * @param outcome what became of the entities it arose for
-   */
-  private void writeIssueSummaryRow(
-      final SimpleCsvWriter csvWriter, final GtfsParseIssue issue, final String subType, final GtfsScopeState state,
-      final long occurrences, final GtfsParseOutcome outcome) {
-    csvWriter.writeRow(
-        issue.getStage(),
-        issue.getEntityType(),
-        subType,
-        state.get(GtfsScopeDimension.SPATIAL),
-        state.get(GtfsScopeDimension.TEMPORAL),
-        state.get(GtfsScopeDimension.MODAL),
-        state.get(GtfsScopeDimension.SELECTION),
-        issue.name(),
-        issue.getDisposition(),
-        outcome.getLabel(),
-        occurrences);
-  }
-
-  /**
-   * Persist the tally the whole report is derived from, one row per entity type, subType and scope.
-   * <p>
-   * Written as the raw counts rather than as the populations the log speaks in. What the feed holds, what reached the
-   * point its scope could be told and what was within the area are each a sum over these rows, so a reader can take whichever
-   * grouping is of interest instead of being limited to the three the log happens to print
-   * </p>
-   * <p>
-   * The unsettled scope is written along with the rest. Without it the rows would not sum to what the feed holds,
-   * which is the one total every other figure is read against
-   * </p>
-   *
-   * @param filePath to write to
-   */
-  private void persistCoverageSummary(final Path filePath) {
-    try (var csvWriter = SimpleCsvWriter.create(filePath, GtfsCoverageCsvColumn.getHeaders())) {
-      for (var entityType : GtfsObjectType.values()) {
-        var subTypeCounters = seenByEntityTypeSubTypeAndScope.get(entityType);
-        if (subTypeCounters == null) {
-          continue;
-        }
-        new TreeSet<>(subTypeCounters.keySet()).forEach(subType -> {
-          var scopeCounters = subTypeCounters.get(subType);
-          new TreeMap<String, GtfsScopeState>(){{
-            scopeCounters.keySet().forEach(state -> put(state.toString(), state));
-          }}.values().forEach(state -> {
-            long count = scopeCounters.get(state).sum();
-            if (count > 0) {
-              csvWriter.writeRow(
-                  entityType,
-                  NO_SUBTYPE.equals(subType) ? null : subType,
-                  state.get(GtfsScopeDimension.SPATIAL),
-                  state.get(GtfsScopeDimension.TEMPORAL),
-                  state.get(GtfsScopeDimension.MODAL),
-                  state.get(GtfsScopeDimension.SELECTION),
-                  count);
-            }
-          });
-        });
-      }
-    }
-  }
-
-
-  /**
-   * Collect every subType an entity type was reported under, whether through entities seen or issues registered, so
-   * a subType that only ever produced discards is still reported
-   *
-   * @param entityType to collect for
-   * @return subTypes, ordered by name
-   */
-  private Set<String> collectReportedSubTypes(final GtfsObjectType entityType) {
-    var subTypes = new TreeSet<String>(getSeenBySubType(entityType).keySet());
-    subTypes.addAll(getDiscardedBySubType(entityType).keySet());
-    return subTypes;
   }
 }

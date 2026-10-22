@@ -25,10 +25,20 @@ public class GtfsFileScheme{
     this.objectType = objectType;
   }
 
+  /**
+   * Collect the GTFS file the scheme reads
+   *
+   * @return file type
+   */
   public GtfsFileType getFileType() {
     return fileType;
   }
 
+  /**
+   * Collect the GTFS object type the rows of the file are read as
+   *
+   * @return object type
+   */
   public GtfsObjectType getObjectType() {
     return objectType;
   }

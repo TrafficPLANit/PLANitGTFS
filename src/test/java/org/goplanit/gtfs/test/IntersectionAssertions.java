@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.test;
 
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -53,7 +54,7 @@ public final class IntersectionAssertions {
           assertSame(approach, layer.getLinkSegments().get(approach.getId()));
           assertTrue(intersection.hasMemberNode(approach.getDownstreamVertex()));
         }
-        for (var internal : intersection.getInternalSegments()) {
+        for (var internal : IntersectionUtils.getInternalSegmentsOf(intersection)) {
           assertSame(internal, layer.getLinkSegments().get(internal.getId()));
           assertTrue(intersection.hasMemberNode(internal.getUpstreamVertex()));
           assertTrue(intersection.hasMemberNode(internal.getDownstreamVertex()));

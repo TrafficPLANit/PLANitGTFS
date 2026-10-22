@@ -5,7 +5,6 @@ import org.goplanit.gtfs.converter.diagnostics.GtfsPlanitEntityType;
 import org.goplanit.gtfs.converter.zoning.handler.GtfsZoningHandlerData;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
-import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.math.Precision;
@@ -34,29 +33,22 @@ import java.util.Set;
  */
 public class GtfsLinkHelper {
 
-  /** maximum distance in metres from a stop location to an end node of its access link for that end node to be used
-   * as the access node, rather than breaking the link right next to it */
-  public static final double END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M = 5.0;
-
   /**
-   * Find the end node of a link that a stop location is the same as, or extremely close to, within
-   * {@link #END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M}. Using it as the access node avoids breaking the link. When both end
-   * nodes are that close, node B is taken.
+   * Record what breaking a link open to reach a stop adds to the physical network, being the node the stop is
+   * reached from, the additional link the break leaves behind, and a segment per direction the link carries
    *
-   * @param stopLocationInPlanitCrs to find the end node for
-   * @param link whose end nodes are considered
-   * @param geoUtils to measure the distance with
-   * @return the end node, null when neither is that close
+   * @param linkToBreak about to be broken, still whole
+   * @param data containing what the outcome is recorded into
    */
-  public static Node findEndNodeWithinReachOfLocation(
-      final Point stopLocationInPlanitCrs, final MacroscopicLink link, final PlanitJtsCrsUtils geoUtils){
-    if(geoUtils.isDistanceWithinMetres(
-        link.getNodeB().getPosition(), stopLocationInPlanitCrs, END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M)){
-      return link.getNodeB();
-    }
-    return geoUtils.isDistanceWithinMetres(
-        link.getNodeA().getPosition(), stopLocationInPlanitCrs, END_NODE_AS_ACCESS_NODE_MAX_DISTANCE_M) ?
-        link.getNodeA() : null;
+  private static void registerBrokenOpenForStopAccess(
+      final MacroscopicLink linkToBreak, final GtfsZoningHandlerData data){
+    var planitEntityDiagnostics = data.getProfiler().getPlanitEntityDiagnostics();
+    var origin = GtfsPlanitEntityOrigin.BROKEN_OPEN_FOR_STOP_ACCESS.getSubType();
+    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.NODE, origin, 1);
+    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.LINK, origin, 1);
+    planitEntityDiagnostics.registerDesired(
+        GtfsPlanitEntityType.LINK_SEGMENT, origin,
+        (linkToBreak.hasLinkSegmentAb() ? 1 : 0) + (linkToBreak.hasLinkSegmentBa() ? 1 : 0));
   }
 
   /**
@@ -97,16 +89,14 @@ public class GtfsLinkHelper {
 
   /** Extract/create a PLANit node based on the given location. Either it already exists as a PLANit node, or it
    * is internal to an existing link. In the latter case a new node is created and the existing link is broken. In
-   * the former case, we simply collect the PLANit node. An end node of the link is only collected when it may be
-   * reused for the access mode, see {@link #isEndNodeReusableAsAccessNode(Node, MacroscopicLink, Mode)}, or when the
-   * location is that end node itself. When we break the link all relevant GTFS relate state data is also updated to
-   * reflect the enw situation appropriately
+   * the former case, we simply collect the PLANit node, which happens only when the location is an end node of the
+   * link itself: whether a nearby end node is reused instead is decided where the location is found. When we break the
+   * link all relevant GTFS relate state data is also updated to reflect the enw situation appropriately
    *
    * @param stopLocationInPlanitCrs to collect/create PLANit node for (can be slightly altered in case of
    *                                rounding/syncing
    *                             with reference link geometry)
    * @param referenceLink the location is related to, can be internal can be an extreme node
-   * @param accessMode of the stop the node is for
    * @param networkLayer to extract node on
    * @param data containing state
    * @return PLANit node collected/created, and flag indicating if this required breaking a link and node is
@@ -115,7 +105,6 @@ public class GtfsLinkHelper {
   public static Pair<Node,Boolean> extractNodeByLinkGeometryLocation(
       Point stopLocationInPlanitCrs,
       final MacroscopicLink referenceLink,
-      final Mode accessMode,
       final MacroscopicNetworkLayer networkLayer,
       final GtfsZoningHandlerData data){
 
@@ -124,13 +113,11 @@ public class GtfsLinkHelper {
     PlanItRunTimeException.throwIfNull(referenceLink,
         "Designated access link for GTFS stop is null, not allowed");
 
-    /* prefer to use extreme node of access link which avoids breaking links, but it should be the same or extremely
-    close to the extreme node to be eligible, and not a dead end unless the location is that very node */
-    Node planitNode = findEndNodeWithinReachOfLocation(
-        stopLocationInPlanitCrs, referenceLink, data.getGeoToolsInPlanitCrs());
-    if(planitNode != null && (isEndNodeReusableAsAccessNode(planitNode, referenceLink, accessMode) ||
-        planitNode.isPositionEqual2D(stopLocationInPlanitCrs.getCoordinate(), Precision.EPSILON_6))) {
-      return Pair.of(planitNode, Boolean.FALSE);
+    /* the location is an end node of the access link: collect it, the link is not broken */
+    for(var endNode : List.<Node>of(referenceLink.getNodeB(), referenceLink.getNodeA())) {
+      if(endNode.isPositionEqual2D(stopLocationInPlanitCrs.getCoordinate(), Precision.EPSILON_6)) {
+        return Pair.of(endNode, Boolean.FALSE);
+      }
     }
 
     // New node required
@@ -156,7 +143,7 @@ public class GtfsLinkHelper {
 
     /* location is internal to an existing link, create new PLANit node at this location to serve as the new point
     of demarcation for the link that is to be broken */
-    planitNode = networkLayer.getNodes().getFactory().registerNew(stopLocationInPlanitCrs, true);
+    Node planitNode = networkLayer.getNodes().getFactory().registerNew(stopLocationInPlanitCrs, true);
 
     /* register additional actions on breaking link via listener for connectoid update (see above) as connectoids
     and their access links might be affected/invalidated when
@@ -176,24 +163,6 @@ public class GtfsLinkHelper {
     breakLinksAtPlanitNode(planitNode, networkLayer, referenceLink, List.of(listener), data);
 
     return Pair.of(planitNode, Boolean.TRUE);
-  }
-
-  /**
-   * Record what breaking a link open to reach a stop adds to the physical network, being the node the stop is
-   * reached from, the additional link the break leaves behind, and a segment per direction the link carries
-   *
-   * @param linkToBreak about to be broken, still whole
-   * @param data containing what the outcome is recorded into
-   */
-  private static void registerBrokenOpenForStopAccess(
-      final MacroscopicLink linkToBreak, final GtfsZoningHandlerData data){
-    var planitEntityDiagnostics = data.getProfiler().getPlanitEntityDiagnostics();
-    var origin = GtfsPlanitEntityOrigin.BROKEN_OPEN_FOR_STOP_ACCESS.getSubType();
-    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.NODE, origin, 1);
-    planitEntityDiagnostics.registerDesired(GtfsPlanitEntityType.LINK, origin, 1);
-    planitEntityDiagnostics.registerDesired(
-        GtfsPlanitEntityType.LINK_SEGMENT, origin,
-        (linkToBreak.hasLinkSegmentAb() ? 1 : 0) + (linkToBreak.hasLinkSegmentBa() ? 1 : 0));
   }
 
   /**

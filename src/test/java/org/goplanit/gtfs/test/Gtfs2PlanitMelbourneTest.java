@@ -54,6 +54,9 @@ public class Gtfs2PlanitMelbourneTest {
   /** the logger */
   private static Logger LOGGER = null;
 
+  /**
+   * Create the logger and reset the ids once, before all tests
+   */
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
@@ -62,11 +65,17 @@ public class Gtfs2PlanitMelbourneTest {
     IdGenerator.reset();
   }
 
+  /**
+   * Reset the ids after each test
+   */
   @AfterEach
   public void afterEach() {
     IdGenerator.reset();
   }
 
+  /**
+   * Close the logger once all tests ran
+   */
   @AfterAll
   public static void tearDown() {
     Logging.closeLogger(LOGGER);

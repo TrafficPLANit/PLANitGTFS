@@ -128,7 +128,13 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
     initialise(routedServices);
   }
 
-  RoutedServicesLayer getRoutedServicesLayer(Mode mode){
+  /**
+   * Collect the routed services layer of a mode
+   *
+   * @param mode to collect the layer for
+   * @return routed services layer, null when the mode has none
+   */
+  public RoutedServicesLayer getRoutedServicesLayer(Mode mode){
     return routedServiceLayerByMode.get(mode);
   }
 

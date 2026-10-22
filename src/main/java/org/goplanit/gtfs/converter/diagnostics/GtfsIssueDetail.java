@@ -20,10 +20,7 @@ import java.util.regex.Pattern;
  *
  * @author markr
  */
-class GtfsIssueDetail {
-
-  /** an issue taking no context at all, shared since it holds nothing */
-  static final GtfsIssueDetail NONE = new GtfsIssueDetail(null, null);
+public class GtfsIssueDetail {
 
   /**
    * Matches a single format specifier, excluding an escaped percent sign, so the arguments a template expects can be
@@ -32,50 +29,6 @@ class GtfsIssueDetail {
   private static final Pattern FORMAT_SPECIFIER =
       Pattern.compile("%(?!%)(?:(\\d+)\\$)?[-#+ 0,(]*\\d*(?:\\.\\d+)?[a-zA-Z]");
 
-  /** format of the context as it is logged, null when the issue takes none */
-  private final String loggedTemplate;
-
-  /** format of the context as it is persisted, null when the logged form is used */
-  private final String persistedTemplate;
-
-  /** how many arguments a call site must supply, i.e. whatever the wider of the two forms requires */
-  private final int argCount;
-
-  /**
-   * Constructor
-   *
-   * @param loggedTemplate format of the context as it is logged, may be null
-   * @param persistedTemplate format of the context as it is persisted, may be null
-   */
-  private GtfsIssueDetail(final String loggedTemplate, final String persistedTemplate) {
-    this.loggedTemplate = loggedTemplate;
-    this.persistedTemplate = persistedTemplate;
-    this.argCount = Math.max(countRequiredArgs(loggedTemplate), countRequiredArgs(persistedTemplate));
-  }
-
-  /**
-   * Create context that reads the same wherever it appears
-   *
-   * @param loggedTemplate format of the context, null when the issue takes none
-   * @return created context
-   */
-  static GtfsIssueDetail create(final String loggedTemplate) {
-    return create(loggedTemplate, null);
-  }
-
-  /**
-   * Create context that states more where there is room for it
-   *
-   * @param loggedTemplate format of the context as it is logged, null when the issue takes none
-   * @param persistedTemplate format of the context as it is persisted, null to use the logged form
-   * @return created context
-   */
-  static GtfsIssueDetail create(final String loggedTemplate, final String persistedTemplate) {
-    if (loggedTemplate == null && persistedTemplate == null) {
-      return NONE;
-    }
-    return new GtfsIssueDetail(loggedTemplate, persistedTemplate);
-  }
 
   /**
    * Count the arguments a template requires. A template referring to its arguments positionally requires as many as its
@@ -108,26 +61,25 @@ class GtfsIssueDetail {
     return Math.max(sequentialArgs, highestPositionalArg);
   }
 
-  /**
-   * Compose the context as it is logged
-   *
-   * @param issueName the context belongs to, reported when the arguments supplied are not the ones expected
-   * @param detailArgs to compose from, none when the issue takes no context
-   * @return composed context, null when the issue takes none
-   */
-  String createLogged(final String issueName, final Object... detailArgs) {
-    return compose(issueName, loggedTemplate, detailArgs);
-  }
+  /** format of the context as it is logged, null when the issue takes none */
+  private final String loggedTemplate;
+
+  /** format of the context as it is persisted, null when the logged form is used */
+  private final String persistedTemplate;
+
+  /** how many arguments a call site must supply, i.e. whatever the wider of the two forms requires */
+  private final int argCount;
 
   /**
-   * Compose the context as it is persisted, falling back on the logged form where the issue declared only the one
+   * Constructor
    *
-   * @param issueName the context belongs to, reported when the arguments supplied are not the ones expected
-   * @param detailArgs to compose from, none when the issue takes no context
-   * @return composed context, null when the issue takes none
+   * @param loggedTemplate format of the context as it is logged, may be null
+   * @param persistedTemplate format of the context as it is persisted, may be null
    */
-  String createPersisted(final String issueName, final Object... detailArgs) {
-    return compose(issueName, persistedTemplate != null ? persistedTemplate : loggedTemplate, detailArgs);
+  private GtfsIssueDetail(final String loggedTemplate, final String persistedTemplate) {
+    this.loggedTemplate = loggedTemplate;
+    this.persistedTemplate = persistedTemplate;
+    this.argCount = Math.max(countRequiredArgs(loggedTemplate), countRequiredArgs(persistedTemplate));
   }
 
   /**
@@ -149,11 +101,57 @@ class GtfsIssueDetail {
   }
 
   /**
+   * Create context that reads the same wherever it appears
+   *
+   * @param loggedTemplate format of the context, null when the issue takes none
+   * @return created context
+   */
+  public static GtfsIssueDetail create(final String loggedTemplate) {
+    return create(loggedTemplate, null);
+  }
+
+  /**
+   * Create context that states more where there is room for it
+   *
+   * @param loggedTemplate format of the context as it is logged, null when the issue takes none
+   * @param persistedTemplate format of the context as it is persisted, null to use the logged form
+   * @return created context
+   */
+  public static GtfsIssueDetail create(final String loggedTemplate, final String persistedTemplate) {
+    if (loggedTemplate == null && persistedTemplate == null) {
+      return NONE;
+    }
+    return new GtfsIssueDetail(loggedTemplate, persistedTemplate);
+  }
+
+  /**
+   * Compose the context as it is logged
+   *
+   * @param issueName the context belongs to, reported when the arguments supplied are not the ones expected
+   * @param detailArgs to compose from, none when the issue takes no context
+   * @return composed context, null when the issue takes none
+   */
+  public String createLogged(final String issueName, final Object... detailArgs) {
+    return compose(issueName, loggedTemplate, detailArgs);
+  }
+
+  /**
+   * Compose the context as it is persisted, falling back on the logged form where the issue declared only the one
+   *
+   * @param issueName the context belongs to, reported when the arguments supplied are not the ones expected
+   * @param detailArgs to compose from, none when the issue takes no context
+   * @return composed context, null when the issue takes none
+   */
+  public String createPersisted(final String issueName, final Object... detailArgs) {
+    return compose(issueName, persistedTemplate != null ? persistedTemplate : loggedTemplate, detailArgs);
+  }
+
+  /**
    * Collect the format of the context as it is logged
    *
    * @return logged template, null when the issue takes no context
    */
-  String getLoggedTemplate() {
+  public String getLoggedTemplate() {
     return loggedTemplate;
   }
 
@@ -162,7 +160,7 @@ class GtfsIssueDetail {
    *
    * @return persisted template, null when the logged form is used
    */
-  String getPersistedTemplate() {
+  public String getPersistedTemplate() {
     return persistedTemplate;
   }
 
@@ -171,7 +169,7 @@ class GtfsIssueDetail {
    *
    * @return true when it does, false otherwise
    */
-  boolean hasLoggedTemplate() {
+  public boolean hasLoggedTemplate() {
     return loggedTemplate != null;
   }
 
@@ -181,7 +179,7 @@ class GtfsIssueDetail {
    *
    * @return true when it does, false otherwise
    */
-  boolean hasPersistedTemplate() {
+  public boolean hasPersistedTemplate() {
     return persistedTemplate != null || loggedTemplate != null;
   }
 
@@ -190,7 +188,10 @@ class GtfsIssueDetail {
    *
    * @return number of arguments
    */
-  int getArgCount() {
+  public int getArgCount() {
     return argCount;
   }
+
+  /** an issue taking no context at all, shared since it holds nothing */
+  public static final GtfsIssueDetail NONE = new GtfsIssueDetail(null, null);
 }

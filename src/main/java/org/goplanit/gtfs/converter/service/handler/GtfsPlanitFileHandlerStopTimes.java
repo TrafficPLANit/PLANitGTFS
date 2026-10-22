@@ -71,6 +71,28 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   private boolean prevSeenTripTaken;
 
   /**
+   * Collect the issue naming why a stop time standing as given was ruled out, so that a respect accounts for what it
+   * cost rather than only stating how much it cost
+   *
+   * @param dimension the stop time was first ruled out in
+   * @return issue to register, null where the respect ruled nothing out
+   */
+  private static GtfsParseIssue collectStopTimeIssueOf(final GtfsScopeDimension dimension) {
+    switch (dimension) {
+      case TEMPORAL:
+        return GtfsParseIssue.STOP_TIME_TRIP_NOT_ACTIVE_ON_DAY;
+      case SELECTION:
+        return GtfsParseIssue.STOP_TIME_ROUTE_EXCLUDED;
+      case MODAL:
+        return GtfsParseIssue.STOP_TIME_ROUTE_MODE_NOT_ACTIVATED;
+      case SPATIAL:
+        return GtfsParseIssue.STOP_TIME_OUTSIDE_NETWORK_AREA;
+      default:
+        return null;
+    }
+  }
+
+  /**
    * @return compare by ids and departure arrival time, when all equal, it is considered equal for our intents and purposes and true is returned, false otherwise
    */
   private boolean isConsideredEqual(GtfsStopTime left, GtfsStopTime right) {
@@ -194,35 +216,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   }
 
   /**
-   * Constructor
-   *
-   * @param gtfsServicesHandlerData                  containing all data to track and resources needed to perform the processing
-   */
-  public GtfsPlanitFileHandlerStopTimes(final GtfsServicesHandlerData gtfsServicesHandlerData) {
-    this(gtfsServicesHandlerData, new HashSet<>());
-  }
-
-  /**
-   * Constructor
-   *
-   * @param gtfsServicesHandlerData                  containing all data to track and resources needed to perform the processing
-   * @param activatedLoggingForGtfsRoutesByShortName set of tracked GTFS routes (by short name) to log information for found in the dataset
-   */
-  public GtfsPlanitFileHandlerStopTimes(final GtfsServicesHandlerData gtfsServicesHandlerData, Set<String> activatedLoggingForGtfsRoutesByShortName) {
-    super();
-    this.data = gtfsServicesHandlerData;
-    this.activatedLoggingForGtfsRoutesByShortName = activatedLoggingForGtfsRoutesByShortName;
-
-    PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS stop times");
-    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS stop times");
-    // prerequisites
-    PlanItRunTimeException.throwIf(data.getRoutedServices().getLayers().isEachLayerEmpty(),"No GTFS routes parsed yet, unable to parse GTFS stop times");
-
-    reset();
-  }
-
-
-  /**
    * Drop the PLANit trip built for a GTFS trip that runs wholly beyond the area the run covers.
    * <p>
    * Its stops are all outside, so nothing of it survives to the result; today it is carried the whole way and removed
@@ -291,14 +284,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   }
 
   /**
-   * Settle the final GTFS trip, there being no following stop time to mark that its scope has settled
-   */
-  public void settleFinalTrip() {
-    settleTripWhenNeverWithinTimePeriod(prevSeenTrip, prevSeenTripTaken);
-    discardTripWhenWhollyOutsideArea(prevStopTimeTrip);
-  }
-
-  /**
    * Collect where a GTFS stop time sits relative to the area the run covers, which its own stop answers and which is
    * therefore the one respect the stop times file settles without looking beyond itself
    *
@@ -310,28 +295,6 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
       return GtfsEntityScope.NOT_ESTABLISHED;
     }
     return data.isGtfsStopWithinArea(gtfsStopTime.getStopId()) ? GtfsEntityScope.IN : GtfsEntityScope.OUT;
-  }
-
-  /**
-   * Collect the issue naming why a stop time standing as given was ruled out, so that a respect accounts for what it
-   * cost rather than only stating how much it cost
-   *
-   * @param dimension the stop time was first ruled out in
-   * @return issue to register, null where the respect ruled nothing out
-   */
-  private static GtfsParseIssue collectStopTimeIssueOf(final GtfsScopeDimension dimension) {
-    switch (dimension) {
-      case TEMPORAL:
-        return GtfsParseIssue.STOP_TIME_TRIP_NOT_ACTIVE_ON_DAY;
-      case SELECTION:
-        return GtfsParseIssue.STOP_TIME_ROUTE_EXCLUDED;
-      case MODAL:
-        return GtfsParseIssue.STOP_TIME_ROUTE_MODE_NOT_ACTIVATED;
-      case SPATIAL:
-        return GtfsParseIssue.STOP_TIME_OUTSIDE_NETWORK_AREA;
-      default:
-        return null;
-    }
   }
 
   /**
@@ -381,6 +344,43 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   private GtfsScopeDimension collectRespectRulingOut(final GtfsScopeState state) {
     var ruledOutAt = data.getDiagnostics().getReportedRespectOf(GtfsObjectType.STOP_TIME, state);
     return ruledOutAt != null && state.get(ruledOutAt) == GtfsEntityScope.OUT ? ruledOutAt : null;
+  }
+
+  /**
+   * Constructor
+   *
+   * @param gtfsServicesHandlerData                  containing all data to track and resources needed to perform the processing
+   */
+  public GtfsPlanitFileHandlerStopTimes(final GtfsServicesHandlerData gtfsServicesHandlerData) {
+    this(gtfsServicesHandlerData, new HashSet<>());
+  }
+
+  /**
+   * Constructor
+   *
+   * @param gtfsServicesHandlerData                  containing all data to track and resources needed to perform the processing
+   * @param activatedLoggingForGtfsRoutesByShortName set of tracked GTFS routes (by short name) to log information for found in the dataset
+   */
+  public GtfsPlanitFileHandlerStopTimes(final GtfsServicesHandlerData gtfsServicesHandlerData, Set<String> activatedLoggingForGtfsRoutesByShortName) {
+    super();
+    this.data = gtfsServicesHandlerData;
+    this.activatedLoggingForGtfsRoutesByShortName = activatedLoggingForGtfsRoutesByShortName;
+
+    PlanItRunTimeException.throwIfNull(data.getRoutedServices(), "Routed services not present, unable to parse GTFS stop times");
+    PlanItRunTimeException.throwIfNull(data.getServiceNetwork(), "Services network not present, unable to parse GTFS stop times");
+    // prerequisites
+    PlanItRunTimeException.throwIf(data.getRoutedServices().getLayers().isEachLayerEmpty(),"No GTFS routes parsed yet, unable to parse GTFS stop times");
+
+    reset();
+  }
+
+
+  /**
+   * Settle the final GTFS trip, there being no following stop time to mark that its scope has settled
+   */
+  public void settleFinalTrip() {
+    settleTripWhenNeverWithinTimePeriod(prevSeenTrip, prevSeenTripTaken);
+    discardTripWhenWhollyOutsideArea(prevStopTimeTrip);
   }
 
   /**

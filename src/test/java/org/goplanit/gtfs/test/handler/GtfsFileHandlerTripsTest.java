@@ -16,6 +16,12 @@ public class GtfsFileHandlerTripsTest extends GtfsFileHandlerTrips{
 
   public final Map<String, GtfsTrip> trips = new HashMap<>();
   
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Keeps each trip by its id
+   * </p>
+   */
   @Override
   public void handle(GtfsTrip gtfsTrip) {
     trips.put(gtfsTrip.getTripId(), gtfsTrip);

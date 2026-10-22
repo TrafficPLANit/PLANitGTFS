@@ -1,6 +1,7 @@
 package org.goplanit.gtfs.converter.zoning;
 
 import org.goplanit.converter.zoning.AccessEgressInjectionSettings;
+import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
@@ -41,6 +42,40 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   // Optional configuration settings
 
   /**
+   * default flag setting whether to remove unused transfer zones after GTFS parsing is complete
+   */
+  public static final boolean DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES = true;
+
+  /**
+   * default search radius for mapping GTFS stops to PLANit transfer zones
+   */
+  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40.0;
+
+  /**
+   * default search radius for mapping GTFS stops to PLANit links for determining stop locations on road/rail/water
+   */
+  public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = 40.0;
+
+  /**
+   * default setting for logging mappings between GTFS zones and existing PLANit transfer zones
+   */
+  public static final boolean DEFAULT_LOG_MAPPED_GTFS_ZONES = false;
+
+  /**
+   * default setting for logging the creation of new transfer zones based and GTFS stops
+   */
+  public static final boolean DEFAULT_LOG_CREATED_GTFS_ZONES = false;
+
+  /**
+   * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop
+   * to create connectoids (stop_locations).
+   * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple
+   * candidates via this buffer, we can then use more sophisticated ways than proximity
+   * to determine the best candidate
+   */
+  public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 8;
+
+  /**
    * search radius used when mapping GTFS stops to PLANit transfer zones
    */
   private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
@@ -51,6 +86,15 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
 
+  /** when placing a GTFS stop, an end node within this distance of its ideal stop point is reused rather than breaking
+   * the link */
+  private double maxEndNodeToIdealStopPointMeters =
+      ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS;
+
+  /** when breaking a link for a GTFS stop, an inner shape point within this distance of its ideal stop point is used
+   * rather than breaking the link right next to it */
+  private double maxShapePointToIdealStopPointMeters =
+      ZoningConverterUtils.DEFAULT_MAX_SHAPE_POINT_TO_IDEAL_STOP_POINT_METERS;
 
   /** bundles a number of settings regarding attaching access/egress settings for transfer zones */
   AccessEgressInjectionSettings accessEgressInjectionSettings = new AccessEgressInjectionSettings();
@@ -118,40 +162,6 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * PLANit transferzone */
   private Set<String> extendedLoggingByGtfsStopId = new HashSet<>();
 
-  /**
-   * default flag setting whether to remove unused transfer zones after GTFS parsing is complete
-   */
-  public static final boolean DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES = true;
-
-  /**
-   * default search radius for mapping GTFS stops to PLANit transfer zones
-   */
-  public static final double DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS = 40.0;
-
-  /**
-   * default search radius for mapping GTFS stops to PLANit links for determining stop locations on road/rail/water
-   */
-  public static final double DEFAULT_GTFSSTOP_LINK_SEARCH_METERS = 40.0;
-
-  /**
-   * default setting for logging mappings between GTFS zones and existing PLANit transfer zones
-   */
-  public static final boolean DEFAULT_LOG_MAPPED_GTFS_ZONES = false;
-
-  /**
-   * default setting for logging the creation of new transfer zones based and GTFS stops
-   */
-  public static final boolean DEFAULT_LOG_CREATED_GTFS_ZONES = false;
-
-
-  /**
-   * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop
-   * to create connectoids (stop_locations).
-   * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple
-   * candidates via this buffer, we can then use more sophisticated ways than proximity
-   * to determine the best candidate
-   */
-  public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 8;
 
   /**
    * Copy constructor creating a shallow copy of the underlying mode mapping so it is synced with the
@@ -198,6 +208,46 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   public void setGtfsStopToLinkSearchRadiusMeters(Number searchRadiusMeters) {
     this.gtfsStop2RoadSearchRadiusMeters = searchRadiusMeters.doubleValue();
+  }
+
+  /**
+   * Distance within which an end node of the link chosen for a new GTFS stop is reused rather than breaking the link,
+   * measured from the stop's ideal stop point: the point of the link closest to the GTFS stop
+   *
+   * @return distance in meters
+   */
+  public double getMaxEndNodeToIdealStopPointMeters() {
+    return this.maxEndNodeToIdealStopPointMeters;
+  }
+
+  /**
+   * Set the distance within which an end node of the link chosen for a new GTFS stop is reused rather than breaking
+   * the link, measured from the stop's ideal stop point
+   *
+   * @param maxEndNodeToIdealStopPointMeters to apply
+   */
+  public void setMaxEndNodeToIdealStopPointMeters(Number maxEndNodeToIdealStopPointMeters) {
+    this.maxEndNodeToIdealStopPointMeters = maxEndNodeToIdealStopPointMeters.doubleValue();
+  }
+
+  /**
+   * Distance within which an inner shape point of the link chosen for a new GTFS stop is used to break the link at,
+   * rather than breaking it right next to it, measured from the stop's ideal stop point
+   *
+   * @return distance in meters
+   */
+  public double getMaxShapePointToIdealStopPointMeters() {
+    return this.maxShapePointToIdealStopPointMeters;
+  }
+
+  /**
+   * Set the distance within which an inner shape point of the link chosen for a new GTFS stop is used to break the
+   * link at, measured from the stop's ideal stop point
+   *
+   * @param maxShapePointToIdealStopPointMeters to apply
+   */
+  public void setMaxShapePointToIdealStopPointMeters(Number maxShapePointToIdealStopPointMeters) {
+    this.maxShapePointToIdealStopPointMeters = maxShapePointToIdealStopPointMeters.doubleValue();
   }
 
 
@@ -377,6 +427,14 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
         "GTFS stop-link search radius (m)",
         String.format("%.1f", getGtfsStopToLinkSearchRadiusMeters()),
         level));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "End node reused within distance of ideal stop point (m)",
+        String.format("%.1f", getMaxEndNodeToIdealStopPointMeters()),
+        level));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Link broken at shape point within distance of ideal stop point (m)",
+        String.format("%.1f", getMaxShapePointToIdealStopPointMeters()),
+        level));
     LOGGER.info(LoggingUtils.settingsValue("Remove unused transfer zones", isRemoveUnusedTransferZones(), level));
   }
 
@@ -387,6 +445,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   public void reset() {
     setGtfsStopToTransferZoneSearchRadiusMeters(DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS);
     setGtfsStopToLinkSearchRadiusMeters(DEFAULT_GTFSSTOP_LINK_SEARCH_METERS);
+    setMaxEndNodeToIdealStopPointMeters(ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS);
+    setMaxShapePointToIdealStopPointMeters(ZoningConverterUtils.DEFAULT_MAX_SHAPE_POINT_TO_IDEAL_STOP_POINT_METERS);
     setRemoveUnusedTransferZones(DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES);
     excludeGtfsStopsById.clear();
     overwriteGtfsStop2LinkMapping.clear();

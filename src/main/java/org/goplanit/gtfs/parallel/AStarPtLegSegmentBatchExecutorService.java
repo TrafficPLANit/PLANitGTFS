@@ -58,6 +58,12 @@ public final class AStarPtLegSegmentBatchExecutorService {
     final ServiceNetworkLayer layer;
     final ServiceLegSegmentImpl seg;
 
+    /**
+     * Constructor
+     *
+     * @param layer the leg segment belongs to
+     * @param seg the leg segment to find a path for
+     */
     AStarLegSegmentCallInput(ServiceNetworkLayer layer, ServiceLegSegmentImpl seg) {
       this.layer = layer;
       this.seg = seg;
@@ -73,6 +79,12 @@ public final class AStarPtLegSegmentBatchExecutorService {
     final long processedLegSegments;
     final long validPathsFound;
 
+    /**
+     * Constructor
+     *
+     * @param processedLegSegments number of leg segments the batch processed
+     * @param validPathsFound number of them a valid path was found for
+     */
     SingleBatchResult(long processedLegSegments, long validPathsFound) {
       this.processedLegSegments = processedLegSegments;
       this.validPathsFound = validPathsFound;
@@ -83,6 +95,24 @@ public final class AStarPtLegSegmentBatchExecutorService {
    * contains data shared between threads
    */
   private final AStarBatchExecutionData sharedData;
+
+  /**
+   * Collect whichever of the two issues sits nearest to being by design, absent issues not competing
+   *
+   * @param current best so far, may be null
+   * @param candidate to weigh against it, may be null
+   * @return the nearer of the two, null only when both are
+   */
+  private static GtfsParseIssue nearestToByDesign(final GtfsParseIssue current, final GtfsParseIssue candidate) {
+    if (candidate == null) {
+      return current;
+    }
+    if (current == null) {
+      return candidate;
+    }
+    /* dispositions are declared from the most deliberate to the least, so the earlier of the two decides */
+    return candidate.getDisposition().ordinal() < current.getDisposition().ordinal() ? candidate : current;
+  }
 
   /**
    * Construct batches and submit them while tracking total via mutable counter
@@ -326,24 +356,6 @@ public final class AStarPtLegSegmentBatchExecutorService {
       determining = nearestToByDesign(determining, discardIssueOf.apply(gtfsStopIdDownstream));
     }
     return determining;
-  }
-
-  /**
-   * Collect whichever of the two issues sits nearest to being by design, absent issues not competing
-   *
-   * @param current best so far, may be null
-   * @param candidate to weigh against it, may be null
-   * @return the nearer of the two, null only when both are
-   */
-  private static GtfsParseIssue nearestToByDesign(final GtfsParseIssue current, final GtfsParseIssue candidate) {
-    if (candidate == null) {
-      return current;
-    }
-    if (current == null) {
-      return candidate;
-    }
-    /* dispositions are declared from the most deliberate to the least, so the earlier of the two decides */
-    return candidate.getDisposition().ordinal() < current.getDisposition().ordinal() ? candidate : current;
   }
 
   /**

@@ -25,6 +25,7 @@ import org.locationtech.jts.geom.Point;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author markr
  */
-public class GtfsConnectoidLocationChoiceTest {
+public class GtfsVehicleStopConnectoidLocationChoiceTest {
 
   /** search radius from a stop to its access link, the GTFS zoning default */
   private static final double STOP_TO_LINK_SEARCH_RADIUS_M = 40;
@@ -53,27 +54,6 @@ public class GtfsConnectoidLocationChoiceTest {
   private MacroscopicLinkSegmentType ferryRoute;
 
   private PlanitJtsCrsUtils geoUtils;
-
-  @BeforeEach
-  public void setUp() {
-    IdGenerator.reset();
-    var network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
-    network.setCoordinateReferenceSystem(PlanitJtsCrsUtils.CARTESIANCRS);
-    lightRail = network.getModes().getFactory().registerNew(PredefinedModeType.LIGHTRAIL);
-    ferry = network.getModes().getFactory().registerNew(PredefinedModeType.FERRY);
-    layer = network.getTransportLayers().getFactory().registerNew();
-    layer.registerSupportedModes(List.of(lightRail, ferry));
-    track = layer.getLinkSegmentTypes().getFactory().registerNew("track", 1800, 180);
-    AccessGroupPropertiesFactory.createOnLinkSegmentType(track, 20, List.of(lightRail));
-    ferryRoute = layer.getLinkSegmentTypes().getFactory().registerNew("ferryRoute", 1800, 180);
-    AccessGroupPropertiesFactory.createOnLinkSegmentType(ferryRoute, 20, List.of(ferry));
-    geoUtils = new PlanitJtsCrsUtils(PlanitJtsCrsUtils.CARTESIANCRS);
-  }
-
-  @AfterEach
-  public void tearDown() {
-    IdGenerator.reset();
-  }
 
   /** a node at the given position */
   private Node node(double x, double y) {
@@ -103,21 +83,59 @@ public class GtfsConnectoidLocationChoiceTest {
 
   /** choose the connectoid location for a light rail stop, finding the location on each candidate as the GTFS
    * zoning reader does */
-  private Point chooseConnectoidLocation(Point stop, Collection<MacroscopicLinkSegment> candidates) {
-    return chooseConnectoidLocation(stop, candidates, lightRail);
+  private Point chooseVehicleStopConnectoidLocation(Point stop, Collection<MacroscopicLinkSegment> candidates) {
+    return chooseVehicleStopConnectoidLocation(stop, candidates, lightRail);
   }
 
   /** choose the connectoid location for a stop of the given mode, finding the location on each candidate as the GTFS
    * zoning reader does */
-  private Point chooseConnectoidLocation(Point stop, Collection<MacroscopicLinkSegment> candidates, Mode mode) {
-    return GtfsDirectedConnectoidHelper.chooseConnectoidLocation(
+  private Point chooseVehicleStopConnectoidLocation(
+      Point stop, Collection<MacroscopicLinkSegment> candidates, Mode mode) {
+    return GtfsDirectedConnectoidHelper.chooseVehicleStopConnectoidLocation(
         stop,
         candidates,
         candidate -> ZoningConverterUtils.findConnectoidLocationForWaitingAreaOnLinkSegment(
             "stop", stop, candidate, candidate.getParent().getExternalId(), mode, STOP_TO_LINK_SEARCH_RADIUS_M,
             null, null, null, CountryNames.AUSTRALIA, geoUtils),
         mode,
+        ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS,
         geoUtils);
+  }
+
+  /** choose the connectoid location for a light rail stop, given the location on each candidate */
+  private Point chooseVehicleStopConnectoidLocation(
+      Point stop, Map<MacroscopicLinkSegment, Point> locationByCandidate) {
+    return GtfsDirectedConnectoidHelper.chooseVehicleStopConnectoidLocation(
+        stop, locationByCandidate.keySet(), locationByCandidate::get, lightRail,
+        ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS, geoUtils);
+  }
+
+  /**
+   * A layer with a track type light rail may use and a ferry route type ferries may use, in a cartesian coordinate
+   * system so distances are in the units the tests place nodes at
+   */
+  @BeforeEach
+  public void setUp() {
+    IdGenerator.reset();
+    var network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+    network.setCoordinateReferenceSystem(PlanitJtsCrsUtils.CARTESIANCRS);
+    lightRail = network.getModes().getFactory().registerNew(PredefinedModeType.LIGHTRAIL);
+    ferry = network.getModes().getFactory().registerNew(PredefinedModeType.FERRY);
+    layer = network.getTransportLayers().getFactory().registerNew();
+    layer.registerSupportedModes(List.of(lightRail, ferry));
+    track = layer.getLinkSegmentTypes().getFactory().registerNew("track", 1800, 180);
+    AccessGroupPropertiesFactory.createOnLinkSegmentType(track, 20, List.of(lightRail));
+    ferryRoute = layer.getLinkSegmentTypes().getFactory().registerNew("ferryRoute", 1800, 180);
+    AccessGroupPropertiesFactory.createOnLinkSegmentType(ferryRoute, 20, List.of(ferry));
+    geoUtils = new PlanitJtsCrsUtils(PlanitJtsCrsUtils.CARTESIANCRS);
+  }
+
+  /**
+   * Reset the ids after each test
+   */
+  @AfterEach
+  public void tearDown() {
+    IdGenerator.reset();
   }
 
   /**
@@ -140,13 +158,69 @@ public class GtfsConnectoidLocationChoiceTest {
     var b = node(100, 0);
     var link = twoWayTrack(a, b, new Coordinate(75, 0));
 
-    var chosen = chooseConnectoidLocation(
+    var chosen = chooseVehicleStopConnectoidLocation(
         PlanitJtsUtils.createPoint(98, 4), List.of(link.getLinkSegmentAb(), link.getLinkSegmentBa()));
 
     assertNotNull(chosen);
     assertEquals(98, chosen.getX(), 1e-6);
     assertEquals(0, chosen.getY(), 1e-6);
     assertFalse(GtfsLinkHelper.isEndNodeReusableAsAccessNode(b, link, lightRail));
+  }
+
+  /**
+   * A location near the dead end of a two-way track that is not the dead end itself is kept: both directions reach it
+   * already
+   */
+  @Test
+  public void locationNearDeadEndThatIsNotTheDeadEndIsKept() {
+    /*
+     *   A ============================================= Q ======= B     two-way light rail A-Q-B, Q a shape point,
+     *  (0,0)                                          (96,0)   (100,0)  B a dead end
+     *                                                      s
+     *                                                    (98,4) stop
+     *
+     *   along A->B the location is shape point Q, 4 m from dead end B: the link is broken there rather than at the
+     *   stop's projection (98,0) right next to it
+     */
+    var a = node(0, 0);
+    var b = node(100, 0);
+    var link = twoWayTrack(a, b, new Coordinate(96, 0));
+
+    var chosen = chooseVehicleStopConnectoidLocation(
+        PlanitJtsUtils.createPoint(98, 4), Map.of(link.getLinkSegmentAb(), PlanitJtsUtils.createPoint(96, 0)));
+
+    assertNotNull(chosen);
+    assertEquals(96, chosen.getX(), 1e-6);
+    assertEquals(0, chosen.getY(), 1e-6);
+  }
+
+  /**
+   * A stop past the dead end of a two-way track is given the dead end over another candidate's location within
+   * 10 m of it: both count as the dead end, and the dead end is the nearer, so the track is not broken just before its
+   * end
+   */
+  @Test
+  public void stopPastDeadEndGetsDeadEndOverLocationWithinTenMetresOfIt() {
+    /*
+     *   A ======================================= Q ============= B          two-way light rail A-Q-B, Q a shape point,
+     *  (0,0)                                    (93,0)        (100,0)        B a dead end
+     *                                                                    s
+     *                                                                (110,3) stop, past the dead end
+     *
+     *   along A->B the location is dead end B, 10.4 m from the stop, the stop's projection being B itself
+     *   along B->A it is shape point Q, 7 m from B and 17.3 m from the stop
+     */
+    var a = node(0, 0);
+    var b = node(100, 0);
+    var link = twoWayTrack(a, b, new Coordinate(93, 0));
+
+    var chosen = chooseVehicleStopConnectoidLocation(PlanitJtsUtils.createPoint(110, 3), Map.of(
+        link.getLinkSegmentAb(), PlanitJtsUtils.createPoint(100, 0),
+        link.getLinkSegmentBa(), PlanitJtsUtils.createPoint(93, 0)));
+
+    assertNotNull(chosen);
+    assertEquals(100, chosen.getX(), 1e-6);
+    assertEquals(0, chosen.getY(), 1e-6);
   }
 
   /**
@@ -171,7 +245,7 @@ public class GtfsConnectoidLocationChoiceTest {
     var link = twoWayTrack(a, b);
     twoWayTrack(b, d);
 
-    var chosen = chooseConnectoidLocation(
+    var chosen = chooseVehicleStopConnectoidLocation(
         PlanitJtsUtils.createPoint(30, 2), List.of(link.getLinkSegmentBa(), link.getLinkSegmentAb()));
 
     assertNotNull(chosen);
@@ -197,7 +271,7 @@ public class GtfsConnectoidLocationChoiceTest {
     var wharf = node(100, 0);
     var route = twoWayLink(ferryRoute, a, wharf, new Coordinate(75, 0));
 
-    var chosen = chooseConnectoidLocation(
+    var chosen = chooseVehicleStopConnectoidLocation(
         PlanitJtsUtils.createPoint(98, 4), List.of(route.getLinkSegmentAb(), route.getLinkSegmentBa()), ferry);
 
     assertNotNull(chosen);
@@ -233,7 +307,7 @@ public class GtfsConnectoidLocationChoiceTest {
     twoWayTrack(b, d);
     twoWayTrack(b, e);
 
-    var chosen = chooseConnectoidLocation(
+    var chosen = chooseVehicleStopConnectoidLocation(
         PlanitJtsUtils.createPoint(3, 2), List.of(link.getLinkSegmentAb(), link.getLinkSegmentBa()));
 
     assertNotNull(chosen);
@@ -262,7 +336,7 @@ public class GtfsConnectoidLocationChoiceTest {
     var b = node(100, 0);
     var link = twoWayTrack(a, b, new Coordinate(75, 0));
 
-    var chosen = chooseConnectoidLocation(
+    var chosen = chooseVehicleStopConnectoidLocation(
         PlanitJtsUtils.createPoint(110, 3), List.of(link.getLinkSegmentAb(), link.getLinkSegmentBa()));
 
     assertNotNull(chosen);
@@ -287,7 +361,8 @@ public class GtfsConnectoidLocationChoiceTest {
     var b = node(100, 0);
     var link = twoWayTrack(a, b, new Coordinate(75, 0));
 
-    var chosen = chooseConnectoidLocation(PlanitJtsUtils.createPoint(110, 3), List.of(link.getLinkSegmentAb()));
+    var chosen =
+        chooseVehicleStopConnectoidLocation(PlanitJtsUtils.createPoint(110, 3), List.of(link.getLinkSegmentAb()));
 
     assertNotNull(chosen);
     assertEquals(100, chosen.getX(), 1e-6);

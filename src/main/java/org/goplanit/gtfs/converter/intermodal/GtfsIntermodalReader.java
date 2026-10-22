@@ -40,11 +40,11 @@ import java.util.logging.Logger;
  */
 public class GtfsIntermodalReader implements IntermodalReader<ServiceNetwork, RoutedServices> {
   
-  /** intermodal reader settings to use */
-  protected final GtfsIntermodalReaderSettings settings;
-
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesReader.class.getCanonicalName());
+
+  /** intermodal reader settings to use */
+  protected final GtfsIntermodalReaderSettings settings;
 
   /** id token to use */
   private IdGroupingToken idToken;

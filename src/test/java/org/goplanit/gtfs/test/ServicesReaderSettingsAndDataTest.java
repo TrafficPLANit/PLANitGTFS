@@ -34,6 +34,10 @@ public class ServicesReaderSettingsAndDataTest {
   ServiceNetwork serviceNetwork;
   RoutedServices routedServices;
 
+  /**
+   * A parent network with bus and train on one layer, with the settings, service network and routed services the
+   * tests use
+   */
   @BeforeEach
   public void before(){
 
@@ -48,6 +52,10 @@ public class ServicesReaderSettingsAndDataTest {
     routedServices = new RoutedServices(parentNetwork.getIdGroupingToken(), serviceNetwork);
   }
 
+  /**
+   * Each route type maps to its primary PLANit mode, the network's own where it has the mode and a new one otherwise,
+   * and a route type left out by the settings maps to none
+   */
   @Test
   public void settingsTest() {
     data = new GtfsServicesHandlerData(settings, serviceNetwork, routedServices, new GtfsServicesHandlerProfiler());
@@ -71,6 +79,9 @@ public class ServicesReaderSettingsAndDataTest {
 
   }
 
+  /**
+   * The day of the week and the time period filters set are the ones the settings return
+   */
   @Test
   public void timePeriodSettingsTest(){
 

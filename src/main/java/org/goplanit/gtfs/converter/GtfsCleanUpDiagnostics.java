@@ -45,9 +45,6 @@ import java.util.stream.Collectors;
  */
 public class GtfsCleanUpDiagnostics {
 
-  /** subtype a removal is reported within when nothing is recorded of where the GTFS entities behind it stood */
-  private static final String TRIP_NOT_RECORDED_SUBTYPE = "TRIP_NOT_RECORDED";
-
   /**
    * the scopes an entity can stand in relative to the area, furthest outside it first. Declared here rather than
    * taken from the order the scopes themselves are declared in, which reads as a scale but is not one
@@ -69,61 +66,6 @@ public class GtfsCleanUpDiagnostics {
 
   /** entities of each type, per subdivision, as the last step to touch that type left them */
   private final Map<GtfsPlanitEntityType, Map<String, Long>> presentAfterCleanUp = new LinkedHashMap<>();
-
-  /**
-   * What the truncation made of a trip schedule and what brought it about.
-   * <p>
-   * The two are held together because they are settled in one pass over the schedule's legs, and because what a
-   * removal says about the parser follows from the cause rather than from the outcome
-   * </p>
-   */
-  public static class TruncationOutcome {
-
-    /** issue the schedule is reported under */
-    private final GtfsPlanitEntityIssue issue;
-
-    /** what befell the stops whose legs went unmapped, null where nothing is recorded of them */
-    private final GtfsParseIssue cause;
-
-    /**
-     * Constructor
-     *
-     * @param issue to report under
-     * @param cause that brought it about, may be null
-     */
-    private TruncationOutcome(final GtfsPlanitEntityIssue issue, final GtfsParseIssue cause) {
-      this.issue = issue;
-      this.cause = cause;
-    }
-
-    /**
-     * Collect the issue to report under
-     *
-     * @return issue
-     */
-    GtfsPlanitEntityIssue getIssue() {
-      return issue;
-    }
-
-    /**
-     * Collect the subdivision to report within, being what befell the stops behind the schedule
-     *
-     * @return subtype
-     */
-    String getSubType() {
-      return cause != null ? cause.name() : CAUSE_NOT_RECORDED_SUBTYPE;
-    }
-
-    /**
-     * Collect what the removal says about the parser, which is whatever its cause says. A schedule cut back around a
-     * stop that should have been usable is a loss that need not have happened, whatever the schedule itself was
-     *
-     * @return disposition
-     */
-    GtfsIssueDisposition getDisposition() {
-      return cause != null ? cause.getDisposition() : issue.getDisposition();
-    }
-  }
 
   /**
    * Create a set that holds entities by identity rather than by id, which changes when survivors are renumbered
@@ -151,67 +93,6 @@ public class GtfsCleanUpDiagnostics {
   }
 
   /**
-   * Constructor
-   *
-   * @param diagnostics to record what is removed into
-   */
-  public GtfsCleanUpDiagnostics(final GtfsPlanitEntityDiagnostics diagnostics) {
-    this.diagnostics = diagnostics;
-  }
-
-  /**
-   * Collect the service nodes present across all layers
-   *
-   * @param serviceNetwork to collect from
-   * @return service nodes present
-   */
-  public static Set<ServiceNode> collectServiceNodes(final ServiceNetwork serviceNetwork) {
-    Set<ServiceNode> serviceNodes = createIdentitySet();
-    serviceNetwork.getTransportLayers().forEach(layer -> layer.getServiceNodes().forEach(serviceNodes::add));
-    return serviceNodes;
-  }
-
-  /**
-   * Collect the routed services present across all layers and modes, each against the mode it runs
-   *
-   * @param routedServices to collect from
-   * @return routed services present, by identity as a removal renumbers what survives
-   */
-  public static Map<RoutedService, String> collectRoutedServices(final RoutedServices routedServices) {
-    Map<RoutedService, String> services = new IdentityHashMap<>();
-    forEachRoutedService(routedServices, service -> services.put(service, modeOf(service)));
-    return services;
-  }
-
-  /**
-   * Collect the schedule based trips present across all layers and modes, each against the mode its service runs
-   *
-   * @param routedServices to collect from
-   * @return trip schedules present, by identity as a removal renumbers what survives
-   */
-  public static Map<RoutedTripSchedule, String> collectTripSchedules(final RoutedServices routedServices) {
-    Map<RoutedTripSchedule, String> tripSchedules = new IdentityHashMap<>();
-    forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
-        tripSchedule -> tripSchedules.put(tripSchedule, modeOf(service))));
-    return tripSchedules;
-  }
-
-  /**
-   * Collect the departures of the schedule based trips present across all layers and modes, each against the mode its
-   * service runs
-   *
-   * @param routedServices to collect from
-   * @return departures present, by identity as a removal renumbers what survives
-   */
-  public static Map<RoutedTripDeparture, String> collectDepartures(final RoutedServices routedServices) {
-    Map<RoutedTripDeparture, String> departures = new IdentityHashMap<>();
-    forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
-        tripSchedule -> tripSchedule.getDepartures().forEach(
-            departure -> departures.put(departure, modeOf(service)))));
-    return departures;
-  }
-
-  /**
    * Collect the mode a routed service runs as the log speaks of it
    *
    * @param routedService to collect for
@@ -219,63 +100,6 @@ public class GtfsCleanUpDiagnostics {
    */
   private static String modeOf(final RoutedService routedService) {
     return routedService.getMode().getName();
-  }
-
-  /**
-   * Collect the entities a container holds, held by identity as a removal renumbers what survives
-   *
-   * @param <E> type of entity
-   * @param entities to collect
-   * @return entities present
-   */
-  public static <E extends ExternalIdAble> Set<E> collectById(final Iterable<E> entities) {
-    Set<E> present = createIdentitySet();
-    entities.forEach(present::add);
-    return present;
-  }
-
-  /**
-   * Record which entities of a type a clean-up step took away, what is left behind being what is in the result, the
-   * entities the step was presented with having been accounted for where they came about
-   *
-   * @param <E> type of entity
-   * @param entityType concerned
-   * @param issue the step removes the entities under
-   * @param before entities present before the step ran
-   * @param after entities present after the step ran
-   */
-  public <E extends ExternalIdAble> void registerRemovedById(
-      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
-      final Set<E> before, final Set<E> after) {
-    /* whatever the step was handed beyond what was there before the parse began is an addition, whichever stage
-     * made it, so the account arrives at what the step leaves behind */
-    diagnostics.registerDesired(
-        entityType,
-        before.size() - diagnostics.getPreExisting(entityType) - diagnostics.getDesired(entityType));
-    diagnostics.registerCreated(entityType, after.size());
-    before.stream().filter(entity -> !after.contains(entity)).forEach(
-        entity -> diagnostics.registerIssue(
-            issue, String.valueOf(entity.getId()), entity.getIdsAsString()));
-  }
-
-  /**
-   * Record how many entities of a type a clean-up step was presented with, how many it left behind, and which ones it
-   * took away.
-   * <p>
-   * A removed entity is recorded under its PLANit id, which is what the surrounding log speaks in, with its ids in
-   * full as the detail that accompanies it into a listing
-   * </p>
-   *
-   * @param <E> type of entity
-   * @param entityType concerned
-   * @param issue the step removes the entities under
-   * @param before entities present before the step ran
-   * @param after entities present after the step ran
-   */
-  public <E extends ExternalIdAble> void registerRemoved(
-      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
-      final Set<E> before, final Set<E> after) {
-    registerRemoved(entityType, issue, withoutSubType(before), withoutSubType(after));
   }
 
   /**
@@ -292,71 +116,6 @@ public class GtfsCleanUpDiagnostics {
   }
 
   /**
-   * Record what a clean-up step was presented with and took away, each entity counted within the subdivision it
-   * belongs to so that a shortfall can be read per subdivision rather than for the type as a whole
-   *
-   * @param <E> type of entity
-   * @param entityType concerned
-   * @param issue the step removes the entities under
-   * @param before entities present before the step ran, against the subdivision each belongs to
-   * @param after entities present after the step ran, against the subdivision each belongs to
-   */
-  public <E extends ExternalIdAble> void registerRemoved(
-      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
-      final Map<E, String> before, final Map<E, String> after) {
-    notePresence(entityType, before, after);
-    before.keySet().stream().filter(entity -> !after.containsKey(entity)).forEach(entity -> {
-      registerLostWhereNotKnockOn(entityType, issue, before.get(entity));
-      diagnostics.registerIssue(issue, String.valueOf(entity.getId()), entity.getIdsAsString());
-    });
-  }
-
-  /**
-   * Record an entity lost by the PLANit side's own doing within the subdivision it belongs to, a loss carried over
-   * from the feed side being accounted for there instead
-   *
-   * @param entityType concerned
-   * @param issue the entity was lost under
-   * @param subType it belongs to
-   */
-  private void registerLostWhereNotKnockOn(
-      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue, final String subType) {
-    if (!issue.isKnockOnFromGtfsParsing()) {
-      diagnostics.registerLost(entityType, subType, 1);
-    }
-  }
-
-  /**
-   * Note how many entities of a type a clean-up step was presented with and how many it left behind, per subdivision.
-   * <p>
-   * Several steps may act on the same type in turn, each handed what the one before it left, so what was to be in the
-   * result is what the first of them found and what is in the result is what the last of them left. Neither is settled
-   * until the clean-up has run its course, so the readings are held here and reported by {@link #registerPresence()}
-   * </p>
-   *
-   * @param <E> type of entity
-   * @param entityType concerned
-   * @param before entities present before the step ran, against the subdivision each belongs to
-   * @param after entities present after the step ran, against the subdivision each belongs to
-   */
-  private <E> void notePresence(
-      final GtfsPlanitEntityType entityType, final Map<E, String> before, final Map<E, String> after) {
-    presentBeforeCleanUp.putIfAbsent(entityType, countBySubType(before));
-    presentAfterCleanUp.put(entityType, countBySubType(after));
-  }
-
-  /**
-   * Record how many entities of each type the clean-up was presented with and how many it left behind, taken across
-   * all of its steps
-   */
-  public void registerPresence() {
-    presentBeforeCleanUp.forEach((entityType, counts) -> counts.forEach(
-        (subType, count) -> diagnostics.registerDesired(entityType, subType, count)));
-    presentAfterCleanUp.forEach((entityType, counts) -> counts.forEach(
-        (subType, count) -> diagnostics.registerCreated(entityType, subType, count)));
-  }
-
-  /**
    * Count the entities present within each subdivision
    *
    * @param <E> type of entity
@@ -366,56 +125,6 @@ public class GtfsCleanUpDiagnostics {
   private static <E> Map<String, Long> countBySubType(final Map<E, String> entities) {
     return entities.values().stream().collect(
         Collectors.groupingBy(Function.identity(), Collectors.counting()));
-  }
-
-  /**
-   * Record what the truncation took away, each removal under the issue its own outcome names and within the
-   * subdivision it belongs to.
-   * <p>
-   * Unlike the other steps this one removes entities for outcomes that differ in kind, cutting a schedule back to
-   * what fits, clearing away one of which nothing fits, and failing to map a leg that ought to have been mappable,
-   * so the issue is settled per entity rather than for the step as a whole
-   * </p>
-   *
-   * @param <E> type of entity
-   * @param entityType concerned
-   * @param before entities present before the truncation ran, against the subdivision each belongs to
-   * @param after entities present after it ran, against the subdivision each belongs to
-   * @param outcomeOf what the truncation made of a removed entity, and what brought it about
-   */
-  public <E extends ExternalIdAble> void registerTruncated(
-      final GtfsPlanitEntityType entityType, final Map<E, String> before, final Map<E, String> after,
-      final Function<E, TruncationOutcome> outcomeOf) {
-    notePresence(entityType, before, after);
-    before.keySet().stream().filter(entity -> !after.containsKey(entity)).forEach(entity -> {
-      var outcome = outcomeOf.apply(entity);
-      registerLostWhereNotKnockOn(entityType, outcome.getIssue(), before.get(entity));
-      diagnostics.registerIssueWithSubType(
-          outcome.getIssue(), String.valueOf(entity.getId()), outcome.getSubType(), outcome.getDisposition(),
-          entity.getIdsAsString());
-    });
-  }
-
-  /**
-   * Capture the GTFS stops each trip schedule runs between, before any clean up has run.
-   * <p>
-   * Taken this early because the clean up that precedes the truncation detaches a leg from the trip the moment it
-   * becomes unmapped, and a detached leg no longer names the stops it ran between. By the time the truncation is
-   * judged, the very legs whose loss is to be explained have already lost the means to explain it
-   * </p>
-   *
-   * @param routedServices to capture from
-   * @param serviceNodeToGtfsStopIdMapping to trace a service node back to the stop it stands for
-   * @return the pair of stops each leg of a schedule runs between, by leg, held by identity as a removal renumbers
-   *     what survives. Positions are kept so a leg found unmapped later can be matched to the stops it ran between
-   */
-  public static Map<RoutedTripSchedule, List<Pair<String, String>>> captureGtfsStopIdsBySchedule(
-      final RoutedServices routedServices, final Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
-    Map<RoutedTripSchedule, List<Pair<String, String>>> gtfsStopIdsBySchedule = new IdentityHashMap<>();
-    forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
-        schedule -> gtfsStopIdsBySchedule.put(
-            schedule, collectGtfsStopIds(schedule, serviceNodeToGtfsStopIdMapping))));
-    return gtfsStopIdsBySchedule;
   }
 
   /**
@@ -442,42 +151,6 @@ public class GtfsCleanUpDiagnostics {
           serviceNodeToGtfsStopIdMapping.apply(legSegment.getDownstreamServiceNode())));
     }
     return gtfsStopIdsByLeg;
-  }
-
-  /**
-   * Determine which outcome the truncation will hand each trip schedule, before it runs.
-   * <p>
-   * A schedule keeping at least one leg is cut back to it and lives on in some form. One keeping none is removed
-   * outright, and then it matters whether any two of its stops ran one after the other within the area: where none
-   * did, no leg could have existed and the boundary accounts for the loss, whereas where two did and there is still
-   * no leg between them nothing about where the trip ran explains it
-   * </p>
-   * <p>
-   * Taken before the truncation because it clears away what it removes, and judged by the same test the modifier
-   * itself applies, so this classifies rather than guesses
-   * </p>
-   *
-   * @param routedServices to classify the schedules of
-   * @param gtfsDiagnostics holding where each GTFS trip stood and what befell each GTFS stop
-   * @param gtfsStopIdsBySchedule the stops each leg of each schedule ran between, captured before the clean up began
-   * @return outcome per schedule, held by identity as a removal renumbers what survives
-   */
-  public static Map<RoutedTripSchedule, TruncationOutcome> classifyTruncationOutcomes(
-      final RoutedServices routedServices, final GtfsParseDiagnostics gtfsDiagnostics,
-      final Map<RoutedTripSchedule, List<Pair<String, String>>> gtfsStopIdsBySchedule) {
-    Map<RoutedTripSchedule, TruncationOutcome> outcomes = new IdentityHashMap<>();
-    for (var layer : routedServices.getLayers()) {
-      var serviceNodes = layer.getParentLayer().getServiceNodes();
-      var legSegments = layer.getParentLayer().getLegSegments();
-      for (var modeServices : layer) {
-        modeServices.forEach(service -> service.getTripInfo().getScheduleBasedTrips().forEach(
-            schedule -> outcomes.put(
-                schedule, classifyTruncationOutcome(
-                    schedule, legSegments, serviceNodes, gtfsDiagnostics,
-                    gtfsStopIdsBySchedule.get(schedule)))));
-      }
-    }
-    return outcomes;
   }
 
   /**
@@ -578,30 +251,6 @@ public class GtfsCleanUpDiagnostics {
   }
 
   /**
-   * Determine where the GTFS trips behind a trip schedule stood relative to the area the run covers.
-   * <p>
-   * Only the spatial respect is asked. A trip ruled out on any other never became a schedule at all, so among the
-   * schedules that existed to be truncated the remaining respects hold nothing but IN, and reporting them would
-   * divide the count along an axis every occurrence shares
-   * </p>
-   * <p>
-   * A schedule may stand for several trips once identically scheduled ones have been consolidated, and then the trip
-   * furthest outside the area decides: a schedule holding a trip that only ever ran partly within it was always
-   * going to be cut back, so reading that as a failure to map would overstate what is left to fix
-   * </p>
-   *
-   * @param schedule concerned
-   * @param gtfsDiagnostics holding where each GTFS trip stood
-   * @return subtype to report the removal within
-   */
-  static String determineTruncatedScheduleSubType(
-      final RoutedTripSchedule schedule, final GtfsParseDiagnostics gtfsDiagnostics) {
-    var furthestOutside = determineFurthestOutsideScope(schedule, gtfsDiagnostics);
-    return furthestOutside != null
-        ? GtfsScopeDimension.SPATIAL.name() + "_" + furthestOutside.name() : TRIP_NOT_RECORDED_SUBTYPE;
-  }
-
-  /**
    * Collect where the GTFS trips behind a trip schedule stood spatially, the one furthest outside the area deciding
    *
    * @param schedule concerned
@@ -648,4 +297,330 @@ public class GtfsCleanUpDiagnostics {
     int currentRank = SCOPES_FURTHEST_OUTSIDE_FIRST.indexOf(current);
     return currentRank < 0 || candidateRank < currentRank ? candidate : current;
   }
+
+  /**
+   * Record an entity lost by the PLANit side's own doing within the subdivision it belongs to, a loss carried over
+   * from the feed side being accounted for there instead
+   *
+   * @param entityType concerned
+   * @param issue the entity was lost under
+   * @param subType it belongs to
+   */
+  private void registerLostWhereNotKnockOn(
+      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue, final String subType) {
+    if (!issue.isKnockOnFromGtfsParsing()) {
+      diagnostics.registerLost(entityType, subType, 1);
+    }
+  }
+
+  /**
+   * Note how many entities of a type a clean-up step was presented with and how many it left behind, per subdivision.
+   * <p>
+   * Several steps may act on the same type in turn, each handed what the one before it left, so what was to be in the
+   * result is what the first of them found and what is in the result is what the last of them left. Neither is settled
+   * until the clean-up has run its course, so the readings are held here and reported by {@link #registerPresence()}
+   * </p>
+   *
+   * @param <E> type of entity
+   * @param entityType concerned
+   * @param before entities present before the step ran, against the subdivision each belongs to
+   * @param after entities present after the step ran, against the subdivision each belongs to
+   */
+  private <E> void notePresence(
+      final GtfsPlanitEntityType entityType, final Map<E, String> before, final Map<E, String> after) {
+    presentBeforeCleanUp.putIfAbsent(entityType, countBySubType(before));
+    presentAfterCleanUp.put(entityType, countBySubType(after));
+  }
+
+  /**
+   * What the truncation made of a trip schedule and what brought it about.
+   * <p>
+   * The two are held together because they are settled in one pass over the schedule's legs, and because what a
+   * removal says about the parser follows from the cause rather than from the outcome
+   * </p>
+   */
+  public static class TruncationOutcome {
+
+    /** issue the schedule is reported under */
+    private final GtfsPlanitEntityIssue issue;
+
+    /** what befell the stops whose legs went unmapped, null where nothing is recorded of them */
+    private final GtfsParseIssue cause;
+
+    /**
+     * Constructor
+     *
+     * @param issue to report under
+     * @param cause that brought it about, may be null
+     */
+    private TruncationOutcome(final GtfsPlanitEntityIssue issue, final GtfsParseIssue cause) {
+      this.issue = issue;
+      this.cause = cause;
+    }
+
+    /**
+     * Collect the issue to report under
+     *
+     * @return issue
+     */
+    GtfsPlanitEntityIssue getIssue() {
+      return issue;
+    }
+
+    /**
+     * Collect the subdivision to report within, being what befell the stops behind the schedule
+     *
+     * @return subtype
+     */
+    String getSubType() {
+      return cause != null ? cause.name() : CAUSE_NOT_RECORDED_SUBTYPE;
+    }
+
+    /**
+     * Collect what the removal says about the parser, which is whatever its cause says. A schedule cut back around a
+     * stop that should have been usable is a loss that need not have happened, whatever the schedule itself was
+     *
+     * @return disposition
+     */
+    GtfsIssueDisposition getDisposition() {
+      return cause != null ? cause.getDisposition() : issue.getDisposition();
+    }
+  }
+
+  /**
+   * Collect the service nodes present across all layers
+   *
+   * @param serviceNetwork to collect from
+   * @return service nodes present
+   */
+  public static Set<ServiceNode> collectServiceNodes(final ServiceNetwork serviceNetwork) {
+    Set<ServiceNode> serviceNodes = createIdentitySet();
+    serviceNetwork.getTransportLayers().forEach(layer -> layer.getServiceNodes().forEach(serviceNodes::add));
+    return serviceNodes;
+  }
+
+  /**
+   * Collect the routed services present across all layers and modes, each against the mode it runs
+   *
+   * @param routedServices to collect from
+   * @return routed services present, by identity as a removal renumbers what survives
+   */
+  public static Map<RoutedService, String> collectRoutedServices(final RoutedServices routedServices) {
+    Map<RoutedService, String> services = new IdentityHashMap<>();
+    forEachRoutedService(routedServices, service -> services.put(service, modeOf(service)));
+    return services;
+  }
+
+  /**
+   * Collect the schedule based trips present across all layers and modes, each against the mode its service runs
+   *
+   * @param routedServices to collect from
+   * @return trip schedules present, by identity as a removal renumbers what survives
+   */
+  public static Map<RoutedTripSchedule, String> collectTripSchedules(final RoutedServices routedServices) {
+    Map<RoutedTripSchedule, String> tripSchedules = new IdentityHashMap<>();
+    forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
+        tripSchedule -> tripSchedules.put(tripSchedule, modeOf(service))));
+    return tripSchedules;
+  }
+
+  /**
+   * Collect the departures of the schedule based trips present across all layers and modes, each against the mode its
+   * service runs
+   *
+   * @param routedServices to collect from
+   * @return departures present, by identity as a removal renumbers what survives
+   */
+  public static Map<RoutedTripDeparture, String> collectDepartures(final RoutedServices routedServices) {
+    Map<RoutedTripDeparture, String> departures = new IdentityHashMap<>();
+    forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
+        tripSchedule -> tripSchedule.getDepartures().forEach(
+            departure -> departures.put(departure, modeOf(service)))));
+    return departures;
+  }
+
+  /**
+   * Collect the entities a container holds, held by identity as a removal renumbers what survives
+   *
+   * @param <E> type of entity
+   * @param entities to collect
+   * @return entities present
+   */
+  public static <E extends ExternalIdAble> Set<E> collectById(final Iterable<E> entities) {
+    Set<E> present = createIdentitySet();
+    entities.forEach(present::add);
+    return present;
+  }
+
+
+  /**
+   * Constructor
+   *
+   * @param diagnostics to record what is removed into
+   */
+  public GtfsCleanUpDiagnostics(final GtfsPlanitEntityDiagnostics diagnostics) {
+    this.diagnostics = diagnostics;
+  }
+
+  /**
+   * Record which entities of a type a clean-up step took away, what is left behind being what is in the result, the
+   * entities the step was presented with having been accounted for where they came about
+   *
+   * @param <E> type of entity
+   * @param entityType concerned
+   * @param issue the step removes the entities under
+   * @param before entities present before the step ran
+   * @param after entities present after the step ran
+   */
+  public <E extends ExternalIdAble> void registerRemovedById(
+      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
+      final Set<E> before, final Set<E> after) {
+    /* whatever the step was handed beyond what was there before the parse began is an addition, whichever stage
+     * made it, so the account arrives at what the step leaves behind */
+    diagnostics.registerDesired(
+        entityType,
+        before.size() - diagnostics.getPreExisting(entityType) - diagnostics.getDesired(entityType));
+    diagnostics.registerCreated(entityType, after.size());
+    before.stream().filter(entity -> !after.contains(entity)).forEach(
+        entity -> diagnostics.registerIssue(
+            issue, String.valueOf(entity.getId()), entity.getIdsAsString()));
+  }
+
+  /**
+   * Record how many entities of a type a clean-up step was presented with, how many it left behind, and which ones it
+   * took away.
+   * <p>
+   * A removed entity is recorded under its PLANit id, which is what the surrounding log speaks in, with its ids in
+   * full as the detail that accompanies it into a listing
+   * </p>
+   *
+   * @param <E> type of entity
+   * @param entityType concerned
+   * @param issue the step removes the entities under
+   * @param before entities present before the step ran
+   * @param after entities present after the step ran
+   */
+  public <E extends ExternalIdAble> void registerRemoved(
+      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
+      final Set<E> before, final Set<E> after) {
+    registerRemoved(entityType, issue, withoutSubType(before), withoutSubType(after));
+  }
+
+  /**
+   * Record what a clean-up step was presented with and took away, each entity counted within the subdivision it
+   * belongs to so that a shortfall can be read per subdivision rather than for the type as a whole
+   *
+   * @param <E> type of entity
+   * @param entityType concerned
+   * @param issue the step removes the entities under
+   * @param before entities present before the step ran, against the subdivision each belongs to
+   * @param after entities present after the step ran, against the subdivision each belongs to
+   */
+  public <E extends ExternalIdAble> void registerRemoved(
+      final GtfsPlanitEntityType entityType, final GtfsPlanitEntityIssue issue,
+      final Map<E, String> before, final Map<E, String> after) {
+    notePresence(entityType, before, after);
+    before.keySet().stream().filter(entity -> !after.containsKey(entity)).forEach(entity -> {
+      registerLostWhereNotKnockOn(entityType, issue, before.get(entity));
+      diagnostics.registerIssue(issue, String.valueOf(entity.getId()), entity.getIdsAsString());
+    });
+  }
+
+  /**
+   * Record how many entities of each type the clean-up was presented with and how many it left behind, taken across
+   * all of its steps
+   */
+  public void registerPresence() {
+    presentBeforeCleanUp.forEach((entityType, counts) -> counts.forEach(
+        (subType, count) -> diagnostics.registerDesired(entityType, subType, count)));
+    presentAfterCleanUp.forEach((entityType, counts) -> counts.forEach(
+        (subType, count) -> diagnostics.registerCreated(entityType, subType, count)));
+  }
+
+  /**
+   * Record what the truncation took away, each removal under the issue its own outcome names and within the
+   * subdivision it belongs to.
+   * <p>
+   * Unlike the other steps this one removes entities for outcomes that differ in kind, cutting a schedule back to
+   * what fits, clearing away one of which nothing fits, and failing to map a leg that ought to have been mappable,
+   * so the issue is settled per entity rather than for the step as a whole
+   * </p>
+   *
+   * @param <E> type of entity
+   * @param entityType concerned
+   * @param before entities present before the truncation ran, against the subdivision each belongs to
+   * @param after entities present after it ran, against the subdivision each belongs to
+   * @param outcomeOf what the truncation made of a removed entity, and what brought it about
+   */
+  public <E extends ExternalIdAble> void registerTruncated(
+      final GtfsPlanitEntityType entityType, final Map<E, String> before, final Map<E, String> after,
+      final Function<E, TruncationOutcome> outcomeOf) {
+    notePresence(entityType, before, after);
+    before.keySet().stream().filter(entity -> !after.containsKey(entity)).forEach(entity -> {
+      var outcome = outcomeOf.apply(entity);
+      registerLostWhereNotKnockOn(entityType, outcome.getIssue(), before.get(entity));
+      diagnostics.registerIssueWithSubType(
+          outcome.getIssue(), String.valueOf(entity.getId()), outcome.getSubType(), outcome.getDisposition(),
+          entity.getIdsAsString());
+    });
+  }
+
+  /**
+   * Capture the GTFS stops each trip schedule runs between, before any clean up has run.
+   * <p>
+   * Taken this early because the clean up that precedes the truncation detaches a leg from the trip the moment it
+   * becomes unmapped, and a detached leg no longer names the stops it ran between. By the time the truncation is
+   * judged, the very legs whose loss is to be explained have already lost the means to explain it
+   * </p>
+   *
+   * @param routedServices to capture from
+   * @param serviceNodeToGtfsStopIdMapping to trace a service node back to the stop it stands for
+   * @return the pair of stops each leg of a schedule runs between, by leg, held by identity as a removal renumbers
+   *     what survives. Positions are kept so a leg found unmapped later can be matched to the stops it ran between
+   */
+  public static Map<RoutedTripSchedule, List<Pair<String, String>>> captureGtfsStopIdsBySchedule(
+      final RoutedServices routedServices, final Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
+    Map<RoutedTripSchedule, List<Pair<String, String>>> gtfsStopIdsBySchedule = new IdentityHashMap<>();
+    forEachRoutedService(routedServices, service -> service.getTripInfo().getScheduleBasedTrips().forEach(
+        schedule -> gtfsStopIdsBySchedule.put(
+            schedule, collectGtfsStopIds(schedule, serviceNodeToGtfsStopIdMapping))));
+    return gtfsStopIdsBySchedule;
+  }
+
+  /**
+   * Determine which outcome the truncation will hand each trip schedule, before it runs.
+   * <p>
+   * A schedule keeping at least one leg is cut back to it and lives on in some form. One keeping none is removed
+   * outright, and then it matters whether any two of its stops ran one after the other within the area: where none
+   * did, no leg could have existed and the boundary accounts for the loss, whereas where two did and there is still
+   * no leg between them nothing about where the trip ran explains it
+   * </p>
+   * <p>
+   * Taken before the truncation because it clears away what it removes, and judged by the same test the modifier
+   * itself applies, so this classifies rather than guesses
+   * </p>
+   *
+   * @param routedServices to classify the schedules of
+   * @param gtfsDiagnostics holding where each GTFS trip stood and what befell each GTFS stop
+   * @param gtfsStopIdsBySchedule the stops each leg of each schedule ran between, captured before the clean up began
+   * @return outcome per schedule, held by identity as a removal renumbers what survives
+   */
+  public static Map<RoutedTripSchedule, TruncationOutcome> classifyTruncationOutcomes(
+      final RoutedServices routedServices, final GtfsParseDiagnostics gtfsDiagnostics,
+      final Map<RoutedTripSchedule, List<Pair<String, String>>> gtfsStopIdsBySchedule) {
+    Map<RoutedTripSchedule, TruncationOutcome> outcomes = new IdentityHashMap<>();
+    for (var layer : routedServices.getLayers()) {
+      var serviceNodes = layer.getParentLayer().getServiceNodes();
+      var legSegments = layer.getParentLayer().getLegSegments();
+      for (var modeServices : layer) {
+        modeServices.forEach(service -> service.getTripInfo().getScheduleBasedTrips().forEach(
+            schedule -> outcomes.put(
+                schedule, classifyTruncationOutcome(
+                    schedule, legSegments, serviceNodes, gtfsDiagnostics,
+                    gtfsStopIdsBySchedule.get(schedule)))));
+      }
+    }
+    return outcomes;
+  }
+
 }

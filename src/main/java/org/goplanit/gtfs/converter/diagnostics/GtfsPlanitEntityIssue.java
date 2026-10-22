@@ -304,15 +304,6 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
   }
 
   /**
-   * Collect where the loss originates
-   *
-   * @return origin
-   */
-  public GtfsIssueOrigin getOrigin() {
-    return origin;
-  }
-
-  /**
    * Verify whether the loss carries over from what the feed side already reported
    *
    * @return true when it originates in the GTFS parsing, false otherwise

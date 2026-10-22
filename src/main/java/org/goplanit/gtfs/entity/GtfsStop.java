@@ -53,6 +53,11 @@ public class GtfsStop extends GtfsObject {
     return get(GtfsKeyType.STOP_ID);
   }
 
+  /**
+   * Collect the stop's name
+   *
+   * @return stop name, null when absent
+   */
   public String getStopName(){ return get(GtfsKeyType.STOP_NAME); }
 
   /**

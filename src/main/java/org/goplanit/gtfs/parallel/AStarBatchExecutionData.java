@@ -157,14 +157,29 @@ public class AStarBatchExecutionData {
     }
   }
 
+  /**
+   * Collect the service network the leg segments belong to
+   *
+   * @return service network
+   */
   public ServiceNetwork getServiceNetwork() {
     return serviceNetwork;
   }
 
+  /**
+   * Collect the mapping from a service node to the GTFS stop id it stands for
+   *
+   * @return mapping
+   */
   public Function<ServiceNode, String> getServiceNodeToGtfsStopIdMapping(){
     return serviceNodeToGtfsStopIdMapping;
   }
 
+  /**
+   * Collect the mapping from a GTFS stop id to the transfer zone it is mapped to
+   *
+   * @return mapping
+   */
   public  Function<String, TransferZone> getGtfsStopIdToTransferZoneMapping(){
     return gtfsStopIdToTransferZoneMapping;
   }
@@ -240,6 +255,12 @@ public class AStarBatchExecutionData {
     return modeMappingData.expandWithCompatibleModes(planitMode);
   }
 
+  /**
+   * Collect the transfer connectoids giving access to a transfer zone
+   *
+   * @param transferZone to collect the connectoids for
+   * @return connectoids, null when none gives access to it
+   */
   public Set<TransferConnectoid> getConnectoidsByAccessZone(TransferZone transferZone) {
     return connectoidsByAccessZone.get(transferZone);
   }

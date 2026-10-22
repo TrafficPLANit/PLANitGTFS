@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
@@ -243,6 +242,13 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
     return issue.getDisposition().name();
   }
 
+  /**
+   * Create what a reported issue says, at the depth issues are listed at beneath a heading, see the variant taking
+   * a depth
+   *
+   * @param issue to report
+   * @return what the issue says
+   */
   protected String createIssueLogEntry(final I issue) {
     return createIssueLogEntry(issue, 2);
   }
@@ -304,35 +310,6 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
    */
   protected Map<String, Long> getOccurrencesByScope(final I issue) {
     return Collections.emptyMap();
-  }
-
-  /**
-   * Report an issue as a single entry, followed by how it splits across the subtypes of its entity type where it is
-   * subdivided, so a total can be read against the kinds of entity making it up rather than only in isolation
-   *
-   * @param issue to report
-   */
-  protected void logIssue(final I issue) {
-    LOGGER.info(createIssueLogEntry(issue));
-
-    /* only where the issue spans more than one scope, that being the case a total on its own misrepresents: a count
-     * dominated by entities beyond the area says more about the ground the feed covers than about the parser */
-    var byScope = getOccurrencesByScope(issue);
-    if (byScope.size() > 1) {
-      LOGGER.info(LoggingUtils.settingsValue(
-          "scope distribution",
-          byScope.entrySet().stream().map(
-              entry -> String.format("%s %d", entry.getKey(), entry.getValue())).collect(
-              Collectors.joining(", ")),
-          3));
-    }
-
-    getOccurrencesBySubType(issue).forEach(
-        (subType, occurrences) -> LOGGER.info(LoggingUtils.settingsValue(
-            subType,
-            LoggingUtils.countWithPercentage(
-                occurrences, getDenominator(issue, subType), getDenominatorLabel(issue)),
-            3)));
   }
 
   /**
@@ -444,18 +421,4 @@ public abstract class GtfsDiagnosticsBase<I extends Enum<I> & GtfsIssue> {
     return counters;
   }
 
-  /**
-   * Express the counters as totals ordered by name, so what is reported is stable between runs
-   *
-   * @param counters to express, may be null
-   * @return totals by name
-   */
-  protected static SortedMap<String, Long> asSortedTotals(final Map<String, LongAdder> counters) {
-    if (counters == null) {
-      return Collections.emptySortedMap();
-    }
-    var totals = new TreeMap<String, Long>();
-    counters.forEach((name, adder) -> totals.put(name, adder.sum()));
-    return totals;
-  }
 }

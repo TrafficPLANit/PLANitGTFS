@@ -38,6 +38,13 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
   private static final Function<ServiceNode, String> GET_SERVICENODE_TO_GTFS_STOP_ID_FUNCTION =
       ExternalIdAble::getExternalId;
 
+  /** by default group all identical Gtfs trips in a single PLANit trip (with a departure listing per
+   * original Gtfs trip) */
+  public static final boolean DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS = true;
+
+  /** by default, we include GTFS trips from the moment a stop falls within the eligible time period */
+  public static final boolean DEFAULT_INCLUDE_PARTIAL_GTFS_TRIPS_IF_STOPS_IN_TIME_PERIOD = true;
+
   /** when true all GTFS trips which are identical except for their departure time will be grouped into a single
    * PLANitTripSchedule, when false they are kept separate */
   private boolean groupIdenticalGtfsTrips = DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS;
@@ -104,13 +111,6 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
 
     return true;
   }
-
-  /** by default group all identical Gtfs trips in a single PLANit trip (with a departure listing per
-   * original Gtfs trip) */
-  public static final boolean DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS = true;
-
-  /** by default, we include GTFS trips from the moment a stop falls within the eligible time period */
-  public static final boolean DEFAULT_INCLUDE_PARTIAL_GTFS_TRIPS_IF_STOPS_IN_TIME_PERIOD = true;
 
   /**
    * Provides access to how GTFS STOP IDS can be extracted from service nodes when service nodes are

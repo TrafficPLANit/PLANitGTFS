@@ -377,8 +377,8 @@ public enum GtfsParseIssue implements GtfsIssue {
   STOP_MODE_COMPATIBLE_LINK_BEYOND_SEARCH_RADIUS(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, true,
       GtfsIssueLogPolicy.COLLATED, "Nearest link carrying the stop's mode lies just beyond the search radius",
-      "%4$.0fm away",
-      "stop %1$s at (%2$s, %3$s), nearest link carrying its mode %4$.0fm away"),
+      "%4$sm away",
+      "stop %1$s at (%2$s, %3$s), nearest link carrying its mode %4$sm away"),
 
   /**
    * links lie within the search radius but none of them carries any of the stop's modes, so the network is there and
@@ -439,6 +439,10 @@ public enum GtfsParseIssue implements GtfsIssue {
       GtfsIssueLogPolicy.COLLATED, "Preferred access link segment not adjacent",
       "transfer zone (%4$s)",
       "stop %1$s at (%2$s, %3$s), transfer zone (%4$s) named %5$s, preferred access link segment (%6$s)");
+
+  /** every issue by its name, so one can be found by it without an exception standing in for a miss */
+  private static final Map<String, GtfsParseIssue> BY_NAME =
+      Arrays.stream(values()).collect(Collectors.toMap(Enum::name, issue -> issue));
 
   /** stage the issue arises in */
   private final GtfsParseStage stage;
@@ -669,16 +673,6 @@ public enum GtfsParseIssue implements GtfsIssue {
   }
 
   /**
-   * Collect all issues applying to a given entity type, in declaration order
-   *
-   * @param entityType to collect for
-   * @return issues for that entity type
-   */
-  public static List<GtfsParseIssue> getIssuesForEntityType(final GtfsObjectType entityType) {
-    return Arrays.stream(values()).filter(issue -> issue.getEntityType() == entityType).collect(Collectors.toList());
-  }
-
-  /**
    * Collect the issue going by the given name, where one does.
    * <p>
    * Unlike {@code valueOf} an unrecognised name is not an error here. A name reaching this is one recorded elsewhere
@@ -693,7 +687,4 @@ public enum GtfsParseIssue implements GtfsIssue {
     return name != null ? BY_NAME.get(name) : null;
   }
 
-  /** every issue by its name, so one can be found by it without an exception standing in for a miss */
-  private static final Map<String, GtfsParseIssue> BY_NAME =
-      Arrays.stream(values()).collect(Collectors.toMap(Enum::name, issue -> issue));
 }

@@ -17,6 +17,8 @@ import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.locationtech.jts.geom.Point;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -31,86 +33,68 @@ public class GtfsDirectedConnectoidHelper {
   public static final String GTFS_CONNECTOID_EXTERNAL_INFERRED_ID = "gtfs_inferred";
 
   /**
-   * Choose the connectoid location for a GTFS stop among its candidate access segments. Every candidate is considered,
-   * and the location nearest to the stop wins. When equally near, the location on the candidate with the lowest id
-   * wins, so the choice does not depend on the order of the candidates.
+   * Choose the connectoid location for a GTFS stop among its candidate access segments. Every candidate is considered:
+   * the nearest location reusing its candidate's end node wins, so the link is not broken, otherwise the location
+   * nearest to the stop. When equally near, the location on the candidate with the lowest id wins, so the choice does
+   * not depend on the order of the candidates, see
+   * {@link ZoningConverterUtils#chooseVehicleStopConnectoidLocationOnAccessLink}.
    * <p>
    * A candidate's location that would reuse an end node of the access link which is a dead end for the access mode, see
    * {@link GtfsLinkHelper#isEndNodeReusableAsAccessNode(Node, MacroscopicLink, Mode)}, is replaced by the stop's
    * projection onto the link, where the link is then broken. A dead end is only reached in the direction running into
-   * it, while the projection is reached from both sides. When the stop lies past the dead end, its projection is the
-   * dead end itself, so the link cannot be broken there. Such a candidate is only used when no other candidate has a
-   * location, so a location along the link wins even when it is farther. For ferries a dead-end wharf is reused as it
-   * is.
+   * it, while the projection is reached from both sides. A location along the link near a dead end is kept, both
+   * directions reach it already. When the stop lies past the dead end, its projection is the dead end itself, so the
+   * link cannot be broken there. A candidate whose location then is within the given distance of the dead end, the dead
+   * end itself included, is only used when no other candidate has a location, so a location farther along the link
+   * wins even when it is farther from the stop. For ferries a dead-end wharf is reused as it is.
    * </p>
    *
    * @param stopLocationInPlanitCrs location of the GTFS stop
    * @param candidateAccessSegments to choose from, all on the same access link
    * @param findLocationOnSegment the connectoid location on a candidate segment, null when it has none
    * @param accessMode the connectoid is for
+   * @param maxLocationToDeadEndMeters distance from a dead end the stop lies past within which a location counts as
+   *                                   the dead end
    * @param geoUtils to measure distances and project with
    * @return the chosen location, null when no candidate has one
    */
-  public static Point chooseConnectoidLocation(
+  public static Point chooseVehicleStopConnectoidLocation(
       final Point stopLocationInPlanitCrs,
       final Collection<MacroscopicLinkSegment> candidateAccessSegments,
       final Function<MacroscopicLinkSegment, Point> findLocationOnSegment,
       final Mode accessMode,
+      final double maxLocationToDeadEndMeters,
       final PlanitJtsCrsUtils geoUtils){
-    Point chosenLocation = null;
-    double chosenDistanceMeters = Double.POSITIVE_INFINITY;
-    long chosenCandidateId = Long.MAX_VALUE;
-    Point deadEndLocation = null;
-    double deadEndDistanceMeters = Double.POSITIVE_INFINITY;
-    long deadEndCandidateId = Long.MAX_VALUE;
-    for(var candidate : candidateAccessSegments){
-      var location = findLocationOnSegment.apply(candidate);
-      if(location == null || location.isEmpty()){
-        continue;
-      }
-      var accessLink = candidate.getParent();
-      var endNode = GtfsLinkHelper.findEndNodeWithinReachOfLocation(location, accessLink, geoUtils);
-      boolean stopPastDeadEnd = false;
-      if(endNode != null && !GtfsLinkHelper.isEndNodeReusableAsAccessNode(endNode, accessLink, accessMode)){
-        /* a dead end: break the link at the stop instead, so both directions reach it */
-        location = PlanitJtsUtils.createPoint(geoUtils.getClosestProjectedCoordinateOnLineString(
-            stopLocationInPlanitCrs.getCoordinate(), accessLink.getGeometry()));
-        stopPastDeadEnd = endNode.isPositionEqual2D(location.getCoordinate(), Precision.EPSILON_6);
-      }
-
-      double distanceMeters = geoUtils.getDistanceInMetres(stopLocationInPlanitCrs, location);
-      if(stopPastDeadEnd){
-        /* the link cannot be broken at its own end: only used when no other candidate has a location */
-        if(isNearerOrEquallyNearWithLowerId(
-            distanceMeters, candidate.getId(), deadEndDistanceMeters, deadEndCandidateId)){
-          deadEndLocation = location;
-          deadEndDistanceMeters = distanceMeters;
-          deadEndCandidateId = candidate.getId();
-        }
-      }else if(isNearerOrEquallyNearWithLowerId(
-          distanceMeters, candidate.getId(), chosenDistanceMeters, chosenCandidateId)){
-        chosenLocation = location;
-        chosenDistanceMeters = distanceMeters;
-        chosenCandidateId = candidate.getId();
-      }
-    }
-    return chosenLocation != null ? chosenLocation : deadEndLocation;
-  }
-
-  /**
-   * Verify if a candidate location is nearer to a stop than the one chosen so far, or equally near while on a candidate
-   * with a lower id
-   *
-   * @param distanceMeters of the candidate location to the stop
-   * @param candidateId of the candidate
-   * @param chosenDistanceMeters of the location chosen so far to the stop, infinite when none
-   * @param chosenCandidateId of the candidate chosen so far
-   * @return true when nearer, or equally near with a lower id, false otherwise
-   */
-  private static boolean isNearerOrEquallyNearWithLowerId(
-      double distanceMeters, long candidateId, double chosenDistanceMeters, long chosenCandidateId){
-    return Precision.smaller(distanceMeters, chosenDistanceMeters, Precision.EPSILON_6) ||
-        (Precision.equal(distanceMeters, chosenDistanceMeters, Precision.EPSILON_6) && candidateId < chosenCandidateId);
+    /* candidates whose stop lies past a dead end, noted as their location is found, so that location is a last resort */
+    var candidatesPastDeadEnd = new HashSet<MacroscopicLinkSegment>();
+    return ZoningConverterUtils.chooseVehicleStopConnectoidLocationOnAccessLink(
+        candidateAccessSegments,
+        candidate -> {
+          var location = findLocationOnSegment.apply(candidate);
+          if(location == null || location.isEmpty()){
+            return location;
+          }
+          var accessLink = candidate.getParent();
+          for(var endNode : List.<Node>of(accessLink.getNodeB(), accessLink.getNodeA())) {
+            if(GtfsLinkHelper.isEndNodeReusableAsAccessNode(endNode, accessLink, accessMode) ||
+                !geoUtils.isDistanceWithinMetres(endNode.getPosition(), location, maxLocationToDeadEndMeters)) {
+              continue;
+            }
+            var projection = PlanitJtsUtils.createPoint(geoUtils.getClosestProjectedCoordinateOnLineString(
+                stopLocationInPlanitCrs.getCoordinate(), accessLink.getGeometry()));
+            if(endNode.isPositionEqual2D(location.getCoordinate(), Precision.EPSILON_6)){
+              /* the dead end itself: break the link at the stop instead, so both directions reach it */
+              location = projection;
+            }
+            if(endNode.isPositionEqual2D(projection.getCoordinate(), Precision.EPSILON_6)){
+              /* the stop lies past the dead end: only used when no other candidate has a location */
+              candidatesPastDeadEnd.add(candidate);
+            }
+          }
+          return location;
+        },
+        location -> geoUtils.getDistanceInMetres(stopLocationInPlanitCrs, location),
+        (candidate, location) -> candidatesPastDeadEnd.contains(candidate));
   }
 
   /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with
