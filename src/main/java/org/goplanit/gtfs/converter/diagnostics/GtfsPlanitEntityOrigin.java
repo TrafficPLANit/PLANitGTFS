@@ -22,6 +22,12 @@ public enum GtfsPlanitEntityOrigin {
   /** a pre-existing zone lies closest to the stop and reaches the road at an acceptable angle to the way the stop does */
   MATCHED_ON_CLOSEST_ACCEPTABLE_ANGLE("Matched to pre-existing transfer zone on proximity and access angle"),
 
+  /** a pre-existing zone without access link segments, having no connectoid for any activated mode, carries the stop's
+   * name. Only such a zone is matched on its name, since the other rules compare access link segments; its connectoids
+   * are then created at the stop */
+  MATCHED_ON_STOP_NAME_WITHOUT_ACCESS_LINK_SEGMENTS(
+      "Matched on stop name to pre-existing transfer zone without access link segments"),
+
   /** settings pin the stop to a pre-existing zone, so no rule was applied at all */
   MAPPED_BY_SETTINGS("Mapped to pre-existing transfer zone by settings"),
 

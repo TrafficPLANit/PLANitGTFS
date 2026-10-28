@@ -207,11 +207,11 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    *
    * @param planitTransferZone to get supported pt service modes for
    * @param modesFilter to select from
-   * @return found PLANit modes
+   * @return found PLANit modes, empty when the zone has no connectoid for an activated mode
    */
   public Set<Mode> getSupportedPtModesIn(
       TransferZone planitTransferZone, Set<Mode> modesFilter){
-    var ptConnectoids = transferZoneConnectoidIndex.get(planitTransferZone);
+    var ptConnectoids = getTransferZoneConnectoids(planitTransferZone);
     Set<Mode> ptServiceModes = new HashSet<>();
     for(var connectoid : ptConnectoids) {
       ptServiceModes.addAll(connectoid.getAllowedModesFrom(
@@ -264,10 +264,21 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
   /**
    * Connectoids related to Pt activated modes available for this transfer zone
    * @param transferZone to extract for
-   * @return known connectoids
+   * @return known connectoids, empty when the zone has no connectoid for an activated mode
    */
   public Set<TransferConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
-    return transferZoneConnectoidIndex.get(transferZone);
+    return transferZoneConnectoidIndex.getOrDefault(transferZone, Set.of());
+  }
+
+  /**
+   * Verify if a transfer zone has a connectoid for an activated mode. A pre-existing zone may have none, for example
+   * when its only connectoid serves pedestrians
+   *
+   * @param transferZone to verify
+   * @return true when it has such a connectoid, false otherwise
+   */
+  public boolean hasConnectoidForActivatedMode(TransferZone transferZone) {
+    return !getTransferZoneConnectoids(transferZone).isEmpty();
   }
 
   /**

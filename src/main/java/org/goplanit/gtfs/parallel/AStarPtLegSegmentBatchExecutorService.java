@@ -11,7 +11,6 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -551,8 +550,7 @@ public final class AStarPtLegSegmentBatchExecutorService {
 
               /* ban direct u-turn around access link segments, unless it is a water/rail mode where this can be
               acceptable */
-              boolean banInitialUTurn = !(mode.hasPhysicalFeatures() &&
-                  mode.getPhysicalFeatures().getTrackType() != TrackModeType.ROAD);
+              boolean banInitialUTurn = !(mode.hasPhysicalFeatures() && !mode.isRoadMode());
 
               // todo if ever we support turn bans, then we must make the below more sophisticated
               Set<EdgeSegment> bannedLinkSegments = new HashSet<>();

@@ -194,9 +194,9 @@ public class GtfsToPlanitSydneyTest {
       var routedServices = result.fourth();
 
       assertEquals(1, network.getTransportLayers().size());
-      assertEquals(1337, network.getTransportLayers().getFirst().getNumberOfLinks()); // was 1310
-      assertEquals(1132, network.getTransportLayers().getFirst().getNumberOfNodes()); // was 1105
-      assertEquals(2483, network.getTransportLayers().getFirst().getNumberOfLinkSegments()); // was 2431
+      assertEquals(1341, network.getTransportLayers().getFirst().getNumberOfLinks()); // was 1310
+      assertEquals(1136, network.getTransportLayers().getFirst().getNumberOfNodes()); // was 1105
+      assertEquals(2491, network.getTransportLayers().getFirst().getNumberOfLinkSegments()); // was 2431
       assertEquals(44, network.getTransportLayers().getFirst().getNumberOfBannedTurns()); // was 56, see below
       // a turn that no mode banned by its restriction can make, e.g. from a cycleway onto a road, gets no ban
 
@@ -283,9 +283,9 @@ public class GtfsToPlanitSydneyTest {
       planitIntermodalWriter.writeWithServices(parsedNetwork, parsedZoning, serviceNetwork, routedServices);
 
       assertEquals(parsedNetwork.getTransportLayers().size(),1);
-      assertEquals(1308, parsedNetwork.getTransportLayers().getFirst().getLinks().size()); // was 1279
-      assertEquals(1103, parsedNetwork.getTransportLayers().getFirst().getNodes().size()); // was 1074
-      assertEquals(2425, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size()); // was 2369
+      assertEquals(1312, parsedNetwork.getTransportLayers().getFirst().getLinks().size()); // was 1279
+      assertEquals(1107, parsedNetwork.getTransportLayers().getFirst().getNodes().size()); // was 1074
+      assertEquals(2433, parsedNetwork.getTransportLayers().getFirst().getLinkSegments().size()); // was 2369
       assertEquals(52, parsedNetwork.getTransportLayers().getFirst().getLinkSegmentTypes().size());
       IntersectionAssertions.assertIntersectionsKeptAndConsistent(
           IntersectionAssertions.countIntersections(macroscopicNetwork), parsedNetwork);

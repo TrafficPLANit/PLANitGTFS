@@ -347,10 +347,21 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   /**
    * Connectoids related to Pt activated modes available for this transfer zone
    * @param transferZone to extract for
-   * @return known connectoids
+   * @return known connectoids, empty when the zone has no connectoid for an activated mode
    */
   public Set<TransferConnectoid> getTransferZoneConnectoids(TransferZone transferZone) {
     return transferZoneData.getTransferZoneConnectoids(transferZone);
+  }
+
+  /**
+   * Verify if a transfer zone has a connectoid for an activated mode, see
+   * {@link GtfsZoningHandlerTransferZoneData#hasConnectoidForActivatedMode(TransferZone)}
+   *
+   * @param transferZone to verify
+   * @return true when it has such a connectoid, false otherwise
+   */
+  public boolean hasConnectoidForActivatedMode(TransferZone transferZone) {
+    return transferZoneData.hasConnectoidForActivatedMode(transferZone);
   }
 
 

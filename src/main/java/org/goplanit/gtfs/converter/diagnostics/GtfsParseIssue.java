@@ -418,6 +418,17 @@ public enum GtfsParseIssue implements GtfsIssue {
       "stop %1$s at (%2$s, %3$s)"),
 
   /**
+   * The stop was matched to a pre-existing transfer zone without a connectoid for any activated mode, on its platform
+   * code or its name, and connectoids were created for the zone at the stop's position. Not a discard: the stop is kept
+   * on the zone, but the zoning it came with should have connected the zone, so it is worth checking there
+   */
+  STOP_MATCHED_TRANSFER_ZONE_WITHOUT_CONNECTOID(
+      GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, false,
+      GtfsIssueLogPolicy.COLLATED, "Stop matched to transfer zone without connectoid, connectoids created for it",
+      "transfer zone (%4$s), %5$s",
+      "stop %1$s at (%2$s, %3$s), transfer zone (%4$s), %5$s, mode(s) %6$s"),
+
+  /**
    * Stop was matched to a transfer zone another stop already maps to. Kept, since joined mapping is legitimate for a
    * multi platform stop, but worth verifying for a road mode where a single mapping is expected
    */
