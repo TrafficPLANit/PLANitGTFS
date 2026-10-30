@@ -98,62 +98,138 @@ public class GtfsCalendar extends GtfsObject {
     return get(GtfsKeyType.SERVICE_ID);
   }
 
+  /**
+   * Verify if the service runs on Mondays
+   *
+   * @return true when active on Mondays, false otherwise
+   */
   public boolean isActiveOnMonday(){
     return getMonday()==1;
   }
 
+  /**
+   * Verify if the service runs on Tuesdays
+   *
+   * @return true when active on Tuesdays, false otherwise
+   */
   public boolean isActiveOnTuesday(){
     return getTuesday()==1;
   }
 
+  /**
+   * Verify if the service runs on Wednesdays
+   *
+   * @return true when active on Wednesdays, false otherwise
+   */
   public boolean isActiveOnWednesday(){
     return getWednesday()==1;
   }
 
+  /**
+   * Verify if the service runs on Thursdays
+   *
+   * @return true when active on Thursdays, false otherwise
+   */
   public boolean isActiveOnThursday(){
     return getThursday()==1;
   }
 
+  /**
+   * Verify if the service runs on Fridays
+   *
+   * @return true when active on Fridays, false otherwise
+   */
   public boolean isActiveOnFriday(){
     return getFriday()==1;
   }
 
+  /**
+   * Verify if the service runs on Saturdays
+   *
+   * @return true when active on Saturdays, false otherwise
+   */
   public boolean isActiveOnSaturday(){
     return getSaturday()==1;
   }
 
+  /**
+   * Verify if the service runs on Sundays
+   *
+   * @return true when active on Sundays, false otherwise
+   */
   public boolean isActiveOnSunday(){
     return getSunday()==1;
   }
 
+  /**
+   * Collect the Monday flag as given in the feed: 1 when the service runs on Mondays, 0 otherwise
+   *
+   * @return Monday flag
+   */
   public int getMonday(){
     return Integer.parseInt(get(GtfsKeyType.MONDAY));
   }
 
+  /**
+   * Collect the Tuesday flag as given in the feed: 1 when the service runs on Tuesdays, 0 otherwise
+   *
+   * @return Tuesday flag
+   */
   public int getTuesday(){
     return Integer.parseInt(get(GtfsKeyType.TUESDAY));
   }
 
+  /**
+   * Collect the Wednesday flag as given in the feed: 1 when the service runs on Wednesdays, 0 otherwise
+   *
+   * @return Wednesday flag
+   */
   public int getWednesday(){
     return Integer.parseInt(get(GtfsKeyType.WEDNESDAY));
   }
 
+  /**
+   * Collect the Thursday flag as given in the feed: 1 when the service runs on Thursdays, 0 otherwise
+   *
+   * @return Thursday flag
+   */
   public int getThursday(){
     return Integer.parseInt(get(GtfsKeyType.THURSDAY));
   }
 
+  /**
+   * Collect the Friday flag as given in the feed: 1 when the service runs on Fridays, 0 otherwise
+   *
+   * @return Friday flag
+   */
   public int getFriday(){
     return Integer.parseInt(get(GtfsKeyType.FRIDAY));
   }
 
+  /**
+   * Collect the Saturday flag as given in the feed: 1 when the service runs on Saturdays, 0 otherwise
+   *
+   * @return Saturday flag
+   */
   public int getSaturday(){
     return Integer.parseInt(get(GtfsKeyType.SATURDAY));
   }
 
+  /**
+   * Collect the Sunday flag as given in the feed: 1 when the service runs on Sundays, 0 otherwise
+   *
+   * @return Sunday flag
+   */
   public int getSunday(){
     return Integer.parseInt(get(GtfsKeyType.SUNDAY));
   }
 
+  /**
+   * Verify if the service runs on the given day of the week
+   *
+   * @param gtfsKeyTypeDayOfWeek key of the day, e.g. {@link GtfsKeyType#MONDAY}
+   * @return true when active on that day, false otherwise
+   */
   public boolean isActiveOn(GtfsKeyType gtfsKeyTypeDayOfWeek){
     return Integer.parseInt(get(gtfsKeyTypeDayOfWeek)) == 1;
   }

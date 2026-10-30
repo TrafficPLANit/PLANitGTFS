@@ -94,7 +94,7 @@ public class GtfsUtils {
         return createZipEntryInputStream(gtfsLocation,  fileScheme.getFileType().value(), filePresenceCondition, logInfo);
       }
     } catch (URISyntaxException e) {
-      LOGGER.warning(String.format("Invalid URL/file scheme provided (%s - %s) to create GTFS input stream for",gtfsLocation.toString(), fileScheme.getFileType().value()));
+      LOGGER.warning(String.format("Invalid URL/file scheme provided (%s - %s) to create GTFS input stream",gtfsLocation.toString(), fileScheme.getFileType().value()));
     }
 
     return null;
@@ -176,7 +176,8 @@ public class GtfsUtils {
    */
   public static ExtendedLocalTime parseGtfsTime(String gtfsTime) {
     if(StringUtils.isNullOrBlank(gtfsTime)){
-      LOGGER.severe(String.format("GTFS time null or blank, ignored"));
+      LOGGER.severe("GTFS time null or blank, ignored");
+      return null;
     }
     return ExtendedLocalTime.of(gtfsTime);
   }
