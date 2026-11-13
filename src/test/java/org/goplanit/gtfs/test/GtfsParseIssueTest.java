@@ -1,10 +1,14 @@
 package org.goplanit.gtfs.test;
 
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -27,6 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class GtfsParseIssueTest {
 
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
   /** matches a single format specifier, capturing its argument position where the template states one */
   private static final Pattern FORMAT_SPECIFIER =
       Pattern.compile("%(?!%)(?:(\\d+)\\$)?[-#+ 0,(]*\\d*(?:\\.\\d+)?[a-zA-Z]");
@@ -42,6 +49,24 @@ public class GtfsParseIssueTest {
     var args = new Object[issue.getDetailArgCount()];
     Arrays.setAll(args, index -> "arg" + index);
     return args;
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(GtfsParseIssueTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
   }
 
   /**

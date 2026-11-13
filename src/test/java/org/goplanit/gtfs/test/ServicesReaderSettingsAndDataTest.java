@@ -5,6 +5,7 @@ import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.converter.service.handler.GtfsServicesHandlerData;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
+import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetworkLayerConfigurator;
 import org.goplanit.network.ServiceNetwork;
@@ -12,12 +13,15 @@ import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,6 +30,9 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class ServicesReaderSettingsAndDataTest {
 
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
   GtfsServicesReaderSettings settings;
 
   GtfsServicesHandlerData data;
@@ -33,6 +40,24 @@ public class ServicesReaderSettingsAndDataTest {
   MacroscopicNetwork parentNetwork;
   ServiceNetwork serviceNetwork;
   RoutedServices routedServices;
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(ServicesReaderSettingsAndDataTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   /**
    * A parent network with bus and train on one layer, with the settings, service network and routed services the

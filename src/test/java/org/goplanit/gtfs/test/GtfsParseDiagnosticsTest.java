@@ -11,7 +11,10 @@ import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
 import org.goplanit.gtfs.converter.diagnostics.GtfsParseStage;
 import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.enums.RouteType;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -21,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,8 +40,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class GtfsParseDiagnosticsTest {
 
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
   @TempDir
   Path tempDir;
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(GtfsParseDiagnosticsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   /**
    * What was seen is what was parsed plus what was discarded, and the discards split by disposition

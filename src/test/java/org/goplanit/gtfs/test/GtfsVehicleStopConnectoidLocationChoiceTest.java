@@ -3,6 +3,7 @@ package org.goplanit.gtfs.test;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.gtfs.util.GtfsDirectedConnectoidHelper;
 import org.goplanit.gtfs.util.GtfsLinkHelper;
+import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -17,7 +18,9 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
@@ -26,6 +29,7 @@ import org.locationtech.jts.geom.Point;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,6 +43,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author markr
  */
 public class GtfsVehicleStopConnectoidLocationChoiceTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** search radius from a stop to its access link, the GTFS zoning default */
   private static final double STOP_TO_LINK_SEARCH_RADIUS_M = 40;
@@ -108,6 +115,24 @@ public class GtfsVehicleStopConnectoidLocationChoiceTest {
     return GtfsDirectedConnectoidHelper.chooseVehicleStopConnectoidLocation(
         stop, locationByCandidate.keySet(), locationByCandidate::get, lightRail,
         ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS, geoUtils);
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(GtfsVehicleStopConnectoidLocationChoiceTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   /**
