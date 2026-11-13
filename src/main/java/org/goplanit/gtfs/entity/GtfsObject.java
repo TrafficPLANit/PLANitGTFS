@@ -30,14 +30,33 @@ public abstract class GtfsObject {
     sb.deleteCharAt(sb.length()-1);
   }
   
+  /**
+   * Collect the value of a key
+   *
+   * @param key to collect the value of
+   * @return value, null when absent
+   */
   public String get(GtfsKeyType key) {
     return keyValueMap.get(key);
   }
   
+  /**
+   * Set the value of a key
+   *
+   * @param key to set the value of
+   * @param value to set
+   * @return value it replaced, null when there was none
+   */
   public String put(GtfsKeyType key, String value) {
     return keyValueMap.put(key, value);
   }  
   
+  /**
+   * Verify if a value is present for a key
+   *
+   * @param key to verify
+   * @return true when present, false otherwise
+   */
   public boolean containsKey(GtfsKeyType key) {
     return keyValueMap.containsKey(key);
   }  

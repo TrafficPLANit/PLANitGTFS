@@ -42,4 +42,27 @@ public class GtfsZoningReaderFactory {
       @NotNull Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
     return new GtfsZoningReader(settings, zoningToPopulate, serviceNetwork, routedServices);
   }
+
+  /**
+   * Create a zoning reader that forms one stage of a wider parse, and therefore leaves reporting what became of the
+   * feed to the caller driving it, which can only account for it once every stage has run
+   *
+   * @param settings                       to use, containing the physical reference network and reference to source file and other configuration settings
+   * @param zoningToPopulate               the zoning to populate further beyond the already partially populated transfer zones
+   * @param serviceNetwork                 the compatible PLANit service network that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param routedServices                 the compatible PLANit routed services that is assumed to have been constructed from the same GTFS source files as this zoning reader will use
+   * @param serviceNodeToGtfsStopIdMapping allows mapping between the service nodes in the routed services and the underlying GTFS stop ids which are presumed present such that we can create routes on the physical road/rail network
+   * @return zoning reader to use for parsing
+   */
+  public static GtfsZoningReader createWithoutCoverageReport(
+      @NotNull GtfsZoningReaderSettings settings,
+      @NotNull Zoning zoningToPopulate,
+      @NotNull ServiceNetwork serviceNetwork,
+      @NotNull RoutedServices routedServices,
+      @NotNull Function<ServiceNode, String> serviceNodeToGtfsStopIdMapping) {
+    var reader = create(
+        settings, zoningToPopulate, serviceNetwork, routedServices, serviceNodeToGtfsStopIdMapping);
+    reader.suppressCoverageReport();
+    return reader;
+  }
 }

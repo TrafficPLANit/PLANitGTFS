@@ -65,7 +65,7 @@ public class GtfsReader {
     boolean validGtfsLocation = GtfsUtils.isValidGtfsLocation(gtfsLocation);    
     this.gtfsLocation = validGtfsLocation ? gtfsLocation : null; 
     if(!validGtfsLocation){
-      LOGGER.warning(String.format("Provided GTFS location (%s)is neither a directory nor a zip file, unable to instantiate reader", gtfsLocation));
+      LOGGER.warning(String.format("Provided GTFS location (%s) is neither a directory nor a zip file, unable to instantiate reader", gtfsLocation));
     }
   }
   
@@ -108,7 +108,7 @@ public class GtfsReader {
    */
   public GtfsFileReaderBase addFileHandler(GtfsFileHandler<? extends GtfsObject> gtfsFileHandler) {
     if(gtfsFileHandler==null) {
-      LOGGER.warning("Provided GFTSFileHandler is null, cannot be registered on GTFSReader");
+      LOGGER.warning("Provided GtfsFileHandler is null, cannot be registered on GtfsReader");
       return null;
     }
     

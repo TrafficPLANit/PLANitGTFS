@@ -47,18 +47,45 @@ public class GtfsStopTime extends GtfsObject {
     return sb.toString();
   }
 
+  /**
+   * Collect the id of the trip the stop time belongs to
+   *
+   * @return trip id
+   */
   public String getTripId() {
     return get( GtfsKeyType.TRIP_ID);
   }
 
+  /**
+   * Collect the id of the stop the trip visits
+   *
+   * @return stop id
+   */
   public String getStopId() {
     return get( GtfsKeyType.STOP_ID);
   }
 
+  /**
+   * Collect the arrival time as given in the feed, e.g. 08:15:00
+   *
+   * @return arrival time, null when absent
+   */
   public String getArrivalTime() { return get(GtfsKeyType.ARRIVAL_TIME); }
 
+  /**
+   * Collect the departure time as given in the feed, e.g. 08:16:00
+   *
+   * @return departure time, null when absent
+   */
   public String getDepartureTime() { return get(GtfsKeyType.DEPARTURE_TIME); }
 
+  /**
+   * Collect the position of this stop along its trip, i.e. GTFS field stop_sequence. Values increase along the trip
+   * but need not be consecutive, and together with the trip id they identify a stop time uniquely, which a stop id
+   * does not since a trip may call at the same stop more than once
+   *
+   * @return stop sequence
+   */
   public String getStopSequence() { return get(GtfsKeyType.STOP_SEQUENCE); }
 
 }

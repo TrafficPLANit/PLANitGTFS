@@ -1,6 +1,6 @@
 package org.goplanit.gtfs.util.test;
 
-import org.goplanit.converter.idmapping.IdMapperType;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.gtfs.converter.zoning.GtfsZoningReaderSettings;
 
 /**
@@ -124,6 +124,9 @@ public class MelbourneGtfsZoningSettingsUtils {
     /* correctly inferred from nearby links, despite closest link not being chosen, suppress warning via explicit mapping */
     settings.overwriteGtfsStopToLinkMapping("6530","984811437", IdMapperType.EXTERNAL_ID);
     settings.overwriteGtfsStopToLinkMapping("7575","9124321", IdMapperType.EXTERNAL_ID);
+
+    /* discarded for valid reasons, checked so remove */
+    settings.excludeGtfsStopsById("103", "16771", "20709");
 
   }
 }

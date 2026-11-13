@@ -1,17 +1,26 @@
 package org.goplanit.gtfs.converter.zoning;
 
-import org.goplanit.converter.idmapping.IdMapperType;
+import org.goplanit.converter.zoning.AccessEgressInjectionSettings;
+import org.goplanit.converter.zoning.ZoningConverterUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettings;
 import org.goplanit.gtfs.converter.GtfsConverterReaderSettingsWithModeMapping;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static org.goplanit.converter.utils.ProjectedBoundingAreaHelper.DEFAULT_MAX_FERRY_DISTANCE_OUTSIDE_BOUNDING_AREA_M;
 
 /**
  * Capture all the user configurable settings regarding how to
@@ -21,7 +30,8 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithModeMapping implements GtfsConverterReaderSettings {
+public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithModeMapping
+        implements GtfsConverterReaderSettings {
 
   /**
    * logger to use
@@ -30,72 +40,6 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   private static final Logger LOGGER = Logger.getLogger(GtfsZoningReaderSettings.class.getCanonicalName());
 
   // Optional configuration settings
-
-  /**
-   * search radius used when mapping GTFS stops to PLANit transfer zones
-   */
-  private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
-
-  /**
-   * search radius used when mapping GTFS stops to PLANit road network, which given that GTFS stop is the vehicle stop location, should be less than distance to pole
-   */
-  private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
-
-  /**
-   * Provide explicit mapping from GTFS stop (by GTFS stop id) to existing PLANit transfer zone(s) based on an id (XML or external id (third party source ide.g., OSM id)),
-   * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
-   */
-  private final Map<String, List<Pair<Object, IdMapperType>>> overwriteGtfsStopTransferZoneExternalIdMapping = new HashMap<>();
-
-  /**
-   * Provide explicit mapping from GTFS stop (by GTFS stop id) to a geo-location.
-   * This overrides the original geolocation of the stop.
-   */
-  private final Map<String, Coordinate> overwriteGtfsStopLocationMapping = new HashMap<>();
-
-  /**
-   * Indicate disallowing certain GTFS stops to be jointly mapped to the same transfer zone. In such cases, new (disjoint) transfer zones
-   * will be created
-   */
-  private final Set<String> disallowGtfsTop2TransferZoneJointMapping = new HashSet<>();
-
-  /**
-   * Indicate to not match a GTFS stop to any existing transfer zones in PLANit network, but instead always create a new transfer zone
-   */
-  private final Set<String> forceCreateNewTransferZoneForGtfsStops = new HashSet<>();
-
-  /**
-   * track used excluded GTFS stop ids
-   */
-  private final Set<String> excludeGtfsStopsById = new HashSet<>();
-
-  /**
-   * track overwritten link mappings for GTFS stop ids
-   */
-  private final Map<String, Pair<Object, IdMapperType>> overwriteGtfsStop2LinkMapping = new HashMap<>();
-
-  /**
-   * Log to use the PLANit link a GTFS stop is mapped to (mostly for debugging purposes)
-   */
-  private final Set<String> logGtfsStop2PlanitLinkMapping = new HashSet<>();
-
-  /**
-   * flag to indicate if transfer zones that have no services stopping after parsing is complete, are to be removed or not
-   */
-  private boolean removeUnusedTransferZones = DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES;
-
-  /**
-   * flag indicating if parser should log all GTFS zones that are mapped to existing PLANit  transfer zones
-   */
-  private boolean logMappedGtfsZones = DEFAULT_LOG_MAPPED_GTFS_ZONES;
-
-  /**
-   * flag indicating if parser should log all GTFS stops that triggered the creation of a new PLANit  transfer zone
-   */
-  private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
-
-  /** track extended logging on how particular GTFS stops are being created and/or matched to an existing PLANit transferzone */
-  private Set<String> extendedLoggingByGtfsStopId = new HashSet<>();
 
   /**
    * default flag setting whether to remove unused transfer zones after GTFS parsing is complete
@@ -122,16 +66,106 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   public static final boolean DEFAULT_LOG_CREATED_GTFS_ZONES = false;
 
-
   /**
-   * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop to create connectoids (stop_locations).
-   * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple candidates via this buffer, we can then use more sophisticated ways than proximity
+   * The default buffer distance when looking for links within a distance of the closest link to a GTFS stop
+   * to create connectoids (stop_locations).
+   * In case candidates are so close just selecting the closest can lead to problems. By identifying multiple
+   * candidates via this buffer, we can then use more sophisticated ways than proximity
    * to determine the best candidate
    */
   public static double DEFAULT_CLOSEST_LINK_SEARCH_BUFFER_DISTANCE_M = 8;
 
   /**
-   * Copy constructor creating a shallow copy of the underlying mode mapping so it is synced with the provided settings. Useful when both settings are used
+   * search radius used when mapping GTFS stops to PLANit transfer zones
+   */
+  private double gtfsStop2TransferZoneSearchRadiusMeters = DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS;
+
+  /**
+   * search radius used when mapping GTFS stops to PLANit road network, which given that GTFS stop is the
+   * vehicle stop location, should be less than distance to pole
+   */
+  private double gtfsStop2RoadSearchRadiusMeters = DEFAULT_GTFSSTOP_LINK_SEARCH_METERS;
+
+  /** when placing a GTFS stop, an end node within this distance of its ideal stop point is reused rather than breaking
+   * the link */
+  private double maxEndNodeToIdealStopPointMeters =
+      ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS;
+
+  /** when breaking a link for a GTFS stop, an inner shape point within this distance of its ideal stop point is used
+   * rather than breaking the link right next to it */
+  private double maxShapePointToIdealStopPointMeters =
+      ZoningConverterUtils.DEFAULT_MAX_SHAPE_POINT_TO_IDEAL_STOP_POINT_METERS;
+
+  /** bundles a number of settings regarding attaching access/egress settings for transfer zones */
+  AccessEgressInjectionSettings accessEgressInjectionSettings = new AccessEgressInjectionSettings();
+
+  /**
+   * Provide explicit mapping from GTFS stop (by GTFS stop id) to existing PLANit transfer zone(s) based on an id
+   * (XML or external id (third party source ide.g., OSM id)),
+   * This overrides the parser's mapping functionality and maps the GTFS stop to this entity without further checking.
+   */
+  private final Map<String, List<Pair<Object, IdMapperType>>> overwriteGtfsStopTransferZoneExternalIdMapping =
+          new HashMap<>();
+
+  /**
+   * Provide explicit mapping from GTFS stop (by GTFS stop id) to a geo-location.
+   * This overrides the original geolocation of the stop.
+   */
+  private final Map<String, Coordinate> overwriteGtfsStopLocationMapping = new HashMap<>();
+
+  /**
+   * Indicate disallowing certain GTFS stops to be jointly mapped to the same transfer zone.
+   * In such cases, new (disjoint) transfer zones
+   * will be created
+   */
+  private final Set<String> disallowGtfsTop2TransferZoneJointMapping = new HashSet<>();
+
+  /**
+   * Indicate to not match a GTFS stop to any existing transfer zones in PLANit network,
+   * but instead always create a new transfer zone
+   */
+  private final Set<String> forceCreateNewTransferZoneForGtfsStops = new HashSet<>();
+
+  /**
+   * track used excluded GTFS stop ids
+   */
+  private final Set<String> excludeGtfsStopsById = new HashSet<>();
+
+  /**
+   * track overwritten link mappings for GTFS stop ids
+   */
+  private final Map<String, Pair<Object, IdMapperType>> overwriteGtfsStop2LinkMapping = new HashMap<>();
+
+  /**
+   * Log to use the PLANit link a GTFS stop is mapped to (mostly for debugging purposes)
+   */
+  private final Set<String> logGtfsStop2PlanitLinkMapping = new HashSet<>();
+
+
+  /**
+   * flag to indicate if transfer zones that have no services stopping after parsing is complete, are to
+   * be removed or not
+   */
+  private boolean removeUnusedTransferZones = DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES;
+
+  /**
+   * flag indicating if parser should log all GTFS zones that are mapped to existing PLANit  transfer zones
+   */
+  private boolean logMappedGtfsZones = DEFAULT_LOG_MAPPED_GTFS_ZONES;
+
+  /**
+   * flag indicating if parser should log all GTFS stops that triggered the creation of a new PLANit  transfer zone
+   */
+  private boolean logCreatedGtfsZones = DEFAULT_LOG_CREATED_GTFS_ZONES;
+
+  /** track extended logging on how particular GTFS stops are being created and/or matched to an existing
+   * PLANit transferzone */
+  private Set<String> extendedLoggingByGtfsStopId = new HashSet<>();
+
+
+  /**
+   * Copy constructor creating a shallow copy of the underlying mode mapping so it is synced with the
+   * provided settings. Useful when both settings are used
    * in conjunction and we want to avoid having to sync information
    *
    * @param settings to obtain mode mapping information from
@@ -176,6 +210,46 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
     this.gtfsStop2RoadSearchRadiusMeters = searchRadiusMeters.doubleValue();
   }
 
+  /**
+   * Distance within which an end node of the link chosen for a new GTFS stop is reused rather than breaking the link,
+   * measured from the stop's ideal stop point: the point of the link closest to the GTFS stop
+   *
+   * @return distance in meters
+   */
+  public double getMaxEndNodeToIdealStopPointMeters() {
+    return this.maxEndNodeToIdealStopPointMeters;
+  }
+
+  /**
+   * Set the distance within which an end node of the link chosen for a new GTFS stop is reused rather than breaking
+   * the link, measured from the stop's ideal stop point
+   *
+   * @param maxEndNodeToIdealStopPointMeters to apply
+   */
+  public void setMaxEndNodeToIdealStopPointMeters(Number maxEndNodeToIdealStopPointMeters) {
+    this.maxEndNodeToIdealStopPointMeters = maxEndNodeToIdealStopPointMeters.doubleValue();
+  }
+
+  /**
+   * Distance within which an inner shape point of the link chosen for a new GTFS stop is used to break the link at,
+   * rather than breaking it right next to it, measured from the stop's ideal stop point
+   *
+   * @return distance in meters
+   */
+  public double getMaxShapePointToIdealStopPointMeters() {
+    return this.maxShapePointToIdealStopPointMeters;
+  }
+
+  /**
+   * Set the distance within which an inner shape point of the link chosen for a new GTFS stop is used to break the
+   * link at, measured from the stop's ideal stop point
+   *
+   * @param maxShapePointToIdealStopPointMeters to apply
+   */
+  public void setMaxShapePointToIdealStopPointMeters(Number maxShapePointToIdealStopPointMeters) {
+    this.maxShapePointToIdealStopPointMeters = maxShapePointToIdealStopPointMeters.doubleValue();
+  }
+
 
   /**
    * Provide the mapping from a PLANit service node in the service network to its GTFS STOP ID
@@ -187,19 +261,24 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Provide explicit mapping for GTFS stop id to an existing PLANit transfer zone, e.g., platform, pole, station, halt, stop, etc. (by its external id, e.g. OSM id)
-   * This overrides the parser's mapping functionality and immediately maps the stop to this entity. Can be useful to avoid warnings or wrong mapping of
-   * stop locations in case the automated behaviour does not perform as expected.
+   * Provide explicit mapping for GTFS stop id to an existing PLANit transfer zone, e.g., platform, pole, station,
+   * halt, stop, etc. (by its external id, e.g. OSM id). This overrides the parser's mapping functionality and
+   * immediately maps the stop to this entity. Can be useful to avoid warnings or wrong mapping of stop locations in
+   * case the automated behaviour does not perform as expected.
    * <p>
-   * It also allows one to map a GTFS stop to multiple transfer zones in case the GTFS information is more aggregate than
-   * the transfer zones, e.g., if the underlying OSM data has resulted in separate platforms, but the GTFS stop reflects all platforms at once
+   * It also allows one to map a GTFS stop to multiple transfer zones in case the GTFS information is more aggregate
+   * than the transfer zones, e.g., if the underlying OSM data has resulted in separate platforms, but the GTFS stop
+   * reflects all platforms at once
    * </p>
    *
-   * @param gtfsStopId     id of stop location
+   * @param gtfsStopId     Id of stop location
    * @param transferZoneId Id of waiting area (platform, pole, etc.) (int or long)
-   * @param idType         which id of the transfer zone (XML which is in the persisted PLANit file, or external (likely for example the original OSM id)
+   * @param idType         which id of the transfer zone (XML which is in the persisted PLANit file, or external
+   *                       (likely for example the original OSM id)
    */
-  public void addOverwriteGtfsStopTransferZoneMapping(final String gtfsStopId, final Object transferZoneId, final IdMapperType idType) {
+  public void addOverwriteGtfsStopTransferZoneMapping(
+      final String gtfsStopId, final Object transferZoneId, final IdMapperType idType) {
+
     var overrides = overwriteGtfsStopTransferZoneExternalIdMapping.get(gtfsStopId);
     if(overrides == null){
       overrides = new ArrayList<>(1);
@@ -229,8 +308,10 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Provide explicit mapping for GTFS stop id to an alternative location. USeful in case the original location is slightly off compared
-   * to underlying network making finding an automated mapping to the network problematic. Often, moving the location slghty further away from the road
+   * Provide explicit mapping for GTFS stop id to an alternative location. USeful in case the original location
+   * is slightly off compared
+   * to underlying network making finding an automated mapping to the network problematic. Often, moving the
+   * location slighty further away from the road
    * will solve this problem.
    *
    * @param gtfsStopId id of stop location
@@ -310,7 +391,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * @param logCreatedGtfsZones when true, each newly created (unmapped) transfer zones based on GTFS stops are logged, otherwise not
+   * @param logCreatedGtfsZones when true, each newly created (unmapped) transfer zones based on GTFS stops are
+   *                            logged, otherwise not
    */
   public void setLogCreatedGtfsZones(boolean logCreatedGtfsZones) {
     this.logCreatedGtfsZones = logCreatedGtfsZones;
@@ -333,12 +415,27 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   /**
    * {@inheritDoc}
    */
-  public void logSettings() {
-    LOGGER.info("GTFS zoning reader settings:");
-    LOGGER.info(String.format("GTFS stop-to-transfer zone mappings are %slogged", isLogMappedGtfsZones() ? "" : "not "));
-    LOGGER.info(String.format("GTFS stop-to-transfer zone search radius (m): %.1f", getGtfsStopToTransferZoneSearchRadiusMeters()));
-    LOGGER.info(String.format("GTFS stop-to-link search radius (m): %.1f", getGtfsStopToLinkSearchRadiusMeters()));
-    LOGGER.info(String.format("GTFS remove unused transfer zones (stops): %s", isRemoveUnusedTransferZones()));
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsHeader("GTFS Zoning Reader Settings"));
+    super.logSettings(level);
+    LOGGER.info(LoggingUtils.settingsValue("Log GTFS stop-transfer mappings", isLogMappedGtfsZones(), level));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "GTFS stop-transfer search radius (m)",
+        String.format("%.1f", getGtfsStopToTransferZoneSearchRadiusMeters()),
+        level));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "GTFS stop-link search radius (m)",
+        String.format("%.1f", getGtfsStopToLinkSearchRadiusMeters()),
+        level));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "End node reused within distance of ideal stop point (m)",
+        String.format("%.1f", getMaxEndNodeToIdealStopPointMeters()),
+        level));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Link broken at shape point within distance of ideal stop point (m)",
+        String.format("%.1f", getMaxShapePointToIdealStopPointMeters()),
+        level));
+    LOGGER.info(LoggingUtils.settingsValue("Remove unused transfer zones", isRemoveUnusedTransferZones(), level));
   }
 
   /**
@@ -348,6 +445,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   public void reset() {
     setGtfsStopToTransferZoneSearchRadiusMeters(DEFAULT_GTFSSTOP_TRANSFERZONE_SEARCH_METERS);
     setGtfsStopToLinkSearchRadiusMeters(DEFAULT_GTFSSTOP_LINK_SEARCH_METERS);
+    setMaxEndNodeToIdealStopPointMeters(ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS);
+    setMaxShapePointToIdealStopPointMeters(ZoningConverterUtils.DEFAULT_MAX_SHAPE_POINT_TO_IDEAL_STOP_POINT_METERS);
     setRemoveUnusedTransferZones(DEFAULT_REMOVE_UNUSED_TRANSFER_ZONES);
     excludeGtfsStopsById.clear();
     overwriteGtfsStop2LinkMapping.clear();
@@ -407,7 +506,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param linkId       link id to map to
    * @param idMapperType which id of the link to use
    */
-  public void overwriteGtfsStopToLinkMapping(final String gtfsStopId, final Object linkId, final IdMapperType idMapperType) {
+  public void overwriteGtfsStopToLinkMapping(
+      final String gtfsStopId, final Object linkId, final IdMapperType idMapperType) {
     overwriteGtfsStop2LinkMapping.put(gtfsStopId, Pair.of(linkId, idMapperType));
   }
 
@@ -425,7 +525,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * Collect overwritten link id information for GTFS stop id (if present)
    *
    * @param gtfsStopId GTFS stop id to get mapping for
-   * @return true when present, false otherwise
+   * @return mapping found
    */
   public Pair<Object, IdMapperType> getOverwrittenGtfsStopToLinkMapping(final String gtfsStopId) {
     return overwriteGtfsStop2LinkMapping.get(gtfsStopId);
@@ -448,7 +548,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @param gtfsStopIds to log mapping for
    */
   public void addLogGtfsStopToLinkMapping(final List<String> gtfsStopIds) {
-    logGtfsStop2PlanitLinkMapping.addAll(gtfsStopIds.stream().collect(Collectors.toSet()));
+    logGtfsStop2PlanitLinkMapping.addAll(new HashSet<>(gtfsStopIds));
   }
 
   /**
@@ -462,7 +562,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop. If such a situation
+   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop.
+   * If such a situation
    * is identified, a new transfer zone is created instead
    *
    * @param gtfsStopIds GTFS stop id to provide link mapping for
@@ -472,7 +573,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   }
 
   /**
-   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop. If such a situation
+   * Flag that given GTFS stop may not be mapped to a transfer zone together with any other (nearby) GTFS stop.
+   * If such a situation
    * is identified, a new transfer zone is created instead
    *
    * @param gtfsStopIds GTFS stop id to provide link mapping for
@@ -519,6 +621,84 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    */
   public boolean isForceCreateNewTransferZoneForGtfsStop(final String gtfsStopId) {
     return forceCreateNewTransferZoneForGtfsStops.contains(gtfsStopId);
+  }
+
+  /**
+   * flag for connecting ferry stops to nearby land network if not already connected
+   * @return true when active, false otherwise
+   */
+  public boolean isConnectFerryStopsToNearbyLandNetwork() {
+    return accessEgressInjectionSettings.isConnectFerryStopsToNearbyLandNetwork();
+  }
+
+  /** Decide whether to connect ferry stops to nearby land network if not already connected
+   *
+   * @param connectFerryStopToNearbyLandNetwork when true do this, when false do not
+   */
+  public void setConnectFerryStopsToNearbyLandNetwork(boolean connectFerryStopToNearbyLandNetwork) {
+    this.accessEgressInjectionSettings.setConnectFerryStopsToNearbyLandNetwork(connectFerryStopToNearbyLandNetwork);
+  }
+
+  /**
+   * Access to search radius for ferry stop to ferry route
+   * @return search radius
+   */
+  public double getFerryStopToNearbyLandNetworkSearchRadiusMeters() {
+    return accessEgressInjectionSettings.getFerryStopToNearbyLandNetworkSearchRadiusMeters();
+  }
+
+  /**
+   * flag for connecting rail based stops to nearby road network if not already connected
+   * @return true when active, false otherwise
+   */
+  public boolean isConnectRailBasedStopsToPassengerNetwork() {
+    return accessEgressInjectionSettings.isConnectRailBasedStopsToPassengerNetwork();
+  }
+
+  /** Decide whether to connect ferry stops to nearby land network if not already connected
+   *
+   * @param connectRailBasedStopToPassengerNetwork when true do this, when false do not
+   */
+  public void setConnectRailBasedStopsToPassengerNetwork(boolean connectRailBasedStopToPassengerNetwork) {
+    accessEgressInjectionSettings.setConnectRailBasedStopsToPassengerNetwork(connectRailBasedStopToPassengerNetwork);
+  }
+
+  /**
+   * Access to search radius for rail based stop to road network
+   * @return search radius
+   */
+  public double getRailBasedStopToPassengerNetworkSearchRadiusMeters() {
+    return accessEgressInjectionSettings.getRailBasedStopToPassengerNetworkSearchRadiusMeters();
+  }
+
+  /**
+   * Set  search radius for ferry stop to land network
+   * @param searchRadiusFerryStopToLandNetworkMeters  search radius
+   */
+  public void setFerryStopToLandNetworkSearchRadiusMeters(Number searchRadiusFerryStopToLandNetworkMeters) {
+    if(searchRadiusFerryStopToLandNetworkMeters == null){
+      LOGGER.severe("Unable to set ferry stop to land network search radius as parameter is null");
+      return;
+    }
+    accessEgressInjectionSettings.setFerryStopToLandNetworkSearchRadiusMeters(
+        searchRadiusFerryStopToLandNetworkMeters.doubleValue());
+  }
+
+  /**
+   * flag for connecting bus based stops to nearby passenger network if not already connected
+   * @return true when active, false otherwise
+   */
+  public boolean isConnectBusBasedStopsToPassengerNetwork() {
+    return accessEgressInjectionSettings.isConnectBusBasedStopsToPassengerNetwork();
+  }
+
+  /** Decide whether to connect bus based stops to nearby road network if not already connected for access egress modes
+   *
+   * @param connectBusBasedStopToPassengerNetwork when true do this, when false do not
+   */
+  public void setConnectBusBasedStopsToPassengerNetwork(boolean connectBusBasedStopToPassengerNetwork) {
+    this.accessEgressInjectionSettings.setConnectBusBasedStopsToPassengerNetwork(
+        connectBusBasedStopToPassengerNetwork);
   }
 
 }
