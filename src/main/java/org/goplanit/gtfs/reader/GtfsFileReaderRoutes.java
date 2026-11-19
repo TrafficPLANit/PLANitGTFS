@@ -8,7 +8,8 @@ import org.goplanit.gtfs.scheme.GtfsRoutesScheme;
 import org.goplanit.gtfs.util.GtfsFileConditions;
 
 /**
- * A GTFS file reader for parsing GTFS routes. When Column type configuration is set to PLANIT_REQUIRED_COLUMNS we exclude the following columns:
+ * A GTFS file reader for parsing GTFS routes. When Column type configuration is set to PLANIT_REQUIRED_COLUMNS we
+ * exclude the following columns:
  * <ul>
  *   <li>ROUTE_URL</li>
  *   <li>ROUTE_COLOR</li>

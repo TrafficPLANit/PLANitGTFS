@@ -1,15 +1,16 @@
 package org.goplanit.gtfs.converter.service;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.enums.RouteType;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 /**
  * Track statistics across GTFS services related handlers
- * 
+ *
  * @author markr
  *
  */
@@ -20,98 +21,77 @@ public class GtfsServicesHandlerProfiler {
    */
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesHandlerProfiler.class.getCanonicalName());
 
-  /** track how many GTFS routes were processed by route type*/
-  private Map<RouteType,LongAdder> gtfsRoutesCounter;
-
-  /** track how many GTFS schedule based trips were processed */
-  private LongAdder gtfsScheduleBasedTripCounter;
-
-  /** track how many GTFS trip stop times were processed */
-  private LongAdder gtfsTripStopTimeCounter;
-
-  /** track how many duplicate GTFS trip stop times were found and discarded */
-  private LongAdder gtfsDuplicateTripStopTimeCounter;
-
-  /** track how many GTFS frequency entries were processed*/
-  private LongAdder gtfsFrequencyCounter;
-
-  /** Initialise the profiler */
-  private void initialise(){
-    gtfsRoutesCounter = new HashMap<>();
-    gtfsTripStopTimeCounter = new LongAdder();
-    gtfsScheduleBasedTripCounter = new LongAdder();
-    gtfsFrequencyCounter = new LongAdder();
-    gtfsDuplicateTripStopTimeCounter = new LongAdder();
-  }
+  /**
+   * Tracks what became of each GTFS entity encountered, holding both the totals reported here and the outcome of
+   * every entity that did not survive. When a composite reader drives several stages, the same instance is handed to
+   * each so the stages report as a single funnel
+   */
+  private GtfsParseDiagnostics diagnostics;
 
   /**
-   * Default constructor
+   * Constructor using its own diagnostics, for when the services reader runs standalone
    */
   public GtfsServicesHandlerProfiler() {
-    initialise();
+    this(GtfsParseDiagnostics.create());
   }
 
-
   /**
-   * log counters regarding main processing phase
+   * Constructor
    *
+   * @param diagnostics to record into
    */
-  public void logProcessingStats() {
-    LOGGER.info(String.format("[STATS] discarded %d duplicate GTFS trip stop time entries",gtfsDuplicateTripStopTimeCounter.longValue()));
-
-    gtfsRoutesCounter.forEach( (k,v) -> LOGGER.info(String.format("[STATS] processed %d GTFS routes - %s ",v.longValue(), k)));
-    LOGGER.info(String.format("[STATS] processed %d GTFS trips (scheduled)",gtfsScheduleBasedTripCounter.longValue()));
-    LOGGER.info(String.format("[STATS] processed %d GTFS trip stop times",gtfsTripStopTimeCounter.longValue()));
-    LOGGER.info(String.format("[STATS] processed %d GTFS trip frequency entries",gtfsFrequencyCounter.longValue()));
+  public GtfsServicesHandlerProfiler(final GtfsParseDiagnostics diagnostics) {
+    this.diagnostics = diagnostics;
   }
 
   /**
-   * reset the profiler
+   * Collect the diagnostics being recorded into
+   *
+   * @return diagnostics
+   */
+  public GtfsParseDiagnostics getDiagnostics() {
+    return diagnostics;
+  }
+
+  /**
+   * reset the profiler, replacing rather than clearing what was recorded so that anyone holding the diagnostics
+   * collected so far keeps them
    */
   public void reset() {
-    gtfsRoutesCounter.clear();
-    gtfsScheduleBasedTripCounter.reset();
-    gtfsTripStopTimeCounter.reset();
-    gtfsFrequencyCounter.reset();
+    this.diagnostics = diagnostics.newEmptyInstance();
   }
 
   /**
-   * Increment count for a processed GTFS route
+   * Register a GTFS route encountered in the feed, irrespective of what becomes of it
    *
    * @param gtfsRouteType of the route
+   * @param gtfsRouteId of the route
    */
-  public void incrementRouteCount(RouteType gtfsRouteType) {
-    var routeTypeAdder = gtfsRoutesCounter.get(gtfsRouteType);
-    if(routeTypeAdder == null){
-      routeTypeAdder = new LongAdder();
-      gtfsRoutesCounter.put(gtfsRouteType, routeTypeAdder);
-    }
-    routeTypeAdder.increment();
+  public void registerSeenRoute(RouteType gtfsRouteType, String gtfsRouteId) {
+    diagnostics.registerSeen(GtfsObjectType.ROUTE, gtfsRouteType, gtfsRouteId);
   }
 
   /**
    * Increment count for a processed GTFS frequency
    */
-  public void incrementTripFrequencyCount() { gtfsFrequencyCounter.increment();}
-
-  /**
-   * Increment count for a processed GTFS trips (scheduled)
-   */
-  public void incrementScheduledTripCount() {
-    gtfsScheduleBasedTripCounter.increment();
+  public void incrementTripFrequencyCount() {
+    diagnostics.registerSeen(GtfsObjectType.FREQUENCY);
   }
 
   /**
-   * Increment count for a processed GTFStrip stop times
+   * Register a GTFS trip encountered in the feed, irrespective of what becomes of it
    */
-  public void incrementTripStopTimeCount() {
-    gtfsTripStopTimeCounter.increment();
+  public void registerSeenTrip() {
+    diagnostics.registerSeen(GtfsObjectType.TRIP);
   }
 
   /**
-   * Increment count for an identified  GTFStrip stop time duplicate
+   * Register a GTFS stop time encountered in the feed, standing as given
+   *
+   * @param state the stop time stands in, which a stop time is counted against rather than indexed under, a feed
+   *          holding millions of them
    */
-  public void incrementDuplicateStopTimeCount() {
-    gtfsDuplicateTripStopTimeCounter.increment();
+  public void registerSeenStopTime(final GtfsScopeState state) {
+    diagnostics.registerSeen(GtfsObjectType.STOP_TIME, null, state);
   }
 }

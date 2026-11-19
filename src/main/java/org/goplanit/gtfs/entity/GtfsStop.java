@@ -8,6 +8,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.misc.StringUtils;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateXY;
 import org.locationtech.jts.geom.Point;
 
 /**
@@ -52,6 +53,11 @@ public class GtfsStop extends GtfsObject {
     return get(GtfsKeyType.STOP_ID);
   }
 
+  /**
+   * Collect the stop's name
+   *
+   * @return stop name, null when absent
+   */
   public String getStopName(){ return get(GtfsKeyType.STOP_NAME); }
 
   /**
@@ -102,7 +108,7 @@ public class GtfsStop extends GtfsObject {
    * @return coordinate
    */
   public Coordinate getLocationAsCoord(){
-    return new Coordinate(Double.valueOf(getStopLongitude()), Double.valueOf(getStopLatitude()));
+    return new CoordinateXY(Double.valueOf(getStopLongitude()), Double.valueOf(getStopLatitude()));
   }
 
   /**

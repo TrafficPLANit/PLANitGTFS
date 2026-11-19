@@ -1,6 +1,11 @@
 package org.goplanit.gtfs.converter.service.handler;
 
+import org.goplanit.gtfs.converter.diagnostics.GtfsEntityScope;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeDimension;
+import org.goplanit.gtfs.converter.diagnostics.GtfsScopeState;
 import org.goplanit.gtfs.entity.GtfsCalendar;
+import org.goplanit.gtfs.enums.GtfsObjectType;
 import org.goplanit.gtfs.handler.GtfsFileHandlerCalendars;
 
 import java.util.function.Predicate;
@@ -44,12 +49,26 @@ public class GtfsPlanitFileHandlerCalendar extends GtfsFileHandlerCalendars {
    */
   @Override
   public void handle(GtfsCalendar gtfsCalendar) {
+    var diagnostics = data.getDiagnostics();
 
     // test would typically be based on what days are deemed eligible
-    if(serviceIdFilter.test(gtfsCalendar)){
-      data.registerServiceIdCalendarAsActive(gtfsCalendar);
+    boolean activeOnChosenDay = serviceIdFilter.test(gtfsCalendar);
+
+    /* a calendar is the day filter rather than something subject to it, so where it stands in time is known the
+     * moment it is read and is the only respect it stands in at all. Stated once and handed to both the tally and
+     * whatever is registered against it, a calendar not being indexed by id and the two otherwise able to disagree
+     * about the same entity */
+    var scopeState = GtfsScopeState.unsettledFor(GtfsObjectType.CALENDAR).with(
+        GtfsScopeDimension.TEMPORAL, activeOnChosenDay ? GtfsEntityScope.IN : GtfsEntityScope.OUT);
+    diagnostics.registerSeen(GtfsObjectType.CALENDAR, null, scopeState);
+
+    if(!activeOnChosenDay){
+      diagnostics.registerIssue(
+          GtfsParseIssue.CALENDAR_NOT_ACTIVE_ON_DAY, (Enum<?>) null, scopeState, gtfsCalendar.getServiceId());
+      return;
     }
 
+    data.registerServiceIdCalendarAsActive(gtfsCalendar);
   }
 
 }
