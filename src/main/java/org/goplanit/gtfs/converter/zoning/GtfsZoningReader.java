@@ -131,6 +131,8 @@ public class GtfsZoningReader implements ZoningReader {
     if(zoning.getCoordinateReferenceSystem()==null){
       zoning.setCoordinateReferenceSystem(this.serviceNetwork.getParentNetwork().getCoordinateReferenceSystem());
     }
+    /* the zoning follows the network, since placing stops can break links */
+    zoning.attachTo(this.serviceNetwork.getParentNetwork());
 
     // initialise data
     readInvoked = false;

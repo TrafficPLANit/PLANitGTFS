@@ -644,7 +644,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
    * @return search radius
    */
   public double getFerryStopToNearbyLandNetworkSearchRadiusMeters() {
-    return accessEgressInjectionSettings.getFerryStopToNearbyLandNetworkSearchRadiusMeters();
+    return accessEgressInjectionSettings.getFerryStopToLandNetworkSearchRadiusMeters();
   }
 
   /**

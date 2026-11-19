@@ -58,7 +58,7 @@ public class GtfsIntermodalReaderFactory {
       @NotNull MacroscopicNetwork parentNetwork,
       @NotNull IdGroupingToken zoningIdToken,
       RouteTypeChoice typeChoice) {
-    var emptyZoning = new Zoning(zoningIdToken, parentNetwork.getNetworkGroupingTokenId());
+    var emptyZoning = new Zoning(zoningIdToken, parentNetwork);
     return create(inputDirectory, countryName, dayOfWeek, parentNetwork, emptyZoning, typeChoice);
   }
 
