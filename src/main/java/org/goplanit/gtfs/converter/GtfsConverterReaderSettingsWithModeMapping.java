@@ -3,6 +3,7 @@ package org.goplanit.gtfs.converter;
 import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.gtfs.enums.RouteTypeChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.UrlUtils;
 import org.goplanit.utils.mode.PredefinedModeType;
 
@@ -21,19 +22,8 @@ import java.util.stream.Collectors;
 public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterReaderSettingsImpl {
 
     /** Logger to use */
-    private static final Logger LOGGER = Logger.getLogger(GtfsConverterReaderSettingsWithModeMapping.class.getCanonicalName());
-
-    /** Indicates what route types are applied, e.g. the default or the extended */
-    protected final RouteTypeChoice routeTypeChoice;
-
-    /** Default mapping (specific to this (services) network) from each supported GTFS mode to PLANit predefined mode.
-     *  Not each mapping is necessarily activated. Multiple mappings per GTFS mode may exist indicating a primary mapping (first) and
-     *  fallback mappings where the latter indicate a GTFS mode may access pre-existing stops/transfer zones of the seconday type
-     *  in case the primary type is not present, e.g. trams using available lightrail tagged stops for instance*/
-    protected  final Map<RouteType, List<PredefinedModeType>> defaultGtfsMode2PrefinedModeTypeMap;
-
-    /** Activated GTFS modes. Not all possible mappings might be activated for parsing. */
-    protected  final Set<RouteType> activatedGtfsModes;
+    private static final Logger LOGGER =
+        Logger.getLogger(GtfsConverterReaderSettingsWithModeMapping.class.getCanonicalName());
 
     /**
      * Find the GTFS mode(s) that is/are mapped to the given PLANit predefined mode representation
@@ -51,6 +41,18 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
       }
       return routeTypes;
     }
+
+    /** Indicates what route types are applied, e.g. the default or the extended */
+    protected final RouteTypeChoice routeTypeChoice;
+
+    /** Default mapping (specific to this (services) network) from each supported GTFS mode to PLANit predefined mode.
+     *  Not every mapping is necessarily activated. A GTFS mode may have several mappings: the first is the primary
+     *  one, the others are fallbacks, meaning the GTFS mode may use pre-existing stops/transfer zones of the secondary
+     *  type when the primary type is not present, e.g. trams using available lightrail tagged stops*/
+    protected  final Map<RouteType, List<PredefinedModeType>> defaultGtfsMode2PrefinedModeTypeMap;
+
+    /** Activated GTFS modes. Not all possible mappings might be activated for parsing. */
+    protected  final Set<RouteType> activatedGtfsModes;
 
     /**
      * Conduct general initialisation for any instance of this class
@@ -81,7 +83,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
         return;
       }
       if(planitMode == PredefinedModeType.CUSTOM) {
-        LOGGER.warning(String.format("PLANit mode is not a predefined type, cannot add it to default mode mapping, ignored", gtfsRouteType));
+        LOGGER.warning(String.format("PLANit mode is not a predefined type, cannot add it to default mode mapping " +
+            "for GTFS route type %s, ignored", gtfsRouteType));
         return;
       }
 
@@ -100,7 +103,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
    * @param gtfsRouteType to map from
    * @param planitModes mode types to map to
    */
-  protected void setDefaultGtfs2PredefinedModeTypeMapping(RouteType gtfsRouteType, List<PredefinedModeType> planitModes) {
+  protected void setDefaultGtfs2PredefinedModeTypeMapping(
+      RouteType gtfsRouteType, List<PredefinedModeType> planitModes) {
     planitModes.forEach( planitMode -> setDefaultGtfs2PredefinedModeTypeMapping(gtfsRouteType, planitMode));
   }
 
@@ -114,7 +118,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
       return;
     }
     if(!defaultGtfsMode2PrefinedModeTypeMap.containsKey(gtfsMode)){
-      LOGGER.warning(String.format("GTFS mode %s has no PLANit predefined mode type mapping, cannot activate, ignored", gtfsMode));
+      LOGGER.warning(String.format(
+          "GTFS mode %s has no PLANit predefined mode type mapping, cannot activate, ignored", gtfsMode));
       return;
     }
     activatedGtfsModes.add(gtfsMode);
@@ -126,7 +131,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
      * @param countryName to base source locale on
      * @param routeTypeChoice to apply
      */
-    protected GtfsConverterReaderSettingsWithModeMapping(String inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
+    protected GtfsConverterReaderSettingsWithModeMapping(
+        String inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
       this(UrlUtils.createFrom(inputSource), countryName, routeTypeChoice);
     }
 
@@ -136,7 +142,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
    * @param countryName to base source locale on
    * @param routeTypeChoice to apply
    */
-  protected GtfsConverterReaderSettingsWithModeMapping(URL inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
+  protected GtfsConverterReaderSettingsWithModeMapping(
+      URL inputSource, String countryName, RouteTypeChoice routeTypeChoice) {
     super(inputSource, countryName);
     this.routeTypeChoice = routeTypeChoice;
 
@@ -147,7 +154,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   }
 
   /** Copy constructor (reference copy because we use it to share the same mode mapping across multiple instance)
-   *  todo not great because technically this is a hack and we do not create a shallow copy but simply assign references...
+   *  todo not great because technically this is a hack and we do not create a shallow copy but simply assign
+   *  references...
    *
    * @param other to use
    */
@@ -210,7 +218,8 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
 
   /** Convenience method that provides access to all the currently active GTFS modes (unmodifiable)
    *
-   * @return mapped GTFS modes, if not available (due to lack of mapping or inactive parser) empty collection is returned
+   * @return mapped GTFS modes, if not available (due to lack of mapping or inactive parser) empty collection is
+   *     returned
    */
   public Collection<RouteType> getAcivatedGtfsModes() {
     return Collections.unmodifiableCollection(activatedGtfsModes);
@@ -224,7 +233,7 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   public Set<PredefinedModeType> getAcivatedPlanitPredefinedModes() {
     return activatedGtfsModes.stream().flatMap(
         gtfsMode -> defaultGtfsMode2PrefinedModeTypeMap.getOrDefault(
-            gtfsMode, Collections.emptyList()).stream()).filter( e -> e != null).collect(Collectors.toSet());
+            gtfsMode, Collections.emptyList()).stream()).filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   /**
@@ -249,7 +258,7 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   public List<RouteType> getAcivatedGtfsModes(PredefinedModeType planitModeType) {
     /* find gtfs modes for the give planit mode */
     var mappedGtfsModes = defaultGtfsMode2PrefinedModeTypeMap.entrySet().stream().filter( e ->
-        e.getValue().contains(planitModeType)).map( e-> e.getKey()).collect(Collectors.toSet());
+        e.getValue().contains(planitModeType)).map(Map.Entry::getKey).collect(Collectors.toSet());
 
     /* prune by active ones */
     return mappedGtfsModes.stream().filter(activatedGtfsModes::contains).distinct().collect(Collectors.toList());
@@ -274,21 +283,23 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
   }
 
   /**
-   * Log settings used
+   * {@inheritDoc}
    */
-  public void logSettings() {
-    super.logSettings();
+  @Override
+  public void logSettings(int level) {
+    super.logSettings(level);
 
-    LOGGER.info(String.format("Route type choice set to: %s ", this.routeTypeChoice));
+    LOGGER.info(LoggingUtils.settingsValue("Route type choice", getRouteTypeChoice(), level));
+    LOGGER.info(LoggingUtils.settingsSection("GTFS mode mappings", level));
 
-    /* mode mappings GTFS -> PLANit */
     for(var entry : defaultGtfsMode2PrefinedModeTypeMap.entrySet()){
       if(activatedGtfsModes.contains(entry.getKey())){
-        LOGGER.info(
-            String.format("[ACTIVATED] %s --> %s",
-                entry.getKey(), entry.getValue().stream().map(e -> e.toString()).collect(Collectors.joining(","))));
+        LOGGER.info(LoggingUtils.settingsMapping(
+            String.format("[ACTIVATED] %s", entry.getKey()),
+            entry.getValue().stream().map(Object::toString).collect(Collectors.joining(",")),
+            level + 1));
       }else{
-        LOGGER.info(String.format("[DEACTIVATED] %s", entry.getKey()));
+        LOGGER.info(LoggingUtils.settingsEntry(String.format("[DEACTIVATED] %s", entry.getKey()), level + 1));
       }
     }
   }

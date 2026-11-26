@@ -46,14 +46,39 @@ public class GtfsRoute extends GtfsObject {
     return get(GtfsKeyType.ROUTE_ID);
   }
 
+  /**
+   * Collect the route type as given in the feed
+   *
+   * @return route type as given, null when absent
+   */
   public String getRouteTypeRaw(){ return get(GtfsKeyType.ROUTE_TYPE);}
 
+  /**
+   * Collect the route type, parsed from the value given in the feed, see {@link RouteType#parseFrom}
+   *
+   * @return route type
+   */
   public RouteType getRouteType(){ return RouteType.parseFrom(getRouteTypeRaw());}
 
+  /**
+   * Collect the route's short name
+   *
+   * @return short name, null when absent
+   */
   public String getShortName(){ return get(GtfsKeyType.ROUTE_SHORT_NAME);}
 
+  /**
+   * Collect the route's long name
+   *
+   * @return long name, null when absent
+   */
   public String getLongName(){ return get(GtfsKeyType.ROUTE_LONG_NAME);}
 
+  /**
+   * Collect the route's description
+   *
+   * @return description, null when absent
+   */
   public String getRouteDescription() {  return get(GtfsKeyType.ROUTE_DESC); }
 
   /**
@@ -67,14 +92,29 @@ public class GtfsRoute extends GtfsObject {
     return sb.toString();
   }
 
+  /**
+   * Verify if the route has a short name that is not blank
+   *
+   * @return true when it has one, false otherwise
+   */
   public boolean hasShortName(){
     return !StringUtils.isNullOrBlank(getShortName());
   }
 
+  /**
+   * Verify if the route has a long name that is not blank
+   *
+   * @return true when it has one, false otherwise
+   */
   public boolean hasLongName(){
     return !StringUtils.isNullOrBlank(getLongName());
   }
 
+  /**
+   * Verify if the route has a description that is not blank
+   *
+   * @return true when it has one, false otherwise
+   */
   public boolean hasRouteDescription() {
     return !StringUtils.isNullOrBlank(getRouteDescription());
   }

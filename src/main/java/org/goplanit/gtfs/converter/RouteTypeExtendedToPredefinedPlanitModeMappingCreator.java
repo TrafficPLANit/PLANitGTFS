@@ -9,13 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Each eligible GTFS extended Route type is mapped to a PLANit mode through this dedicated mapping class so that the memory model's modes
- * are user configurable yet linked to the original format. Note that when the reader is used
- * i.c.w. a network writer to convert one network to the other. It is paramount that the PLANit modes
- * that are mapped here are also mapped by the writer to the output format to ensure a correct I/O mapping of modes
+ * Maps each eligible GTFS extended route type to a PLANit mode, so the memory model's modes are user configurable yet
+ * linked to the original format. When the reader is used with a network writer to convert one network to the other,
+ * the PLANit modes mapped here must also be mapped by the writer to the output format, so modes are mapped correctly.
  *
- * The default extended mapping is provided below. It is important to realise that modes that are marked as N/A have no predefined
- * equivalent in PLANit, as a result they are ignored.
+ * The default extended mapping is below. Modes marked N/A have no predefined equivalent in PLANit, so they are
+ * ignored.
  *
  * <ul>
  *   <li>100-117, 400-405 - Railway Service types to TrainMode</li>

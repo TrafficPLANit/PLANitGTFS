@@ -4,15 +4,18 @@ import org.goplanit.utils.enums.EnumOf;
 import org.goplanit.utils.enums.EnumValue;
 import org.goplanit.utils.misc.StringUtils;
 
-import java.util.logging.Logger;
 
 /**
  * Defines the different stop location types:
  * <ul>
- *   <li>STOP_PLATFORM (0 or null or ""): A location where passengers board or disembark from a transit vehicle. Is called a platform when defined within a parent_station.</li>
+ *   <li>STOP_PLATFORM (0 or null or ""): A location where passengers board or disembark from a transit vehicle. Is
+ *   called a platform when defined within a parent_station.</li>
  *   <li>STATION (1): A physical structure or area that contains one or more platform</li>
- *   <li>ENTRANCE_EXIT (2): A location where passengers can enter or exit a station from the street. If an entrance/exit belongs to multiple stations, it can be linked by pathways to both, but the data provider must pick one of them as parent.</li>
- *   <li>GENERIC_NODE (3): A location within a station, not matching any other location_type, which can be used to link together pathways define in pathways.txt.</li>
+ *   <li>ENTRANCE_EXIT (2): A location where passengers can enter or exit a station from the street. If an
+ *   entrance/exit belongs to multiple stations, it can be linked by pathways to both, but the data provider must pick
+ *   one of them as parent.</li>
+ *   <li>GENERIC_NODE (3): A location within a station, not matching any other location_type, which can be used to
+ *   link together pathways defined in pathways.txt.</li>
  *   <li>BOARDING_AREA (4):  A specific location on a platform, where passengers can board and/or alight vehicles </li>
  * </ul>
  *
@@ -25,8 +28,6 @@ public enum StopLocationType implements EnumOf<StopLocationType, Short>, EnumVal
   GENERIC_NODE ((short)3),
   BOARDING_AREA ((short)4);
 
-  /** Logger to use */
-  private static final Logger LOGGER = Logger.getLogger(StopLocationType.class.getCanonicalName());
 
   private final short value;
 
@@ -46,6 +47,9 @@ public enum StopLocationType implements EnumOf<StopLocationType, Short>, EnumVal
     this.value = value;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Short getValue(){
     return value;
@@ -77,8 +81,9 @@ public enum StopLocationType implements EnumOf<StopLocationType, Short>, EnumVal
 
       return of(Short.valueOf(value));
     }catch (Exception e){
-      LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS Stop Location Type",value));
+      /* a value that is no location type is reported against the stop it was read for, where it can be counted and
+       * held against the feed, rather than here where it is read afresh each time it is asked for */
+      return null;
     }
-    return null;
   }
 }

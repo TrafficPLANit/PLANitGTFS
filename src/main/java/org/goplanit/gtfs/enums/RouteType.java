@@ -8,25 +8,27 @@ import org.goplanit.utils.misc.StringUtils;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 /**
  * Defines the different (unextended) Route Types, i.e., modes:
  * <ul>
- *   <li>TRAM_LIGHTRAIL (0) - Tram, Streetcar, Light rail. Any light rail or street level system within a metropolitan area.</li>
+ *   <li>TRAM_LIGHTRAIL (0) - Tram, Streetcar, Light rail. Any light rail or street level system within a metropolitan
+ *   area.</li>
  *   <li>SUBWAY_METRO (1)   - Subway, Metro. Any underground rail system within a metropolitan area.</li>
  *   <li>RAIL (2)           - Rail. Used for intercity or long-distance travel.</li>
  *   <li>BUS (3)            - Bus. Used for short- and long-distance bus routes.</li>
  *   <li>FERRY (4)          - Ferry. Used for short- and long-distance boat service.</li>
- *   <li>CABLE_TRAM (5)     - Cable tram. Used for street-level rail cars where the cable runs beneath the vehicle, e.g., cable car in San Francisco.</li>
- *   <li>AERIAL LIFT (6)    - Aerial lift, suspended cable car (e.g., gondola lift, aerial tramway). Cable transport where cabins, cars, gondolas or open chairs are suspended by means of one or more cables.</li>
+ *   <li>CABLE_TRAM (5)     - Cable tram. Used for street-level rail cars where the cable runs beneath the vehicle,
+ *   e.g., cable car in San Francisco.</li>
+ *   <li>AERIAL LIFT (6)    - Aerial lift, suspended cable car (e.g., gondola lift, aerial tramway). Cable transport
+ *   where cabins, cars, gondolas or open chairs are suspended by means of one or more cables.</li>
  *   <li>FUNICULAR (7)      - Funicular. Any rail system designed for steep inclines.</li>
  *   <li>TROLLEY_BUS (11)   - Trolley bus. Electric buses that draw power from overhead wires using poles.</li>
  *   <li>MONO_RAIL (12)     - Monorail. Railway in which the track consists of a single rail or a beam.</li>
  * </ul>
  *
- * Further, it also contains the extended route types as well. This allows to just use a single enum and given that the numbering does not overlap this is possible.
- * The extended Route types are:
+ * It also contains the extended route types, so a single enum can be used, which is possible as the numbering does
+ * not overlap. The extended Route types are:
  *
  * <ul>
  *   <li>100-117, 400-405 - Railway Service types</li>
@@ -141,8 +143,6 @@ public enum RouteType implements EnumOf<RouteType,Short>, EnumValue<Short> {
   MISCELLANEOUS_SERVICE	((short)	1700	),
   HORSE_DRAWN_CARRIAGE	((short)	1702	);
 
-  /** Logger to use */
-  private static final Logger LOGGER = Logger.getLogger(RouteType.class.getCanonicalName());
 
   private final short value;
 
@@ -185,15 +185,16 @@ public enum RouteType implements EnumOf<RouteType,Short>, EnumValue<Short> {
    * and null is returned.
    *
    * @param value to extract enum for
-   * @return the stop location type found, null when not present
+   * @return the route type found, null when not present
    */
   public static RouteType parseFrom(String value){
     try{
       return of(Short.valueOf(value));
     }catch (Exception e){
-      LOGGER.warning(String.format("Unable to convert %s as short, cannot extract GTFS Stop Location Type",value));
+      /* a value that is no route type is reported against the route it was read for, where it can be counted and
+       * held against the feed, rather than here where it is read afresh each time it is asked for */
+      return null;
     }
-    return null;
   }
 
   /**

@@ -1,15 +1,14 @@
 package org.goplanit.gtfs.converter.service.handler;
 
-import org.goplanit.gtfs.converter.GtfsConverterHandlerData;
+import org.goplanit.gtfs.converter.GtfsConverterModeMappingData;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseIssue;
+import org.goplanit.gtfs.converter.diagnostics.GtfsParseDiagnostics;
 import org.goplanit.gtfs.converter.service.GtfsServicesHandlerProfiler;
 import org.goplanit.gtfs.converter.service.GtfsServicesReaderSettings;
 import org.goplanit.gtfs.entity.GtfsCalendar;
-import org.goplanit.gtfs.entity.GtfsRoute;
 import org.goplanit.gtfs.entity.GtfsTrip;
-import org.goplanit.gtfs.enums.RouteType;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.misc.CustomIndexTracker;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -20,35 +19,22 @@ import org.goplanit.utils.service.routed.RoutedTripSchedule;
 import org.goplanit.utils.time.ExtendedLocalTime;
 
 import java.time.LocalTime;
+import org.goplanit.gtfs.util.GtfsConverterReaderHelper;
+import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
+
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
  * Track data used during handling/parsing of GTFS routes
  */
-public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
+public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
 
   private static final Logger LOGGER = Logger.getLogger(GtfsServicesHandlerData.class.getCanonicalName());
-
-  /** reason for discarding trips, used during registering them */
-  public enum TripRemovalType {
-    ROUTE_EXCLUDED,
-    ROUTE_MODE_INCOMPATIBLE,
-    SERVICE_ID_DISCARDED,
-    TIME_PERIOD_DISCARDED,
-    UNKNOWN;
-  }
-
-  /** reason for discarding routes, used during registering them */
-  public enum RouteRemovalType {
-    SETTINGS_EXCLUDED,
-    MODE_INCOMPATIBLE,
-    UNKNOWN;
-  }
 
   // EXOGENOUS DATA TRACKING/SETTINGS
 
@@ -64,19 +50,26 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
   CustomIndexTracker customIndexTracker;
 
 
-  /** track which routes have been discarded and why, to ensure we do not log warnings for correctly ignored GTFS routes */
-  Map<String, Pair<RouteType, RouteRemovalType>> removedRoutes;
-  /** track which trips have been discarded based on discard type */
-  Map<TripRemovalType, Set<String>> removedGtfsTrips;
-
   /** index routed services by mode */
   Map<Mode, RoutedServicesLayer> routedServiceLayerByMode;
 
-  /** in anticipation of mapping to physical link segments, we must be able to determine if a leg will be attributed to a particular mode
-   * to avoid having to split legs between adjacent stops servicing multiple modes (and requiring a different physical mapping). This is where
-   * we track this
+  /** the mode each leg is attributed to. Knowing it ahead of the mapping to physical link segments avoids having to
+   * split legs between adjacent stops serving several modes (each needing a different physical mapping)
    */
   Map<ServiceLeg, Mode> serviceLegMapMapping;
+
+  /**
+   * GTFS ids of the stops within the area the run covers, established by the stop scope pre-pass.
+   * <p>
+   * Transient, unlike the rest of the state tracked here. It exists only so stop times can settle the scope of their
+   * trip, and is released as soon as stop times have been read. Only the stops within the area are held, as they are by
+   * far the fewer
+   * </p>
+   */
+  Set<String> gtfsStopIdsWithinArea;
+
+  /** the area the run covers, against which the scope of a GTFS stop is established */
+  ProjectedBoundingAreaHelper boundingAreaHelper;
 
   // TO POPULATE
 
@@ -96,7 +89,11 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
     routedServiceLayerByMode = routedServices.getLayers().indexLayersByMode();
 
     serviceLegMapMapping = new HashMap<>();
+    gtfsStopIdsWithinArea = new HashSet<>();
     activeGtfsServiceIdCalendars = new HashMap<>();
+
+    boundingAreaHelper = GtfsConverterReaderHelper.createBoundingAreaHelper(
+        getSettings(), getServiceNetwork().getParentNetwork());
 
     customIndexTracker = new CustomIndexTracker();
     /* track routed service entries by external id (GTFS ROUTE_ID) */
@@ -107,9 +104,6 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
     customIndexTracker.initialiseEntityContainer(RoutedTripSchedule.class, (planitScheduledTrip) -> planitScheduledTrip.getExternalId());
     /* track PLANit service nodes by external id (GTFS STOP_ID) */
     customIndexTracker.initialiseEntityContainer(ServiceNode.class, getServiceNodeToGtfsStopIdMapping());
-
-    removedRoutes = new HashMap<>();
-    removedGtfsTrips = new HashMap<>();
   }
 
   /**
@@ -120,15 +114,26 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
    * @param routedServices to use
    * @param handlerProfiler to use
    */
-  public GtfsServicesHandlerData(final GtfsServicesReaderSettings settings, final ServiceNetwork serviceNetwork, final RoutedServices routedServices, final GtfsServicesHandlerProfiler handlerProfiler){
+  public GtfsServicesHandlerData(
+          final GtfsServicesReaderSettings settings,
+          final ServiceNetwork serviceNetwork,
+          final RoutedServices routedServices,
+          final GtfsServicesHandlerProfiler handlerProfiler){
     super(serviceNetwork, settings);
+
     this.routedServices = routedServices;
     this.handlerProfiler = handlerProfiler;
 
     initialise(routedServices);
   }
 
-  RoutedServicesLayer getRoutedServicesLayer(Mode mode){
+  /**
+   * Collect the routed services layer of a mode
+   *
+   * @param mode to collect the layer for
+   * @return routed services layer, null when the mode has none
+   */
+  public RoutedServicesLayer getRoutedServicesLayer(Mode mode){
     return routedServiceLayerByMode.get(mode);
   }
 
@@ -151,59 +156,50 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
   }
 
   /**
-   * Register GTFS route as discarded based on its route type (mode), which is a valid reason to
-   * ignore it from further processing.
+   * Collect the area the run covers
    *
-   * @param gtfsRoute to mark as discarded
-   * @param reason reason for removal
+   * @return bounding area helper
    */
-  public void registeredRemovedRoute(GtfsRoute gtfsRoute, RouteRemovalType reason){
-    this.removedRoutes.put(gtfsRoute.getRouteId(), Pair.of(gtfsRoute.getRouteType() /*=mode*/, reason));
-  }
-
-  /** Verify if GTFS route has been discarded based on its mode (route type) not being supported in this run
-   *
-   * @param gtfsRouteId to verify
-   * @return true when discarded, false otherwise
-   */
-  public boolean isGtfsRouteRemoved(String gtfsRouteId){
-    return this.removedRoutes.containsKey(gtfsRouteId);
+  public ProjectedBoundingAreaHelper getBoundingAreaHelper() {
+    return this.boundingAreaHelper;
   }
 
   /**
-   * Identify route removal type for a given GTFS route id, if the route is not marked for removal UNKNOWN is returned, otherwise
-   * the registered cause of removal is provided
+   * Register a GTFS stop as lying within the area the run covers
    *
-   * @param gtfsRouteId to collect reason for removal for (if it is removed)
-   * @return reason for removal
+   * @param gtfsStopId of the stop within the area
    */
-  public RouteRemovalType getGtfsRemovedRouteRemovalType(String gtfsRouteId) {
-    return this.removedRoutes.getOrDefault(gtfsRouteId, Pair.of(null,RouteRemovalType.UNKNOWN)).second();
+  public void registerGtfsStopWithinArea(String gtfsStopId) {
+    this.gtfsStopIdsWithinArea.add(gtfsStopId);
   }
 
   /**
-   * Register GTFS trip as discarded for a reason, e.g. because it route is discarded, see {@link #registeredRemovedRoute(GtfsRoute, RouteRemovalType)}, or because its service is not
-   * registered for inclusion, which are valid reasonsto ignore it from further processing without warning
+   * Verify whether the scope of GTFS stops is available, i.e. the pre-pass has run and its result not yet released
    *
-   * @param gtfsTrip to mark as discarded
-   * @param type reason for discarding
+   * @return true when available, false otherwise
    */
-  public void registeredRemovedGtfsTrip(GtfsTrip gtfsTrip, TripRemovalType type){
-    var removedGtfsTripsByType = this.removedGtfsTrips.get(type);
-    if(removedGtfsTripsByType==null){
-      removedGtfsTripsByType = new HashSet<>();
-      this.removedGtfsTrips.put(type, removedGtfsTripsByType);
-    }
-    removedGtfsTripsByType.add(gtfsTrip.getTripId());
+  public boolean hasGtfsStopScope() {
+    return this.gtfsStopIdsWithinArea != null && !this.gtfsStopIdsWithinArea.isEmpty();
   }
 
-  /** Verify if GTFS trip has been discarded based on some reason in this run
+  /**
+   * Verify whether a GTFS stop lies within the area the run covers
    *
-   * @param gtfsTripId to verify
-   * @return true when discarded, false otherwise
+   * @param gtfsStopId to verify
+   * @return true when within the area, false otherwise
    */
-  public boolean isGtfsTripRemoved(String gtfsTripId){
-    return this.removedGtfsTrips.entrySet().stream().filter(e -> e.getValue().contains(gtfsTripId)).findFirst().isPresent();
+  public boolean isGtfsStopWithinArea(String gtfsStopId) {
+    return this.gtfsStopIdsWithinArea.contains(gtfsStopId);
+  }
+
+  /**
+   * Discard the stop scope found by the pre-pass, which has served its purpose once stop times are read. With a
+   * bounding area covering most of a feed it nears an entry per stop, not worth holding for the rest of the parse. The
+   * set is emptied as well as dropped, so its entries are freed even where something still holds a reference to it
+   */
+  public void releaseGtfsStopScope() {
+    this.gtfsStopIdsWithinArea.clear();
+    this.gtfsStopIdsWithinArea = null;
   }
 
   /**
@@ -279,7 +275,8 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
       /* check filters */
       return getSettings().getTimePeriodFilters().stream().anyMatch(
                     // period starts before or on departure time    AND period ends after or on departure time
-          period -> !period.first().isAfter(withinDayDepartureTime) && !period.second().isBefore(withinDayDepartureTime));
+          period -> !period.first().isAfter(withinDayDepartureTime) &&
+                  !period.second().isBefore(withinDayDepartureTime));
     };
 
     /* same day regular case */
@@ -303,11 +300,13 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
         return false;
       }
 
-      /* check filters by looking at component after midnight which given it is on preceding day, results in the morning of the eligible day*/
+      /* check filters by looking at component after midnight which given it is on preceding day, results in the
+      morning of the eligible day*/
       return isEligibleDeparture.apply(departureTime.asLocalTimeAfterMidnight());
 
     }else{
-      LOGGER.severe("ServiceId active but GTFSCalendar entry does not match eligible active day, this should not happen");
+      getDiagnostics().registerIssue(
+          GtfsParseIssue.TRIP_CALENDAR_ACTIVE_DAY_MISMATCH, (String) null, serviceId);
       return false;
     }
   }
@@ -368,12 +367,12 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
   }
 
   /**
-   * GTFS Services are ingested and lead to PLANit service nodes to be created based on GTFS stop ids. When at some later point in time
-   * these PLANit service nodes are to be linked to PLANit transfer zones (which in turn have an association with a GTFS stop) the mapping
-   * between PLANit service node and its underlying GTFS stop needs to remain available. This function provides this mapping.
+   * Reading GTFS services creates PLANit service nodes based on GTFS stop ids. When these service nodes are later
+   * linked to PLANit transfer zones (which in turn are associated with a GTFS stop), the mapping from service node to
+   * its underlying GTFS stop must still be available. This function provides that mapping.
    * <p>
-   *   For now this mapping is purely based on the external id, but if this changes using this explicit functional approach allows
-   *   us to change this without having to change the process flow itself
+   *   For now the mapping is purely based on the external id. If that changes, this explicit function means the
+   *   process flow itself need not change
    * </p>
    *
    * @return mapping from PLANit service node to underlying source GTFS stop id
@@ -387,6 +386,15 @@ public class GtfsServicesHandlerData extends GtfsConverterHandlerData {
    */
   public RoutedServices getRoutedServices(){
     return this.routedServices;
+  }
+
+  /**
+   * Collect the diagnostics recording what became of each GTFS entity
+   *
+   * @return diagnostics
+   */
+  public GtfsParseDiagnostics getDiagnostics() {
+    return handlerProfiler.getDiagnostics();
   }
 
   /**
