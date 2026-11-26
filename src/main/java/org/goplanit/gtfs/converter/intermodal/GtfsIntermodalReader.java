@@ -30,10 +30,10 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * GTFS intermodal reader. Supplements an already populated network and (partially populated) zoning with GTFS services
- * resulting in a consistent service network and routed services PLANit memory model. In case the provided zoning
- * already contains transfer zones an attempt is made to fuse the GTFS stops with existing transfer zones when
- * applicable, in case this is not possible or such zones are absent altogether they will be injected from scratch.
+ * GTFS intermodal reader. Adds GTFS services to an already populated network and (partially populated) zoning, giving
+ * a consistent service network and routed services PLANit memory model. When the zoning already contains transfer
+ * zones, the GTFS stops are matched to existing transfer zones where possible; where this is not possible, or such
+ * zones are absent altogether, they are created from scratch.
  * 
  * @author markr
  *

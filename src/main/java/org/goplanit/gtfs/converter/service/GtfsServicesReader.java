@@ -122,12 +122,12 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
-   * Record the GTFS entities the area the physical network covers places outside it, which is settled once every stop
-   * time naming them has been read.
+   * Record the GTFS entities outside the area the physical network covers, which is settled once every stop time
+   * naming them has been read.
    * <p>
-   * That area is reported against rather than parsed by, so nothing removes what it places outside and the respect
-   * would otherwise state how much it ruled out without anything saying why. Only what survived the clean-ups is swept,
-   * an entity they removed already carrying the reason it went
+   * That area is reported against, not parsed by, so nothing removes what lies outside it, and without this the
+   * respect would state how much it ruled out without saying why. Only what survived the clean-ups is checked, as an
+   * entity they removed already carries the reason it went
    * </p>
    *
    * @param fileHandlerData to register with
@@ -566,13 +566,12 @@ public class GtfsServicesReader implements PairConverterReader<ServiceNetwork, R
   }
 
   /**
-   * GTFS Services are ingested and lead to PLANit service nodes to be created based on GTFS stop ids. When at some
-   * later point in time these PLANit service nodes are to be linked to PLANit transfer zones (which in turn have an
-   * association with a GTFS stop) the mapping between PLANit service node and its underlying GTFS stop needs to
-   * remain available. This function provides this mapping.
+   * Reading GTFS services creates PLANit service nodes based on GTFS stop ids. When these service nodes are later
+   * linked to PLANit transfer zones (which in turn are associated with a GTFS stop), the mapping from service node to
+   * its underlying GTFS stop must still be available. This function provides that mapping.
    * <p>
-   *   For now this mapping is purely based on the external id, but if this changes using this explicit functional
-   *   approach allows us to change this without having to change the process flow itself
+   *   For now the mapping is purely based on the external id. If that changes, this explicit function means the
+   *   process flow itself need not change
    * </p>
    *
    * @return mapping from PLANit service node to underlying source GTFS stop id

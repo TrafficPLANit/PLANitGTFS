@@ -17,18 +17,17 @@ import static org.goplanit.gtfs.util.GtfsConverterReaderHelper.createCombinedAct
  */
 public class GtfsConverterModeMappingData {
 
-  /** based on the settings create a single consolidated set of activated PLANit modes combining the predefined mode mappings
-   * that materialise as actual mode instances */
+  /** based on the settings create a single consolidated set of activated PLANit modes combining the predefined mode
+   * mappings that materialise as actual mode instances */
   private HashMap<RouteType, List<Mode>> activatedPlanitModesByGtfsMode;
 
   /** the unique set based on the {@link #activatedPlanitModesByGtfsMode} to avoid having to recreate this on the fly */
   private Set<Mode> activatedPlanitModes;
 
-  /** track the found secondary mode mappings in terms of PLANit modes, i.e., when for some GTFS modes, multiple PLANit modes
-   * are mapped, e.g. lightrail and train, then this secondary mapping contains two entries (lightrail,tram) and (tram,lightrail)
-   * to allow the algorithm to use this as fallback options when for example no physical path between connectoids can be found based
-   * on the primary mapped mode, in which case we can try the other modes, as the infrastructure (stops) might be sourced from elsewhere
-   * with a slightly different mode mapping
+  /** the secondary mode mappings found, in PLANit modes. When several PLANit modes are mapped for a GTFS mode, e.g.
+   * lightrail and train, this holds two entries (lightrail,tram) and (tram,lightrail). These are fallback options, for
+   * example when no physical path between connectoids can be found for the primary mapped mode: the other modes are
+   * then tried, as the infrastructure (stops) might come from elsewhere with a slightly different mode mapping
    */
   private Map<Mode,SortedSet<Mode>> secondaryModeCompatibility;
 

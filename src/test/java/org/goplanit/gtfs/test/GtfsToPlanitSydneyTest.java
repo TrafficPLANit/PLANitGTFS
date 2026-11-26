@@ -34,10 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Unit tests for Gtfs's API basic functionality. PLANit reference network and zoning are expected to be synced with
- * the results produced in the PLANitOSM
- * repo (Sydney: src/test/resources/planit/sydney/osm_intermodal_no_services_access_egress_attach, so they can easily be
- * updated
+ * Unit tests for Gtfs's API basic functionality. The PLANit reference network and zoning are expected to match the
+ * results produced in the PLANitOSM repo (Sydney:
+ * src/test/resources/planit/sydney/osm_intermodal_no_services_access_egress_attach), so they can easily be updated
  * 
  * @author markr
  *

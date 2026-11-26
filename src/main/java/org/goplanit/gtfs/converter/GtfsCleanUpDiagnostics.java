@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 /**
  * Records what the clean-up steps applied to the parsed services take away again.
  * <p>
- * What each step removes is established by comparing the entities present before it ran with those present after,
- * rather than by the step reporting it itself, the steps residing in the PLANit core where GTFS has no place. The
- * entities are compared by identity because a removal is followed by a renumbering of what survives
+ * What each step removes is found by comparing the entities present before it ran with those present after, not
+ * reported by the step itself, as the steps are in the PLANit core, where GTFS has no place. The entities are compared
+ * by identity because a removal is followed by a renumbering of what survives
  * </p>
  *
  * @author markr
@@ -228,11 +228,11 @@ public class GtfsCleanUpDiagnostics {
   /**
    * Collect whichever of the two causes says most about the parser, an absent cause not competing.
    * <p>
-   * The opposite of how a leg segment weighs its endpoints, and deliberately so. A leg segment is lost whole and its
-   * endpoints offer competing explanations for that one loss, so an endpoint legitimately outside the area settles
-   * it. A trip schedule is cut rather than lost, and truncating away what lies outside the area is the run working
-   * as asked, so that cause is discharged and explains nothing of what else went missing. What remains is a stop
-   * that should have been usable and was not, which is loss that need not have happened
+   * This is the opposite of how a leg segment weighs its endpoints, by design. A leg segment is lost whole and its
+   * endpoints offer competing explanations for that one loss, so an endpoint rightly outside the area settles it. A
+   * trip schedule is cut, not lost, and cutting away what lies outside the area is the run working as asked, so that
+   * cause explains nothing of what else went missing. What remains is a stop that should have been usable and was not:
+   * a loss that need not have happened
    * </p>
    *
    * @param current most telling so far, may be null
@@ -316,9 +316,9 @@ public class GtfsCleanUpDiagnostics {
   /**
    * Note how many entities of a type a clean-up step was presented with and how many it left behind, per subdivision.
    * <p>
-   * Several steps may act on the same type in turn, each handed what the one before it left, so what was to be in the
-   * result is what the first of them found and what is in the result is what the last of them left. Neither is settled
-   * until the clean-up has run its course, so the readings are held here and reported by {@link #registerPresence()}
+   * Several steps may act on the same type in turn, each given what the one before it left. So what was to be in the
+   * result is what the first of them found, and what is in the result is what the last of them left. Neither is known
+   * until the clean-up has finished, so the counts are held here and reported by {@link #registerPresence()}
    * </p>
    *
    * @param <E> type of entity
@@ -490,8 +490,8 @@ public class GtfsCleanUpDiagnostics {
    * Record how many entities of a type a clean-up step was presented with, how many it left behind, and which ones it
    * took away.
    * <p>
-   * A removed entity is recorded under its PLANit id, which is what the surrounding log speaks in, with its ids in
-   * full as the detail that accompanies it into a listing
+   * A removed entity is recorded under its PLANit id, which the surrounding log uses, with its ids in full as the
+   * detail it carries into a listing
    * </p>
    *
    * @param <E> type of entity
@@ -541,9 +541,9 @@ public class GtfsCleanUpDiagnostics {
    * Record what the truncation took away, each removal under the issue its own outcome names and within the
    * subdivision it belongs to.
    * <p>
-   * Unlike the other steps this one removes entities for outcomes that differ in kind, cutting a schedule back to
-   * what fits, clearing away one of which nothing fits, and failing to map a leg that ought to have been mappable,
-   * so the issue is settled per entity rather than for the step as a whole
+   * Unlike the other steps, this one removes entities for outcomes of different kinds: cutting a schedule back to what
+   * fits, clearing away one of which nothing fits, and failing to map a leg that should have been mappable. So the
+   * issue is settled per entity, not for the step as a whole
    * </p>
    *
    * @param <E> type of entity
@@ -568,9 +568,9 @@ public class GtfsCleanUpDiagnostics {
   /**
    * Capture the GTFS stops each trip schedule runs between, before any clean up has run.
    * <p>
-   * Taken this early because the clean up that precedes the truncation detaches a leg from the trip the moment it
-   * becomes unmapped, and a detached leg no longer names the stops it ran between. By the time the truncation is
-   * judged, the very legs whose loss is to be explained have already lost the means to explain it
+   * Taken this early because the clean up before the truncation detaches a leg from the trip as soon as it becomes
+   * unmapped, and a detached leg no longer names the stops it ran between. So by the time the truncation is judged,
+   * the legs whose loss is to be explained can no longer explain it
    * </p>
    *
    * @param routedServices to capture from
@@ -588,15 +588,15 @@ public class GtfsCleanUpDiagnostics {
   }
 
   /**
-   * Determine which outcome the truncation will hand each trip schedule, before it runs.
+   * Determine which outcome the truncation will give each trip schedule, before it runs.
    * <p>
    * A schedule keeping at least one leg is cut back to it and lives on in some form. One keeping none is removed
-   * outright, and then it matters whether any two of its stops ran one after the other within the area: where none
-   * did, no leg could have existed and the boundary accounts for the loss, whereas where two did and there is still
-   * no leg between them nothing about where the trip ran explains it
+   * outright, and then it matters whether any two of its stops ran one after the other within the area. If none did,
+   * no leg could have existed and the boundary accounts for the loss. If two did and there is still no leg between
+   * them, nothing about where the trip ran explains it
    * </p>
    * <p>
-   * Taken before the truncation because it clears away what it removes, and judged by the same test the modifier
+   * Done before the truncation because it clears away what it removes, and judged by the same test the modifier
    * itself applies, so this classifies rather than guesses
    * </p>
    *

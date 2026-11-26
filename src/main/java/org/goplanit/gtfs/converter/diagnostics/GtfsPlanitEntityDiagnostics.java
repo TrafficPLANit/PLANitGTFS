@@ -25,10 +25,10 @@ import java.util.logging.Logger;
 /**
  * What became of the PLANit entities the converter derives from the feed.
  * <p>
- * A derived entity has no feed side denominator, so it is not scored as a share of the feed. What can be stated is how
+ * A derived entity has no feed side denominator, so it is not scored as a share of the feed. Instead this states how
  * many of each kind were meant to exist and how many are in the result, with the shortfall attributed to the issues
- * that caused it. Both ways of falling short are counted the same way: an entity that could never be built never
- * reaches the result, and neither does one that was built and subsequently removed
+ * that caused it. An entity that could never be built and one built and later removed both never reach the result, so
+ * both are counted the same way
  * </p>
  *
  * @author markr
@@ -57,11 +57,11 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   private final Map<GtfsPlanitEntityType, Map<String, LongAdder>> createdByType = new ConcurrentHashMap<>();
 
   /**
-   * Entities of each type, and of each subdivision of it, lost building the PLANit result rather than through the
-   * feed side losing what they were to be built from.
+   * Entities of each type, and of each subdivision of it, lost building the PLANit result, not because the feed side
+   * lost what they were to be built from.
    * <p>
-   * Counted alongside the issues that name them because an issue is not recorded per subdivision of its entity type,
-   * so what a subdivision lost of its own accord cannot be read back off them
+   * Counted alongside the issues that name them, because an issue is not recorded per subdivision of its entity type,
+   * so what a subdivision lost by itself cannot be read back from the issues
    * </p>
    */
   private final Map<GtfsPlanitEntityType, Map<String, LongAdder>> lostByType = new ConcurrentHashMap<>();
@@ -72,8 +72,8 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   /**
    * How often each issue arose within each subdivision of it.
    * <p>
-   * Counted here rather than read back off the retained occurrences because those are capped for reporting, so on a
-   * sizeable feed they are a sample and the split taken from them would be one too
+   * Counted here, not read back from the retained occurrences: those are capped for reporting, so on a large feed they
+   * are only a sample, and a split taken from them would be one too
    * </p>
    */
   private final Map<GtfsPlanitEntityIssue, Map<String, LongAdder>> occurrencesBySubType = new ConcurrentHashMap<>();
@@ -81,8 +81,8 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   /**
    * What each subdivision of an issue says about the parser.
    * <p>
-   * Held per subdivision rather than per occurrence because the two agree: a subdivision names where the entities in
-   * it stood, and that is what decides the disposition, so every occurrence within one carries the same
+   * Held per subdivision, not per occurrence, because the two agree: a subdivision names where its entities stood,
+   * which decides the disposition, so every occurrence within one carries the same
    * </p>
    */
   private final Map<GtfsPlanitEntityIssue, Map<String, GtfsIssueDisposition>> dispositionBySubType =
@@ -149,10 +149,9 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   /**
    * Describe a subdivision as the log speaks of it.
    * <p>
-   * Where the subdivision names the GTFS issue a loss originated in, it is stated exactly as that issue is stated
-   * where it was first reported. The same loss seen twice reads as the same loss, rather than as an entry the reader
-   * has to match to another by its constant. A listing outliving the run keeps the constant, which is what a later
-   * reader can join on
+   * Where the subdivision names the GTFS issue a loss originated in, it is described exactly as that issue was where
+   * first reported, so the same loss seen twice reads as the same loss, not as an entry the reader has to match to
+   * another by its constant. A listing outliving the run keeps the constant, which a later reader can join on
    * </p>
    *
    * @param subType to describe
@@ -168,12 +167,12 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   }
 
   /**
-   * Collect the entities of a type that the losses carried over from the feed side left behind, which is what became
-   * of them plus what was subsequently lost building the PLANit result.
+   * Collect the entities of a type left behind by the losses carried over from the feed side: those created plus those
+   * later lost building the PLANit result.
    * <p>
-   * The population an issue of PLANit's own making could have arisen for. Measured against everything that was to be
+   * These are what an issue of PLANit's own making could have arisen for. Measured against everything that was to be
    * built, such an issue reads as negligible whenever the feed side took away most of it, which says how much of the
-   * feed reached here rather than how much of what reached here was lost
+   * feed reached here, not how much of what reached here was lost
    * </p>
    *
    * @param entityType to collect for
@@ -198,11 +197,11 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   }
 
   /**
-   * Log the entities building the PLANit result kept but altered, largest first.
+   * Log the entities kept but altered while building the PLANit result, largest first.
    * <p>
-   * These are not a shortfall: the entity is in the result, shaped to what the network it had to be expressed on
-   * allows. Stated among the losses they would read as entities gone, and the counts would appear to contradict what
-   * the result holds
+   * These are not a shortfall: the entity is in the result, shaped to what the network it is expressed on allows.
+   * Stated among the losses they would read as entities gone, and the counts would seem to contradict what the result
+   * holds
    * </p>
    *
    * @param issues to log, those that alter rather than remove
@@ -247,10 +246,10 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   /**
    * Log what was lost here because the GTFS entities behind it were lost, largest first.
    * <p>
-   * How many were lost is worth stating, one discarded stop costing as many legs as it was a stop of, and that
-   * multiplier appears nowhere on the feed side. Why they were lost does not: it is the reason already given there,
-   * and repeating the split of it entry by entry says the same thing a second time in the same report. What is left is
-   * the count, with the listing holding the cause against each entity for anyone who needs to follow one through
+   * How many were lost is worth stating, as one discarded stop costs as many legs as it was a stop of, and that
+   * multiplier appears nowhere on the feed side. Why they were lost is not: it is the reason already given there, and
+   * repeating its split entry by entry would say the same thing twice in one report. So the count is logged, and the
+   * listing holds the cause against each entity for anyone who needs to follow one through
    * </p>
    *
    * @param issues to log, those whose loss carries over from the feed side
@@ -293,8 +292,8 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * Log how an entity type divides over the subdivisions it was counted under, each stated as what it is in the result
    * against what was to be there, largest first.
    * <p>
-   * A type that only ever falls short in part of what it covers reads as though it fell short throughout, the total
-   * alone being unable to tell one mode running as it should from another that lost nearly everything
+   * A type that falls short in only part of what it covers would read as if it fell short throughout, as the total
+   * alone cannot tell one mode running as it should from another that lost nearly everything
    * </p>
    *
    * @param entityType to log for
@@ -626,9 +625,9 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   /**
    * Register a single occurrence of an issue that arose within a subdivision of its entity type.
    * <p>
-   * A PLANit entity type is not subdivided the way a GTFS one is, having no field in the feed that classifies it.
-   * What does subdivide its failures is what became of the feed entities it was to be built from, which is a property
-   * of the occurrence rather than of the entity, and so is supplied per occurrence here
+   * A PLANit entity type is not subdivided like a GTFS one, as no field in the feed classifies it. Its failures are
+   * subdivided by what became of the feed entities it was to be built from. That is a property of the occurrence, not
+   * of the entity, so it is supplied per occurrence here
    * </p>
    *
    * @param issue encountered
@@ -645,9 +644,9 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
    * Register a single occurrence of an issue that arose within a subdivision of its entity type, carrying the
    * disposition that subdivision earns rather than the one its issue is declared with.
    * <p>
-   * An issue is declared with the disposition that fits an entity the run meant to keep. Where the entities behind
-   * an occurrence were not such entities, the caller knows it and says so here, so a count is not read as a backlog
-   * when what it holds was never wanted
+   * An issue is declared with the disposition that fits an entity the run meant to keep. Where the entities behind an
+   * occurrence were not such entities, the caller knows and says so here, so a count of entities never wanted is not
+   * read as a backlog
    * </p>
    *
    * @param issue encountered
@@ -850,9 +849,9 @@ public class GtfsPlanitEntityDiagnostics extends GtfsDiagnosticsBase<GtfsPlanitE
   /**
    * {@inheritDoc}
    * <p>
-   * A derived entity is lost for reasons that differ in kind within a single issue, most of them because the feed
-   * entities behind it were never wanted, so a single declared disposition would describe a fraction of the count
-   * and misrepresent the rest. The split is stated instead
+   * Within a single issue, derived entities are lost for reasons of different kinds, mostly because the feed entities
+   * behind them were never wanted. A single declared disposition would describe a fraction of the count and
+   * misrepresent the rest, so the split is stated instead
    * </p>
    */
   @Override

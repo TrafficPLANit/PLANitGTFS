@@ -7,13 +7,13 @@ import java.util.List;
 /**
  * The respects in which a GTFS entity can fall inside or outside what a run covers.
  * <p>
- * A run is narrowed in more than one way and they are not interchangeable. A trip running on another day and a trip
- * running in another city are both outside what was asked for, but for reasons that say entirely different things
- * about the feed, and folding them into a single notion of scope leaves the larger of the two unexplained
+ * A run is narrowed in more than one way, and the ways are not interchangeable. A trip running on another day and one
+ * running in another city are both outside what was asked for, but for reasons that say very different things about
+ * the feed. A single notion of scope would leave the larger of the two unexplained
  * </p>
  * <p>
- * Which respects apply is a property of the entity type rather than of the entity: a calendar has no location and a
- * stop has no timetable, so asking where a calendar sits is not a hard question but a meaningless one
+ * Which respects apply depends on the entity type, not the entity: a calendar has no location and a stop has no
+ * timetable, so asking where a calendar sits is not a hard question but a meaningless one
  * </p>
  *
  * @author markr
@@ -32,9 +32,9 @@ public enum GtfsScopeDimension {
   /**
    * whether the entity was one the run was asked to include at all, an exclusion naming it rather than describing it.
    * <p>
-   * Unlike the others this filters on the entity's identity: a route left out by short name or a stop by id may sit
-   * squarely within the area, run on the chosen day and serve an activated mode, and still be none of the run's
-   * business. It is never partly so
+   * Unlike the others this filters on the entity's identity: a route left out by short name, or a stop by id, may sit
+   * well within the area, run on the chosen day and serve an activated mode, and still be excluded. An entity is never
+   * partly excluded
    * </p>
    */
   SELECTION;
@@ -42,9 +42,9 @@ public enum GtfsScopeDimension {
   /**
    * The respects that narrow each kind of entity, in the order they settle as it is parsed.
    * <p>
-   * Ordered rather than merely listed because a share is only meaningful against what reached the respect concerned,
-   * and what reached it is whatever survived the respects before. Declaring the order here keeps it reviewable
-   * instead of leaving it to be inferred from the numbers it produces
+   * Ordered, not just listed, because a share only means something against what reached the respect concerned, which
+   * is what survived the respects before it. Declaring the order here keeps it reviewable, instead of it having to be
+   * inferred from the numbers it produces
    * </p>
    *
    * @param entityType to collect for

@@ -1,12 +1,12 @@
 package org.goplanit.gtfs.converter.diagnostics;
 
 /**
- * What every issue the converter records has in common, irrespective of whether it concerns an entity the feed supplied
- * or one the converter set out to build from it.
+ * What every issue the converter records has in common, whether it concerns an entity the feed supplied or one the
+ * converter set out to build from it.
  * <p>
- * Reporting an issue depends on none of that distinction: collating it, sampling the entities it concerns, composing
- * its context and writing it to a listing are the same work either way. What it is expressed here so that it is
- * implemented once, and what differs between the two kinds of issue stays with the issues themselves.
+ * Reporting an issue is the same work either way: collating it, sampling the entities it concerns, composing its
+ * context and writing it to a listing. What that work needs is stated here so it is implemented once; what differs
+ * between the two kinds of issue stays with the issues themselves.
  * </p>
  *
  * @author markr
@@ -95,9 +95,9 @@ public interface GtfsIssue {
   /**
    * Collect what the entity ids recorded against this issue denote, stated once ahead of the sample listing them.
    * <p>
-   * Needed only where those ids are not the ids of the entity the issue is reported under, as is the case for an entity
-   * the converter derives rather than reads, which has no id of its own to be sampled by and is identified by the GTFS
-   * entities it was to be built from instead
+   * Needed only where those ids are not those of the entity the issue is reported under. This is the case for an
+   * entity the converter derives rather than reads: it has no id of its own to sample, so it is identified by the GTFS
+   * entities it was to be built from
    * </p>
    *
    * @return entity id label, null when the ids need no clarification

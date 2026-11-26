@@ -75,16 +75,15 @@ public class GtfsLinkHelper {
     return data.getConverterData().findLinksSpatiallyAcrossLayers(searchEnvelope);
   }
 
-  /** Extract/create a PLANit node based on the given location. Either it already exists as a PLANit node, or it
-   * is internal to an existing link. In the latter case a new node is created and the existing link is broken. In
-   * the former case, we simply collect the PLANit node, which happens only when the location is an end node of the
-   * link itself: whether a nearby end node is reused instead is decided where the location is found. See
-   * {@link ZoningConverterModifierUtils#extractNodeByLinkGeometryLocation}. When we break the link, what breaking it adds
-   * is recorded for the stop access statistics
+  /** Extract/create a PLANit node based on the given location. Either it already exists as a PLANit node, or it is
+   * internal to an existing link. If internal, a new node is created and the existing link is broken. If it exists,
+   * the PLANit node is collected, which happens only when the location is an end node of the link itself: whether a
+   * nearby end node is reused instead is decided where the location is found. See
+   * {@link ZoningConverterModifierUtils#extractNodeByLinkGeometryLocation}. When the link is broken, what breaking it
+   * adds is recorded for the stop access statistics
    *
    * @param stopLocationInPlanitCrs to collect/create PLANit node for (can be slightly altered in case of
-   *                                rounding/syncing
-   *                             with reference link geometry)
+   *                                rounding/syncing with reference link geometry)
    * @param referenceLink the location is related to, can be internal can be an extreme node
    * @param networkLayer to extract node on
    * @param data containing state

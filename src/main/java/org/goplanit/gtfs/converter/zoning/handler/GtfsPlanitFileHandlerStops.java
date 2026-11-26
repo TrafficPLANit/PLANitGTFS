@@ -240,8 +240,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * From the provided options, select the most appropriate based on proximity, mode compatibility, relative location to GTFS stop zone, and importance of the link segments.
-   * In case of track based modes either direction link segment is acceptable, otherwise the correctly facing link segment is chosen.
+   * From the provided options, select the most appropriate based on proximity, mode compatibility, relative location
+   * to GTFS stop zone, and importance of the link segments. In case of track based modes either direction link segment
+   * is acceptable, otherwise the correctly facing link segment is chosen.
    * <p>
    *   Based on set of eligible link segments, not links, judging a link by the distance to its geometry, see
    *   {@link ZoningConverterUtils#findMostAppropriateVehicleStopConnectoidLinkByDistanceToLinkGeometry}, as used when
@@ -253,7 +254,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStop      under consideration
    * @param eligibleAccessModes access modes considered eligible to use
    * @param potentialLinkSegments for connectoids
-   * @return most appropriate link that is found and its eligible access link segment(s), null if no compatible links could be found
+   * @return most appropriate link that is found and its eligible access link segment(s), null if no compatible links
+   * could be found
    */
   private Pair<MacroscopicLink, SortedSet<MacroscopicLinkSegment>>
   findAppropriateVehicleStopConnectoidLinkFromLinkSegments(
@@ -304,7 +306,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * @param gtfsStop      under consideration
    * @param eligibleAccessModes access modes considered eligible to use
    * @param eligibleLinks for connectoids
-   * @return most appropriate link that is found and its eligible access link segment(s), null if no compatible links could be found
+   * @return most appropriate link that is found and its eligible access link segment(s), null if no compatible links
+   * could be found
    */
   private Pair<MacroscopicLink, SortedSet<MacroscopicLinkSegment>>
   findMostAppropriateVehicleStopConnectoidLinkFromLinks(
@@ -514,15 +517,13 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   }
 
   /**
-   * Match available transfer zones to the gtfs stop with a given number of preferred access segments. These segments
-   * for road based should only contain a single directional segment whereas for
-   * track based, they can contain multiple (as tracks have no direction, both directions are acceptable). We then
-   * cycle through the closest eligible transfer zones and for each determine the angle
-   * between a virtual line connecting the zone-to-road vs the gtfs-stop-to-road is below the given threshold. If
-   * it is a match is found which is then verified to be reachable. The latter meaning that
-   * the access link segment of the gtfs stop should be adjacent (not the same) to a transfer zone's access link
-   * segment with acceptable angle. If so it is a proper match. If only the angle matches we log a warning
-   * for the user to check if it is indeed valid.
+   * Match available transfer zones to the GTFS stop with a given number of preferred access segments. For road based
+   * modes these should be a single directional segment, for track based modes they can be several (tracks have no
+   * direction, so both directions are acceptable). The closest eligible transfer zones are tried in turn, checking for
+   * each whether the angle between a virtual line from the zone to the road and one from the GTFS stop to the road is
+   * below the given threshold. If so, the match is verified to be reachable: the access link segment of the GTFS stop
+   * should be adjacent to (not the same as) a transfer zone's access link segment with acceptable angle. If so it is a
+   * proper match. If only the angle matches, a warning is logged for the user to check whether it is valid.
    *
    * @param gtfsStop                          to match
    * @param gtfsStopMode                      mode of the stop
@@ -1109,10 +1110,10 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
 
 
   /**
-   * Register why no access link could be found for the stop, which is settled by how far the nearest link carrying
-   * its mode actually lies. A radius that fell just short, a network that carries no such mode where the stop is, and
-   * a network that does not extend to the stop at all are three different things, and only the first two are the
-   * parse falling short of what it was given
+   * Register why no access link could be found for the stop, decided by how far away the nearest link carrying its
+   * mode lies. A radius that fell just short, a network carrying no such mode where the stop is, and a network not
+   * extending to the stop at all are three different things, and only the first two are the parse falling short of
+   * what it was given
    *
    * @param gtfsStop concerned
    * @param projectedGtfsStopLocation of the stop in the network's CRS
@@ -1356,9 +1357,9 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
   /**
    * Register an issue against a GTFS stop, counted within the stop's location type.
    * <p>
-   * A stop is seen under its location type, so an issue that is not counted the same way leaves the two sides unable
-   * to be reconciled: the location types would each report everything seen as parsed while every discard fell outside
-   * them. Registering through here is what keeps the location type on both sides
+   * A stop is seen under its location type, so an issue not counted the same way would leave the two sides unable to
+   * reconcile: each location type would report everything seen as parsed, while every discard fell outside them.
+   * Registering through here keeps the location type on both sides
    * </p>
    *
    * @param issue to register
@@ -1378,8 +1379,8 @@ public class GtfsPlanitFileHandlerStops extends GtfsFileHandlerStops {
    * Determine where a GTFS stop sits relative to the area the run covers. A stop is a point, so it is either within
    * reach or it is not, never partly so.
    * <p>
-   * Established with the same check that decides whether the stop is discarded for falling outside that area, so that
-   * what is reported as beyond the area and what is actually dropped for being beyond the area cannot diverge
+   * Uses the same check that decides whether the stop is discarded for falling outside that area, so what is reported
+   * as beyond the area and what is dropped for being beyond it cannot diverge
    * </p>
    *
    * @param gtfsStop to determine scope for

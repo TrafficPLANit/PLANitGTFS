@@ -4,12 +4,12 @@ import org.goplanit.gtfs.entity.GtfsStop;
 import org.goplanit.gtfs.handler.GtfsFileHandlerStops;
 
 /**
- * Handler establishing which GTFS stops lie within the area the run covers, so that the services stage can tell a trip
- * that was never within the area from one the parser lost.
+ * Handler finding which GTFS stops lie within the area the run covers, so the services stage can tell a trip that was
+ * never within the area from one the parser lost.
  * <p>
- * Deliberately not the zoning stage's stop handler, which maps stops onto the physical network, names them and reports
+ * Kept apart from the zoning stage's stop handler, which maps stops onto the physical network, names them and reports
  * on them. Here nothing is mapped and nothing is recorded against the stop: only the spatial question is answered, and
- * only for the stops that are within the area, those being by far the fewer of the two.
+ * the answer is held only for the stops within the area, as they are by far the fewer.
  * </p>
  * <p>
  *   Prerequisite: no prerequisites

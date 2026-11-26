@@ -3,10 +3,9 @@ package org.goplanit.gtfs.converter.diagnostics;
 /**
  * Where a GTFS entity sits relative to the area the run covers.
  * <p>
- * A feed routinely covers more ground than the physical network it is being mapped onto, a state-wide feed against a
- * single city being the normal case. Measuring what the parser achieved against everything in the feed therefore
- * mostly measures that difference, not the parser. Scope separates the two, so that what is reported can be measured
- * against what was ever within the area
+ * A feed often covers more ground than the physical network it is mapped onto; a state-wide feed for a single city is
+ * the normal case. Measuring the parser against everything in the feed then mostly measures that difference, not the
+ * parser. Scope separates the two, so what is reported can be measured against what was ever within the area
  * </p>
  *
  * @author markr
@@ -24,22 +23,21 @@ public enum GtfsEntityScope {
   OUT,
 
   /**
-   * Scope of the entity is not settled, it having been encountered but dropped, or not yet reached the point where
-   * where it sits could be told.
+   * Scope of the entity is not settled: it was encountered but dropped, or has not yet reached the point where its
+   * scope can be told.
    * <p>
-   * Internal bookkeeping rather than a scope anyone asks for. It exists so that every entity encountered occupies
-   * exactly one cell of the one tally, which is what lets what the feed holds, what has a scope and what is within the area
-   * all be read off the same counters without any of them being able to disagree. Never reported
+   * Internal bookkeeping, not a scope anyone asks for. It makes every entity encountered occupy exactly one cell of the
+   * one tally, so what the feed holds, what has a scope and what is within the area are all read off the same counters
+   * and cannot disagree. Never reported
    * </p>
    */
   NOT_ESTABLISHED,
 
   /**
-   * The respect does not apply to this kind of entity at all, a calendar having no location and a stop no timetable.
+   * The respect does not apply to this kind of entity at all, as a calendar has no location and a stop no timetable.
    * <p>
-   * Distinct from an unsettled scope on purpose. One says the question was never answered and might yet be, the other
-   * that it cannot be asked, and reporting both as the same thing leaves a reader unable to tell a gap in the report
-   * from a fact about the entity
+   * Kept apart from an unsettled scope: one says the question was never answered and might yet be, the other that it
+   * cannot be asked. Reported as the same, a reader could not tell a gap in the report from a fact about the entity
    * </p>
    */
   NOT_APPLICABLE;

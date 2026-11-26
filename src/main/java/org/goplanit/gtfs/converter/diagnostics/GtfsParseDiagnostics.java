@@ -30,24 +30,24 @@ import java.util.stream.Collectors;
 /**
  * Records what became of every GTFS entity the converter encountered, across all three stages.
  * <p>
- * The parser counts what it processes; what it drops is what determines whether a feed was actually landed. This
- * tracks both, so an entity that was seen but never reached the memory model is accounted for by name and reason
- * rather than disappearing between two totals that do not reconcile.
+ * The parser counts what it processes, but what it drops decides whether a feed was fully converted. This tracks both,
+ * so an entity seen but never reaching the memory model is accounted for by name and reason, instead of disappearing
+ * between two totals that do not reconcile.
  * </p>
  * <p>
- * Counts are kept on two axes. Every entity is counted against its type, and where a call site supplies one, also
- * against a subtype within that type such as the route type a route belongs to. The same entity therefore appears in
- * aggregate and broken down, without either being derived from the other.
+ * Counts are kept on two axes. Every entity is counted against its type and, where a call site supplies one, against a
+ * subtype within that type, such as the route type of a route. So the same entity appears in aggregate and broken
+ * down, without either being derived from the other.
  * </p>
  * <p>
- * It doubles as the suppression index the converter needs anyway: once a route or trip is registered as discarded,
- * later stages can ask whether an entity referencing it should be processed at all, rather than each stage keeping its
- * own record of the same fact.
+ * It is also the index of discards the converter needs anyway: once a route or trip is registered as discarded, later
+ * stages can ask whether an entity referencing it should be processed at all, instead of each stage keeping its own
+ * record of the same fact.
  * </p>
  * <p>
- * Counting entities and registering issues are safe for concurrent use, which the integration stage requires since
- * it maps leg segments from worker threads. Settling where an entity stands is not: it is only done while the files
- * are read, one at a time.
+ * Counting entities and registering issues are safe for concurrent use, which the integration stage needs as it maps
+ * leg segments from worker threads. Settling where an entity stands is not: it is only done while the files are read,
+ * one at a time.
  * </p>
  *
  * @author markr
@@ -58,32 +58,32 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   private static final Logger LOGGER = Logger.getLogger(GtfsParseDiagnostics.class.getCanonicalName());
 
   /**
-   * Entity types whose discards are indexed by id, so that an entity read later can ask why the entity it references
-   * went and inherit the reason.
+   * Entity types whose discards are indexed by id, so an entity read later can ask why the entity it references went
+   * and inherit the reason.
    * <p>
-   * This is a dependency between files rather than a preference: a trip asks after its route, and a stop time after
-   * its trip, each reading an index built while parsing a file that came before it.
+   * This is a dependency between files, not a preference: a trip asks after its route, and a stop time after its trip,
+   * each reading an index built while parsing an earlier file.
    * </p>
    * <p>
-   * Stops are here for the same reason although nothing in the feed reads them: a stop's fate is settled in the
-   * zoning stage, after the stop times naming it, so no later file can inherit it. What does read it is the
-   * integration that follows both stages, where a leg segment left without a transfer zone can only say why by
-   * asking what became of the stop at either end.
+   * Stops are here for the same reason, although nothing in the feed reads them: a stop's fate is settled in the zoning
+   * stage, after the stop times naming it, so no later file can inherit it. The integration after both stages reads it
+   * instead: a leg segment left without a transfer zone can only say why by asking what became of the stop at either
+   * end.
    * </p>
    * <p>
-   * Stop times are absent for the opposite reason: nothing references a stop time, and a feed the size of Sydney's
-   * holds millions of them, so retaining an id per discard would trade a lookup nobody performs for a memory problem.
+   * Stop times are left out for the opposite reason: nothing references a stop time, and a feed the size of Sydney's
+   * holds millions of them, so keeping an id per discard would trade a lookup nobody does for a memory problem.
    * </p>
    */
   private static final Set<GtfsObjectType> DISCARD_INDEXED_ENTITY_TYPES =
       Set.of(GtfsObjectType.ROUTE, GtfsObjectType.TRIP, GtfsObjectType.STOP);
 
   /**
-   * Entity types whose standing is indexed by id, so that a respect settling later can move the entity between the
-   * cells of the tally rather than leaving it counted where it no longer belongs.
+   * Entity types whose standing is indexed by id, so a respect settling later can move the entity between cells of the
+   * tally instead of leaving it counted where it no longer belongs.
    * <p>
-   * Kept apart from the discard index because the two answer different questions and need not hold the same types,
-   * even where they happen to agree today. One asks what became of an entity, the other where it stood
+   * Kept apart from the discard index: the two answer different questions, what became of an entity and where it
+   * stood, so they need not hold the same types, even where they now agree
    * </p>
    */
   private static final Set<GtfsObjectType> SCOPE_INDEXED_ENTITY_TYPES =
@@ -95,9 +95,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /**
    * How many GTFS entities of each type were encountered, within their subtype and their scope.
    * <p>
-   * One tally rather than one per axis. Every entity encountered occupies exactly one cell of it and moves between
-   * cells as its scope settles, so what the feed holds, what has a scope and what was within the area are all read off
-   * the same counters and cannot come to disagree
+   * One tally, not one per axis. Every entity encountered occupies exactly one cell of it and moves between cells as
+   * its scope settles, so what the feed holds, what has a scope and what was within the area are all read off the same
+   * counters and cannot disagree
    * </p>
    */
   private final Map<GtfsObjectType, Map<String, Map<GtfsScopeState, LongAdder>>> seenByEntityTypeSubTypeAndScope =
@@ -108,12 +108,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
       new EnumMap<>(GtfsObjectType.class);
 
   /**
-   * How often each issue was registered, per subtype where one was supplied and per the scope the entity stood in at
-   * the moment it arose.
+   * How often each issue was registered, per subtype where one was supplied and per the scope the entity stood in when
+   * it arose.
    * <p>
-   * The scope makes the classification checkable rather than asserted: an issue firing only against entities within
-   * the area is a measure of the parser, one firing against entities beyond the area is a measure of the ground the
-   * feed covers, and the rows say which without anyone having to reason it out
+   * The scope makes the classification checkable, not just asserted: an issue firing only for entities within the area
+   * measures the parser, one firing for entities beyond it measures the ground the feed covers, and the rows show which
    * </p>
    */
   private final Map<GtfsParseIssue, Map<String, Map<GtfsScopeState, LongAdder>>> issuesBySubTypeAndScope =
@@ -128,10 +127,10 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /**
    * The subtype each entity was seen under, keyed by id, for the scope indexed entity types only.
    * <p>
-   * An entity is not always discarded where it was read. A route left without trips is pruned long after
-   * routes.txt was parsed, by which point its route type is no longer at hand, yet counting that discard
-   * outside the route type the route was seen under leaves the two sides of the report unable to reconcile.
-   * Recording the subtype once, here, lets any later discard be attributed to it.
+   * An entity is not always discarded where it was read. A route left without trips is pruned long after routes.txt
+   * was parsed, when its route type is no longer at hand. Counting that discard outside the route type the route was
+   * seen under would leave the two sides of the report unable to reconcile. Recording the subtype once, here, lets any
+   * later discard be attributed to it.
    * </p>
    */
   private final Map<GtfsObjectType, Map<String, String>> seenSubTypeByEntityId = new EnumMap<>(GtfsObjectType.class);
@@ -375,11 +374,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Log what the feed holds and how much of it was ever within the area of the run, so that the denominator every share
-   * below is measured against is stated rather than assumed.
+   * Log what the feed holds and how much of it was ever within the area of the run, so the denominator of every share
+   * below is stated, not assumed.
    * <p>
-   * An entity type whose scope could not be established is reported as such rather than silently counted as wholly in
-   * reach, since the two look identical in the resulting percentages
+   * An entity type whose scope could not be established is reported as such, not silently counted as wholly in reach,
+   * since the two look the same in the resulting percentages
    * </p>
    */
   private void logScopeSummary() {
@@ -529,13 +528,13 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /**
    * Persist the tally the whole report is derived from, one row per entity type, subtype and scope.
    * <p>
-   * Written as the raw counts rather than as the populations the log speaks in. What the feed holds, what reached the
-   * point its scope could be told and what was within the area are each a sum over these rows, so a reader can take
-   * whichever grouping is of interest instead of being limited to the three the log happens to print
+   * Written as raw counts, not as the populations the log speaks in. What the feed holds, what reached the point its
+   * scope could be told and what was within the area are each a sum over these rows, so a reader can take any
+   * grouping, not only the three the log prints
    * </p>
    * <p>
-   * The unsettled scope is written along with the rest. Without it the rows would not sum to what the feed holds,
-   * which is the one total every other figure is read against
+   * The unsettled scope is written too. Without it the rows would not sum to what the feed holds, the one total every
+   * other figure is read against
    * </p>
    *
    * @param filePath to write to
@@ -652,9 +651,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /**
    * {@inheritDoc}
    * <p>
-   * Everything the feed holds, this standing in only for the flat listing the base class offers. The summary places
-   * each issue at the respect that filtered its entities and measures it against whatever reached that respect, so
-   * the denominator belongs to the placement rather than to the issue
+   * Everything the feed holds, used only for the flat listing of the base class. The summary places each issue at the
+   * respect that filtered its entities and measures it against whatever reached that respect, so there the denominator
+   * belongs to the placement, not to the issue
    * </p>
    */
   @Override
@@ -748,11 +747,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register that an entity was ruled out in the given respect, a filter having excluded it.
+   * Register that an entity was ruled out in the given respect, because a filter excluded it.
    * <p>
-   * Ruling out is absorbing: a trip already excluded for running on another day is not brought back by passing a
-   * later test, so unlike the spatial respect, where parts accumulate into a whole, the respects a run is narrowed by
-   * only ever narrow further
+   * Ruling out is final: a trip already excluded for running on another day is not brought back by passing a later
+   * test. So, unlike the spatial respect, where parts add up to a whole, the respects a run is narrowed by only ever
+   * narrow further
    * </p>
    *
    * @param entityType encountered
@@ -896,12 +895,13 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Register that a part of an entity was encountered within or beyond the area the run covers, the entity's own scope
-   * following from every part registered for it: wholly within, wholly beyond, or partly both.
+   * Register that a part of an entity was encountered within or beyond the area the run covers. The entity's own scope
+   * follows from every part registered for it: wholly within, wholly beyond, or partly both.
    * <p>
-   * An entity spanning several rows of a file has its scope settled only once all of them have been seen, a trip
-   * running from inside the area to beyond it being neither. Accumulating that here rather than in the handler keeps
-   * the rule in one place and spares each handler from having to tell where one entity ends and the next begins
+   * An entity spanning several rows of a file has its scope settled only once all of them have been seen: a trip
+   * running from inside the area to beyond it is neither wholly within nor wholly beyond. Doing this here, not in the
+   * handler, keeps the rule in one place and spares each handler from telling where one entity ends and the next
+   * begins
    * </p>
    * <p>
    * The entity moves between cells of the tally as its scope settles, so it is counted exactly once throughout
@@ -1069,11 +1069,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Absorb everything another set of diagnostics recorded, so that stages run separately report as a single funnel.
+   * Absorb everything another set of diagnostics recorded, so stages run separately report as a single funnel.
    * <p>
-   * Rejects a merge where both sides recorded the same GTFS entity type, since each type originates from one GTFS
-   * file which should be read by one stage only. Were two stages to count the same file, the totals would double and
-   * every share derived from them would be wrong, which is far harder to notice afterwards than a failed merge
+   * Rejects a merge where both sides recorded the same GTFS entity type, since each type comes from one GTFS file,
+   * which only one stage should read. If two stages counted the same file, the totals would double and every share
+   * derived from them would be wrong, which is far harder to notice afterwards than a failed merge
    * </p>
    *
    * @param other to absorb, ignored when null
@@ -1347,11 +1347,11 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   }
 
   /**
-   * Collect the respect an entity standing as given is to be reported under, i.e. the first it was ruled out in.
+   * Collect the respect to report an entity with the given standing under: the first it was ruled out in.
    * <p>
-   * Where it was ruled out in none it stands within scope throughout and belongs after the respects rather than at
-   * one of them. Where it was ruled out in none but never reached one either, it belongs at the respect it never
-   * reached, that being as far as it got
+   * If it was ruled out in none, it is within scope throughout and belongs after the respects, not at one of them. If
+   * it was ruled out in none but never reached one, it belongs at the first respect it never reached, as that is as
+   * far as it got
    * </p>
    *
    * @param entityType concerned
@@ -1376,9 +1376,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /**
    * Collect how many entities of a type were within scope in the given respect and in every respect settled before it.
    * <p>
-   * Cumulative rather than taken in isolation, a respect only ever being applied to whatever survived the respects
-   * before it. Counting it alone reports entities already ruled out, which on a feed covering more ground than the
-   * network yields a share of several thousand percent
+   * Cumulative, not taken alone, as a respect is only ever applied to what survived the respects before it. Counting
+   * it alone would include entities already ruled out, which on a feed covering more ground than the network gives a
+   * share of several thousand percent
    * </p>
    *
    * @param entityType to collect for
@@ -1717,9 +1717,9 @@ public class GtfsParseDiagnostics extends GtfsDiagnosticsBase<GtfsParseIssue> {
   /**
    * Collect how often an issue was registered against entities the report places at no respect at all.
    * <p>
-   * An occurrence stands either at the respect that ruled its entity out or, where none did, among those within scope
-   * throughout. One whose entity was let go before any respect that applies to it could be settled stands at neither,
-   * and so is reported nowhere unless it is gathered separately
+   * An occurrence stands at the respect that ruled its entity out or, where none did, among those within scope
+   * throughout. One whose entity was let go before any respect that applies to it was settled stands at neither, so it
+   * is reported nowhere unless gathered separately
    * </p>
    *
    * @param issue to total for

@@ -8,10 +8,14 @@ import org.goplanit.utils.misc.StringUtils;
 /**
  * Defines the different stop location types:
  * <ul>
- *   <li>STOP_PLATFORM (0 or null or ""): A location where passengers board or disembark from a transit vehicle. Is called a platform when defined within a parent_station.</li>
+ *   <li>STOP_PLATFORM (0 or null or ""): A location where passengers board or disembark from a transit vehicle. Is
+ *   called a platform when defined within a parent_station.</li>
  *   <li>STATION (1): A physical structure or area that contains one or more platform</li>
- *   <li>ENTRANCE_EXIT (2): A location where passengers can enter or exit a station from the street. If an entrance/exit belongs to multiple stations, it can be linked by pathways to both, but the data provider must pick one of them as parent.</li>
- *   <li>GENERIC_NODE (3): A location within a station, not matching any other location_type, which can be used to link together pathways define in pathways.txt.</li>
+ *   <li>ENTRANCE_EXIT (2): A location where passengers can enter or exit a station from the street. If an
+ *   entrance/exit belongs to multiple stations, it can be linked by pathways to both, but the data provider must pick
+ *   one of them as parent.</li>
+ *   <li>GENERIC_NODE (3): A location within a station, not matching any other location_type, which can be used to
+ *   link together pathways defined in pathways.txt.</li>
  *   <li>BOARDING_AREA (4):  A specific location on a platform, where passengers can board and/or alight vehicles </li>
  * </ul>
  *

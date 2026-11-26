@@ -16,15 +16,15 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * What recording issues amounts to, irrespective of the kind of entity they concern.
+ * Records issues, whatever kind of entity they concern.
  * <p>
  * Collating an occurrence, composing its context only where it will be read, sampling the entities it concerned,
  * giving it a line in a summary and writing it to a listing are the same work whether the entity came from the feed or
- * was one the converter set out to build from it. That work lives here, expressed against {@link GtfsIssue}, so that
- * what the two kinds of issue genuinely differ in is all that has to be stated separately.
+ * was one the converter set out to build from it. That work is done here, against {@link GtfsIssue}, so only what the
+ * two kinds of issue differ in is stated separately.
  * </p>
  * <p>
- * Safe for concurrent use, which the integration stage requires since it maps leg segments from worker threads.
+ * Safe for concurrent use, which the integration stage needs as it maps leg segments from worker threads.
  * </p>
  *
  * @param <I> type of issue recorded

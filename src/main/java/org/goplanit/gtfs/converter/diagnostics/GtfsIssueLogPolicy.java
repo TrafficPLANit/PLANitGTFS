@@ -13,9 +13,9 @@ public enum GtfsIssueLogPolicy {
 
   /**
    * Counted only: no line in the summary, no sample, and no entry in the persisted listing. For issues whose total is
-   * worth having so that the entities concerned are accounted for, but whose individual cases say nothing, such as
-   * feed entities lying far outside the area that was asked for. Listing those would cost memory and displace the
-   * retained cases of issues that are worth reading
+   * worth having, so the entities concerned are accounted for, but whose individual cases say nothing, such as feed
+   * entities far outside the area asked for. Listing those would cost memory and push out the retained cases of issues
+   * worth reading
    */
   SILENT_COUNT_ONLY,
 

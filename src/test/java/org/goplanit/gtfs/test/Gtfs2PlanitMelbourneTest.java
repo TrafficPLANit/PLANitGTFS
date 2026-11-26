@@ -32,10 +32,9 @@ import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * JUnit test cases for converting networks from one format to another. The PLANit reference network and zoning
- * used here should be in sync with the result produced in the PLANitOSM Melbourne test named:
- * osm_intermodal_no_services_bb. This way when anything material changes in how we parse OSM we can update this
- * network and zoning via that repo.
+ * JUnit test cases for converting networks from one format to another. The PLANit reference network and zoning used
+ * here should match the result of the PLANitOSM Melbourne test named osm_intermodal_no_services_bb, so when anything
+ * material changes in how OSM is parsed, this network and zoning can be updated via that repo.
  * 
  * @author markr
  *

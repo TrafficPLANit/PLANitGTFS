@@ -49,9 +49,8 @@ public class GtfsServicesReaderSettings extends GtfsConverterReaderSettingsWithM
    * PLANitTripSchedule, when false they are kept separate */
   private boolean groupIdenticalGtfsTrips = DEFAULT_GROUP_IDENTICAL_GTFS_TRIPS;
 
-  /** currently the GTFS parser will only generate PLANit services and service network based on a single
-   * reference day provided. If multiple are required
-   * the parser needs to be run multiple times.
+  /** the single reference day the GTFS parser currently generates PLANit services and service network for. For
+   * several days, run the parser once per day.
    *
    * todo: allow additional functionality to generate multiple results in one go
    */

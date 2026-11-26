@@ -8,18 +8,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Every way in which a GTFS entity can fail to arrive in the memory model intact, whether because the run asked for it,
- * because the parser cannot represent it, or because something went wrong.
+ * Every way a GTFS entity can fail to arrive in the memory model intact: because the run asked for it, because the
+ * parser cannot represent it, or because something went wrong.
  * <p>
  * An issue does not always cost the entity. A trip whose schedule survives while one of its legs has no physical path
- * is degraded rather than lost, and reporting only outright losses would leave that invisible. Hence each issue states
- * whether it discards the entity: discarding issues account for the difference between what was requested and what was
- * parsed, while the remainder are recorded against entities that were parsed regardless.
+ * is degraded, not lost, and reporting only outright losses would hide that. So each issue states whether it discards
+ * the entity: discarding issues account for the difference between what was requested and what was parsed, the others
+ * are recorded against entities parsed regardless.
  * </p>
  * <p>
- * Each issue also owns the wording used when it is reported, including the template for the entity specific context a
- * call site supplies. Holding it here rather than at the call site means an issue registered from several places reads
- * the same way from each of them, and that the wording can be changed in one place.
+ * Each issue also holds the wording used when it is reported, including the template for the entity specific context a
+ * call site supplies. Holding it here, not at the call site, means an issue registered from several places reads the
+ * same from each, and its wording can be changed in one place.
  * </p>
  *
  * @author markr
@@ -50,7 +50,8 @@ public enum GtfsParseIssue implements GtfsIssue {
 
   /**
    * every trip of the route runs wholly beyond the area the physical network covers, which the run reports against
-   * rather than parses by, so the route is read in full and removed only once the services are aligned with that network
+   * rather than parses by, so the route is read in full and removed only once the services are aligned with that
+   * network
    */
   ROUTE_OUTSIDE_NETWORK_AREA(
       GtfsParseStage.SERVICES, GtfsObjectType.ROUTE, GtfsIssueDisposition.BY_DESIGN, false,
@@ -135,11 +136,11 @@ public enum GtfsParseIssue implements GtfsIssue {
   /* SERVICES - stop times */
 
   /**
-   * Stop time belongs to a trip that was discarded for a cause that is not a matter of scope, the stop times of a trip
-   * beyond the day, the modes or the selection the run covers being named by the respect concerned instead.
+   * Stop time belongs to a trip discarded for a cause other than scope. The stop times of a trip beyond the day, the
+   * modes or the selection the run covers are named by the respect concerned instead.
    * <p>
    * Counted and nothing more, as every issue of a stop time is: a feed the size of Sydney's holds millions of them, and
-   * the trip's own discard already records what befell it
+   * the trip's own discard already records what happened to it
    * </p>
    */
   STOP_TIME_OF_DISCARDED_TRIP(
@@ -222,9 +223,9 @@ public enum GtfsParseIssue implements GtfsIssue {
       "ignored duplicate entry %1$s"),
 
   /**
-   * Stop lies well outside the bounding area the run was configured for, a feed covering more ground than the network
-   * being the normal case rather than a fault. Counted so that the stops of the feed add up, and nothing more: naming
-   * individual stops of another region tells nobody anything
+   * Stop lies well outside the bounding area the run was configured for; a feed covering more ground than the network
+   * is the normal case, not a fault. Counted only, so the stops of the feed add up: naming individual stops of another
+   * region tells nobody anything
    */
   STOP_OUTSIDE_BOUNDING_AREA(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.BY_DESIGN, true,
@@ -247,9 +248,9 @@ public enum GtfsParseIssue implements GtfsIssue {
       "stop %1$s at (%2$s, %3$s)"),
 
   /**
-   * No parsed routed service visits the stop, i.e. the service node it would sit on carries no service in the memory
-   * model. Whether the feed never served it, or a service that did was lost earlier in the services stage, cannot be
-   * told apart from here, which is why this states what was observed rather than a cause
+   * No parsed routed service visits the stop: the service node it would sit on carries no service in the memory model.
+   * Whether the feed never served it or a service that did was lost earlier in the services stage cannot be told from
+   * here, so this states what was observed, not a cause
    */
   STOP_NOT_SERVED_BY_ANY_PARSED_SERVICE(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.LIMITATION, true,
@@ -346,11 +347,10 @@ public enum GtfsParseIssue implements GtfsIssue {
       "stop %1$s at (%2$s, %3$s), transfer zone %4$s"),
 
   /**
-   * The stop is mapped to more than one transfer zone, either because settings name several for it, the stop
-   * covering platforms the zoning holds separately, or because the feed holds the stop more than once and each entry
-   * found its own. A stop is boarded from a single zone, so the others take on the stop's identity and modes without
-   * ever being reached by the services calling at it, which is the mapping being honoured as far as it can be rather
-   * than anything being wrong with it
+   * The stop is mapped to more than one transfer zone: settings name several for it, as the stop covers platforms the
+   * zoning holds separately, or the feed holds the stop more than once and each entry found its own. A stop is boarded
+   * from a single zone, so the others take on the stop's identity and modes but are never reached by the services
+   * calling at it. This is the mapping honoured as far as it can be, not anything wrong with it
    */
   STOP_TRANSFER_ZONE_MAPPING_NOT_BOARDED(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.LIMITATION, false,
@@ -390,9 +390,9 @@ public enum GtfsParseIssue implements GtfsIssue {
       "stop %1$s at (%2$s, %3$s)"),
 
   /**
-   * no link carrying the stop's mode lies anywhere near it, the network simply not extending to where the stop is.
-   * The run covers the area the network spans rather than the network itself, so a stop can stand within that area
-   * with nothing modelled around it, which is the extent supplied rather than a shortcoming of the parse
+   * no link carrying the stop's mode lies anywhere near it, as the network does not extend to where the stop is. The
+   * run covers the area the network spans, not the network itself, so a stop can be within that area with nothing
+   * modelled around it. That is due to the extent supplied, not a shortcoming of the parse
    */
   STOP_OUTSIDE_NETWORK_COVERAGE(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.BY_DESIGN, true,
@@ -418,9 +418,9 @@ public enum GtfsParseIssue implements GtfsIssue {
       "stop %1$s at (%2$s, %3$s)"),
 
   /**
-   * The stop was matched to a pre-existing transfer zone without a connectoid for any activated mode, on its platform
-   * code or its name, and connectoids were created for the zone at the stop's position. Not a discard: the stop is kept
-   * on the zone, but the zoning it came with should have connected the zone, so it is worth checking there
+   * The stop was matched, on its platform code or its name, to a pre-existing transfer zone without a connectoid for
+   * any activated mode, and connectoids were created for the zone at the stop's position. Not a discard: the stop is
+   * kept on the zone, but the zoning it came with should have connected the zone, so it is worth checking there
    */
   STOP_MATCHED_TRANSFER_ZONE_WITHOUT_CONNECTOID(
       GtfsParseStage.STOP, GtfsObjectType.STOP, GtfsIssueDisposition.PROBLEM, false,
@@ -504,9 +504,9 @@ public enum GtfsParseIssue implements GtfsIssue {
   /**
    * Constructor
    * <p>
-   * Both templates are composed from the same arguments, so a template that wants only some of them selects those
-   * positionally, e.g. {@code %2$s}. A template using positional references must use them throughout, since mixing the
-   * two forms makes which argument lands where depend on their order in the template
+   * Both templates are composed from the same arguments, so a template needing only some of them selects those by
+   * position, e.g. {@code %2$s}. A template using positional references must use them throughout: mixed with in order
+   * references, which argument lands where would depend on their order in the template
    * </p>
    *
    * @param stage the issue arises in
@@ -686,9 +686,8 @@ public enum GtfsParseIssue implements GtfsIssue {
   /**
    * Collect the issue going by the given name, where one does.
    * <p>
-   * Unlike {@code valueOf} an unrecognised name is not an error here. A name reaching this is one recorded elsewhere
-   * as the origin of a loss, and such a name need not be an issue at all, so not finding one is an answer rather
-   * than a failure
+   * Unlike {@code valueOf}, an unknown name is not an error here. The name is one recorded elsewhere as the origin of a
+   * loss, which need not be an issue at all, so not finding one is an answer, not a failure
    * </p>
    *
    * @param name to look for, may be null

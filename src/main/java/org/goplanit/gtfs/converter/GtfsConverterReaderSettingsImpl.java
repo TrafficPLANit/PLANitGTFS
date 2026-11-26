@@ -43,10 +43,9 @@ public class GtfsConverterReaderSettingsImpl implements GtfsConverterReaderSetti
   /** set a bounding polygon specific to GTFS parser */
   private Polygon boundingPolygon;
 
-  /** By default we allow ferries to be a fair way outside any bounding polygon and still be included.
-   * We do so because often water bodies are not part of a zoning system and would therefore not include connecting
-   * ferries. This is generally unwanted behaviour and therefore we automatically include all ferries within
-   * the specified distance outside the bounding polygon and still be included. */
+  /** By default ferries a fair way outside any bounding polygon are still included. Water bodies are often not part of
+   * a zoning system, which would leave out connecting ferries, and that is generally unwanted. So all ferries within
+   * this distance outside the bounding polygon are included. */
   private double maximumDistanceFerryOutsideBoundingPolygonInMeters =
       ProjectedBoundingAreaHelper.DEFAULT_MAX_FERRY_DISTANCE_OUTSIDE_BOUNDING_AREA_M;
 

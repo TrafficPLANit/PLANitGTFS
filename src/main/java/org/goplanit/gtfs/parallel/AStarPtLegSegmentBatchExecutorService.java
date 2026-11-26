@@ -253,13 +253,12 @@ public final class AStarPtLegSegmentBatchExecutorService {
   }
 
   /**
-   * Perform the integration for a given service layer's service leg's leg segment,
-   * where we identify a path on the physical network between the service nodes. Note that we create physical paths
-   * for the pt mode on the layer/segment regardless if an actual trip takes place between the leg segment stops.
+   * Map a leg segment of a service layer's service leg to the physical network, by finding a path between its service
+   * nodes. Physical paths are created for the pt mode on the layer/segment whether or not an actual trip runs between
+   * the leg segment stops.
    * <p>
-   *   Also note that if we find multiple paths between the two service nodes as a result of the service nodes
-   *   supporting multiple modes requiring different physical paths, we create additional legs and leg segments
-   *   between those two service nodes!!
+   *   If several paths are found between the two service nodes, because they support several modes needing different
+   *   physical paths, additional legs and leg segments are created between those two service nodes
    * </p>
    *
    * @param layer the segment resides in
@@ -278,9 +277,9 @@ public final class AStarPtLegSegmentBatchExecutorService {
 
   /**
    * Register a reason a service leg segment could not be mapped to the physical network. The segment is recorded
-   * under the GTFS stops it runs between, that being what identifies it on the GTFS side and not its own leg segment
-   * id. Mode and endpoints may legitimately be absent, that being the very thing some of these issues record, in
-   * which case the absence is stated rather than omitted
+   * under the GTFS stops it runs between, as that identifies it on the GTFS side, not its own leg segment id. Mode and
+   * endpoints may be absent, as some of these issues record exactly that, in which case the absence is stated, not
+   * omitted
    *
    * @param issue to register
    * @param gtfsStopIdUpstream GTFS stop the leg segment departs from
@@ -327,13 +326,13 @@ public final class AStarPtLegSegmentBatchExecutorService {
   }
 
   /**
-   * Determine what to attribute an unreachable endpoint to, being what the stop behind it was already discarded for
-   * where that happened, and otherwise the fact that it was not.
+   * Determine what to attribute an unreachable endpoint to: what the stop behind it was already discarded for, if it
+   * was, and otherwise the fact that it was not.
    * <p>
    * Both endpoints can be unreachable at once and for different reasons, yet the segment is lost only once and so
-   * stands in one subdivision. The reason nearest to the run's own choosing decides, a segment with an endpoint
-   * legitimately outside what was asked for having been unreachable whatever the parser did, so that counting it
-   * against the parser on account of its other endpoint would overstate what is left to fix
+   * stands in one subdivision. The reason nearest to the run's own choosing decides: a segment with an endpoint rightly
+   * outside what was asked for would have been unreachable whatever the parser did, so counting it against the parser
+   * because of its other endpoint would overstate what is left to fix
    * </p>
    *
    * @param gtfsStopIdUpstream GTFS stop id of the upstream endpoint

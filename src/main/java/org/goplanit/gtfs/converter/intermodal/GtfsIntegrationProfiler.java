@@ -21,8 +21,8 @@ public class GtfsIntegrationProfiler {
    * Tracks what became of the PLANit entities integration set out to build, holding both the totals reported here and
    * the reasons the remainder could not be built.
    * <p>
-   * Integration consumes GTFS entities that have already been read and accounted for, and produces PLANit ones, so
-   * what it has to report is entirely about the latter
+   * Integration uses GTFS entities already read and accounted for, and produces PLANit ones, so it only reports on the
+   * latter
    * </p>
    */
   private GtfsPlanitEntityDiagnostics planitEntityDiagnostics;
@@ -84,11 +84,10 @@ public class GtfsIntegrationProfiler {
   }
 
   /**
-   * Log how far the search has progressed as a single line, suitable for emitting repeatedly while results are still
+   * Log how far the search has progressed as a single line, suitable for logging repeatedly while results are still
    * coming in.
    * <p>
-   * How far along the search is, is what the line is for, so it is stated against the work there is rather than
-   * against the work done so far, which would put every line at its own completion
+   * Progress is stated against all the work there is, not the work done so far, which would put every line at 100%
    * </p>
    *
    * @param totalLegSegments a path is to be searched for, the whole of the work

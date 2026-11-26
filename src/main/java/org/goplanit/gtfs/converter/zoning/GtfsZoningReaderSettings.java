@@ -415,6 +415,7 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logSettings(int level) {
     LOGGER.info(LoggingUtils.settingsHeader("GTFS Zoning Reader Settings"));
     super.logSettings(level);
@@ -436,6 +437,8 @@ public class GtfsZoningReaderSettings extends GtfsConverterReaderSettingsWithMod
         String.format("%.1f", getMaxShapePointToIdealStopPointMeters()),
         level));
     LOGGER.info(LoggingUtils.settingsValue("Remove unused transfer zones", isRemoveUnusedTransferZones(), level));
+    LOGGER.info(LoggingUtils.settingsSection("Access/egress injection settings", level + 1));
+    accessEgressInjectionSettings.logSettings(level + 1);
   }
 
   /**

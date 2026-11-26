@@ -5,17 +5,16 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import java.util.regex.Pattern;
 
 /**
- * The entity specific context accompanying an issue, in the form a log line has room for and in the fuller form a
- * listing can afford, together with the arguments both are composed from.
+ * The entity specific context of an issue, in a short form for a log line and a fuller form for a listing, with the
+ * arguments both are composed from.
  * <p>
- * The arguments an issue expects are derived from its templates rather than declared beside them, so the two cannot
- * drift apart, and a call site supplying the wrong number fails where it is wrong rather than quietly producing a
- * malformed detail.
+ * The arguments an issue expects are derived from its templates, not declared beside them, so the two cannot drift
+ * apart, and a call site giving the wrong number fails there instead of quietly producing a malformed detail.
  * </p>
  * <p>
- * Both forms are composed from the same arguments, so a form wanting only some of them selects those positionally,
- * e.g. {@code %2$s}. A template using positional references must use them throughout, since mixing the two forms makes
- * which argument lands where depend on their order in the template.
+ * Both forms are composed from the same arguments, so a form needing only some of them selects those by position,
+ * e.g. {@code %2$s}. A template using positional references must use them throughout: mixed with in order references,
+ * which argument lands where would depend on their order in the template.
  * </p>
  *
  * @author markr

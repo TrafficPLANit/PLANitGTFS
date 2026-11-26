@@ -1,11 +1,11 @@
 package org.goplanit.gtfs.converter.diagnostics;
 
 /**
- * What an issue encountered while parsing a GTFS feed says about the parser.
+ * What an issue found while parsing a GTFS feed says about the parser.
  * <p>
- * The distinction exists because a count of lost entities on its own cannot be acted on: an entity dropped because the
- * run asked for it to be dropped and an entity dropped because the parser cannot represent it look identical in a
- * total, yet only the second is work to be done. Separating them turns the same numbers into a backlog.
+ * A count of lost entities alone cannot be acted on: an entity dropped because the run asked for it and one dropped
+ * because the parser cannot represent it look the same in a total, yet only the second is work to be done. Separating
+ * them turns the same numbers into a backlog.
  * </p>
  *
  * @author markr
@@ -24,14 +24,13 @@ public enum GtfsIssueDisposition {
   /**
    * Collect the disposition an occurrence carries, given what its issue is declared as and where the entity stood.
    * <p>
-   * What an issue declares is the disposition it carries for an entity the run meant to keep. An entity ruled out in
-   * any respect was not one of those, and its loss is then by design whatever issue names it, a parser cannot be
-   * faulted for failing to deliver what it was told to leave out
+   * An issue declares its disposition for an entity the run meant to keep. An entity ruled out in any respect was not
+   * one of those, so its loss is by design whatever issue names it: a parser cannot be faulted for not delivering what
+   * it was told to leave out
    * </p>
    * <p>
-   * The override runs one way only. Standing within scope does not make a loss a problem, several issues being
-   * deliberate for entities squarely inside the area, so a declared disposition is lowered by scope and never raised
-   * by it
+   * The override runs one way only. Standing within scope does not make a loss a problem, as several issues are by
+   * design for entities well inside the area. So scope can lower a declared disposition but never raise it
    * </p>
    *
    * @param declared disposition of the issue concerned

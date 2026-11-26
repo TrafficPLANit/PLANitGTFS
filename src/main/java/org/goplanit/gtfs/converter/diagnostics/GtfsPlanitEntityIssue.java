@@ -1,12 +1,11 @@
 package org.goplanit.gtfs.converter.diagnostics;
 
 /**
- * Reasons a PLANit entity the converter derives from the feed either could not be built, or was lost again once the
- * result was brought in line with the physical network.
+ * Reasons a PLANit entity the converter derives from the feed could not be built, or was lost again once the result
+ * was brought in line with the physical network.
  * <p>
- * An entity that was never built has no id of its own to be reported under, so each occurrence is recorded against the
- * GTFS entities it was to be built from instead. One that existed and was subsequently removed does have such an id,
- * and is reported under it
+ * An entity never built has no id of its own to be reported under, so each occurrence is recorded against the GTFS
+ * entities it was to be built from. One that existed and was later removed has such an id, and is reported under it
  * </p>
  *
  * @author markr
@@ -70,8 +69,8 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       "Endpoint has no usable access connectoid", Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
   /**
-   * Unable to find available transfer zone access nodes for the leg segment, the GTFS stop likely mapped to an
-   * incorrect physical access node upon an earlier path search. Unlike an endpoint without any access connectoid, the
+   * Unable to find available transfer zone access nodes for the leg segment; the GTFS stop was likely mapped to an
+   * incorrect physical access node in an earlier path search. Unlike an endpoint without any access connectoid, the
    * transfer zone does have connectoids, just not at the node the stop was mapped to
    */
   LEG_SEGMENT_ENDPOINT_ACCESS_NODE_MISMATCH(
@@ -81,9 +80,9 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       Templates.DETAIL, Templates.PERSISTED_DETAIL),
 
   /**
-   * the layer the leg segment resides on does not carry the mode the service runs, so there is nothing to search a
-   * path over. The leg segment is left unmapped, which should not arise and points at the layer the service was
-   * attributed to rather than at the feed
+   * the layer of the leg segment does not carry the mode the service runs, so there is nothing to search a path over.
+   * The leg segment is left unmapped. This should not arise, and points at the layer the service was attributed to,
+   * not at the feed
    */
   LEG_SEGMENT_MODE_NOT_ON_LAYER(
       GtfsPlanitEntityType.SERVICE_LEG_SEGMENT, GtfsIssueDisposition.PROBLEM,
@@ -159,10 +158,9 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       "Trip schedule removed, truncation left no viable trip", null, Templates.REMOVED_ENTITY_IDS),
 
   /**
-   * a trip schedule was put through the same truncation and nothing was left of it even though two of its stops ran
-   * one after the other within the network area, so a leg between them ought to have been mappable. Alone among the
-   * ways a schedule is lost here this one names no boundary, and so stands against the parser rather than explaining
-   * the loss away
+   * a trip schedule was put through the same truncation and nothing was left of it, even though two of its stops ran
+   * one after the other within the network area, so a leg between them should have been mappable. It is the only way a
+   * schedule is lost here that names no boundary, so it counts against the parser instead of explaining the loss away
    */
   TRIP_SCHEDULE_UNMAPPED_DESPITE_CONSECUTIVE_STOPS(
       GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.PROBLEM,
@@ -171,9 +169,9 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
       Templates.REMOVED_ENTITY_IDS),
 
   /**
-   * a trip schedule was folded into another running the same legs at the same relative times, the two being
-   * indistinguishable once the truncation had cut each back to the part within the network area. Its departures carry
-   * over to the schedule it was folded into, so what it ran is kept while the schedule itself is not
+   * a trip schedule was folded into another running the same legs at the same relative times, as the two could not be
+   * told apart once the truncation had cut each back to the part within the network area. Its departures carry over
+   * to the schedule it was folded into, so what it ran is kept while the schedule itself is not
    */
   TRIP_SCHEDULE_CONSOLIDATED_INTO_IDENTICAL(
       GtfsPlanitEntityType.ROUTED_TRIP_SCHEDULE, GtfsIssueDisposition.BY_DESIGN,
@@ -192,21 +190,22 @@ public enum GtfsPlanitEntityIssue implements GtfsIssue {
    */
   private static class Templates {
 
-    /** context accompanying the description in a log line, which has room only for what separates one case from another */
+    /** context accompanying the description in a log line, which has room only for what separates one case from
+     * another */
     private static final String DETAIL = "mode %1$s";
 
     /**
-     * Context accompanying the description where occurrences are listed in full, i.e. the PLANit side of what the
-     * entity was to be built between, set beside the GTFS entities it is listed under. Geometry is left out
-     * deliberately, being available against these same PLANit ids in the network output
+     * Context accompanying the description where occurrences are listed in full: the PLANit side of what the entity
+     * was to be built between, beside the GTFS entities it is listed under. Geometry is left out, as it is available
+     * against these same PLANit ids in the network output
      */
     private static final String PERSISTED_DETAIL =
         "mode %1$s, upstream transfer zone %2$s, downstream transfer zone %3$s";
 
     /**
      * Context accompanying an entity that existed and was removed again. The log line identifies it by its PLANit id
-     * alone, which is what the surrounding log speaks in, whereas a listing outliving the run states its ids in full so
-     * that the GTFS entity behind it remains reachable through its external id
+     * alone, as the surrounding log does, whereas a listing outliving the run states its ids in full, so the GTFS
+     * entity behind it can still be found through its external id
      */
     private static final String REMOVED_ENTITY_IDS = "%1$s";
   }

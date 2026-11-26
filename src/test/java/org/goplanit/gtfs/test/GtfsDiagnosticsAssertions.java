@@ -17,9 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * What must hold of a parse report whatever feed produced it.
  * <p>
- * The figures the report carries are its product, and a wrong one is far harder to notice than a failure: a share
- * beyond 100% or a respect that appears to let more through than reached it reads as a number rather than as a fault.
- * These say what cannot be true, so such a figure fails a test rather than waiting to be read.
+ * The figures are what the report is for, and a wrong one is far harder to notice than a failure: a share beyond 100%
+ * or a respect that seems to let more through than reached it reads as a number, not as a fault. These assertions say
+ * what cannot be true, so such a figure fails a test instead of waiting to be read.
  * </p>
  *
  * @author markr
@@ -41,10 +41,10 @@ public final class GtfsDiagnosticsAssertions {
   /**
    * Assert that every scope an issue was registered against is one its entity type was actually tallied under.
    * <p>
-   * The tally and the issue register speak about the same entities, the one saying how many stood where and the other
-   * why they were let go. Where an entity type is not indexed by id the two are established separately and can
-   * disagree, a respect then stating how much it ruled out while the entities it ruled out stand somewhere that
-   * respect never reports on
+   * The tally and the issue register speak about the same entities: the tally says how many stood where, the register
+   * why they were let go. Where an entity type is not indexed by id, the two are established separately and can
+   * disagree: a respect then states how much it ruled out while the entities it ruled out stand somewhere that respect
+   * never reports on
    * </p>
    *
    * @param diagnostics to verify
@@ -155,9 +155,9 @@ public final class GtfsDiagnosticsAssertions {
   /**
    * Assert that a written report matches the one recorded against it, line for line.
    * <p>
-   * Reserved for the summaries, which hold a row per counted cell. The per occurrence listings are capped by the
-   * retention limit and are therefore a sample rather than a record, so comparing them would fail for reasons that
-   * say nothing about correctness
+   * Only for the summaries, which hold a row per counted cell. The per occurrence listings are capped by the retention
+   * limit, so they are a sample, not a record, and comparing them would fail for reasons that say nothing about
+   * correctness
    * </p>
    *
    * @param outputDirectory the report was written to

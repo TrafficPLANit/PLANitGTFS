@@ -46,10 +46,9 @@ public class GtfsConverterReaderSettingsWithModeMapping extends GtfsConverterRea
     protected final RouteTypeChoice routeTypeChoice;
 
     /** Default mapping (specific to this (services) network) from each supported GTFS mode to PLANit predefined mode.
-     *  Not each mapping is necessarily activated. Multiple mappings per GTFS mode may exist indicating a primary
-     *  mapping (first) and fallback mappings where the latter indicate a GTFS mode may access pre-existing
-     *  stops/transfer zones of the seconday type in case the primary type is not present, e.g. trams using available
-     *  lightrail tagged stops for instance*/
+     *  Not every mapping is necessarily activated. A GTFS mode may have several mappings: the first is the primary
+     *  one, the others are fallbacks, meaning the GTFS mode may use pre-existing stops/transfer zones of the secondary
+     *  type when the primary type is not present, e.g. trams using available lightrail tagged stops*/
     protected  final Map<RouteType, List<PredefinedModeType>> defaultGtfsMode2PrefinedModeTypeMap;
 
     /** Activated GTFS modes. Not all possible mappings might be activated for parsing. */

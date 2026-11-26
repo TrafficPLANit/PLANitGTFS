@@ -6,13 +6,13 @@ import org.goplanit.utils.misc.Quadruple;
 /**
  * Where an entity stands in every respect a run is narrowed by, taken together.
  * <p>
- * Kept as one value rather than a scope per respect because the respects are only useful jointly: an entity that could
- * actually have been parsed is one within scope in every respect that applies to it, and that cannot be recovered from
- * the respects counted separately.
+ * Kept as one value, not a scope per respect, because the respects are only useful together: an entity that could have
+ * been parsed is one within scope in every respect that applies to it, which cannot be recovered from the respects
+ * counted separately.
  * </p>
  * <p>
- * Every combination is created once up front and handed out thereafter, so an entity holds a reference and nothing
- * more, and a respect settling is a lookup rather than an allocation. There are only
+ * Every combination is created once up front and handed out after that, so an entity holds only a reference, and a
+ * respect settling is a lookup, not an allocation. There are only
  * {@code GtfsEntityScope.values().length ^ GtfsScopeDimension.values().length} of them
  * </p>
  *

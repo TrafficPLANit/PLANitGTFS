@@ -3,12 +3,12 @@ package org.goplanit.gtfs.converter.diagnostics;
 import java.util.Arrays;
 
 /**
- * Columns of the per issue summary, i.e. one row per issue and subtype it arose within. Declaration order is the
- * column order in the file, so the values written and the headers written cannot drift apart.
+ * Columns of the per issue summary, one row per issue and subtype it arose within. Declaration order is the column
+ * order in the file, so the values and headers written cannot drift apart.
  * <p>
- * The written counterpart of the logged summary. The log collapses an issue to a line so it stays readable; here the
- * same figures are carried in full, including what each share was measured against, which a log line can only name
- * rather than show.
+ * The written counterpart of the logged summary. The log collapses an issue to one line to stay readable; here the
+ * same figures are given in full, including what each share was measured against, which a log line can only name,
+ * not show.
  * </p>
  *
  * @author markr

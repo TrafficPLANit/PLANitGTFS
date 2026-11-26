@@ -58,10 +58,9 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
   /** Track all registered/mapped transfer zones by their GTFS stop id */
   private Map<String, TransferZone> mappedTransferZoneByGtfsStopId;
 
-  /** track all supported pt service modes for (partly pre-existing) PLANit transfer zones that have and are to be
-   * created and their used directed connectoids so we can pinpoint PT stop locations on the physical road network
-   * more accurately rather than relying on the location of the transfer zone (pole, platform) which might cause
-   * mismatches compared to GTFS STOP locations */
+  /** track all supported pt service modes for (partly pre-existing) PLANit transfer zones, created or to be created,
+   * and their directed connectoids, to pinpoint PT stop locations on the physical road network more accurately than
+   * the location of the transfer zone (pole, platform), which might not match the GTFS stop locations */
   private Map<TransferZone,Set<TransferConnectoid>> transferZoneConnectoidIndex;
 
   /** track existing transfer zones present geo spatially to be able to fuse with GTFS data when appropriate */
@@ -71,10 +70,10 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
    * overwritten by user */
   private Map<String, TransferZone> preExistingTransferZonesByExternalId;
 
-  /** track all GTFS stops that have been mapped to pre-existing transfer zones. We do so, to allow for
-   * correcting earlier matches due to - for example - a transfer zone based on OSM was not complete and should be
-   * split in two, e.g. there are stops on both sides of the road, but OSM only contains a stop on one side.
-   * In that case we must be able to retrieve the earlier mapped GTFS stop and decide how to proceed
+  /** track all GTFS stops mapped to pre-existing transfer zones, so earlier matches can be corrected, for example when
+   * a transfer zone based on OSM was incomplete and should be split in two: there are stops on both sides of the
+   * road, but OSM only has a stop on one side. Then the earlier mapped GTFS stop must be retrievable to decide how to
+   * proceed
    */
   private Map<String, GtfsStop> mappedGtfsStops;
 
@@ -140,7 +139,7 @@ public class GtfsZoningHandlerTransferZoneData extends GtfsConverterModeMappingD
   }
 
   /**
-   * Register transfer as mapped to a GTFS stop, index it by its GtfsStopId, and register the stops as mapped.
+   * Register transfer zone as mapped to a GTFS stop, index it by its GtfsStopId, and register the stop as mapped.
    * <p>
    * A stop id indexes a single stop, so registering a second stop under an id already taken displaces the first, which
    * is returned to the caller to account for

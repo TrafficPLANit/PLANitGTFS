@@ -34,8 +34,8 @@ public class GtfsConverterReaderHelper {
    * underlying network's "rough" bounding area. Either way GTFS entities falling outside it are discarded, the derived
    * area is only rougher than one drawn by the user.
    * <p>
-   * Shared by the stages so that what is in scope is the same question in each of them, a stop that one stage
-   * considers beyond the area and another does not being worse than either answer on its own
+   * Shared by the stages so what is in scope is the same question in each: a stop that one stage considers beyond the
+   * area and another does not is worse than either answer on its own
    * </p>
    *
    * @param settings to source the user defined bounding area and ferry leniency from
@@ -79,13 +79,14 @@ public class GtfsConverterReaderHelper {
 
 
   /**
-   * Based on the settings which define both custom and predefined mappings, we construct the instance mappings from Gtfs mode to PLANit mode, e.g.,
-   * when a predefined mode type is configured, it results in an instance of that type on a network, this instance should be available in the passed in
-   * #allAvailablePlanitMdes, we then combine these mappings with the custom mode mappings on the settings to create a single consolidated set which can
-   * be used during parsing without the need of checking whether a mode is predefined or not.
+   * Construct the instance mappings from GTFS mode to PLANit mode, based on the settings, which define both custom and
+   * predefined mappings. A configured predefined mode type results in an instance of that type on a network, which
+   * should be available in the passed in allAvailablePlanitModes. These mappings are combined with the custom mode
+   * mappings on the settings into a single consolidated set, so parsing need not check whether a mode is predefined.
    *
    * @param settings the settings to obtain the activated two types od mode mappings from
-   * @param allAvailablePlanitModes the mode instances used that should be a superset of the activated mode mappings on the reader
+   * @param allAvailablePlanitModes the mode instances used that should be a superset of the activated mode mappings on
+   *                                the reader
    * @return consolidated set of both custom and predefined modes sourced from the allAvailablePlanitModes
    */
   public static HashMap<RouteType, List<Mode>> createCombinedActivatedPlanitModes(
@@ -125,12 +126,12 @@ public class GtfsConverterReaderHelper {
   }
 
   /**
-   * Use when it is the time to make sure that the mapped predefined PLANit modes exist as actual mode instances, so supplement the provides
-   * modes container where needed based on the configuration.
+   * Make sure the mapped predefined PLANit modes exist as actual mode instances, adding them to the network's modes
+   * where needed based on the configuration.
    * <p>
-   *   Also check based on the type of mode (track type, e.g., water/rail,road) that we only do so, if at least one mode exists
-   *   of the same track type. If not log a warning. For example, if we have activate tram, but no rail based mode layers exist
-   *   in the network, there is no point in activating, instead log a warning and deactivate on the GTFS settings instead
+   *   A mode is only added if the network has at least one mode of the same track type (e.g., water, rail, road). If
+   *   not, a warning is logged and the mode is deactivated on the GTFS settings. For example, with tram activated but
+   *   no rail based mode layers in the network, there is no point in activating it
    * </p>
    *
    * @param settings to base modes configuration on

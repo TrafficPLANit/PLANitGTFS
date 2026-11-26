@@ -69,11 +69,9 @@ public class GtfsTransferZoneHelper {
   }
 
   /**
-   * Verify based on driving direction and orientation of the access link segment(s) whether the GTFS stop is a viable
-   * match for the
-   * found transfer zone in terms of being on the correct side of the road. The assumption here is that this pertains
-   * to a road based stop
-   * not rail and connectoids being available for the provided transfer zone to extract this information
+   * Verify, based on driving direction and orientation of the access link segment(s), whether the GTFS stop is a
+   * viable match for the found transfer zone in terms of being on the correct side of the road. This assumes a road
+   * based stop, not rail, and that connectoids are available for the provided transfer zone to extract this from
    *
    * @param gtfsStop to verify
    * @param gtfsMode used

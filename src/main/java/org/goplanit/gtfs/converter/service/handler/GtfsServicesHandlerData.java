@@ -53,18 +53,17 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
   /** index routed services by mode */
   Map<Mode, RoutedServicesLayer> routedServiceLayerByMode;
 
-  /** in anticipation of mapping to physical link segments, we must be able to determine if a leg will be attributed to a particular mode
-   * to avoid having to split legs between adjacent stops servicing multiple modes (and requiring a different physical mapping). This is where
-   * we track this
+  /** the mode each leg is attributed to. Knowing it ahead of the mapping to physical link segments avoids having to
+   * split legs between adjacent stops serving several modes (each needing a different physical mapping)
    */
   Map<ServiceLeg, Mode> serviceLegMapMapping;
 
   /**
    * GTFS ids of the stops within the area the run covers, established by the stop scope pre-pass.
    * <p>
-   * Transient, unlike the rest of the state tracked here. It exists only so that stop times can settle the scope of the
-   * trip they belong to, and is released as soon as stop times have been read. Only the stops within the area are held, those
-   * being the fewer of the two by a wide margin
+   * Transient, unlike the rest of the state tracked here. It exists only so stop times can settle the scope of their
+   * trip, and is released as soon as stop times have been read. Only the stops within the area are held, as they are by
+   * far the fewer
    * </p>
    */
   Set<String> gtfsStopIdsWithinArea;
@@ -194,10 +193,9 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
   }
 
   /**
-   * Discard the stop scope established by the pre-pass, it having served its purpose once stop times are read. With a
-   * bounding area covering most of a feed this approaches an entry per stop, which is not worth holding for the
-   * remainder of the parse. Emptied as well as dropped, so that the entries are freed even where something still holds
-   * a reference to the set
+   * Discard the stop scope found by the pre-pass, which has served its purpose once stop times are read. With a
+   * bounding area covering most of a feed it nears an entry per stop, not worth holding for the rest of the parse. The
+   * set is emptied as well as dropped, so its entries are freed even where something still holds a reference to it
    */
   public void releaseGtfsStopScope() {
     this.gtfsStopIdsWithinArea.clear();
@@ -369,12 +367,12 @@ public class GtfsServicesHandlerData extends GtfsConverterModeMappingData {
   }
 
   /**
-   * GTFS Services are ingested and lead to PLANit service nodes to be created based on GTFS stop ids. When at some later point in time
-   * these PLANit service nodes are to be linked to PLANit transfer zones (which in turn have an association with a GTFS stop) the mapping
-   * between PLANit service node and its underlying GTFS stop needs to remain available. This function provides this mapping.
+   * Reading GTFS services creates PLANit service nodes based on GTFS stop ids. When these service nodes are later
+   * linked to PLANit transfer zones (which in turn are associated with a GTFS stop), the mapping from service node to
+   * its underlying GTFS stop must still be available. This function provides that mapping.
    * <p>
-   *   For now this mapping is purely based on the external id, but if this changes using this explicit functional approach allows
-   *   us to change this without having to change the process flow itself
+   *   For now the mapping is purely based on the external id. If that changes, this explicit function means the
+   *   process flow itself need not change
    * </p>
    *
    * @return mapping from PLANit service node to underlying source GTFS stop id

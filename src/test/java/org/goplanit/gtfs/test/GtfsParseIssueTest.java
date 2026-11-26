@@ -22,9 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Verify that every GTFS parse issue is reportable, i.e. that its wording is well formed and that the arguments it
  * declares can actually be applied to it.
  * <p>
- * The converter has carried several format strings whose placeholders did not match the arguments supplied, each of
- * which compiled and reached a run before being noticed. Now that the wording sits on the issue rather than at the call
- * site, every template can be exercised here instead
+ * Format strings whose placeholders do not match the arguments supplied still compile and are only noticed once a run
+ * reaches them, as happened several times. As the wording sits on the issue, not at the call site, every template can
+ * be exercised here instead
  * </p>
  *
  * @author markr
@@ -120,9 +120,9 @@ public class GtfsParseIssueTest {
   }
 
   /**
-   * The persisted form is the record of an occurrence, so every argument a call site is made to supply must appear in
-   * it. A logged form may show fewer, since it competes for room on a single line, but an argument collected and then
-   * dropped from the record would be work done for nothing
+   * The persisted form is the record of an occurrence, so every argument a call site supplies must appear in it. A
+   * logged form may show fewer, as it competes for room on a single line, but an argument collected and then left out
+   * of the record would be work done for nothing
    */
   @Test
   public void persistedDetailCarriesEveryArgumentTest() {
@@ -138,9 +138,9 @@ public class GtfsParseIssueTest {
   }
 
   /**
-   * A template referring to its arguments positionally must do so throughout. Mixing the two forms is accepted by the
-   * formatter but makes which argument lands where depend on the order the references appear in, so a template growing
-   * a single in order reference would silently reshuffle what it reports
+   * A template referring to its arguments by position must do so throughout. The formatter accepts mixed references,
+   * but then which argument lands where depends on the order the references appear in, so adding a single in order
+   * reference to a template would silently reshuffle what it reports
    */
   @Test
   public void noTemplateMixesArgumentReferenceStylesTest() {

@@ -55,9 +55,9 @@ public class AStarBatchExecutionData {
   /**
    * what a GTFS stop was discarded for during the preceding stages, null where it survived them or was never seen.
    * <p>
-   * An endpoint of a leg segment that cannot be reached is only worth reporting as a fault of this integration when
-   * the stop behind it was one the run meant to keep. Where it was already let go for a reason of its own, that reason
-   * is the explanation and this lookup supplies it
+   * An unreachable endpoint of a leg segment is only worth reporting as a fault of this integration when the stop
+   * behind it was one the run meant to keep. Where the stop was already let go for a reason of its own, that reason
+   * explains it, and this lookup supplies it
    * </p>
    */
   private final Function<String, GtfsParseIssue> gtfsStopIdToDiscardIssueMapping;

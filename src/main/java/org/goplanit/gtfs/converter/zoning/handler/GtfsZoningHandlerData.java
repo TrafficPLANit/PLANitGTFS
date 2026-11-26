@@ -53,10 +53,10 @@ public class GtfsZoningHandlerData extends GtfsConverterModeMappingData {
   /** profiler stats to update across applying of various zoning handlers that use this data instance */
   private final GtfsZoningHandlerProfiler handlerProfiler;
 
-  /** All pre-existing service nodes and the modes this node supports by means of the routed services that visit id
-   * by their GTFS stop id. Note that service nodes might reside in a layer supporting many modes, while the
-   * service node itself only covers a few routed services with a subset of modes, therefore we identify
-   * those separately for better matching results when mapping service nodes/stops to GTFS STOPS here*/
+  /** All pre-existing service nodes, by their GTFS stop id, with the modes each supports through the routed services
+   * visiting it. A service node may reside in a layer supporting many modes while itself only covering a few routed
+   * services with a subset of modes, so these are identified separately, for better matching results when mapping
+   * service nodes/stops to GTFS stops here*/
   private Map<String, Pair<ServiceNode, List<Mode>>> serviceNodeModesByGtfsStopId;
 
   // LOCAL DATA TRACKING - UPDATED WHILE PROCESSING

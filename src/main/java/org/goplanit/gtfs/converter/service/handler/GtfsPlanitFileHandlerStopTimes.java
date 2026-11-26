@@ -23,17 +23,17 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Handler for handling GTFS stop times to populate PLANit service (network/routed services) memory model
+ * Handler for GTFS stop times, populating the PLANit service (network/routed services) memory model
  * <p>
  *   Prerequisites:
- *   (i) It is assumed routed services and service network are available and layers are initialised, (ii) it is assumed
- *   the sequence of stops per trip is increasing while traversing the file, i.e., a stop with sequence 1 will always be parsed before
- *   any other stop with sequence greater than 1.
+ *   (i) routed services and service network are available and their layers initialised, (ii) the sequence of stops
+ *   per trip increases through the file, i.e., a stop with sequence 1 is always parsed before any other stop with
+ *   sequence greater than 1.
  * </p>
  * <p>
- *   As part of this handler, we create schedule based trips as needed where we make no effort to consolidate trips that have the
- *   same schedule but different departure times yet, i.e., we create a single schedule based trip with a single departure and relative timings
- *   per chain of stop times. In other words a GTFS trip will correspond 1:1 to a PLANit trip after parsing
+ *   This handler creates schedule based trips as needed and does not yet consolidate trips with the same schedule but
+ *   different departure times: each chain of stop times gets a single schedule based trip with a single departure and
+ *   relative timings. So a GTFS trip corresponds 1:1 to a PLANit trip after parsing
  * </p>
  * @author markr
  *
@@ -52,9 +52,10 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   /** track found GTFS routes for stop, if stop is indicated to be tracked for passing routes */
   private final Map<String, Set<String>> uniqueRoutesForStopsIfLoggingRequired = new HashMap<>();
 
-  /** track previous entry's related GTFS trip - as for now we assume they will only be provided in consecutive order within the file,
-   * If for a given GTFS file this is violated, we will need to have a more sophisticated way: either first parse all entries and then process in order
-   * (memory intensive), or, on the fly change the PLANit memory model (departures, stop ordering). The latter seems a better approach)
+  /** the GTFS trip of the previous entry. For now a trip's stop times are assumed to be consecutive within the file.
+   * If a GTFS file violates this, a more sophisticated way is needed: either first parse all entries and then process
+   * them in order (memory intensive), or change the PLANit memory model (departures, stop ordering) while parsing.
+   * The latter seems the better approach
    */
   private GtfsTrip prevStopTimeTrip;
 
@@ -218,14 +219,14 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   /**
    * Drop the PLANit trip built for a GTFS trip that runs wholly beyond the area the run covers.
    * <p>
-   * Its stops are all outside, so nothing of it survives to the result; today it is carried the whole way and removed
-   * only once the service network is truncated. Dropping it as soon as its scope is settled spares the clean-up,
-   * consolidation and truncation from handling it at all, and attributes the loss to where the trip runs rather than
-   * to whichever check would otherwise have failed last
+   * Its stops are all outside, so nothing of it survives to the result; otherwise it would be carried the whole way and
+   * removed only once the service network is truncated. Dropping it as soon as its scope is settled spares the
+   * clean-up, consolidation and truncation from handling it at all, and attributes the loss to where the trip runs,
+   * not to whichever check would otherwise have failed last
    * </p>
    * <p>
-   * A trip leaving the area and returning to it is deliberately left alone. It has a part worth keeping, and splitting
-   * it into the partials that represent that is what the truncation already does
+   * A trip leaving the area and returning to it is left alone: it has a part worth keeping, and the truncation already
+   * splits it into the partial trips that represent that
    * </p>
    *
    * @param gtfsTrip to drop when it lies wholly outside, ignored when null
@@ -261,12 +262,12 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
   }
 
   /**
-   * Settle a GTFS trip none of whose stop times were taken up, every one of them having departed outside the time
-   * period the run covers.
+   * Settle a GTFS trip none of whose stop times were taken up, as all of them departed outside the time period the run
+   * covers.
    * <p>
-   * That window narrows the run in time just as the chosen day does, so the trip stands outside its temporal scope and
-   * is named there. Settled only once the last of the trip's stop times has been seen, a trip whose departure falls
-   * outside the window still being taken up from the first stop time that falls within it
+   * That time period narrows the run in time just as the chosen day does, so the trip is outside its temporal scope
+   * and is named there. Settled only once the last of the trip's stop times has been seen, since a trip departing
+   * outside the time period is still taken up from its first stop time within it
    * </p>
    *
    * @param gtfsTrip to settle, ignored when null
@@ -301,14 +302,14 @@ public class GtfsPlanitFileHandlerStopTimes extends GtfsFileHandlerStopTimes {
    * Settle where a GTFS stop time stands in every respect the run is narrowed by and count it there, naming the
    * respect that ruled it out where one did.
    * <p>
-   * Counted against the standing rather than indexed under its own id, a feed holding millions of stop times. Where it
-   * sits comes from its own stop, while the day it runs, the modes it serves and whether it was asked for belong to the
-   * trip it is part of, and so are taken from where that trip was settled. That standing survives the trip's own
-   * discard, being held against the trip id rather than against the trip
+   * Counted against its standing, not indexed under its own id, as a feed holds millions of stop times. Where it sits
+   * comes from its own stop. The day it runs, the modes it serves and whether it was asked for belong to its trip, so
+   * they are taken from where that trip was settled. That standing survives the trip's own discard, as it is held
+   * against the trip id, not the trip
    * </p>
    * <p>
-   * The time period the run covers narrows trips rather than stop times and is settled only once every stop time of a
-   * trip has been seen, so it is reported against the trip and leaves no mark here
+   * The time period the run covers narrows trips, not stop times, and is settled only once every stop time of a trip
+   * has been seen, so it is reported against the trip and leaves no mark here
    * </p>
    *
    * @param gtfsStopTime to settle

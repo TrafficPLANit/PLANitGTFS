@@ -4,11 +4,11 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 
 /**
- * Emits what became of a GTFS feed once everything that will be parsed from it has been.
+ * Reports what became of a GTFS feed once everything to be parsed from it has been parsed.
  * <p>
- * A parse collects its account across several stages, and any one of them read on its own says little. The report is
- * therefore emitted once, by whoever ran the last stage, which is the reader itself when it is used on its own and the
- * wrapping reader when it drives several
+ * A parse collects its diagnostics over several stages, and one stage read on its own says little. So the report is
+ * made once, by whoever ran the last stage: the reader itself when used on its own, or the wrapping reader when it
+ * drives several
  * </p>
  *
  * @author markr

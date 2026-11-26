@@ -34,10 +34,9 @@ import java.util.function.ObjLongConsumer;
 import java.util.logging.Logger;
 
 /**
- * Parse GTFS input in supplement or populate a PLANit zoning instance with the parsed/matched GTFS entities.
- * In case an existing zoning instance is provided, the GTFS will supplement the existing public transport
- * infrastructure where possible, while if the zoning is empty it will create new entries for each of the found
- * transfer zones (pt stops etc).
+ * Parse GTFS input to supplement or populate a PLANit zoning instance with the parsed/matched GTFS entities. Given an
+ * existing zoning, the GTFS supplements its public transport infrastructure where possible; given an empty zoning, it
+ * creates new entries for each transfer zone found (pt stops etc).
  *
  * @author markr
  *

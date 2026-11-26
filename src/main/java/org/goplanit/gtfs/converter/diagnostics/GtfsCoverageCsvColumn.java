@@ -3,12 +3,12 @@ package org.goplanit.gtfs.converter.diagnostics;
 import java.util.Arrays;
 
 /**
- * Columns of the coverage summary holding the totals the logged summary is derived from. Declaration order is the
- * column order in the file, so the values written and the headers written cannot drift apart.
+ * Columns of the coverage summary, holding the totals the logged summary is derived from. Declaration order is the
+ * column order in the file, so the values and headers written cannot drift apart.
  * <p>
- * Each row is a disjoint bucket within an entity type, being a category it was registered under such as a route type,
- * or an empty category holding whatever was registered without one. Summing the rows of a type therefore yields that
- * type's totals, which is why no row restating those totals is written.
+ * Each row is a disjoint bucket within an entity type: a category it was registered under, such as a route type, or
+ * an empty category for whatever was registered without one. Summing the rows of a type gives that type's totals, so
+ * no row repeating those totals is written.
  * </p>
  *
  * @author markr
