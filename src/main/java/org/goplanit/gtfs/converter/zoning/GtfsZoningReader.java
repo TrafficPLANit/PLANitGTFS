@@ -17,6 +17,7 @@ import org.goplanit.gtfs.enums.GtfsKeyType;
 import org.goplanit.gtfs.reader.GtfsFileReaderStops;
 import org.goplanit.gtfs.reader.GtfsReaderFactory;
 import org.goplanit.gtfs.scheme.GtfsFileSchemeFactory;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetworkModifierUtils;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
@@ -29,6 +30,7 @@ import org.goplanit.zoning.ZoningModifierUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
+import java.util.function.ObjLongConsumer;
 import java.util.logging.Logger;
 
 /**
@@ -158,8 +160,8 @@ public class GtfsZoningReader implements ZoningReader {
 
     /* what the zoning already held, the feed being one contributor to it rather than its author. Counted from the
      * containers themselves so that every path adding to them is accounted for, whichever stage takes it */
-    registerZoningPresence(planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerPreExisting);
-    registerPhysicalNetworkPresence(planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerPreExisting);
+    registerZoningPresence(planitEntityDiagnostics::registerPreExisting);
+    registerPhysicalNetworkPresence(planitEntityDiagnostics::registerPreExisting);
     /* PLANit specific handler */
     var stopsHandler = new GtfsPlanitFileHandlerStops(gtfsZoningHandlerData);
 
@@ -184,14 +186,15 @@ public class GtfsZoningReader implements ZoningReader {
         gtfsZoningHandlerData.getConverterData());
     accessEgressExecutor.execute(getSettings().accessEgressInjectionSettings);
 
-    registerZoningPresence(planitEntityDiagnostics, (diagnostics, entityType, count) ->
+    registerZoningPresence((entityType, count) ->
         /* what is there now beyond what was there before is what the stop stage put there */
-        diagnostics.registerDesired(entityType, count - diagnostics.getPreExisting(entityType)));
+        planitEntityDiagnostics.registerDesired(
+            entityType, count - planitEntityDiagnostics.getPreExisting(entityType)));
 
     /* the network is only ever broken open, never cut back, so what it holds now is what is in the result. What it
      * gained is recorded where each break happens rather than counted here, so that the two can be held against
      * each other */
-    registerPhysicalNetworkPresence(planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerCreated);
+    registerPhysicalNetworkPresence(planitEntityDiagnostics::registerCreated);
 
     /* stops outnumber the zones they are boarded from, a feed identifying a stop per route or direction where the
      * zoning holds the single place they board from, so how they divide over those places is recorded while the
@@ -205,28 +208,21 @@ public class GtfsZoningReader implements ZoningReader {
    * Apply the given registration to the zoning entities the feed contributes to, each against the number of them
    * the zoning holds at this moment
    *
-   * @param planitEntityDiagnostics to register into
-   * @param registration to apply
+   * @param registration to apply, taking the entity type and the number of its entities
    */
-  private void registerZoningPresence(
-      final GtfsPlanitEntityDiagnostics planitEntityDiagnostics, final ZoningPresenceRegistration registration) {
-    registration.apply(
-        planitEntityDiagnostics, GtfsPlanitEntityType.TRANSFER_ZONE, zoning.getTransferZones().size());
-    registration.apply(
-        planitEntityDiagnostics, GtfsPlanitEntityType.CONNECTOID, zoning.getTransferConnectoids().size());
-    registration.apply(
-        planitEntityDiagnostics, GtfsPlanitEntityType.TRANSFER_ZONE_GROUP, zoning.getTransferZoneGroups().size());
+  private void registerZoningPresence(final ObjLongConsumer<GtfsPlanitEntityType> registration) {
+    registration.accept(GtfsPlanitEntityType.TRANSFER_ZONE, zoning.getTransferZones().size());
+    registration.accept(GtfsPlanitEntityType.CONNECTOID, zoning.getTransferConnectoids().size());
+    registration.accept(GtfsPlanitEntityType.TRANSFER_ZONE_GROUP, zoning.getTransferZoneGroups().size());
   }
 
   /**
    * Apply the given registration to the physical network entities the feed contributes to, each against the number
    * of them the network holds at this moment
    *
-   * @param planitEntityDiagnostics to register into
-   * @param registration to apply
+   * @param registration to apply, taking the entity type and the number of its entities
    */
-  private void registerPhysicalNetworkPresence(
-      final GtfsPlanitEntityDiagnostics planitEntityDiagnostics, final ZoningPresenceRegistration registration) {
+  private void registerPhysicalNetworkPresence(final ObjLongConsumer<GtfsPlanitEntityType> registration) {
     long nodes = 0;
     long links = 0;
     long linkSegments = 0;
@@ -235,27 +231,9 @@ public class GtfsZoningReader implements ZoningReader {
       links += networkLayer.getLinks().size();
       linkSegments += networkLayer.getLinkSegments().size();
     }
-    registration.apply(planitEntityDiagnostics, GtfsPlanitEntityType.NODE, nodes);
-    registration.apply(planitEntityDiagnostics, GtfsPlanitEntityType.LINK, links);
-    registration.apply(planitEntityDiagnostics, GtfsPlanitEntityType.LINK_SEGMENT, linkSegments);
-  }
-
-  /**
-   * How a count of zoning entities present is recorded
-   */
-  @FunctionalInterface
-  private interface ZoningPresenceRegistration {
-
-    /**
-     * Record the given number of entities of the given type
-     *
-     * @param planitEntityDiagnostics to record into
-     * @param entityType concerned
-     * @param numberOfEntities present
-     */
-    void apply(
-        GtfsPlanitEntityDiagnostics planitEntityDiagnostics, GtfsPlanitEntityType entityType,
-        long numberOfEntities);
+    registration.accept(GtfsPlanitEntityType.NODE, nodes);
+    registration.accept(GtfsPlanitEntityType.LINK, links);
+    registration.accept(GtfsPlanitEntityType.LINK_SEGMENT, linkSegments);
   }
 
 
@@ -268,6 +246,14 @@ public class GtfsZoningReader implements ZoningReader {
     LOGGER.info("Processing: Identifying GTFS Stops, supplementing PLANit transfer zones memory model...");
     processGtfsStops(zoningHandlerData);
     LOGGER.info("Processing: GTFS stops Done");
+  }
+
+  /**
+   * Stop this reader reporting what became of the feed when it completes, for a caller that drives it as one stage of
+   * a wider parse and reports on all of them itself once they have run
+   */
+  protected void suppressCoverageReport() {
+    this.reportCoverage = false;
   }
 
   /**
@@ -331,7 +317,7 @@ public class GtfsZoningReader implements ZoningReader {
 
     if(reportCoverage){
       /* no clean-up follows, so what the zoning holds now is what is in the result */
-      registerZoningPresence(this.planitEntityDiagnostics, GtfsPlanitEntityDiagnostics::registerCreated);
+      registerZoningPresence(this.planitEntityDiagnostics::registerCreated);
 
       /* this reader is the whole parse, so what became of the feed is complete and can be reported */
       GtfsCoverageReport.report(
@@ -388,14 +374,6 @@ public class GtfsZoningReader implements ZoningReader {
   }
 
   /**
-   * Stop this reader reporting what became of the feed when it completes, for a caller that drives it as one stage of
-   * a wider parse and reports on all of them itself once they have run
-   */
-  void suppressCoverageReport() {
-    this.reportCoverage = false;
-  }
-
-  /**
    * Provide mapping between GTFS Stop id and its found/created PLANit transfer zone (if any)
    *
    * @return function that takes a GTFS stop id (String) and produces the PLANit transfer zone that goes with it if any)
@@ -406,6 +384,14 @@ public class GtfsZoningReader implements ZoningReader {
       return null;
     }
     return gtfsStopIdToTransferZoneMapping;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetwork getReferenceNetwork() {
+    return serviceNetwork.getParentNetwork();
   }
 
 
